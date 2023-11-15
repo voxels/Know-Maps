@@ -1,0 +1,522 @@
+[
+	{
+		"tokens":["Can","you","share","your","thoughts","on","the","seamless","orchestration","of","flavors","and","textures","at","The","River","Café"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "PLACE", "PLACE", "PLACE"]
+	},
+	{
+		"tokens":["Are","there","any","eateries","around","here","that","welcome","pets"],
+		"labels":["NONE", "NONE", "NONE", "TASTE", "NONE", "NONE", "NONE", "NONE", "TASTE"]
+	},
+	{
+		"tokens":["Are","there","any","outdoor","meditation","or","mindfulness","retreats","in","the","area"],
+		"labels":["NONE", "NONE", "NONE", "TASTE", "TASTE", "NONE", "TASTE", "TASTE", "NONE", "NONE", "NONE"]
+	},
+	{
+		"tokens":["Can","you","suggest","a","pizza","restaurant","with","a","good","selection","of","craft","beers","to","pair","with","the","pizza"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "TASTE", "CATEGORY", "NONE", "NONE", "NONE", "NONE", "NONE", "TASTE", "TASTE", "NONE", "NONE", "NONE", "NONE", "TASTE"]
+	},
+	{
+		"tokens":["Are","there","any","famous","archaeological","sites","or","ancient","ruins","to","explore"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "CATEGORY", "CATEGORY", "NONE", "TASTE", "TASTE", "NONE", "NONE"]
+	},
+	{
+		"tokens":["Where","can","I","find","a","good","selection","of","bookstores","or","literary","shops"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "CATEGORY", "NONE", "CATEGORY", "CATEGORY"]
+	},
+	{
+		"tokens":["Which","pizza","place","is","known","for","their","unique","and","creative","toppings"],
+		"labels":["NONE", "TASTE", "NONE", "NONE", "NONE", "NONE", "NONE", "TASTE", "NONE", "TASTE", "TASTE"]
+	},
+	{
+		"tokens":["Are","there","any","virtual","reality","arcades","or","gaming","centers","for","a","futuristic","experience"],
+		"labels":["NONE", "NONE", "NONE", "CATEGORY", "CATEGORY", "CATEGORY", "NONE", "CATEGORY", "CATEGORY", "NONE", "NONE", "TASTE", "NONE"]
+	},
+	{
+		"tokens":["Are","there","any","restaurants","that","specialize","in","gluten-free","cuisine"],
+		"labels":["NONE", "NONE", "NONE", "CATEGORY", "NONE", "NONE", "NONE", "TASTE", "TASTE"]
+	},
+	{
+		"tokens":["Where","can","I","dine","while","enjoying","live","performances"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "TASTE", "TASTE"]
+	},
+	{
+		"tokens":["What","are","the","transportation","options","for","reaching","Amsterdam"],
+		"labels":["NONE", "NONE", "NONE", "CATEGORY", "NONE", "NONE", "NONE", "PLACE"]
+	},
+	{
+		"tokens":["Where","can","I","find","restaurants","that","are","sensitive","to","dietary","restrictions"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "CATEGORY", "NONE", "NONE", "NONE", "NONE", "TASTE", "TASTE"]
+	},
+	{
+		"tokens":["Can","you","describe","the","iconic","landmarks","and","architectural","gems","that","grace","Prospect","Park"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "TASTE", "CATEGORY", "NONE", "TASTE", "TASTE", "NONE", "NONE", "PLACE", "PLACE"]
+	},
+	{
+		"tokens":["What","are","the","best","places","for","a","leisurely","boat","ride","or","canal","tour"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "TASTE", "CATEGORY", "CATEGORY", "NONE", "CATEGORY", "CATEGORY"]
+	},
+	{
+		"tokens":["Are","there","restaurants","around","here","with","a","to-go","option"],
+		"labels":["NONE", "NONE", "CATEGORY", "NONE", "NONE", "NONE", "NONE", "TASTE", "NONE"]
+	},
+	{
+		"tokens":["Can","you","suggest","any","stores","or","shops","for","gourmet","food","or","specialty","ingredients"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "CATEGORY", "NONE", "CATEGORY", "NONE", "TASTE", "TASTE", "NONE", "TASTE", "TASTE"]
+	},
+	{
+		"tokens":["What","are","some","popular","neighborhoods","or","areas","to","explore","in","this","city"],
+		"labels":["NONE", "NONE", "NONE", "TASTE", "CATEGORY", "NONE", "CATEGORY", "NONE", "NONE", "NONE", "NONE", "NONE"]
+	},
+	{
+		"tokens":["Where","can","I","find","the","best","spots","for","beachcombing","or","collecting","seashells"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "CATEGORY", "NONE", "CATEGORY", "CATEGORY"]
+	},
+	{
+		"tokens":["What","are","the","best","places","for","a","scenic","picnic","or","outdoor","relaxation"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "TASTE", "CATEGORY", "NONE", "TASTE", "TASTE"]
+	},
+	{
+		"tokens":["Where","can","I","find","a","good","Italian","restaurant"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "TASTE", "CATEGORY"]
+	},
+	{
+		"tokens":["Are","there","any","specific","historical","sites","or","landmarks","that","are","significant","to","the","city"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "TASTE", "CATEGORY", "NONE", "CATEGORY", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE"]
+	},
+	{
+		"tokens":["Can","you","recommend","any","nearby","wildlife","safari","parks","or","animal","reserves"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "NONE", "CATEGORY", "CATEGORY", "CATEGORY", "NONE", "CATEGORY", "CATEGORY"]
+	},
+	{
+		"tokens":["What","are","some","spots","that","specialize","in","offering","a","range","of","craft","beers"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "TASTE", "CATEGORY"]
+	},
+	{
+		"tokens":["I'd","appreciate","it","if","you","could","share","the","address","for","the","bookstore"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE","NONE", "NONE", "NONE", "CATEGORY"]
+	},
+	{
+		"tokens":["Where","should","I","grab","a","meal","that","is","both","quick","and","healthy"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "NONE", "CATEGORY", "NONE", "NONE", "NONE", "TASTE", "NONE", "TASTE"]
+	},
+	{
+		"tokens":["Are","there","any","pizzerias","known","for","their","authentic","Neapolitan-style","pizza"],
+		"labels":["NONE", "NONE", "NONE", "CATEGORY", "NONE", "NONE", "NONE", "TASTE", "TASTE", "CATEGORY"]
+	},
+	{
+		"tokens":["Can","you","suggest","a","place","with","live","music","or","acoustic","performances"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "TASTE", "CATEGORY", "NONE", "TASTE", "CATEGORY"]
+	},
+	{
+		"tokens":["Which","places","are","favorites","among","families","for","dining","out"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "NONE", "TASTE", "NONE", "CATEGORY", "NONE"]
+	},
+	{
+		"tokens":["Where","can","I","find","a","peaceful","sculpture","garden","or","public","art","installation"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "NONE", "TASTE", "CATEGORY", "CATEGORY", "NONE", "TASTE", "CATEGORY", "CATEGORY"]
+	},
+	{
+		"tokens":["Can","you","suggest","any","nearby","pet-friendly","parks","or","dog-friendly","beaches"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "NONE", "TASTE", "CATEGORY", "NONE", "TASTE", "CATEGORY"]
+	},
+	{
+		"tokens":["Can","you","suggest","places","that","focus","on","sourcing","ingredients","straight","from","the","farm"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "TASTE"]
+	},
+	{
+		"tokens":["Where","do","burger","aficionados","usually","go","in","this","area"],
+		"labels":["NONE", "NONE", "CATEGORY", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE"]
+	},
+	{
+		"tokens":["Can","you","give","me","insights","into","the","reputation","and","dining","experience","at","Peter","Luger","Steakhouse"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "CATEGORY", "NONE", "NONE", "PLACE", "PLACE", "PLACE"]
+	},
+	{
+		"tokens":["What","are","some","local","farms","or","animal","sanctuaries","where","I","can","interact","with","animals"],
+		"labels":["NONE", "NONE", "NONE", "TASTE", "CATEGORY", "NONE", "CATEGORY", "CATEGORY", "NONE", "NONE", "NONE", "NONE", "NONE", "TASTE"]
+	},
+	{
+		"tokens":["Can","you","recommend","a","good","pizza","restaurant","nearby"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "NONE", "TASTE", "CATEGORY", "NONE"]
+	},
+	{
+		"tokens":["Where","can","I","go","for","a","thrilling","day","of","jet","skiing","or","water","tubing"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "TASTE", "NONE", "NONE", "CATEGORY", "CATEGORY", "NONE", "CATEGORY", "CATEGORY"]
+	},
+	{
+		"tokens":["I've","been","searching","for","the","address","for","the","hospital"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "CATEGORY"]
+	},
+	{
+		"tokens":["Are","there","any","outdoor","painting","or","art","workshops","I","can","join"],
+		"labels":["NONE", "NONE", "NONE", "TASTE", "CATEGORY", "NONE", "CATEGORY", "CATEGORY", "NONE", "NONE", "NONE"]
+	},
+	{
+		"tokens":["Which","restaurant","is","famous","for","its","wine","pairing"],
+		"labels":["NONE", "CATEGORY", "NONE", "NONE", "NONE", "NONE", "TASTE", "TASTE"]
+	},
+	{
+		"tokens":["What","are","some","spots","that","provide","cooking","classes","along","with","dining"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "TASTE", "CATEGORY", "NONE", "NONE", "CATEGORY"]
+	},
+	{
+		"tokens":["Are","there","any","specific","local","celebrations","or","festivals","that","are","particularly","lively","and","vibrant","in","Kyoto"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "TASTE", "CATEGORY", "NONE", "CATEGORY", "NONE", "NONE", "NONE", "TASTE", "NONE", "TASTE", "NONE", "PLACE"]
+	},
+	{
+		"tokens":["What","words","come","to","mind","when","you","think","of","the","sprawling","green","landscapes","and","serene","atmosphere","of","Balboa","Park"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "TASTE", "TASTE", "CATEGORY", "NONE", "TASTE", "TASTE", "NONE", "PLACE", "PLACE"]
+	},
+	{
+		"tokens":["Are","there","any","restaurants","known","for","their","garden","or","patio","dining","experience"],
+		"labels":["NONE", "NONE", "NONE", "CATEGORY", "NONE", "NONE", "NONE", "TASTE", "NONE", "TASTE", "CATEGORY", "NONE"]
+	},
+	{
+		"tokens":["Can","you","suggest","an","eatery","that","provides","great","food","at","reasonable","prices"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "CATEGORY", "NONE", "NONE", "TASTE", "TASTE", "NONE", "TASTE", "TASTE"]
+	},
+	{
+		"tokens":["Can","you","recommend","a","park","with","a","dog-friendly","café","or","refreshment","area"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "CATEGORY", "NONE", "NONE", "TASTE", "CATEGORY", "NONE", "TASTE", "NONE"]
+	},
+	{
+		"tokens":["Could","you","kindly","provide","me","with","the","address","for","the","restaurant"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "CATEGORY"]
+	},
+	{
+		"tokens":["Tell","me","about","Hollywood","Walk","of","Fame"],
+		"labels":["NONE", "NONE", "NONE", "PLACE", "PLACE", "PLACE", "PLACE"]
+	},
+	{
+		"tokens":["Where","can","I","find","the","best","spots","for","wildlife","safaris","or","guided","nature","tours"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "TASTE", "CATEGORY", "NONE", "TASTE", "TASTE", "CATEGORY"]
+	},
+	{
+		"tokens":["Can","you","suggest","a","place","that","serves","top-notch","French","cuisine"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "TASTE", "TASTE", "CATEGORY"]
+	},
+	{
+		"tokens":["What","are","the","popular","theaters","or","cinemas","for","entertainment","and","relaxation"],
+		"labels":["NONE", "NONE", "NONE", "TASTE", "CATEGORY", "NONE", "CATEGORY", "NONE", "TASTE", "NONE", "TASTE"]
+	},
+	{
+		"tokens":["What","are","some","popular","local","sports","or","recreational","activities","that","visitors","can","participate","in","Detroit"],
+		"labels":["NONE", "NONE", "NONE", "TASTE", "TASTE", "CATEGORY", "NONE", "TASTE", "CATEGORY", "NONE", "NONE", "NONE", "NONE", "NONE", "PLACE"]
+	},
+	{
+		"tokens":["Where","can","I","find","a","good","Indian","restaurant"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "TASTE", "CATEGORY"]
+	},
+	{
+		"tokens":["What","are","some","popular","bungee","jumping","or","skydiving","locations","for","thrill-seekers"],
+		"labels":["NONE", "NONE", "NONE", "TASTE", "CATEGORY", "CATEGORY", "NONE", "CATEGORY", "NONE", "NONE", "TASTE"]
+	},
+	{
+		"tokens":["Where","can","I","order","food","for","delivery","or","takeout","from","local","restaurants"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "CATEGORY", "NONE", "TASTE", "NONE", "TASTE", "NONE", "TASTE", "CATEGORY"]
+	},
+	{
+		"tokens":["Could","you","share","your","impressions","of","the","dining","experience","at","The","Ledbury"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "CATEGORY", "NONE", "NONE", "PLACE", "PLACE"]
+	},
+	{
+		"tokens":["Which","pizzeria","is","considered","the","best","in","this","area"],
+		"labels":["NONE", "CATEGORY", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE"]
+	},
+	{
+		"tokens":["Where","can","I","go","for","a","fun","day","of","rollerblading","or","skateboarding","in","a","scenic","park"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "TASTE", "NONE", "NONE", "CATEGORY", "NONE", "CATEGORY", "NONE", "NONE", "TASTE", "CATEGORY"]
+	},
+	{
+		"tokens":["Are","there","any","outdoor","theater","or","Shakespeare","performances","happening","soon"],
+		"labels":["NONE", "NONE", "NONE", "TASTE", "CATEGORY", "NONE", "TASTE", "CATEGORY", "NONE", "NONE"]
+	},
+	{
+		"tokens":["Can","you","recommend","a","restaurant","that","excels","in","seafood","dishes"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "CATEGORY", "NONE", "NONE", "NONE", "TASTE", "NONE"]
+	},
+	{
+		"tokens":["Which","park","offers","scenic","trails","or","paths","for","dog","walking"],
+		"labels":["NONE", "CATEGORY", "NONE", "TASTE", "TASTE", "NONE", "TASTE", "NONE", "TASTE", "TASTE"]
+	},
+	{
+		"tokens":["Are","there","any","outdoor","theater","or","musical","performances","happening","soon"],
+		"labels":["NONE", "NONE", "NONE", "TASTE", "CATEGORY", "NONE", "CATEGORY", "CATEGORY", "NONE", "NONE"]
+	},
+	{
+		"tokens":["Which","pizza","place","is","known","for","their","generous","portions","and","value","for","money"],
+		"labels":["NONE", "TASTE", "NONE", "NONE", "NONE", "NONE", "NONE", "TASTE", "TASTE", "NONE", "TASTE", "NONE", "NONE"]
+	},
+	{
+		"tokens":["Where","can","I","find","the","best","spots","for","off-roading","or","ATV","adventures"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "CATEGORY", "NONE", "TASTE", "CATEGORY"]
+	},
+	{
+		"tokens":["Can","you","suggest","a","place","for","a","tranquil","calligraphy","or","handwriting","class"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "TASTE", "CATEGORY", "NONE", "TASTE", "CATEGORY"]
+	},
+	{
+		"tokens":["Where","can","I","go","for","a","thrilling","day","of","white-water","rafting","or","river","tubing"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "TASTE", "NONE", "NONE", "TASTE", "CATEGORY", "NONE", "TASTE", "CATEGORY"]
+	},
+	{
+		"tokens":["What","are","some","must-try","eateries","around","here"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "CATEGORY", "NONE", "NONE"]
+	},
+	{
+		"tokens":["Where","can","I","find","a","relaxing","art","gallery","or","exhibition"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "NONE", "TASTE", "CATEGORY", "CATEGORY", "NONE", "CATEGORY"]
+	},
+	{
+		"tokens":["What","are","some","beachfront","eateries","you","would","recommend"],
+		"labels":["NONE", "NONE", "NONE", "TASTE", "CATEGORY", "NONE", "NONE", "NONE"]
+	},
+	{
+		"tokens":["Where","can","I","find","eateries","with","a","rooftop","setting","for","drinks"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "CATEGORY", "NONE", "NONE", "TASTE", "NONE", "NONE", "TASTE"]
+	},
+	{
+		"tokens":["Tell","me","about","The","Museum","of","Contemporary","Art"],
+		"labels":["NONE", "NONE", "NONE", "PLACE", "PLACE", "PLACE", "PLACE", "PLACE"]
+	},
+	{
+		"tokens":["Can","you","recommend","any","scenic","viewpoints","or","lookout","points","in","Hong","Kong"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "TASTE", "CATEGORY", "NONE", "TASTE", "NONE", "NONE", "PLACE", "PLACE"]
+	},
+	{
+		"tokens":["Where","can","I","find","an","eatery","that","offers","a","tranquil","dining","atmosphere"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "NONE", "CATEGORY", "NONE", "NONE", "NONE", "TASTE", "CATEGORY", "TASTE"]
+	},
+	{
+		"tokens":["Where","can","I","find","a","good","ramen","restaurant"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "TASTE", "CATEGORY"]
+	},
+	{
+		"tokens":["Where","can","I","find","the","best","viewpoints","or","scenic","overlooks","for","photo","opportunities"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "CATEGORY", "NONE", "TASTE", "CATEGORY", "NONE", "TASTE", "NONE"]
+	},
+	{
+		"tokens":["What","are","some","scenic","horseback","riding","trails","or","ranches","in","the","region"],
+		"labels":["NONE", "NONE", "NONE", "TASTE", "TASTE", "TASTE", "CATEGORY", "NONE", "CATEGORY", "NONE", "NONE", "NONE"]
+	},
+	{
+		"tokens":["Are","there","any","famous","art","galleries","or","art","installations","to","visit","along","the","way"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "TASTE", "CATEGORY", "NONE", "TASTE", "CATEGORY", "NONE", "NONE", "NONE", "NONE", "NONE"]
+	},
+	{
+		"tokens":["Where","can","I","find","a","peaceful","hiking","trail","or","nature","reserve"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "NONE", "TASTE", "TASTE", "CATEGORY", "NONE", "CATEGORY", "CATEGORY"]
+	},
+	{
+		"tokens":["Can","you","name","some","restaurants","that","accommodate","special","diets"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "CATEGORY", "NONE", "NONE", "TASTE", "TASTE"]
+	},
+	{
+		"tokens":["Are","there","any","outdoor","food","festivals","or","food","truck","gatherings"],
+		"labels":["NONE", "NONE", "NONE", "TASTE", "CATEGORY", "CATEGORY", "NONE", "CATEGORY", "CATEGORY", "NONE"]
+	},
+	{
+		"tokens":["Which","restaurant","offers","a","good","selection","of","vegetarian","or","vegan","dishes"],
+		"labels":["NONE", "CATEGORY", "NONE", "NONE", "NONE", "NONE", "NONE", "TASTE", "NONE", "TASTE", "NONE"]
+	},
+	{
+		"tokens":["I'm","interested","in","visiting","the","library"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "NONE", "CATEGORY"]
+	},
+	{
+		"tokens":["What","are","the","popular","sushi","chains","in","this","area"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "TASTE", "CATEGORY", "NONE", "NONE", "NONE"]
+	},
+	{
+		"tokens":["Can","you","recommend","any","local","maple","syrup","farms","or","sugarhouses","for","a","tasting","experience"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "TASTE", "TASTE", "TASTE", "CATEGORY", "NONE", "CATEGORY", "NONE", "NONE", "TASTE", "TASTE"]
+	},
+	{
+		"tokens":["Is","there","a","place","you","would","endorse","for","a","meal","nearby"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "CATEGORY", "NONE"]
+	},
+	{
+		"tokens":["Are","there","any","outdoor","obstacle","races","or","mud","runs","happening","soon"],
+		"labels":["NONE", "NONE", "NONE", "TASTE", "TASTE", "CATEGORY", "NONE", "TASTE", "CATEGORY", "NONE", "NONE"]
+	},
+	{
+		"tokens":["Where","can","I","find","eateries","with","a","casual","and","friendly","atmosphere"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "CATEGORY", "NONE", "NONE", "TASTE", "NONE", "TASTE", "TASTE"]
+	},
+	{
+		"tokens":["Where","can","I","find","restaurants","that","are","open","24/7"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "CATEGORY", "NONE", "NONE", "TASTE", "TASTE"]
+	},
+	{
+		"tokens":["How","would","you","summarize","the","sense","of","timelessness","and","escape","from","the","urban","jungle","that","Central","Park","offers"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "TASTE", "NONE", "TASTE", "NONE", "NONE", "NONE", "NONE", "NONE", "PLACE", "PLACE", "NONE" ]
+	},
+	{
+		"tokens":["What","are","some","24-hour","dining","options","in","this","area"],
+		"labels":["NONE", "NONE", "NONE", "TASTE", "CATEGORY", "NONE", "NONE", "NONE", "NONE"]
+	},
+	{
+		"tokens":["Is","there","a","restaurant","that’s","celebrated","for","its","breathtaking","outlook"],
+		"labels":["NONE", "NONE", "NONE", "CATEGORY", "NONE", "TASTE", "NONE", "NONE", "TASTE", "TASTE"]
+	},
+	{
+		"tokens":["Can","you","recommend","any","nearby","sand","dunes","or","desert","landscapes","to","explore"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "NONE", "TASTE", "CATEGORY", "NONE", "TASTE", "CATEGORY", "NONE", "NONE"]
+	},
+	{
+		"tokens":["Can","you","pass","along","the","Twitter","account","information","for","Masa"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "PLACE"]
+	},
+	{
+		"tokens":["Are","there","eateries","that","offer","both","food","and","live","shows"],
+		"labels":["NONE", "NONE", "CATEGORY", "NONE", "NONE", "NONE", "TASTE", "NONE", "TASTE", "TASTE"]
+	},
+	{
+		"tokens":["Which","spots","are","popular","for","an","easygoing","meal"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "TASTE", "TASTE"]
+	},
+	{
+		"tokens":["Where","can","I","find","a","dog-friendly","park","in","this","area"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "NONE", "TASTE", "CATEGORY", "NONE", "NONE", "NONE"]
+	},
+	{
+		"tokens":["What","are","some","restaurants","that","are","known","for","being","family-friendly"],
+		"labels":["NONE", "NONE", "NONE", "CATEGORY", "NONE", "NONE", "NONE", "NONE", "NONE", "TASTE"]
+	},
+	{
+		"tokens":["Where","can","I","find","the","best","spots","for","snowboarding","or","skiing","in","the","mountains"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "CATEGORY", "NONE", "CATEGORY", "NONE", "NONE", "TASTE"]
+	},
+	{
+		"tokens":["Where","do","Mexican","food","enthusiasts","usually","go","around","here"],
+		"labels":["NONE", "NONE", "TASTE", "CATEGORY", "NONE", "NONE", "NONE", "NONE", "NONE"]
+	},
+	{
+		"tokens":["What","are","some","restaurants","that","offer","an","exclusive","chef’s","table","experience"],
+		"labels":["NONE", "NONE", "NONE", "CATEGORY", "NONE", "NONE", "NONE", "NONE", "TASTE", "TASTE", "NONE"]
+	},
+	{
+		"tokens":["Where","can","I","find","a","restaurant","with","a","diverse","range","of","dishes","from","around","the","world"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "NONE", "CATEGORY", "NONE", "NONE", "TASTE", "TASTE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE"]
+	},
+	{
+		"tokens":["Can","you","suggest","a","place","with","scenic","views","for","a","peaceful","stroll"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "TASTE", "TASTE", "NONE", "NONE", "TASTE", "TASTE"]
+	},
+	{
+		"tokens":["Could","you","help","me","find","the","Instagram","username","for","Providence"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "PLACE"]
+	},
+	{
+		"tokens":["What","are","the","top","spots","for","Chinese","food","in","this","area"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "TASTE", "CATEGORY", "NONE", "NONE", "NONE"]
+	},
+	{
+		"tokens":["Are","there","any","outdoor","pottery","or","ceramics","workshops","I","can","participate","in"],
+		"labels":["NONE", "NONE", "NONE", "TASTE", "CATEGORY", "NONE", "TASTE", "CATEGORY", "NONE", "NONE", "NONE", "NONE"]
+	},
+	{
+		"tokens":["Which","sushi","restaurant","offers","an","all-you-can-eat","sushi","option"],
+		"labels":["NONE", "TASTE", "CATEGORY", "NONE", "NONE", "TASTE", "TASTE", "NONE"]
+	},
+	{
+		"tokens":["Where","can","I","find","a","good","spot","for","kiteboarding","or","windsurfing","on","the","coast"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "CATEGORY", "NONE", "CATEGORY", "NONE", "NONE", "NONE"]
+	},
+	{
+		"tokens":["What","are","some","eateries","renowned","for","their","dessert","offerings"],
+		"labels":["NONE", "NONE", "NONE", "CATEGORY", "NONE", "NONE", "NONE", "TASTE", "NONE"]
+	},
+	{
+		"tokens":["Can","you","suggest","some","go-to","spots","for","coffee","around","here"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "CATEGORY", "NONE", "NONE"]
+	},
+	{
+		"tokens":["Can","you","recommend","a","restaurant","with","a","live","music","performance"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "CATEGORY", "NONE", "NONE", "TASTE", "TASTE", "TASTE"]
+	},
+	{
+		"tokens":["Which","restaurant","offers","a","good","selection","of","international","cuisine"],
+		"labels":["NONE", "CATEGORY", "NONE", "NONE", "NONE", "NONE", "NONE", "TASTE", "TASTE"]
+	},
+	{
+		"tokens":["Are","there","any","famous","aviation","museums","or","air","shows","happening","during","my","trip"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "TASTE", "CATEGORY", "NONE", "CATEGORY", "CATEGORY", "NONE", "NONE", "NONE", "NONE"]
+	},
+	{
+		"tokens":["Can","you","suggest","any","guided","tours","or","experiences","that","provide","insight","into","Bogota"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "CATEGORY", "CATEGORY", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "PLACE"]
+	},
+	{
+		"tokens":["Is","there","a","Vietnamese","place","that","stands","out","in","this","vicinity"],
+		"labels":["NONE", "NONE", "NONE", "TASTE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE"]
+	},
+	{
+		"tokens":["Can","you","name","some","restaurants","that","focus","on","sourcing","ingredients","locally"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "CATEGORY", "NONE", "NONE", "NONE", "NONE", "NONE", "TASTE"]
+	},
+	{
+		"tokens":["Are","there","any","specific","eco-tourism","initiatives","or","sustainable","practices","in","Costa","Rica"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "CATEGORY", "CATEGORY", "NONE", "CATEGORY", "CATEGORY", "NONE", "PLACE", "PLACE"]
+	},
+	{
+		"tokens":["What","are","some","popular","outdoor","music","festivals","or","concerts","happening","during","my","trip"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "TASTE", "CATEGORY", "CATEGORY", "NONE", "CATEGORY", "NONE", "NONE", "NONE", "NONE"]
+	},
+	{
+		"tokens":["Are","there","any","standout","bakery","shops","in","this","vicinity"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "CATEGORY", "CATEGORY", "NONE", "NONE", "NONE"]
+	},
+	{
+		"tokens":["Where","can","I","find","the","best","local","cuisine","or","food","specialties","in","this","city"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "TASTE", "CATEGORY", "NONE", "TASTE", "TASTE", "NONE", "NONE", "NONE"]
+	},
+	{
+		"tokens":["Can","you","suggest","any","local","historical","sites","or","architectural","wonders","that","are","worth","visiting","in","Monument","Valley"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "TASTE", "CATEGORY", "CATEGORY", "NONE", "CATEGORY", "CATEGORY", "NONE", "NONE", "NONE", "NONE", "NONE", "PLACE", "PLACE" ]
+	},
+	{
+		"tokens":["Can","you","recommend","a","place","known","for","authentic","Italian","cuisine"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "TASTE", "TASTE", "CATEGORY"]
+	},
+	{
+		"tokens":["Where","can","I","find","a","restaurant","that’s","completely","vegan"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "NONE", "CATEGORY", "NONE", "NONE", "TASTE"]
+	},
+	{
+		"tokens":["Can","you","recommend","places","that","are","known","for","their","variety","of","craft","beers"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "TASTE", "TASTE"]
+	},
+	{
+		"tokens":["I'd","appreciate","it","if","you","could","share","the","Instagram","handle","for","Atomix","so","I","can","follow","them"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "PLACE", "NONE", "NONE", "NONE", "NONE", "NONE"]
+	},
+	{
+		"tokens":["Can","you","suggest","any","local","historical","sites","or","architectural","wonders","that","are","worth","visiting","in","Texas"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "TASTE", "CATEGORY", "CATEGORY", "NONE", "CATEGORY", "CATEGORY", "NONE", "NONE", "NONE", "NONE", "NONE", "PLACE"]
+	},
+	{
+		"tokens":["Where","can","I","dine","with","my","pet","in","this","area"],
+		"labels":["NONE", "NONE", "NONE", "CATEGORY", "NONE", "NONE", "TASTE", "NONE", "NONE", "NONE"]
+	},
+	{
+		"tokens":["Can","you","please","share","the","Youtube","username","for","Uchi","so","I","can","connect","with","them"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "PLACE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE"]
+	},
+	{
+		"tokens":["Can","you","suggest","a","restaurant","with","a","pet-friendly","policy"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "CATEGORY", "NONE", "NONE", "TASTE", "NONE"]
+	},
+	{
+		"tokens":["Can","you","recommend","a","place","with","outdoor","hammocks","or","lounge","areas"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "TASTE", "TASTE", "NONE", "TASTE", "TASTE"]
+	},
+	{
+		"tokens":["Can","you","suggest","a","restaurant","with","a","fireplace","or","outdoor","fire","pit"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "CATEGORY", "NONE", "NONE", "TASTE", "NONE", "TASTE", "TASTE", "TASTE"]
+	},
+	{
+		"tokens":["What","are","some","popular","water","activities","or","beach","spots","in","Saint","Tropez"],
+		"labels":["NONE", "NONE", "NONE", "NONE", "CATEGORY", "CATEGORY", "NONE", "CATEGORY", "CATEGORY", "NONE", "PLACE", "PLACE"]
+	}
+]
