@@ -302,8 +302,12 @@ public class ChatResultViewModel : ObservableObject {
             return ChatResultViewModel.modelDefaults
         }
         
-        let sortedKeys = unsortedKeys.sorted()
-        let results = sortedKeys.map { category in
+        var sortedKeys = unsortedKeys.sorted()
+        let bannedList = ["adult store"]
+        sortedKeys.removeAll { category in
+            bannedList.contains(category)
+        }
+        var results = sortedKeys.map { category in
             return ChatResult(title:category, placeResponse: nil, placeDetailsResponse: nil)
         }
         return results
