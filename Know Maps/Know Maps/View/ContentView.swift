@@ -10,8 +10,6 @@ import RealityKit
 import RealityKitContent
 
 struct ContentView: View {
-    @State private var searchText: String = ""
-
     @State private var showImmersiveSpace = false
     @State private var immersiveSpaceIsShown = false
 
@@ -24,7 +22,7 @@ struct ContentView: View {
     
     var body: some View {
         NavigationSplitView {
-            SearchView(chatHost: chatHost, model: chatModel, locationProvider: locationProvider).searchable(text: $searchText) // Adds a search field.
+            SearchView(chatHost: chatHost, model: chatModel, locationProvider: locationProvider).searchable(text: $chatModel.searchText) // Adds a search field.
         } content: {
             PlacesList()
         } detail: {

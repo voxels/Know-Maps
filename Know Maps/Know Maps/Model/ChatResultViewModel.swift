@@ -39,7 +39,19 @@ public class ChatResultViewModel : ObservableObject {
         ChatResult(title: "Tell me about",  placeResponse: nil, placeDetailsResponse: nil),
     ]
     
+    @Published public var searchText: String = ""
     @Published public var results:[ChatResult]
+    
+    public var filteredResults:[ChatResult] {
+        get {
+            guard !searchText.isEmpty else {
+                return results
+            }
+            return results.filter { result in
+                result.title.lowercased().contains(searchText.lowercased())
+            }
+        }
+    }
     
     public init(delegate: ChatResultViewModelDelegate? = nil, assistiveHostDelegate: AssistiveChatHostDelegate? = nil, locationProvider: LocationProvider, queryCaption: String? = nil, queryParametersHistory: [AssistiveChatHostQueryParameters] = [AssistiveChatHostQueryParameters](), results: [ChatResult]) {
         self.delegate = delegate

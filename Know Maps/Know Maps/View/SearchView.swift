@@ -14,7 +14,7 @@ struct SearchView: View {
     @State private var resultId:ChatResult.ID?
 
     var body: some View {
-        List(model.results,selection: $resultId){ result in
+        List(model.filteredResults,selection: $resultId){ result in
             Text(result.title)
         }
     }
