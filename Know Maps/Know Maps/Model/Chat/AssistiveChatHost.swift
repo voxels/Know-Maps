@@ -53,7 +53,7 @@ public protocol AssistiveChatHostMessagesDelegate : AnyObject {
     func send(caption:String, subcaption:String?, image:UIImage?, mediaFileURL:URL?, imageTitle:String?, imageSubtitle:String?, trailingCaption:String?, trailingSubcaption:String?)
 }
 
-open class AssistiveChatHost : ChatHostingViewControllerDelegate, ObservableObject {
+open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControllerDelegate, ObservableObject {
     
     public enum Intent : String {
         case Unsupported
@@ -64,13 +64,13 @@ open class AssistiveChatHost : ChatHostingViewControllerDelegate, ObservableObje
         case ShareResult
     }
     
-    weak private var delegate:AssistiveChatHostMessagesDelegate?
-    private var languageDelegate:LanguageGeneratorDelegate = LanguageGenerator()
-    private var placeSearchSession = PlaceSearchSession()
+    weak public var delegate:AssistiveChatHostMessagesDelegate?
+    public var languageDelegate:LanguageGeneratorDelegate = LanguageGenerator()
+    public var placeSearchSession = PlaceSearchSession()
     @Published public var queryIntentParameters = AssistiveChatHostQueryParameters()
-    private var categoryCodes:[String:String] = [String:String]()
+    public var categoryCodes:[String:String] = [String:String]()
     
-    public init(delegate:AssistiveChatHostMessagesDelegate? = nil) {
+    required public init(delegate:AssistiveChatHostMessagesDelegate? = nil) {
         self.delegate = delegate
         
         _ = Task.init{

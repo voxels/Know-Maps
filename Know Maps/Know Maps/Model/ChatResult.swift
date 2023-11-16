@@ -14,8 +14,6 @@ public struct ChatResult : Identifiable, Equatable, Hashable {
     
     public let id = UUID()
     let title:String
-    let backgroundColor:Color
-    let backgroundImageURL:URL?
     let placeResponse:PlaceSearchResponse?
     let placeDetailsResponse:PlaceDetailsResponse?
 }

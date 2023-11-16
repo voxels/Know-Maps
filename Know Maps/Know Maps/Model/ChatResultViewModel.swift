@@ -22,8 +22,9 @@ public protocol ChatResultViewModelDelegate : AnyObject {
 
 public class ChatResultViewModel : ObservableObject {
     public weak var delegate:ChatResultViewModelDelegate?
+    public weak var assistiveHostDelegate:AssistiveChatHostDelegate?
     private let placeSearchSession:PlaceSearchSession = PlaceSearchSession()
-    public let locationProvider:LocationProvider = LocationProvider()
+    public var locationProvider:LocationProvider
     private let maxChatResults:Int = 8
     
     private var queryCaption:String?
@@ -33,12 +34,21 @@ public class ChatResultViewModel : ObservableObject {
         return queryParametersHistory.last?.queryIntents.last
     }
     
-    private static let modelDefaults:[ChatResult] = [
-        ChatResult(title: "Where can I find", backgroundColor: Color.green, backgroundImageURL: nil,  placeResponse: nil, placeDetailsResponse: nil),
-        ChatResult(title: "Tell me about", backgroundColor: Color.green, backgroundImageURL: nil,  placeResponse: nil, placeDetailsResponse: nil),
+    public static let modelDefaults:[ChatResult] = [
+        ChatResult(title: "Where can I find",   placeResponse: nil, placeDetailsResponse: nil),
+        ChatResult(title: "Tell me about",  placeResponse: nil, placeDetailsResponse: nil),
     ]
     
-    @Published public var results:[ChatResult] = ChatResultViewModel.modelDefaults
+    @Published public var results:[ChatResult]
+    
+    public init(delegate: ChatResultViewModelDelegate? = nil, assistiveHostDelegate: AssistiveChatHostDelegate? = nil, locationProvider: LocationProvider, queryCaption: String? = nil, queryParametersHistory: [AssistiveChatHostQueryParameters] = [AssistiveChatHostQueryParameters](), results: [ChatResult]) {
+        self.delegate = delegate
+        self.assistiveHostDelegate = assistiveHostDelegate
+        self.locationProvider = locationProvider
+        self.queryCaption = queryCaption
+        self.queryParametersHistory = queryParametersHistory
+        self.results = results
+    }
     
     public func authorizeLocationProvider() {
         locationProvider.authorize()
@@ -251,7 +261,7 @@ public class ChatResultViewModel : ObservableObject {
     }
     
     private func blendDefaults(with chatResults:[ChatResult])->[ChatResult] {
-        let defaultResults = ChatResultViewModel.modelDefaults
+        let defaultResults = categoricalResults()
         
         if let intent = lastIntent {
             var results = [ChatResult]()
@@ -285,6 +295,18 @@ public class ChatResultViewModel : ObservableObject {
         } else {
             return defaultResults
         }
+    }
+    
+    private func categoricalResults()->[ChatResult] {
+        guard let unsortedKeys = assistiveHostDelegate?.categoryCodes.keys else {
+            return ChatResultViewModel.modelDefaults
+        }
+        
+        let sortedKeys = unsortedKeys.sorted()
+        let results = sortedKeys.map { category in
+            return ChatResult(title:category, placeResponse: nil, placeDetailsResponse: nil)
+        }
+        return results
     }
     
     

@@ -14,7 +14,7 @@ public enum LocationProviderError : Error {
 
 open class LocationProvider : NSObject, ObservableObject  {
     private var locationManager: CLLocationManager = CLLocationManager()
-    private var lastKnownLocation:CLLocation?
+    @Published public var lastKnownLocation:CLLocation?
     public func authorize() {
         if locationManager.authorizationStatus != .authorizedWhenInUse {
             locationManager.requestWhenInUseAuthorization()
@@ -22,7 +22,6 @@ open class LocationProvider : NSObject, ObservableObject  {
         
         locationManager.delegate = self
         locationManager.requestLocation()
-        lastKnownLocation = locationManager.location
     }
     
     public func currentLocation()->CLLocation? {

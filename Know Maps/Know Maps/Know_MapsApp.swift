@@ -9,9 +9,11 @@ import SwiftUI
 
 @main
 struct Know_MapsApp: App {
+    private var locationProvider = LocationProvider()
+    
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            ContentView(chatModel: ChatResultViewModel(locationProvider: locationProvider, results: ChatResultViewModel.modelDefaults), locationProvider: locationProvider)
         }
 
         ImmersiveSpace(id: "ImmersiveSpace") {
