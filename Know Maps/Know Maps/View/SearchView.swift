@@ -11,11 +11,20 @@ struct SearchView: View {
     @StateObject public var chatHost:AssistiveChatHost
     @StateObject public var model:ChatResultViewModel
     @StateObject public var locationProvider:LocationProvider
-    @State private var resultId:ChatResult.ID?
+    @Binding public var resultId:ChatResult.ID?
 
     var body: some View {
         List(model.filteredResults,selection: $resultId){ result in
             Text(result.title)
+        }.onChange(of: resultId) { oldValue, newValue in
+            let result = model.filteredResults.first { checkResult in
+                return checkResult.id == newValue
+            }
+            
+            guard let result = result else {
+                return
+            }
+            model.searchText = result.title
         }
     }
 }
@@ -25,5 +34,5 @@ struct SearchView: View {
     let locationProvider = LocationProvider()
     let model = ChatResultViewModel(locationProvider: locationProvider, results: ChatResultViewModel.modelDefaults)
     model.assistiveHostDelegate = chatHost
-    return SearchView(chatHost: chatHost, model: model, locationProvider: locationProvider)
+    return SearchView(chatHost: chatHost, model: model, locationProvider: locationProvider, resultId: .constant(nil))
 }

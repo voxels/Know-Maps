@@ -16,13 +16,17 @@ struct ContentView: View {
     @State private var chatHost:AssistiveChatHost = AssistiveChatHost()
     @StateObject public var chatModel:ChatResultViewModel
     @StateObject public var locationProvider:LocationProvider
-    
+    @State private var selectedChatResultID:ChatResult.ID?
     @Environment(\.openImmersiveSpace) var openImmersiveSpace
     @Environment(\.dismissImmersiveSpace) var dismissImmersiveSpace
     
     var body: some View {
         NavigationSplitView {
-            SearchView(chatHost: chatHost, model: chatModel, locationProvider: locationProvider).searchable(text: $chatModel.searchText) // Adds a search field.
+            SearchView(chatHost: chatHost, model: chatModel, locationProvider: locationProvider, resultId: $selectedChatResultID)
+                .searchable(text: $chatModel.searchText)
+                .onSubmit(of: .search) {
+                    print($chatModel.searchText)
+                }
         } content: {
             PlacesList()
         } detail: {
