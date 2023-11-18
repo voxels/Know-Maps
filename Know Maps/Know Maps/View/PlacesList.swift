@@ -24,7 +24,7 @@ struct PlacesList: View {
                 result.placeDetailsResponse {
                 VStack{
                     HStack{
-                        Text(result.title).foregroundColor(Color(uiColor: UIColor.label))
+                        Text(result.title).foregroundColor(Color(uiColor: UIColor.label)).bold()
                         Spacer()
                         if let price = placeResponse.price {
                             ZStack {

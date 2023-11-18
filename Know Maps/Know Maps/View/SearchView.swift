@@ -15,7 +15,7 @@ struct SearchView: View {
 
     var body: some View {
         List(model.filteredResults,selection: $resultId){ result in
-            Text(result.title)
+            Text(result.title).bold()
         }.onChange(of: resultId) { oldValue, newValue in
             let result = model.filteredResults.first { checkResult in
                 return checkResult.id == newValue
