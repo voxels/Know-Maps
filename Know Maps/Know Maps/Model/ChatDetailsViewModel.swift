@@ -23,7 +23,7 @@ public class ChatDetailsViewModel {
     public var placeSearchResponses:[PlaceSearchResponse] = [PlaceSearchResponse]()
     public var placeDetailsResponses:[PlaceDetailsResponse] = [PlaceDetailsResponse]()
     public weak var delegate:ChatDetailsViewModelDelegate?
-    internal var maxChatResults = 8
+    internal var maxChatResults = 20
     
     private var placeSearchSession = PlaceSearchSession()
     

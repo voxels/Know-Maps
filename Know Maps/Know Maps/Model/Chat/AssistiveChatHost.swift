@@ -133,9 +133,9 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
                         "query":"",
                         "parameters":
                         {
-                             "radius":10000,
+                             "radius":3000,
                              "sort":"distance",
-                             "limit":8,
+                             "limit":20,
                         }
                     }
                 """
@@ -209,10 +209,7 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
     
     public func receiveMessage(caption:String, isLocalParticipant:Bool, nearLocation:CLLocation ) async throws {
         try await messagesDelegate?.addReceivedMessage(caption: caption, parameters: queryIntentParameters, isLocalParticipant: isLocalParticipant, nearLocation: nearLocation)
-        DispatchQueue.main.async { [weak self] in
-            guard let strongSelf = self else { return }
-            strongSelf.messagesDelegate?.didUpdateQuery(with:strongSelf.queryIntentParameters, nearLocation: nearLocation)
-        }
+        messagesDelegate?.didUpdateQuery(with:queryIntentParameters, nearLocation: nearLocation)
     }
 }
 

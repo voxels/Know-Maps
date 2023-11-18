@@ -44,7 +44,7 @@ struct PlacesList: View {
                                 }
                             }
                         }
-
+                        
                         let rating = placeResponse.rating
                         if rating > 0 {
                             ZStack {
@@ -55,7 +55,15 @@ struct PlacesList: View {
                     }
                     if let description = placeResponse.description {
                         Text(description)
-                    } else {
+                    } else if let tips = placeResponse.tipsResponses, tips.count > 0  {
+                        Button {
+                            Task {
+                                try await chatHost.placeDescription(chatResult: result, delegate: model)
+                            }
+                        } label: {
+                            Text("Generate GPT-4 Description for \(placeResponse.searchResponse.name)")
+                        }.buttonStyle(.bordered)
+                    } else if let tastes = placeResponse.tastes, tastes.count > 0 {
                         Button {
                             Task {
                                 try await chatHost.placeDescription(chatResult: result, delegate: model)
@@ -65,7 +73,8 @@ struct PlacesList: View {
                         }.buttonStyle(.bordered)
                     }
                 }
-
+            } else {
+                Text(result.title).foregroundColor(Color(uiColor: UIColor.label))
             }
         }.onChange(of: resultId) { oldValue, newValue in
             let result = model.filteredResults.first { checkResult in

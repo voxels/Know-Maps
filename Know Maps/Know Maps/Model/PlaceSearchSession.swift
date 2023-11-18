@@ -285,7 +285,7 @@ open class PlaceSearchSession : ObservableObject {
             let locationQueryItem = URLQueryItem(name: "ll", value: ll)
             queryComponents?.queryItems?.append(locationQueryItem)
             
-            let radiusQueryItem = URLQueryItem(name: "radius", value: "1000")
+            let radiusQueryItem = URLQueryItem(name: "radius", value: "2000")
             queryComponents?.queryItems?.append(radiusQueryItem)
         }
         
