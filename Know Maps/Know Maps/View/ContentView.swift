@@ -70,6 +70,8 @@ struct ContentView: View {
         .onChange(of: chatModel.searchText, { oldValue, newValue in
             if newValue == "" {
                 chatModel.resetPlaceModel()
+                isPlaceSelected = false
+                selectedPlaceChatResult = nil
             }
         })
         .onChange(of: isPlaceSelected) { oldValue, newValue in
