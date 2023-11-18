@@ -8,6 +8,7 @@
 import Foundation
 
 public struct LanguageGeneratorRequest {
+    let chatResult:ChatResult
     let model:String
     let prompt:String
     let maxTokens:Int

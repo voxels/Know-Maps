@@ -11,7 +11,7 @@ open class LanguageGeneratorSession : NSObject, ObservableObject {
     private var openaiApiKey = ""
     private var searchSession:URLSession?
     let keysContainer = CKContainer(identifier:"iCloud.com.noisederived.No-Maps.Keys")
-    static let serverUrl = "https://api.openai.com/v1/completions"
+    static let serverUrl = "https://api.openai.com/v1/chat/completions"
         
     override init(){
         super.init()
@@ -45,31 +45,21 @@ open class LanguageGeneratorSession : NSObject, ObservableObject {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("Bearer \(self.openaiApiKey)", forHTTPHeaderField: "Authorization")
         
-        var body:[String : Any] = ["model":languageGeneratorRequest.model, "prompt":languageGeneratorRequest.prompt, "max_tokens":languageGeneratorRequest.maxTokens,"temperature":languageGeneratorRequest.temperature]
+        var body:[String : Any] = ["model":languageGeneratorRequest.model, "messages":[[String:String]]()]
         
-        if let stop = languageGeneratorRequest.stop {
-            body["stop"] = stop
-        }
+        var messagesArray = [[String:String]]()
+        messagesArray.append(["role":"system", "content":"You are a helpful assistant"])
+        messagesArray.append(["role":"user", "content":languageGeneratorRequest.prompt])
         
-        if let user = languageGeneratorRequest.user {
-            body["user"] = user
-        }
-        
-        if delegate != nil {
-            body["stream"] = true
-        }
-        
+        body["messages"] = messagesArray
+
         let jsonData = try JSONSerialization.data(withJSONObject: body)
         request.httpBody = jsonData
-        
-        if let delegate = delegate {
-            return try await fetchBytes(urlRequest: request, apiKey: self.openaiApiKey, session: searchSession, delegate: delegate)
-        } else {
-            return try await fetch(urlRequest: request, apiKey: self.openaiApiKey, session:searchSession) as? NSDictionary
-        }
+                
+        return try await fetch(urlRequest: request, apiKey: self.openaiApiKey, session:searchSession) as? NSDictionary
     }
     
-    internal func fetch(urlRequest:URLRequest, apiKey:String, session:URLSession) async throws -> Any {
+    internal func fetch(urlRequest:URLRequest, apiKey:String, session:URLSession ) async throws -> Any {
         print("Requesting URL: \(String(describing: urlRequest.url))")
         let responseAny:Any = try await withCheckedThrowingContinuation({checkedContinuation in
             let dataTask = session.dataTask(with: urlRequest, completionHandler: { data, response, error in
@@ -97,7 +87,7 @@ open class LanguageGeneratorSession : NSObject, ObservableObject {
         return responseAny
     }
     
-    internal func fetchBytes(urlRequest:URLRequest, apiKey:String, session:URLSession, delegate:AssistiveChatHostStreamResponseDelegate) async throws -> NSDictionary? {
+    internal func fetchBytes(urlRequest:URLRequest, apiKey:String, session:URLSession, languageGeneratorRequest:LanguageGeneratorRequest, delegate:AssistiveChatHostStreamResponseDelegate) async throws -> NSDictionary? {
         print("Requesting URL: \(String(describing: urlRequest.url))")
         let (bytes, response) = try await session.bytes(for: urlRequest)
 
@@ -125,7 +115,7 @@ open class LanguageGeneratorSession : NSObject, ObservableObject {
             
             if let firstChoice = choices.first, let text = firstChoice["text"] as? String {
                 fullString.append(text)
-                delegate.didReceiveStreamingResult(with: text)
+                delegate.didReceiveStreamingResult(with: text, for:languageGeneratorRequest.chatResult)
             }
         }
         

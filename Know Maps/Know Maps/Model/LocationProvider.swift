@@ -14,6 +14,8 @@ public enum LocationProviderError : Error {
 
 open class LocationProvider : NSObject, ObservableObject  {
     private var locationManager: CLLocationManager = CLLocationManager()
+    private var retryCount = 0
+    private var maxRetries = 2
     @Published public var lastKnownLocation:CLLocation?
     public func authorize() {
         if locationManager.authorizationStatus != .authorizedWhenInUse {
@@ -71,6 +73,15 @@ extension LocationProvider : CLLocationManagerDelegate {
     public func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
         print("Location Manager did fail with error:")
         print(error)
+        if retryCount >= maxRetries {
+            return
+        }
+        Task {
+            locationManager.requestLocation()
+        }
+        retryCount += 1
+
+        
     }
 
 }

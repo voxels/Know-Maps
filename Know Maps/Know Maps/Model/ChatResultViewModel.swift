@@ -41,18 +41,45 @@ public class ChatResultViewModel : ObservableObject {
     
     @Published public var searchText: String = ""
     @Published public var results:[ChatResult]
+    @Published public var placeResults:[ChatResult] = [ChatResult]()
+    @Published public var selectedPlaceResult:ChatResult?
     
     public var filteredResults:[ChatResult] {
         get {
             guard !searchText.isEmpty else {
                 return results
             }
-            return results.filter { result in
+            var filtered = results.filter { result in
                 result.title.lowercased().contains(searchText.lowercased())
             }
+            
+            filtered.append(contentsOf:results)
+            return filtered
         }
     }
     
+    public var filteredPlaceResults:[ChatResult] {
+        get {
+            var filtered = placeResults.filter { result in
+                guard let details = result.placeDetailsResponse else {
+                    return false
+                }
+                
+                if let tipsResponses = details.tipsResponses, tipsResponses.count > 0 {
+                    return true
+                }
+                
+                if let tastes = details.tastes, tastes.count > 0 {
+                    return true
+                }
+                
+                return false
+            }
+            
+            return filtered
+        }
+    }
+        
     public init(delegate: ChatResultViewModelDelegate? = nil, assistiveHostDelegate: AssistiveChatHostDelegate? = nil, locationProvider: LocationProvider, queryCaption: String? = nil, queryParametersHistory: [AssistiveChatHostQueryParameters] = [AssistiveChatHostQueryParameters](), results: [ChatResult]) {
         self.delegate = delegate
         self.assistiveHostDelegate = assistiveHostDelegate
@@ -64,6 +91,30 @@ public class ChatResultViewModel : ObservableObject {
     
     public func authorizeLocationProvider() {
         locationProvider.authorize()
+    }
+    
+    public func chatResult(for selectedChatResultID:ChatResult.ID)->ChatResult{
+        let selectedResult = filteredResults.first(where: { checkResult in
+            return checkResult.id == selectedChatResultID
+        })
+        
+        guard let selectedResult = selectedResult else {
+            return ChatResult(title: "Not found", placeResponse: nil, placeDetailsResponse: nil)
+        }
+        
+        return selectedResult
+    }
+    
+    public func chatResult(title:String)->ChatResult {
+        let selectedResult = filteredResults.first(where: { checkResult in
+            return checkResult.title.lowercased().trimmingCharacters(in: .whitespaces) == title.lowercased().trimmingCharacters(in: .whitespaces)
+        })
+        
+        guard let selectedResult = selectedResult else {
+            return ChatResult(title: title, placeResponse: nil, placeDetailsResponse: nil)
+        }
+        
+        return selectedResult
     }
     
     public func receiveMessage(caption: String, parameters: AssistiveChatHostQueryParameters, isLocalParticipant: Bool, nearLocation:CLLocation) async throws {
@@ -136,91 +187,17 @@ public class ChatResultViewModel : ObservableObject {
     
     public func model(intent:AssistiveChatHostIntent, nearLocation:CLLocation) {
         switch intent.intent {
-        case .SearchDefault:
-            let chatResults = [ChatResult]()
-            let blendedResults = blendDefaults(with: chatResults)
-            DispatchQueue.main.async { [weak self] in
-                guard let strongSelf = self else { return }
-                
-                strongSelf.results.removeAll()
-                strongSelf.results = blendedResults
-                strongSelf.delegate?.didUpdateModel(for: strongSelf.locationProvider.currentLocation())
-            }
-        case .TellDefault:
-            let _ = Task.init {
-                let chatResults = [ChatResult]()
-                let blendedResults = blendDefaults(with: chatResults)
-                DispatchQueue.main.async { [weak self] in
-                    guard let strongSelf = self else { return }
-                    
-                    strongSelf.results.removeAll()
-                    strongSelf.results = blendedResults
-                    strongSelf.delegate?.didUpdateModel(for: strongSelf.locationProvider.currentLocation())
-                    
-                }
-            }
         case .TellPlace:
             do {
                 try tellQueryModel(intent: intent, nearLocation: nearLocation)
             } catch {
                 print(error)
             }
-        case .SearchQuery:
-            searchQueryModel(intent: intent, nearLocation: nearLocation)
         default:
-            break
+            searchQueryModel(intent: intent, nearLocation: nearLocation)
         }
     }
     
-    public func placeQueryModel(intent:AssistiveChatHostIntent) {
-        let _ = Task.init {
-            var chatResults = [ChatResult]()
-            
-            if let _ = intent.selectedPlaceSearchDetails {
-                let allResponses = [PlaceDetailsResponse]()
-                
-                for index in 0..<min(allResponses.count,maxChatResults) {
-                    
-                    let response = allResponses[index]
-                    let results = PlaceResponseFormatter.placeChatResults(for: intent, place: response.searchResponse, details: response)
-                    chatResults.append(contentsOf:results)
-                }
-            } else if let selectedPlaceResponse = intent.selectedPlaceSearchResponse {
-                var allResponses = [PlaceSearchResponse]()
-                
-                allResponses.append(selectedPlaceResponse)
-                
-                for index in 0..<min(allResponses.count,maxChatResults) {
-                    
-                    let response = allResponses[index]
-                    let results = PlaceResponseFormatter.placeChatResults(for: intent, place: response, details: nil)
-                    chatResults.append(contentsOf:results)
-                }
-            } else if intent.placeSearchResponses.count > 0 {
-                var allResponses = [PlaceSearchResponse]()
-                
-                allResponses.append(contentsOf: intent.placeSearchResponses)
-                
-                for index in 0..<min(allResponses.count,maxChatResults) {
-                    
-                    let response = allResponses[index]
-                    let results = PlaceResponseFormatter.placeChatResults(for: intent, place: response, details: nil)
-                    
-                    chatResults.append(contentsOf:results)
-                }
-            }
-            
-            let blendedResults = blendDefaults(with: chatResults)
-            DispatchQueue.main.async { [weak self] in
-                guard let strongSelf = self else { return }
-                
-                strongSelf.results.removeAll()
-                strongSelf.results = blendedResults
-                strongSelf.delegate?.didUpdateModel(for: strongSelf.locationProvider.currentLocation())
-                
-            }
-        }
-    }
     
     public func searchQueryModel(intent:AssistiveChatHostIntent, nearLocation:CLLocation ) {
             var chatResults = [ChatResult]()
@@ -232,15 +209,8 @@ public class ChatResultViewModel : ObservableObject {
                     chatResults.append(contentsOf:results)
                 }
             }
+            placeResults = chatResults
             
-            let blendedResults = blendDefaults(with: chatResults)
-            DispatchQueue.main.async { [weak self] in
-                guard let strongSelf = self else { return }
-                
-                strongSelf.results.removeAll()
-                strongSelf.results = blendedResults
-                strongSelf.delegate?.didUpdateModel(for: strongSelf.locationProvider.currentLocation())
-            }
     }
     
     public func tellQueryModel(intent:AssistiveChatHostIntent, nearLocation:CLLocation) throws {
@@ -253,62 +223,18 @@ public class ChatResultViewModel : ObservableObject {
         let results = PlaceResponseFormatter.placeDetailsChatResults(for: placeResponse, details:detailsResponse, photos: photosResponses, tips: tipsResponses, results: [placeResponse])
         chatResults.append(contentsOf:results)
         
-        let blendedResults = blendDefaults(with: chatResults)
-        DispatchQueue.main.async { [weak self] in
-            guard let strongSelf = self else { return }
-            
-            strongSelf.results.removeAll()
-            strongSelf.results = blendedResults
-            strongSelf.delegate?.didUpdateModel(for: strongSelf.locationProvider.currentLocation())
-        }
+        placeResults = chatResults
     }
     
     public func zeroStateModel() {
-        let blendedResults = blendDefaults(with: [])
+        let blendedResults = categoricalResults()
         DispatchQueue.main.async { [weak self] in
             guard let strongSelf = self else { return }
             strongSelf.results.removeAll()
             strongSelf.results = blendedResults
         }
     }
-    
-    private func blendDefaults(with chatResults:[ChatResult])->[ChatResult] {
-        let defaultResults = categoricalResults()
         
-        if let intent = lastIntent {
-            var results = [ChatResult]()
-            var defaults = ChatResultViewModel.modelDefaults
-            switch intent.intent {
-            case .SearchDefault:
-                defaults.remove(at: 0)
-                results.append(contentsOf: defaults)
-                return results
-            case  .TellDefault:
-                defaults.remove(at: 0)
-                results.append(contentsOf: defaults)
-                return results
-            case .SearchQuery:
-                if let first = defaultResults.first {
-                    results.append(first)
-                }
-                results.append(contentsOf:chatResults)
-                if let last = defaultResults.last, last != defaultResults.first {
-                    results.append(last)
-                }
-                return results
-            case .TellPlace:
-                results.append(contentsOf:chatResults)
-                results.append(contentsOf:defaults)
-                return results
-            default:
-                results.append(contentsOf: defaults)
-                return results
-            }
-        } else {
-            return defaultResults
-        }
-    }
-    
     private func categoricalResults()->[ChatResult] {
         guard let unsortedKeys = assistiveHostDelegate?.categoryCodes.keys else {
             return ChatResultViewModel.modelDefaults
@@ -319,7 +245,7 @@ public class ChatResultViewModel : ObservableObject {
         sortedKeys.removeAll { category in
             bannedList.contains(category)
         }
-        var results = sortedKeys.map { category in
+        let results = sortedKeys.map { category in
             return ChatResult(title:category, placeResponse: nil, placeDetailsResponse: nil)
         }
         return results
@@ -338,6 +264,7 @@ public class ChatResultViewModel : ObservableObject {
         var radius = 2000
         var sort:String? = nil
         var limit:Int = 8
+        var categories = ""
         
         if let revisedQuery = intent.queryParameters?["query"] as? String {
             query = revisedQuery
@@ -362,15 +289,16 @@ public class ChatResultViewModel : ObservableObject {
                 sort = rawSort
             }
             
-            /*
-             if let rawCategories = rawParameters["categories"] as? [NSDictionary] {
-             for rawCategory in rawCategories {
-             if let categoryName = rawCategory["name"] as? String {
-             //query.append("\(categoryName) ")
+            
+             if let rawCategories = rawParameters["categories"] as? [String] {
+                for rawCategory in rawCategories {
+                    categories.append(rawCategory)
+                    if rawCategories.count > 1 {
+                        categories.append(",")
+                    }
+                }
              }
-             }
-             }
-             */
+            
             
             if let rawTips = rawParameters["tips"] as? [String] {
                 for rawTip in rawTips {
@@ -417,7 +345,7 @@ public class ChatResultViewModel : ObservableObject {
         
         query = query.trimmingCharacters(in: .whitespacesAndNewlines)
         
-        let request = PlaceSearchRequest(query:query, ll: ll, radius:radius, categories: nil, fields: nil, minPrice: minPrice, maxPrice: maxPrice, openAt: openAt, openNow: openNow, nearLocation: nearLocation, sort: sort, limit:limit)
+        let request = PlaceSearchRequest(query:query, ll: ll, radius:radius, categories: categories, fields: nil, minPrice: minPrice, maxPrice: maxPrice, openAt: openAt, openNow: openNow, nearLocation: nearLocation, sort: sort, limit:limit)
         return request
     }
     
@@ -452,4 +380,66 @@ public class ChatResultViewModel : ObservableObject {
         return placeDetailsResponses
     }
     
+}
+
+extension ChatResultViewModel : AssistiveChatHostMessagesDelegate {
+    public func didTap(chatResult: ChatResult, selectedPlaceSearchResponse: PlaceSearchResponse?, selectedPlaceSearchDetails: PlaceDetailsResponse?) {
+        let _ = Task.init {
+            do {
+                guard let chatHost = self.assistiveHostDelegate else {
+                    return
+                }
+                
+                let caption = chatResult.title
+                let intent = try chatHost.determineIntent(for: caption, placeSearchResponse: selectedPlaceSearchResponse)
+                let queryParameters = try await chatHost.defaultParameters(for: caption)
+                let newIntent = AssistiveChatHostIntent(caption: caption, intent: intent, selectedPlaceSearchResponse: selectedPlaceSearchResponse, selectedPlaceSearchDetails: selectedPlaceSearchDetails, placeSearchResponses: [PlaceSearchResponse](), placeDetailsResponses:nil, queryParameters: queryParameters)
+                chatHost.appendIntentParameters(intent: newIntent)
+                if let location = locationProvider.currentLocation() {
+                    try await chatHost.receiveMessage(caption: caption, isLocalParticipant: true, nearLocation: location)
+                }
+            } catch {
+                print(error)
+            }
+        }
+    }
+    
+    public func addReceivedMessage(caption: String, parameters: AssistiveChatHostQueryParameters, isLocalParticipant: Bool, nearLocation: CLLocation) async throws {
+        try await receiveMessage(caption: caption, parameters: parameters, isLocalParticipant: isLocalParticipant, nearLocation: nearLocation)
+    }
+    
+    public func didUpdateQuery(with parameters: AssistiveChatHostQueryParameters, nearLocation: CLLocation) {
+        refreshModel(queryIntents: parameters.queryIntents, nearLocation: nearLocation )
+    }
+    
+}
+
+extension ChatResultViewModel : AssistiveChatHostStreamResponseDelegate {
+    public func didReceiveStreamingResult(with string: String, for result: ChatResult) {
+        let candidates = placeResults.filter { checkResult in
+            return checkResult.placeResponse?.fsqID != nil && checkResult.placeResponse?.fsqID == result.placeResponse?.fsqID
+        }
+        
+        guard let firstCandidate = candidates.first else {
+            return
+        }
+        
+        
+        if let placeDetailsResponse = firstCandidate.placeDetailsResponse {
+            let newDetailsResponse = PlaceDetailsResponse(searchResponse: placeDetailsResponse.searchResponse, photoResponses: placeDetailsResponse.photoResponses, tipsResponses: placeDetailsResponse.tipsResponses, description: (placeDetailsResponse.description ?? "").appending(string), tel: placeDetailsResponse.tel, fax: placeDetailsResponse.fax, email: placeDetailsResponse.email, website: placeDetailsResponse.website, socialMedia: placeDetailsResponse.socialMedia, verified: placeDetailsResponse.verified, hours: placeDetailsResponse.hours, openNow: placeDetailsResponse.openNow, hoursPopular:placeDetailsResponse.hoursPopular, rating: placeDetailsResponse.rating, stats: placeDetailsResponse.stats, popularity: placeDetailsResponse.popularity, price: placeDetailsResponse.price, menu: placeDetailsResponse.menu, dateClosed: placeDetailsResponse.dateClosed, tastes: placeDetailsResponse.tastes, features: placeDetailsResponse.features)
+            var newPlaceResults = [ChatResult]()
+            let fsqID = newDetailsResponse.fsqID
+            for placeResult in self.placeResults {
+                if placeResult.placeResponse?.fsqID == fsqID {
+                    newPlaceResults.append(ChatResult(title: result.title, placeResponse: newDetailsResponse.searchResponse, placeDetailsResponse: newDetailsResponse))
+                } else {
+                    newPlaceResults.append(placeResult)
+                }
+            }
+            
+            DispatchQueue.main.sync {
+                self.placeResults = newPlaceResults
+            }
+        }
+    }
 }

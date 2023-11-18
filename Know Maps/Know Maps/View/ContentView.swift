@@ -16,24 +16,32 @@ struct ContentView: View {
     @State private var chatHost:AssistiveChatHost = AssistiveChatHost()
     @StateObject public var chatModel:ChatResultViewModel
     @StateObject public var locationProvider:LocationProvider
-    @State private var selectedChatResultID:ChatResult.ID?
+    @State private var selectedCategoryChatResult:ChatResult.ID?
+    @State private var selectedPlaceChatResult:ChatResult.ID?
+    @State private var isPlaceSelected:Bool = false
     @Environment(\.openImmersiveSpace) var openImmersiveSpace
     @Environment(\.dismissImmersiveSpace) var dismissImmersiveSpace
     
     var body: some View {
         NavigationSplitView {
-            SearchView(chatHost: chatHost, model: chatModel, locationProvider: locationProvider, resultId: $selectedChatResultID)
+            SearchView(chatHost: chatHost, model: chatModel, locationProvider: locationProvider, resultId: $selectedCategoryChatResult)
                 .searchable(text: $chatModel.searchText)
                 .onSubmit(of: .search) {
-                    print($chatModel.searchText)
+                    let selectedResult = chatModel.chatResult(title: chatModel.searchText)
+                    chatHost.didTap(chatResult: selectedResult)
                 }
         } content: {
-            PlacesList()
+            PlacesList(chatHost: chatHost, model: chatModel, resultId: $selectedPlaceChatResult)
         } detail: {
-            MapResultsView()
+            if selectedPlaceChatResult == nil {
+                MapResultsView(chatHost: chatHost, model: chatModel, locationProvider: locationProvider)
+            } else {
+                PlaceResultView(isPlaceSelected: $isPlaceSelected)
+            }
         }.onAppear {
             Task {
                 chatModel.assistiveHostDelegate = chatHost
+                chatHost.messagesDelegate = chatModel
                 if let location = chatModel.locationProvider.currentLocation() {
                     chatModel.refreshModel(nearLocation: location)
                 } else {
@@ -50,6 +58,16 @@ struct ContentView: View {
                 if location.distance(from: oldLocation) > 1000 {
                     chatModel.refreshModel(nearLocation: location)
                 }
+            }
+        }.onChange(of: selectedCategoryChatResult) { oldValue, newValue in
+            guard let newValue = newValue else {
+                return
+            }
+            let chatResult = chatModel.chatResult(for: newValue)
+            chatHost.didTap(chatResult: chatResult)
+        }.onChange(of: isPlaceSelected) { oldValue, newValue in
+            if !isPlaceSelected {
+                selectedPlaceChatResult = nil
             }
         }
     }

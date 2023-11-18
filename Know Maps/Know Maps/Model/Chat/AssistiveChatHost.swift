@@ -17,7 +17,7 @@ public protocol ChatHostingViewControllerDelegate : AnyObject {
 }
 
 public protocol AssistiveChatHostStreamResponseDelegate {
-    func didReceiveStreamingResult(with string:String)
+    func didReceiveStreamingResult(with string:String, for result:ChatResult)
 }
 
 public class AssistiveChatHostIntent : Equatable {
@@ -50,7 +50,6 @@ public protocol AssistiveChatHostMessagesDelegate : AnyObject {
     func didTap(chatResult:ChatResult, selectedPlaceSearchResponse:PlaceSearchResponse?, selectedPlaceSearchDetails:PlaceDetailsResponse?)
     func addReceivedMessage(caption:String, parameters:AssistiveChatHostQueryParameters, isLocalParticipant:Bool, nearLocation:CLLocation) async throws
     func didUpdateQuery(with parameters:AssistiveChatHostQueryParameters, nearLocation:CLLocation)
-    func send(caption:String, subcaption:String?, image:UIImage?, mediaFileURL:URL?, imageTitle:String?, imageSubtitle:String?, trailingCaption:String?, trailingSubcaption:String?)
 }
 
 open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControllerDelegate, ObservableObject {
@@ -64,14 +63,14 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
         case ShareResult
     }
     
-    weak public var delegate:AssistiveChatHostMessagesDelegate?
+    weak public var messagesDelegate:AssistiveChatHostMessagesDelegate?
     public var languageDelegate:LanguageGeneratorDelegate = LanguageGenerator()
     public var placeSearchSession = PlaceSearchSession()
     @Published public var queryIntentParameters = AssistiveChatHostQueryParameters()
     public var categoryCodes:[String:String] = [String:String]()
     
     required public init(delegate:AssistiveChatHostMessagesDelegate? = nil) {
-        self.delegate = delegate
+        self.messagesDelegate = delegate
         
         _ = Task.init{
             do {
@@ -102,7 +101,7 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
     
     public func didTap(chatResult: ChatResult) {
         print("Did tap result:\(chatResult.title) for place:")
-        delegate?.didTap(chatResult: chatResult, selectedPlaceSearchResponse: chatResult.placeResponse, selectedPlaceSearchDetails:chatResult.placeDetailsResponse)
+        messagesDelegate?.didTap(chatResult: chatResult, selectedPlaceSearchResponse: chatResult.placeResponse, selectedPlaceSearchDetails:chatResult.placeDetailsResponse)
     }
     
     
@@ -127,14 +126,14 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
         return predictedLabel
     }
     
-    internal func defaultParameters(for query:String) async throws -> [String:Any]? {
+    public func defaultParameters(for query:String) async throws -> [String:Any]? {
         let emptyParameters =
                 """
                     {
                         "query":"",
                         "parameters":
                         {
-                             "radius":2000,
+                             "radius":10000,
                              "sort":"distance",
                              "limit":8,
                         }
@@ -149,7 +148,11 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
         do {
             let json = try JSONSerialization.jsonObject(with: data)
             if let encodedEmptyParameters = json as? [String:Any] {
-                var rawParameters = encodedEmptyParameters
+                var encodedParameters = encodedEmptyParameters
+                
+                guard var rawParameters = encodedParameters["parameters"] as? [String:Any] else {
+                    return encodedParameters
+                }
                 
                 let tags = try tags(for: query)
                 
@@ -181,11 +184,11 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
                     rawParameters["categories"] = categories
                 }
                                 
-                rawParameters["query"] = parsedQuery(for: query, tags: tags)
-                
+                encodedParameters["query"] = parsedQuery(for: query, tags: tags)
+                encodedParameters["parameters"] = rawParameters
                 print("Parsed Default Parameters:")
-                print(rawParameters)
-                return rawParameters
+                print(encodedParameters)
+                return encodedParameters
             } else {
                 print("Found non-dictionary object when attemting to refresh parameters:\(json)")
                 return nil
@@ -205,10 +208,10 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
     }
     
     public func receiveMessage(caption:String, isLocalParticipant:Bool, nearLocation:CLLocation ) async throws {
-        try await delegate?.addReceivedMessage(caption: caption, parameters: queryIntentParameters, isLocalParticipant: isLocalParticipant, nearLocation: nearLocation)
+        try await messagesDelegate?.addReceivedMessage(caption: caption, parameters: queryIntentParameters, isLocalParticipant: isLocalParticipant, nearLocation: nearLocation)
         DispatchQueue.main.async { [weak self] in
             guard let strongSelf = self else { return }
-            strongSelf.delegate?.didUpdateQuery(with:strongSelf.queryIntentParameters, nearLocation: nearLocation)
+            strongSelf.messagesDelegate?.didUpdateQuery(with:strongSelf.queryIntentParameters, nearLocation: nearLocation)
         }
     }
 }
@@ -220,6 +223,10 @@ extension AssistiveChatHost {
     
     public func placeDescription(searchResponse:PlaceSearchResponse, detailsResponse:PlaceDetailsResponse, delegate:AssistiveChatHostStreamResponseDelegate) async throws {
         try await languageDelegate.placeDescription(searchResponse: searchResponse, detailsResponse: detailsResponse, delegate: delegate)
+    }
+    
+    public func placeDescription(chatResult:ChatResult, delegate:AssistiveChatHostStreamResponseDelegate) async throws {
+        try await languageDelegate.placeDescription(chatResult: chatResult, delegate: delegate)
     }
 }
 
@@ -290,6 +297,12 @@ extension AssistiveChatHost {
         
         for taggedWord in tags.keys {
             if let taggedValues = tags[taggedWord] {
+                if taggedValues.contains("NONE"), !includedWords.contains(taggedWord) {
+                    includedWords.insert(taggedWord)
+                    revisedQuery.append(taggedWord)
+                    revisedQuery.append(" ")
+                }
+
                 if taggedValues.contains("TASTE"), !includedWords.contains(taggedWord) {
                     includedWords.insert(taggedWord)
                     revisedQuery.append(taggedWord)
@@ -382,7 +395,12 @@ extension AssistiveChatHost {
         return nil
     }
         
-    internal func categories(for rawQuery:String, tags:AssistiveChatHostTaggedWord? = nil)->String? {        
-        return nil
+    internal func categories(for rawQuery:String, tags:AssistiveChatHostTaggedWord? = nil)->[String]? {
+        
+        guard let naicsCode = categoryCodes[rawQuery] else {
+            return nil
+        }
+        
+        return [naicsCode]
     }
 }

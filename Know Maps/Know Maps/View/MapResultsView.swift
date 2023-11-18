@@ -10,8 +10,17 @@ import CoreLocation
 import MapKit
 
 struct MapResultsView: View {
+    @StateObject public var chatHost:AssistiveChatHost
+    @StateObject public var model:ChatResultViewModel
+    @StateObject public var locationProvider:LocationProvider
+
     var body: some View {
-        Map {
+        Map(initialPosition: .userLocation(followsHeading: true, fallback: .automatic), bounds: MapCameraBounds(minimumDistance: 100, maximumDistance: 2500)) {
+                ForEach(model.placeResults) { result in
+                    if let placeResponse = result.placeResponse {
+                        Marker(result.title, coordinate: CLLocationCoordinate2D(latitude: placeResponse.latitude, longitude: placeResponse.longitude))
+                    }
+                }
 
             }
             .mapControls {
@@ -26,5 +35,11 @@ struct MapResultsView: View {
 }
 
 #Preview {
-    MapResultsView()
+    let chatHost = AssistiveChatHost()
+    let locationProvider = LocationProvider()
+    let model = ChatResultViewModel(locationProvider: locationProvider, results: ChatResultViewModel.modelDefaults)
+    model.assistiveHostDelegate = chatHost
+    chatHost.messagesDelegate = model
+
+    return MapResultsView(chatHost: chatHost, model: model, locationProvider: locationProvider)
 }

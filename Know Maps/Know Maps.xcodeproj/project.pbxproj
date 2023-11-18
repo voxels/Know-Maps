@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		1EA588CF2B065D8B006B1F8F /* AssistiveChatHostDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EA588CE2B065D8B006B1F8F /* AssistiveChatHostDelegate.swift */; };
+		1EA588D12B08E9FA006B1F8F /* PlaceResultView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EA588D02B08E9FA006B1F8F /* PlaceResultView.swift */; };
 		1EA7F74B2B03FA71002AE371 /* RealityKitContent in Frameworks */ = {isa = PBXBuildFile; productRef = 1EA7F74A2B03FA71002AE371 /* RealityKitContent */; };
 		1EA7F74D2B03FA71002AE371 /* Know_MapsApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EA7F74C2B03FA71002AE371 /* Know_MapsApp.swift */; };
 		1EA7F74F2B03FA71002AE371 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EA7F74E2B03FA71002AE371 /* ContentView.swift */; };
@@ -53,6 +54,7 @@
 
 /* Begin PBXFileReference section */
 		1EA588CE2B065D8B006B1F8F /* AssistiveChatHostDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistiveChatHostDelegate.swift; sourceTree = "<group>"; };
+		1EA588D02B08E9FA006B1F8F /* PlaceResultView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceResultView.swift; sourceTree = "<group>"; };
 		1EA7F7452B03FA70002AE371 /* Know Maps.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Know Maps.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		1EA7F7492B03FA71002AE371 /* RealityKitContent */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = RealityKitContent; sourceTree = "<group>"; };
 		1EA7F74C2B03FA71002AE371 /* Know_MapsApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Know_MapsApp.swift; sourceTree = "<group>"; };
@@ -182,6 +184,7 @@
 				1EA7F7502B03FA71002AE371 /* ImmersiveView.swift */,
 				1EA7F76C2B04FFD9002AE371 /* SearchView.swift */,
 				1EA7F7702B051BDE002AE371 /* PlacesList.swift */,
+				1EA588D02B08E9FA006B1F8F /* PlaceResultView.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -342,6 +345,7 @@
 				1EA7F78E2B052D92002AE371 /* ChatDetailsViewModel.swift in Sources */,
 				1EA7F79A2B052E0C002AE371 /* LocalMapsQueryClassifier.mlmodel in Sources */,
 				1EA7F7972B052DE4002AE371 /* AssistiveChatHost.swift in Sources */,
+				1EA588D12B08E9FA006B1F8F /* PlaceResultView.swift in Sources */,
 				1EA7F78A2B052D92002AE371 /* PlaceTipsResponse.swift in Sources */,
 				1EA7F78B2B052D92002AE371 /* LocationProvider.swift in Sources */,
 				1EA7F7962B052DE4002AE371 /* AssistiveChatHostQueryParameters.swift in Sources */,

@@ -11,10 +11,12 @@ import CoreLocation
 public protocol LanguageGeneratorDelegate {
     func searchQueryDescription(nearLocation:CLLocation) async throws -> String
     func placeDescription(searchResponse:PlaceSearchResponse, detailsResponse:PlaceDetailsResponse, delegate:AssistiveChatHostStreamResponseDelegate) async throws
+    func placeDescription(chatResult:ChatResult, delegate:AssistiveChatHostStreamResponseDelegate) async throws
 }
 
 
 open class LanguageGenerator : LanguageGeneratorDelegate {
+    
     private var session:LanguageGeneratorSession = LanguageGeneratorSession()
     
     public func searchQueryDescription(nearLocation:CLLocation) async throws -> String {
@@ -35,39 +37,61 @@ open class LanguageGenerator : LanguageGeneratorDelegate {
     
     public func placeDescription(searchResponse:PlaceSearchResponse, detailsResponse:PlaceDetailsResponse, delegate:AssistiveChatHostStreamResponseDelegate) async throws {
         
-        if let description = detailsResponse.description {
-            delegate.didReceiveStreamingResult(with: description)
-            return
-        }
+        let result = ChatResult(title: searchResponse.name, placeResponse: searchResponse, placeDetailsResponse: detailsResponse)
         
-        if let tips = detailsResponse.tipsResponses {
+        if let tips = detailsResponse.tipsResponses, tips.count > 0 {
             let tipsText = tips.compactMap { response in
                 return response.text
             }
             
-            try await fetchTipsSummary(with:searchResponse.name,tips:tipsText,delegate: delegate)
+            try await fetchTipsSummary(with:searchResponse.name,tips:tipsText, chatResult: result,delegate: delegate)
             return
         }
         
-        if let tastes = detailsResponse.tastes {
-            try await fetchTastesSummary(with: searchResponse.name, tastes: tastes, delegate: delegate)
+        if let tastes = detailsResponse.tastes, tastes.count > 0 {
+            try await fetchTastesSummary(with: searchResponse.name, tastes: tastes, chatResult: result, delegate: delegate)
         }
     }
     
+    public func placeDescription(chatResult: ChatResult, delegate: AssistiveChatHostStreamResponseDelegate) async throws {
+        if let tips = chatResult.placeDetailsResponse?.tipsResponses, tips.count > 0, let name = chatResult.placeResponse?.name {
+            let tipsText = tips.compactMap { response in
+                return response.text
+            }
+            
+            try await fetchTipsSummary(with:name,tips:tipsText, chatResult: chatResult,delegate: delegate)
+            return
+        }
+        
+        if let tastes = chatResult.placeDetailsResponse?.tastes, tastes.count > 0, let name = chatResult.placeResponse?.name  {
+            try await fetchTastesSummary(with: name, tastes: tastes, chatResult: chatResult, delegate: delegate)
+        }
+    }
+
     
-    public func fetchTastesSummary(with placeName:String, tastes:[String], delegate:AssistiveChatHostStreamResponseDelegate) async throws{
+    
+    public func fetchTastesSummary(with placeName:String, tastes:[String], chatResult:ChatResult, delegate:AssistiveChatHostStreamResponseDelegate) async throws{
         var prompt = "Write a description of \(placeName) that is known for "
         for taste in tastes {
             prompt.append(" \(taste),")
         }
         prompt.append("\(placeName) is")
-        let request = LanguageGeneratorRequest(model: "text-davinci-003", prompt: prompt, maxTokens: 200, temperature: 0, stop: nil, user: nil)
-        let _ = try await session.query(languageGeneratorRequest: request, delegate: delegate)
+        let request = LanguageGeneratorRequest(chatResult: chatResult, model: "gpt-4-1106-preview", prompt: prompt, maxTokens: 200, temperature: 0, stop: nil, user: nil)
+        guard let dict = try await session.query(languageGeneratorRequest: request, delegate: delegate) else {
+            return
+        }
+        if let choicesArray = dict["choices"] as? [NSDictionary], let choices = choicesArray.first {
+            if let message = choices["message"] as? [String:String] {
+                if let content = message["content"] {
+                    delegate.didReceiveStreamingResult(with: content, for: chatResult)
+                }
+            }
+        }
     }
     
-    public func fetchTipsSummary(with placeName:String, tips:[String], delegate:AssistiveChatHostStreamResponseDelegate) async throws {
+    public func fetchTipsSummary(with placeName:String, tips:[String], chatResult:ChatResult, delegate:AssistiveChatHostStreamResponseDelegate) async throws {
         if tips.count == 1, let firstTip = tips.first {
-            delegate.didReceiveStreamingResult(with: firstTip)
+            delegate.didReceiveStreamingResult(with: firstTip, for:chatResult)
             return
         }
         
@@ -76,8 +100,17 @@ open class LanguageGenerator : LanguageGeneratorDelegate {
             prompt.append("\n\(tip)")
         }
         prompt.append("\(placeName) is")
-        let request = LanguageGeneratorRequest(model: "text-davinci-003", prompt: prompt, maxTokens: 200, temperature: 0, stop: nil, user: nil)
-        let _ = try await session.query(languageGeneratorRequest: request, delegate: delegate)
+        let request = LanguageGeneratorRequest(chatResult: chatResult, model: "gpt-4-1106-preview", prompt: prompt, maxTokens: 200, temperature: 0, stop: nil, user: nil)
+        guard let dict = try await session.query(languageGeneratorRequest: request, delegate: delegate) else {
+            return
+        }
+        if let choicesArray = dict["choices"] as? [NSDictionary], let choices = choicesArray.first {
+            if let message = choices["message"] as? [String:String] {
+                if let content = message["content"] {
+                    delegate.didReceiveStreamingResult(with: content, for: chatResult)
+                }
+            }
+        }
     }
 }
 

@@ -473,18 +473,17 @@ open class PlaceResponseFormatter {
     
     public class func placeDetailsChatResults(for place:PlaceSearchResponse, details:PlaceDetailsResponse, photos:[PlacePhotoResponse], tips:[PlaceTipsResponse],  results:[PlaceSearchResponse] )->[ChatResult] {
         print("Showing details chat results for \(place.name))")
-        let usedPhotoIDs = [String]()
         var placeResults = [ChatResult]()
         if let description = details.description {
-            let placeResultDescription = PlaceResponseFormatter.imageChatResult(title:"Share:  \(description)",  placeResponse: place, placeDetailsResponse: details, photoResponse: PlaceResponseFormatter.unusedPhoto(in: photos, with: usedPhotoIDs))
+            let placeResultDescription = PlaceResponseFormatter.chatResult(title:"Share:  \(description)",  placeResponse: place, placeDetailsResponse: details)
             placeResults.append(placeResultDescription)
         }
         
-        let placeResultAddress = PlaceResponseFormatter.imageChatResult(title: "Share the address:\n\(details.searchResponse.address)", placeResponse: place, placeDetailsResponse: details, photoResponse: PlaceResponseFormatter.unusedPhoto(in: photos, with: usedPhotoIDs))
+        let placeResultAddress = PlaceResponseFormatter.chatResult(title: "Share the address:\n\(details.searchResponse.address)", placeResponse: place, placeDetailsResponse: details)
         placeResults.append(placeResultAddress)
         
         if let tel = details.tel {
-            let placeResultTel = PlaceResponseFormatter.imageChatResult(title: "Share the phone number: \(tel)" , placeResponse: place, placeDetailsResponse: details, photoResponse: PlaceResponseFormatter.unusedPhoto(in: photos, with: usedPhotoIDs))
+            let placeResultTel = PlaceResponseFormatter.chatResult(title: "Share the phone number: \(tel)" , placeResponse: place, placeDetailsResponse: details)
             placeResults.append(placeResultTel)
         }
         
@@ -503,45 +502,45 @@ open class PlaceResponseFormatter {
                 description = "Price Not Listed"
             }
             
-            let placeResultPrice = PlaceResponseFormatter.imageChatResult(title: description , placeResponse: place, placeDetailsResponse: details, photoResponse:PlaceResponseFormatter.unusedPhoto(in: photos, with: usedPhotoIDs))
+            let placeResultPrice = PlaceResponseFormatter.chatResult(title: description , placeResponse: place, placeDetailsResponse: details)
             placeResults.append(placeResultPrice)
         }
         
-        let placeResultDirections = PlaceResponseFormatter.imageChatResult(title: "How do I get to \(place.name)?", placeResponse: place, placeDetailsResponse: details, photoResponse: PlaceResponseFormatter.unusedPhoto(in: photos, with: usedPhotoIDs))
+        let placeResultDirections = PlaceResponseFormatter.chatResult(title: "How do I get to \(place.name)?", placeResponse: place, placeDetailsResponse: details)
         placeResults.append(placeResultDirections)
         if photos.count > 0{
-            let placeResultPhotos = PlaceResponseFormatter.imageChatResult(title: "Show me the photos for \(place.name)",  placeResponse: place, placeDetailsResponse: details, photoResponse: PlaceResponseFormatter.unusedPhoto(in: photos, with: usedPhotoIDs))
+            let placeResultPhotos = PlaceResponseFormatter.chatResult(title: "Show me the photos for \(place.name)",  placeResponse: place, placeDetailsResponse: details)
             placeResults.append(placeResultPhotos)
         }
         if details.tipsResponses != nil {
-            let placeResultTips = PlaceResponseFormatter.imageChatResult(title: "What do people say about \(place.name)?",  placeResponse: place, placeDetailsResponse: nil, photoResponse:PlaceResponseFormatter.unusedPhoto(in: photos, with: usedPhotoIDs))
+            let placeResultTips = PlaceResponseFormatter.chatResult(title: "What do people say about \(place.name)?",  placeResponse: place, placeDetailsResponse: nil)
             placeResults.append(placeResultTips)
         }
         if let socialMedia = details.socialMedia, socialMedia.keys.contains("instagram"){
-            let placeResultInstagram = PlaceResponseFormatter.imageChatResult(title: "Show me \(place.name)'s Instagram account",  placeResponse: place, placeDetailsResponse: details, photoResponse:PlaceResponseFormatter.unusedPhoto(in: photos, with: usedPhotoIDs))
+            let placeResultInstagram = PlaceResponseFormatter.chatResult(title: "Show me \(place.name)'s Instagram account",  placeResponse: place, placeDetailsResponse: details)
             placeResults.append(placeResultInstagram)
         }
         if let _ = details.hours {
-            let placeResultOpenHours = PlaceResponseFormatter.imageChatResult(title: "When is \(place.name) open?", placeResponse: place, placeDetailsResponse: details, photoResponse: PlaceResponseFormatter.unusedPhoto(in: photos, with: usedPhotoIDs))
+            let placeResultOpenHours = PlaceResponseFormatter.chatResult(title: "When is \(place.name) open?", placeResponse: place, placeDetailsResponse: details)
             placeResults.append(placeResultOpenHours)
             
         }
         if let _ = details.hoursPopular {
-            let placeResultBusyHours = PlaceResponseFormatter.imageChatResult(title: "When is it busy at \(place.name)?",  placeResponse: place, placeDetailsResponse: details, photoResponse: PlaceResponseFormatter.unusedPhoto(in: photos, with: usedPhotoIDs))
+            let placeResultBusyHours = PlaceResponseFormatter.chatResult(title: "When is it busy at \(place.name)?",  placeResponse: place, placeDetailsResponse: details)
             placeResults.append(placeResultBusyHours)
         }
         if details.popularity > 0 {
-            let placeResultPopularity =  PlaceResponseFormatter.imageChatResult(title: "How popular is \(place.name)?", placeResponse: place, placeDetailsResponse: details, photoResponse:PlaceResponseFormatter.unusedPhoto(in: photos, with: usedPhotoIDs))
+            let placeResultPopularity =  PlaceResponseFormatter.chatResult(title: "How popular is \(place.name)?", placeResponse: place, placeDetailsResponse: details)
             placeResults.append(placeResultPopularity)
         }
         
         if let _ = details.menu  as? NSDictionary {
-            let placeResultMenu = PlaceResponseFormatter.imageChatResult(title: "What's does \(place.name) have?", placeResponse: place, placeDetailsResponse: details, photoResponse: PlaceResponseFormatter.unusedPhoto(in: photos, with: usedPhotoIDs))
+            let placeResultMenu = PlaceResponseFormatter.chatResult(title: "What's does \(place.name) have?", placeResponse: place, placeDetailsResponse: details)
             placeResults.append(placeResultMenu)
         }
         
         if let _ = details.tel {
-            let placeResultPhone = PlaceResponseFormatter.imageChatResult(title: "Call \(place.name)", placeResponse: place, placeDetailsResponse: details, photoResponse: PlaceResponseFormatter.unusedPhoto(in: photos, with: usedPhotoIDs))
+            let placeResultPhone = PlaceResponseFormatter.chatResult(title: "Call \(place.name)", placeResponse: place, placeDetailsResponse: details)
             placeResults.append(placeResultPhone)
         }
         
@@ -549,47 +548,14 @@ open class PlaceResponseFormatter {
     }
     
     public class func placeChatResults(for intent:AssistiveChatHostIntent, place:PlaceSearchResponse, details:PlaceDetailsResponse?)->[ChatResult] {
-        let photos = details?.photoResponses ?? [PlacePhotoResponse]()
-        
-        let usedPhotoIDs = [String]()
-        
-        let tellChatResult:()->ChatResult = {
-            return PlaceResponseFormatter.imageChatResult(title: "Tell me about \(place.name)?", placeResponse: place, placeDetailsResponse: details, photoResponse:PlaceResponseFormatter.unusedPhoto(in: photos, with: usedPhotoIDs))
-        }
-        
-        let searchChatResult:()->ChatResult = {
-            return PlaceResponseFormatter.imageChatResult(title: "Where can I find \(place.name)?",placeResponse: place, placeDetailsResponse: details, photoResponse:PlaceResponseFormatter.unusedPhoto(in: photos, with: usedPhotoIDs))
-        }
-        
-        switch intent.intent {
-        case .TellDefault:
-            return [tellChatResult()]
-        case .SearchDefault:
-            return [searchChatResult()]
-        case .SearchQuery:
-            return [tellChatResult()]
-        default:
-            return [ChatResult]()
-        }
+        return [PlaceResponseFormatter.chatResult(title: place.name, placeResponse: place, placeDetailsResponse: details)]
     }
     
-    public class func imageChatResult(title:String, placeResponse:PlaceSearchResponse?, placeDetailsResponse:PlaceDetailsResponse?, photoResponse:PlacePhotoResponse? = nil)->ChatResult {
+    public class func chatResult(title:String, placeResponse:PlaceSearchResponse?, placeDetailsResponse:PlaceDetailsResponse?)->ChatResult {
         let result = ChatResult(title:title,  placeResponse: placeResponse, placeDetailsResponse:placeDetailsResponse)
-        
-        guard let photo = photoResponse else {
-            return result
-        }
-        
+                
         let imageResult = ChatResult(title: result.title, placeResponse: placeResponse, placeDetailsResponse: placeDetailsResponse)
         
         return imageResult
-    }
-    
-    public class func unusedPhoto(in responses:[PlacePhotoResponse], with usedPhotoIDs:[String])->PlacePhotoResponse? {
-        let remainingPhotos = responses.filter { response in
-            return !usedPhotoIDs.contains(response.ident)
-        }
-        
-        return remainingPhotos.first
     }
 }

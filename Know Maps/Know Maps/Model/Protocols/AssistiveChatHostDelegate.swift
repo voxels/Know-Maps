@@ -10,7 +10,7 @@ import CoreLocation
 
 public protocol AssistiveChatHostDelegate:AnyObject {
     
-    var delegate:AssistiveChatHostMessagesDelegate? { get set}
+    var messagesDelegate:AssistiveChatHostMessagesDelegate? { get set}
     var languageDelegate:LanguageGeneratorDelegate { get }
     var placeSearchSession:PlaceSearchSession { get }
     var queryIntentParameters:AssistiveChatHostQueryParameters { get }
@@ -22,4 +22,5 @@ public protocol AssistiveChatHostDelegate:AnyObject {
     func appendIntentParameters(intent:AssistiveChatHostIntent)
     func resetIntentParameters()
     func receiveMessage(caption:String, isLocalParticipant:Bool, nearLocation:CLLocation ) async throws
+    func defaultParameters(for query:String) async throws -> [String:Any]?
 }

@@ -34,5 +34,6 @@ struct SearchView: View {
     let locationProvider = LocationProvider()
     let model = ChatResultViewModel(locationProvider: locationProvider, results: ChatResultViewModel.modelDefaults)
     model.assistiveHostDelegate = chatHost
+    chatHost.messagesDelegate = model
     return SearchView(chatHost: chatHost, model: model, locationProvider: locationProvider, resultId: .constant(nil))
 }
