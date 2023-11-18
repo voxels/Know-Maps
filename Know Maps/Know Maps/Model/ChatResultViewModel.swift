@@ -116,6 +116,19 @@ public class ChatResultViewModel : ObservableObject {
         }
     }
     
+    public func placeChatResult(for selectedChatResultID:ChatResult.ID)->ChatResult{
+        let selectedResult = filteredPlaceResults.first(where: { checkResult in
+            return checkResult.id == selectedChatResultID
+        })
+        
+        guard let selectedResult = selectedResult else {
+            return ChatResult(title: "Not found", placeResponse: nil, placeDetailsResponse: nil)
+        }
+        
+        return selectedResult
+    }
+
+    
     public func chatResult(for selectedChatResultID:ChatResult.ID)->ChatResult{
         let selectedResult = filteredResults.first(where: { checkResult in
             return checkResult.id == selectedChatResultID

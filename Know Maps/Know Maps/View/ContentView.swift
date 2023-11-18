@@ -36,7 +36,7 @@ struct ContentView: View {
             if selectedPlaceChatResult == nil {
                 MapResultsView(chatHost: chatHost, model: chatModel, locationProvider: locationProvider)
             } else {
-                PlaceResultView(isPlaceSelected: $isPlaceSelected)
+                PlaceView(chatHost: chatHost, model: chatModel, locationProvider: locationProvider, resultId: $selectedPlaceChatResult)
             }
         }.onAppear {
             Task {

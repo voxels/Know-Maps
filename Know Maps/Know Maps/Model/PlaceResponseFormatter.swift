@@ -431,7 +431,7 @@ open class PlaceResponseFormatter {
                 suffix = suffixString
             }
             
-            let response = PlacePhotoResponse(placeIdent:placeID, ident: ident, createdAt: createdAt, height: height, width: width, classifications: classifications, prefix: prefix, suffix: suffix)
+            let response = PlacePhotoResponse(id: ObjectIdentifier(NSString(string:ident)), placeIdent:placeID, ident: ident, createdAt: createdAt, height: height, width: width, classifications: classifications, prefix: prefix, suffix: suffix)
             retVal.append(response)
         }
         return retVal
