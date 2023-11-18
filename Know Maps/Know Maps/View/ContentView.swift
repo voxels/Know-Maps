@@ -61,11 +61,18 @@ struct ContentView: View {
             }
         }.onChange(of: selectedCategoryChatResult) { oldValue, newValue in
             guard let newValue = newValue else {
+                chatModel.resetPlaceModel()
                 return
             }
             let chatResult = chatModel.chatResult(for: newValue)
             chatHost.didTap(chatResult: chatResult)
-        }.onChange(of: isPlaceSelected) { oldValue, newValue in
+        }
+        .onChange(of: chatModel.searchText, { oldValue, newValue in
+            if newValue == "" {
+                chatModel.resetPlaceModel()
+            }
+        })
+        .onChange(of: isPlaceSelected) { oldValue, newValue in
             if !isPlaceSelected {
                 selectedPlaceChatResult = nil
             }

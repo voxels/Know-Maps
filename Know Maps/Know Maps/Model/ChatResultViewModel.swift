@@ -53,14 +53,19 @@ public class ChatResultViewModel : ObservableObject {
                 result.title.lowercased().contains(searchText.lowercased())
             }
             
-            filtered.append(contentsOf:results)
+            var remaining = results
+            remaining.removeAll { result in
+                result.title.lowercased().contains(searchText.lowercased())
+            }
+            
+            filtered.append(contentsOf:remaining)
             return filtered
         }
     }
     
     public var filteredPlaceResults:[ChatResult] {
         get {
-            var filtered = placeResults.filter { result in
+            let filtered = placeResults.filter { result in
                 guard let details = result.placeDetailsResponse else {
                     return false
                 }
@@ -91,6 +96,10 @@ public class ChatResultViewModel : ObservableObject {
     
     public func authorizeLocationProvider() {
         locationProvider.authorize()
+    }
+    
+    public func resetPlaceModel() {
+        placeResults = [ChatResult]()
     }
     
     public func chatResult(for selectedChatResultID:ChatResult.ID)->ChatResult{
