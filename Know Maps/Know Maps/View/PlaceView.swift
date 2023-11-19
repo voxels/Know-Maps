@@ -15,8 +15,7 @@ struct PlaceView: View {
     @Binding public var resultId:ChatResult.ID?
     @State private var position: Int?
     var body: some View {
-        if let resultId = resultId{
-            let selectedPlaceResult = model.placeChatResult(for: resultId)
+        if let resultId = resultId, let selectedPlaceResult = model.placeChatResult(for: resultId){
             VStack {
                 if let placeResponse = selectedPlaceResult.placeResponse {
                     let placeCoordinate = CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude)

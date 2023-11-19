@@ -27,31 +27,51 @@ public class ChatResultViewModel : ObservableObject {
     private let placeSearchSession:PlaceSearchSession = PlaceSearchSession()
     public var locationProvider:LocationProvider
     private let maxChatResults:Int = 20
-    
     public var queryParametersHistory = [AssistiveChatHostQueryParameters]()
-        
+    public var fetchingPlaceID:ChatResult.ID?
+
     public static let modelDefaults:[ChatResult] = [
         ChatResult(title: "Where can I find",   placeResponse: nil, placeDetailsResponse: nil),
         ChatResult(title: "Tell me about",  placeResponse: nil, placeDetailsResponse: nil),
     ]
     
+    @Published public var selectedCategoryChatResult:ChatResult.ID?
+    @Published public var selectedPlaceChatResult:ChatResult.ID?
+    @Published var isFetchingPlaceDescription:Bool = false
     @Published public var searchText: String = ""
     @Published public var results:[ChatResult]
     @Published public var placeResults:[ChatResult] = [ChatResult]()
-    @Published public var selectedPlaceResult:ChatResult?
-    
+
+
     public var filteredResults:[ChatResult] {
         get {
             guard !searchText.isEmpty else {
                 return results
             }
-            var filtered = results.filter { result in
-                result.title.lowercased().contains(searchText.lowercased())
+            var filtered = results.filter { [self] result in
+                var foundResult = result.title.lowercased().contains(searchText.lowercased())
+                
+                for filteredPlaceResult in filteredPlaceResults {
+                    if let categories = filteredPlaceResult.placeResponse?.categories {
+                        for category in categories {
+                            if result.title.contains(category) {
+                                foundResult = true
+                            }
+                        }
+                    }
+                }
+                
+                return foundResult
+            }
+            
+            let filteredTitles = filtered.compactMap { result in
+                return result.title
             }
             
             var remaining = results
+            
             remaining.removeAll { result in
-                result.title.lowercased().contains(searchText.lowercased())
+                filteredTitles.contains(result.title.lowercased())
             }
             
             filtered.append(contentsOf:remaining)
@@ -84,11 +104,7 @@ public class ChatResultViewModel : ObservableObject {
                 
                 return false
             }
-            
-            if filtered.isEmpty && placeResults.isEmpty {
-                return [ChatResult(title: "No results nearby", placeResponse: nil, placeDetailsResponse: nil)]
-            }
-            
+                        
             return filtered.count == 0 ? placeResults : filtered
         }
     }
@@ -106,30 +122,24 @@ public class ChatResultViewModel : ObservableObject {
     }
     
     public func resetPlaceModel() {
+        self.selectedPlaceChatResult = nil
         self.placeResults = [ChatResult]()
     }
     
-    public func placeChatResult(for selectedChatResultID:ChatResult.ID)->ChatResult{
+    public func placeChatResult(for selectedChatResultID:ChatResult.ID)->ChatResult?{
         let selectedResult = filteredPlaceResults.first(where: { checkResult in
             return checkResult.id == selectedChatResultID
         })
-        
-        guard let selectedResult = selectedResult else {
-            return ChatResult(title: "Not found", placeResponse: nil, placeDetailsResponse: nil)
-        }
-        
+                
         return selectedResult
     }
 
     
-    public func chatResult(for selectedChatResultID:ChatResult.ID)->ChatResult{
+    public func chatResult(for selectedChatResultID:ChatResult.ID)->ChatResult?{
         let selectedResult = filteredResults.first(where: { checkResult in
             return checkResult.id == selectedChatResultID
         })
-        
-        guard let selectedResult = selectedResult else {
-            return ChatResult(title: "Not found", placeResponse: nil, placeDetailsResponse: nil)
-        }
+
         
         return selectedResult
     }
@@ -147,8 +157,9 @@ public class ChatResultViewModel : ObservableObject {
     }
     
     public func receiveMessage(caption: String, parameters: AssistiveChatHostQueryParameters, isLocalParticipant: Bool, nearLocation:CLLocation) async throws {
-        self.searchText = caption
-        self.queryParametersHistory.append(parameters)
+        await MainActor.run {
+            self.queryParametersHistory.append(parameters)
+        }
         if isLocalParticipant {
             guard let lastIntent = self.queryParametersHistory.last?.queryIntents.last else {
                 throw ChatResultViewModelError.MissingLastIntent
@@ -510,6 +521,20 @@ extension ChatResultViewModel : AssistiveChatHostMessagesDelegate {
 }
 
 extension ChatResultViewModel : AssistiveChatHostStreamResponseDelegate {
+    public func willReceiveStreamingResult(for chatResultID: ChatResult.ID) async {
+        fetchingPlaceID = chatResultID
+        await MainActor.run {
+            isFetchingPlaceDescription = true
+        }
+    }
+        
+    public func didFinishStreamingResult() async {
+        fetchingPlaceID = nil
+        await MainActor.run {
+            isFetchingPlaceDescription = false
+        }
+    }
+    
     public func didReceiveStreamingResult(with string: String, for result: ChatResult) async {
         let candidates = placeResults.filter { checkResult in
             return checkResult.placeResponse?.fsqID != nil && checkResult.placeResponse?.fsqID == result.placeResponse?.fsqID
@@ -526,7 +551,9 @@ extension ChatResultViewModel : AssistiveChatHostStreamResponseDelegate {
             let fsqID = newDetailsResponse.fsqID
             for placeResult in self.placeResults {
                 if placeResult.placeResponse?.fsqID == fsqID {
-                    newPlaceResults.append(ChatResult(title: result.title, placeResponse: newDetailsResponse.searchResponse, placeDetailsResponse: newDetailsResponse))
+                    var newPlaceResult = placeResult
+                    newPlaceResult.replaceDetails(response: newDetailsResponse)
+                    newPlaceResults.append(newPlaceResult)
                 } else {
                     newPlaceResults.append(placeResult)
                 }

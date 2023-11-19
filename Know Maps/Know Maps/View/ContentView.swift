@@ -16,21 +16,21 @@ struct ContentView: View {
     @State private var chatHost:AssistiveChatHost = AssistiveChatHost()
     @StateObject public var chatModel:ChatResultViewModel
     @StateObject public var locationProvider:LocationProvider
-    @State private var selectedCategoryChatResult:ChatResult.ID?
-    @State private var selectedPlaceChatResult:ChatResult.ID?
     @Environment(\.openImmersiveSpace) var openImmersiveSpace
     @Environment(\.dismissImmersiveSpace) var dismissImmersiveSpace
     
     var body: some View {
         NavigationSplitView {
-            SearchView(chatHost: chatHost, model: chatModel, locationProvider: locationProvider, resultId: $selectedCategoryChatResult)
+            SearchView(chatHost: chatHost, model: chatModel, locationProvider: locationProvider, resultId: $chatModel.selectedCategoryChatResult)
         } content: {
-            PlacesList(chatHost: chatHost, model: chatModel, resultId: $selectedPlaceChatResult)
+            PlacesList(chatHost: chatHost, model: chatModel, resultId: $chatModel.selectedPlaceChatResult)
         } detail: {
-            if selectedPlaceChatResult == nil {
+            if chatModel.filteredPlaceResults.count == 0 && chatModel.selectedPlaceChatResult == nil {
+                MapResultsView(chatHost: chatHost, model: chatModel, locationProvider: locationProvider)
+            } else if chatModel.selectedPlaceChatResult == nil {
                 MapResultsView(chatHost: chatHost, model: chatModel, locationProvider: locationProvider)
             } else {
-                PlaceView(chatHost: chatHost, model: chatModel, locationProvider: locationProvider, resultId: $selectedPlaceChatResult)
+                PlaceView(chatHost: chatHost, model: chatModel, locationProvider: locationProvider, resultId: $chatModel.selectedPlaceChatResult)
             }
         }.onChange(of: locationProvider.lastKnownLocation) { oldValue, newValue in
             if let location = newValue {
@@ -46,18 +46,23 @@ struct ContentView: View {
                         await chatModel.refreshModel(nearLocation: location)
                     }                }
             }
-        }.onChange(of: selectedCategoryChatResult) { oldValue, newValue in
+        }.onChange(of: chatModel.selectedCategoryChatResult) { oldValue, newValue in
             guard let newValue = newValue else {
                 chatModel.resetPlaceModel()
                 return
             }
             
+            
             let _ = Task {
-                let chatResult = chatModel.chatResult(for: newValue)
-                await chatHost.didTap(chatResult: chatResult)
+                if let chatResult = chatModel.chatResult(for: newValue) {
+                    await chatHost.didTap(chatResult: chatResult)
+                    await MainActor.run {
+                        chatModel.searchText = chatResult.title
+                    }
+                }
             }
         }
-        .onChange(of: selectedPlaceChatResult, { oldValue, newValue in
+        .onChange(of: chatModel.selectedPlaceChatResult, { oldValue, newValue in
             guard newValue != nil else {
                 chatModel.resetPlaceModel()
                 return
@@ -72,8 +77,7 @@ struct ContentView: View {
                 chatModel.locationProvider.authorize()
             }
             
-            if let selectedCategoryChatResult = selectedCategoryChatResult {
-                let chatResult = chatModel.chatResult(for: selectedCategoryChatResult)
+            if let selectedCategoryChatResult = chatModel.selectedCategoryChatResult, let chatResult = chatModel.chatResult(for: selectedCategoryChatResult) {
                 await chatHost.didTap(chatResult: chatResult)
             }
         }

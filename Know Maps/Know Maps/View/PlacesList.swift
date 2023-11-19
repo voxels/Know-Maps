@@ -11,7 +11,6 @@ struct PlacesList: View {
     @StateObject public var chatHost:AssistiveChatHost
     @StateObject public var model:ChatResultViewModel
     @Binding public var resultId:ChatResult.ID?
-    @State private var isFetchingPlaceDescription:Bool = false
     
     static var formatter:NumberFormatter {
         let retval = NumberFormatter()
@@ -56,15 +55,16 @@ struct PlacesList: View {
                     }
                     if let description = placeResponse.description {
                         Text(description)
+                            .truncationMode(.tail)
+                            .frame(maxHeight:300)
                     } else if let tips = placeResponse.tipsResponses, tips.count > 0  {
                         Button {
                             Task {
-                                isFetchingPlaceDescription = true
                                 try await chatHost.placeDescription(chatResult: result, delegate: model)
-                                isFetchingPlaceDescription = false
+                                model.selectedPlaceChatResult = result.id
                             }
                         } label: {
-                            if isFetchingPlaceDescription {
+                            if model.isFetchingPlaceDescription, result.id == model.fetchingPlaceID {
                                 ProgressView().progressViewStyle(.circular)
                             } else {
                                 Text("Generate GPT-4 Description for \(placeResponse.searchResponse.name)")
@@ -83,15 +83,6 @@ struct PlacesList: View {
             } else {
                 Text(result.title).foregroundColor(Color(uiColor: UIColor.label))
             }
-        }.onChange(of: resultId) { oldValue, newValue in
-            let result = model.filteredResults.first { checkResult in
-                return checkResult.id == newValue
-            }
-            
-            guard let result = result else {
-                return
-            }
-            model.searchText = result.title
         }
     }
 }

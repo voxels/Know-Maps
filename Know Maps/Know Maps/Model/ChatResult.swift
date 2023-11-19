@@ -15,5 +15,9 @@ public struct ChatResult : Identifiable, Equatable, Hashable {
     public let id = UUID()
     let title:String
     let placeResponse:PlaceSearchResponse?
-    let placeDetailsResponse:PlaceDetailsResponse?
+    private(set) var placeDetailsResponse:PlaceDetailsResponse?
+    
+    mutating func replaceDetails(response:PlaceDetailsResponse) {
+        placeDetailsResponse = response
+    }
 }

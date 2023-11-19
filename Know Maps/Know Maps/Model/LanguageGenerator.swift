@@ -10,7 +10,6 @@ import CoreLocation
 
 public protocol LanguageGeneratorDelegate {
     func searchQueryDescription(nearLocation:CLLocation) async throws -> String
-    func placeDescription(searchResponse:PlaceSearchResponse, detailsResponse:PlaceDetailsResponse, delegate:AssistiveChatHostStreamResponseDelegate) async throws
     func placeDescription(chatResult:ChatResult, delegate:AssistiveChatHostStreamResponseDelegate) async throws
 }
 
@@ -35,25 +34,9 @@ open class LanguageGenerator : LanguageGeneratorDelegate {
         }
     }
     
-    public func placeDescription(searchResponse:PlaceSearchResponse, detailsResponse:PlaceDetailsResponse, delegate:AssistiveChatHostStreamResponseDelegate) async throws {
-        
-        let result = ChatResult(title: searchResponse.name, placeResponse: searchResponse, placeDetailsResponse: detailsResponse)
-        
-        if let tips = detailsResponse.tipsResponses, tips.count > 0 {
-            let tipsText = tips.compactMap { response in
-                return response.text
-            }
-            
-            try await fetchTipsSummary(with:searchResponse.name,tips:tipsText, chatResult: result,delegate: delegate)
-            return
-        }
-        
-        if let tastes = detailsResponse.tastes, tastes.count > 0 {
-            try await fetchTastesSummary(with: searchResponse.name, tastes: tastes, chatResult: result, delegate: delegate)
-        }
-    }
-    
     public func placeDescription(chatResult: ChatResult, delegate: AssistiveChatHostStreamResponseDelegate) async throws {
+        await delegate.willReceiveStreamingResult(for: chatResult.id)
+
         if let tips = chatResult.placeDetailsResponse?.tipsResponses, tips.count > 0, let name = chatResult.placeResponse?.name {
             let tipsText = tips.compactMap { response in
                 return response.text
@@ -66,6 +49,7 @@ open class LanguageGenerator : LanguageGeneratorDelegate {
         if let tastes = chatResult.placeDetailsResponse?.tastes, tastes.count > 0, let name = chatResult.placeResponse?.name  {
             try await fetchTastesSummary(with: name, tastes: tastes, chatResult: chatResult, delegate: delegate)
         }
+        await delegate.didFinishStreamingResult()
     }
 
     

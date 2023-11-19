@@ -19,9 +19,10 @@ struct SearchView: View {
         }.searchable(text: $model.searchText)
             .onChange(of: model.searchText) { oldValue, newValue in
                 if newValue == "" {
-                    model.selectedPlaceResult = nil
                     model.resetPlaceModel()
                     resultId = nil
+                } else if let lastIntent = model.queryParametersHistory.last?.queryIntents.last, lastIntent.caption == newValue  {
+                    print("Showing results for: \(newValue)")
                 } else {
                     Task {
                         await model.didSearch(caption: model.searchText)
