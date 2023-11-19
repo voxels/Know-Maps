@@ -11,6 +11,7 @@ struct PlacesList: View {
     @StateObject public var chatHost:AssistiveChatHost
     @StateObject public var model:ChatResultViewModel
     @Binding public var resultId:ChatResult.ID?
+    @State private var isFetchingPlaceDescription:Bool = false
     
     static var formatter:NumberFormatter {
         let retval = NumberFormatter()
@@ -58,10 +59,16 @@ struct PlacesList: View {
                     } else if let tips = placeResponse.tipsResponses, tips.count > 0  {
                         Button {
                             Task {
+                                isFetchingPlaceDescription = true
                                 try await chatHost.placeDescription(chatResult: result, delegate: model)
+                                isFetchingPlaceDescription = false
                             }
                         } label: {
-                            Text("Generate GPT-4 Description for \(placeResponse.searchResponse.name)")
+                            if isFetchingPlaceDescription {
+                                ProgressView().progressViewStyle(.circular)
+                            } else {
+                                Text("Generate GPT-4 Description for \(placeResponse.searchResponse.name)")
+                            }
                         }.buttonStyle(.bordered)
                     } else if let tastes = placeResponse.tastes, tastes.count > 0 {
                         Button {
