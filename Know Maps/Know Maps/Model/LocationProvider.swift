@@ -78,8 +78,5 @@ extension LocationProvider : CLLocationManagerDelegate {
         }
         locationManager.requestLocation()
         retryCount += 1
-
-        
     }
-
 }

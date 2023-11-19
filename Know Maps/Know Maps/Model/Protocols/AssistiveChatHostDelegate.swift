@@ -19,6 +19,7 @@ public protocol AssistiveChatHostDelegate:AnyObject {
     init(delegate:AssistiveChatHostMessagesDelegate?)
     func didTap(chatResult: ChatResult) async
     func determineIntent(for caption:String, placeSearchResponse:PlaceSearchResponse?) throws -> AssistiveChatHost.Intent
+    func updateLastIntentParameters(intent:AssistiveChatHostIntent)
     func appendIntentParameters(intent:AssistiveChatHostIntent)
     func resetIntentParameters()
     func receiveMessage(caption:String, isLocalParticipant:Bool, nearLocation:CLLocation ) async throws

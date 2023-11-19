@@ -47,6 +47,7 @@ public class AssistiveChatHostIntent : Equatable {
 }
 
 public protocol AssistiveChatHostMessagesDelegate : AnyObject {
+    func didSearch(caption:String) async
     func didTap(chatResult:ChatResult, selectedPlaceSearchResponse:PlaceSearchResponse?, selectedPlaceSearchDetails:PlaceDetailsResponse?) async
     func addReceivedMessage(caption:String, parameters:AssistiveChatHostQueryParameters, isLocalParticipant:Bool, nearLocation:CLLocation) async throws
     func didUpdateQuery(with parameters:AssistiveChatHostQueryParameters, nearLocation:CLLocation) async
@@ -195,10 +196,18 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
             return nil
         }
     }
+    
+    @MainActor
+    public func updateLastIntentParameters(intent:AssistiveChatHostIntent) {
+        if queryIntentParameters.queryIntents.count > 0 {
+            queryIntentParameters.queryIntents.removeLast()
+        }
+        queryIntentParameters.queryIntents.append(intent)
+    }
 
     @MainActor
     public func appendIntentParameters(intent:AssistiveChatHostIntent) {
-            queryIntentParameters.queryIntents.append(intent)
+        queryIntentParameters.queryIntents.append(intent)
     }
     
     @MainActor

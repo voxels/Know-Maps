@@ -23,7 +23,9 @@ struct SearchView: View {
                     model.resetPlaceModel()
                     resultId = nil
                 } else {
-                    
+                    Task {
+                        await model.didSearch(caption: model.searchText)
+                    }
                 }
             }
     }

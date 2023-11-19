@@ -28,7 +28,7 @@ public class ChatResultViewModel : ObservableObject {
     public var locationProvider:LocationProvider
     private let maxChatResults:Int = 20
     
-    private var queryParametersHistory = [AssistiveChatHostQueryParameters]()
+    public var queryParametersHistory = [AssistiveChatHostQueryParameters]()
         
     public static let modelDefaults:[ChatResult] = [
         ChatResult(title: "Where can I find",   placeResponse: nil, placeDetailsResponse: nil),
@@ -198,8 +198,8 @@ public class ChatResultViewModel : ObservableObject {
         }
     }
     
-    public func autocompletePlaceModel(intent: AssistiveChatHostIntent, nearLocation:CLLocation) async throws {
-        let autocompleteResponse = try await placeSearchSession.autocomplete(caption: searchText, parameters: intent.queryParameters, currentLocation:nearLocation.coordinate)
+    public func autocompletePlaceModel(caption:String, intent: AssistiveChatHostIntent, nearLocation:CLLocation) async throws {
+        let autocompleteResponse = try await placeSearchSession.autocomplete(caption: caption, parameters: intent.queryParameters, currentLocation:nearLocation.coordinate)
         let placeSearchResponses = try PlaceResponseFormatter.autocompletePlaceSearchResponses(with: autocompleteResponse, nearLocation:nearLocation)
         intent.placeSearchResponses = placeSearchResponses
         if placeSearchResponses.count > 0 {
@@ -216,7 +216,9 @@ public class ChatResultViewModel : ObservableObject {
             }
         }
         
-        self.placeResults = chatResults
+        await MainActor.run {
+            self.placeResults = chatResults
+        }
     }
     
     public func refreshModel(queryIntents:[AssistiveChatHostIntent]? = nil, nearLocation:CLLocation) async {
@@ -246,7 +248,15 @@ public class ChatResultViewModel : ObservableObject {
                 print(error)
             }
         default:
-            await searchQueryModel(intent: intent, nearLocation: nearLocation)
+            if let delegate = assistiveHostDelegate, delegate.categoryCodes.keys.contains(intent.caption) {
+                await searchQueryModel(intent: intent, nearLocation: nearLocation)
+            } else {
+                do {
+                    try await autocompletePlaceModel(caption: intent.caption, intent: intent, nearLocation: nearLocation)
+                } catch {
+                    print(error)
+                }
+            }
         }
     }
     
@@ -440,6 +450,31 @@ public class ChatResultViewModel : ObservableObject {
 }
 
 extension ChatResultViewModel : AssistiveChatHostMessagesDelegate {
+    public func didSearch(caption: String) async {
+        guard caption.count > 0 else {
+            resetPlaceModel()
+            return
+        }
+        
+        do {
+            guard let chatHost = self.assistiveHostDelegate else {
+                return
+            }
+            
+            let intent:AssistiveChatHost.Intent = .SearchQuery
+            let queryParameters = try await chatHost.defaultParameters(for: caption)
+            let newIntent = AssistiveChatHostIntent(caption: caption, intent: intent, selectedPlaceSearchResponse: nil, selectedPlaceSearchDetails: nil, placeSearchResponses: [PlaceSearchResponse](), placeDetailsResponses:nil, queryParameters: queryParameters)
+            
+            chatHost.updateLastIntentParameters(intent: newIntent)
+            if let location = locationProvider.currentLocation() {
+                try await chatHost.receiveMessage(caption: caption, isLocalParticipant: true, nearLocation: location)
+            }
+        } catch {
+            print(error)
+        }
+
+    }
+    
     public func didTap(chatResult: ChatResult, selectedPlaceSearchResponse: PlaceSearchResponse?, selectedPlaceSearchDetails: PlaceDetailsResponse?) async {
         guard chatResult.title.count > 0 else {
             resetPlaceModel()

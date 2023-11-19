@@ -235,7 +235,7 @@ open class PlaceSearchSession : ObservableObject {
         }
         
         let ll = "\(currentLocation.latitude),\(currentLocation.longitude)"
-        var limit = 10
+        var limit = 20
         var nameString:String = ""
         
         if let parameters = parameters, let rawQuery = parameters["query"] as? String {
@@ -291,7 +291,10 @@ open class PlaceSearchSession : ObservableObject {
         
         let limitQueryItem = URLQueryItem(name: "limit", value: "\(limit)")
         queryComponents?.queryItems?.append(limitQueryItem)
-        
+
+        let placeQueryItem = URLQueryItem(name: "types", value: "place")
+        queryComponents?.queryItems?.append(placeQueryItem)
+
         guard let url = queryComponents?.url else {
             throw PlaceSearchSessionError.UnsupportedRequest
         }
