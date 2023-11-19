@@ -15,22 +15,29 @@ struct MapResultsView: View {
     @StateObject public var locationProvider:LocationProvider
 
     var body: some View {
-        Map(initialPosition: .userLocation(followsHeading: true, fallback: .automatic), bounds: MapCameraBounds(minimumDistance: 500, maximumDistance: 10000)) {
+        Map(initialPosition:.automatic, bounds: MapCameraBounds(minimumDistance: 500, maximumDistance: 10000)) {
                 ForEach(model.filteredPlaceResults) { result in
                     if let placeResponse = result.placeResponse {
                         Marker(result.title, coordinate: CLLocationCoordinate2D(latitude: placeResponse.latitude, longitude: placeResponse.longitude))
                     }
                 }
-
+                if model.filteredPlaceResults.count == 0, let location = locationProvider.lastKnownLocation {
+                    Marker("Current Location", coordinate: CLLocationCoordinate2D(latitude: location.coordinate.latitude, longitude: location.coordinate.longitude))
+                }
             }
             .mapControls {
                 MapPitchToggle()
                 MapUserLocationButton()
                 MapCompass()
               }
-            .mapStyle(.hybrid(elevation: .realistic,
+            .mapStyle(.hybrid(elevation: .automatic,
                                pointsOfInterest: .including([.publicTransport]),
-                               showsTraffic: true))
+                               showsTraffic: false))
+            .onChange(of: locationProvider.mostRecentLocations) { oldValue, newValue in
+                if let lastLocation = newValue.last, let knownLocation = locationProvider.lastKnownLocation, knownLocation.coordinate.latitude == LocationProvider.defaultLocation.coordinate.latitude && knownLocation.coordinate.longitude == LocationProvider.defaultLocation.coordinate.longitude {
+                    locationProvider.queryLocation = lastLocation
+                }
+            }
     }
 }
 

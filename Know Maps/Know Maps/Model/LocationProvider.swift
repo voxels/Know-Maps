@@ -16,7 +16,17 @@ open class LocationProvider : NSObject, ObservableObject  {
     private var locationManager: CLLocationManager = CLLocationManager()
     private var retryCount = 0
     private var maxRetries = 2
-    @Published public var lastKnownLocation:CLLocation?
+    public static let defaultLocation:CLLocation = CLLocation(latitude: 40.730610, longitude: -73.935242)
+    @Published public var queryLocation:CLLocation = LocationProvider.defaultLocation
+    @Published public var mostRecentLocations = [CLLocation]()
+    public var lastKnownLocation:CLLocation? {
+        get {
+            if queryLocation.isEqual(LocationProvider.defaultLocation) {
+                return currentLocation()
+            }
+            return queryLocation
+        }
+    }
     public func authorize() {
         if locationManager.authorizationStatus != .authorizedWhenInUse {
             locationManager.requestWhenInUseAuthorization()
@@ -27,19 +37,12 @@ open class LocationProvider : NSObject, ObservableObject  {
     }
     
     public func currentLocation()->CLLocation? {
-        if lastKnownLocation == nil {
-            if locationManager.authorizationStatus != .authorizedWhenInUse {
-                authorize()
-            }
-            locationManager.delegate = self
-            locationManager.requestLocation()
-            lastKnownLocation = locationManager.location
-            return locationManager.location
-        } else {
-            locationManager.delegate = self
-            locationManager.requestLocation()
-            return lastKnownLocation
+        if locationManager.authorizationStatus != .authorizedWhenInUse {
+            authorize()
         }
+        locationManager.delegate = self
+        locationManager.requestLocation()
+        return locationManager.location
     }
 }
 
@@ -66,8 +69,8 @@ extension LocationProvider : CLLocationManagerDelegate {
     }
     
     public func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        self.lastKnownLocation = locations.last
-        print("Last Known Location:\(String(describing: lastKnownLocation?.coordinate.latitude)), \(String(describing: lastKnownLocation?.coordinate.longitude))")
+        mostRecentLocations = locations
+        print("Last Known Location:\(String(describing: locations.last?.coordinate.latitude)), \(String(describing: locations.last?.coordinate.longitude))")
     }
     
     public func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {

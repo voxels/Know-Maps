@@ -50,18 +50,7 @@ public class ChatResultViewModel : ObservableObject {
                 return results
             }
             var filtered = results.filter { [self] result in
-                var foundResult = result.title.lowercased().contains(searchText.lowercased())
-                
-                for filteredPlaceResult in filteredPlaceResults {
-                    if let categories = filteredPlaceResult.placeResponse?.categories {
-                        for category in categories {
-                            if result.title.contains(category) {
-                                foundResult = true
-                            }
-                        }
-                    }
-                }
-                
+                var foundResult = searchText.lowercased().contains(result.title.lowercased())
                 return foundResult
             }
             
@@ -82,7 +71,16 @@ public class ChatResultViewModel : ObservableObject {
     
     public var filteredPlaceResults:[ChatResult] {
         get {
-            let filtered = placeResults.filter { result in
+            let filteredResults = results.filter { [self] result in
+                let foundResult = searchText.lowercased().contains(result.title.lowercased())
+                return foundResult
+            }
+            
+            let filteredCategories = filteredResults.compactMap { result in
+                return result.placeResponse?.categories
+            }
+
+            var filtered = placeResults.filter { result in
                 guard let details = result.placeDetailsResponse else {
                     return false
                 }
@@ -105,8 +103,12 @@ public class ChatResultViewModel : ObservableObject {
                 
                 return false
             }
-                        
-            return filtered.count == 0 ? placeResults : filtered
+            
+            if filtered.count > 0 {
+                return filtered
+            }
+            
+            return placeResults
         }
     }
         
@@ -176,6 +178,10 @@ public class ChatResultViewModel : ObservableObject {
             finalLocation = nearLocation
         }
         
+        await MainActor.run {
+            locationProvider.queryLocation = finalLocation
+        }
+        
         try await self.detailIntent(intent: lastIntent, location: finalLocation)
     }
     
@@ -241,20 +247,9 @@ public class ChatResultViewModel : ObservableObject {
     }
     
     public func refreshModel(queryIntents:[AssistiveChatHostIntent]? = nil) async {
-        guard let queryIntents = queryIntents else {
-            await zeroStateModel()
-            return
-        }
-        
-        switch queryIntents.count {
-        case 0:
-            await zeroStateModel()
-        default:
-            if let lastIntent = queryIntents.last {
-                await model(intent:lastIntent)
-            } else {
-                await zeroStateModel()
-            }
+        await zeroStateModel()
+        if let lastIntent = queryIntents?.last {
+            await model(intent:lastIntent)
         }
     }
     
@@ -280,6 +275,11 @@ public class ChatResultViewModel : ObservableObject {
                     if let nearLocation = nearLocation {
                         finalLocation = nearLocation
                     }
+                    
+                    await MainActor.run {
+                        locationProvider.queryLocation = finalLocation
+                    }
+
                     try await autocompletePlaceModel(caption: intent.caption, intent: intent, location: finalLocation)
                 } catch {
                     print(error)
@@ -440,7 +440,7 @@ public class ChatResultViewModel : ObservableObject {
         
         query = query.trimmingCharacters(in: .whitespacesAndNewlines)
         
-        let request = PlaceSearchRequest(query:query, ll: ll, radius:radius, categories: categories, fields: nil, minPrice: minPrice, maxPrice: maxPrice, openAt: openAt, openNow: openNow, nearLocation: nearLocation, nearLocationCoordinate:nil, sort: sort, limit:limit)
+        let request = PlaceSearchRequest(query:query, ll: ll, radius:radius, categories: categories, fields: nil, minPrice: minPrice, maxPrice: maxPrice, openAt: openAt, openNow: openNow, nearLocation: nearLocation, sort: sort, limit:limit)
         return request
     }
     

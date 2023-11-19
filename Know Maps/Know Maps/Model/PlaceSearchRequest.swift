@@ -11,7 +11,7 @@ import CoreLocation
 public struct PlaceSearchRequest {
     let query:String
     let ll:String?
-    var radius:Int = 2000
+    var radius:Int = 3000
     let categories:String?
     let fields:String?
     var minPrice:Int = 1
@@ -19,11 +19,6 @@ public struct PlaceSearchRequest {
     let openAt:String?
     let openNow:Bool?
     let nearLocation:String?
-    private(set) var nearLocationCoordinate:CLLocation?
     let sort:String?
-    var limit:Int = 10
-    
-    mutating public func addNear(location:CLLocation) {
-        self.nearLocationCoordinate = location
-    }
+    var limit:Int = 20
 }

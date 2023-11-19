@@ -54,15 +54,17 @@ struct ContentView: View {
                 return
             }
         })
+        .onChange(of: locationProvider.mostRecentLocations, { oldValue, newValue in
+            if locationProvider.queryLocation == nil {
+                let _ = Task {
+                    await chatModel.refreshModel()
+                }
+            }
+        })
         .task {
             chatModel.assistiveHostDelegate = chatHost
             chatHost.messagesDelegate = chatModel
-            if let location = chatModel.locationProvider.currentLocation() {
-                await chatModel.refreshModel()
-            } else {
-                chatModel.locationProvider.authorize()
-                await chatModel.refreshModel()
-            }
+            await chatModel.refreshModel()
             
             if let selectedCategoryChatResult = chatModel.selectedCategoryChatResult, let chatResult = chatModel.chatResult(for: selectedCategoryChatResult) {
                 await chatHost.didTap(chatResult: chatResult)

@@ -408,8 +408,11 @@ extension AssistiveChatHost {
         if parsedQuery.count == 0 {
             parsedQuery = rawQuery
         }
-        print(parsedQuery)
-        return parsedQuery
+        
+        let locationComponents = parsedQuery.components(separatedBy: "near")
+        
+        print(locationComponents.first ?? "")
+        return locationComponents.first ?? parsedQuery
     }
     
     internal func radius(for rawQuery:String)->Int? {
