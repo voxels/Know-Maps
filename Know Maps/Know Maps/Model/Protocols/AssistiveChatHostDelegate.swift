@@ -17,7 +17,7 @@ public protocol AssistiveChatHostDelegate:AnyObject {
     var categoryCodes:[String:String] { get }
     
     init(delegate:AssistiveChatHostMessagesDelegate?)
-    func didTap(chatResult: ChatResult)
+    func didTap(chatResult: ChatResult) async
     func determineIntent(for caption:String, placeSearchResponse:PlaceSearchResponse?) throws -> AssistiveChatHost.Intent
     func appendIntentParameters(intent:AssistiveChatHostIntent)
     func resetIntentParameters()

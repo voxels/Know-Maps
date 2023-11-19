@@ -18,18 +18,12 @@ struct ContentView: View {
     @StateObject public var locationProvider:LocationProvider
     @State private var selectedCategoryChatResult:ChatResult.ID?
     @State private var selectedPlaceChatResult:ChatResult.ID?
-    @State private var isPlaceSelected:Bool = false
     @Environment(\.openImmersiveSpace) var openImmersiveSpace
     @Environment(\.dismissImmersiveSpace) var dismissImmersiveSpace
     
     var body: some View {
         NavigationSplitView {
             SearchView(chatHost: chatHost, model: chatModel, locationProvider: locationProvider, resultId: $selectedCategoryChatResult)
-                .searchable(text: $chatModel.searchText)
-                .onSubmit(of: .search) {
-                    let selectedResult = chatModel.chatResult(title: chatModel.searchText)
-                    chatHost.didTap(chatResult: selectedResult)
-                }
         } content: {
             PlacesList(chatHost: chatHost, model: chatModel, resultId: $selectedPlaceChatResult)
         } detail: {
@@ -38,45 +32,49 @@ struct ContentView: View {
             } else {
                 PlaceView(chatHost: chatHost, model: chatModel, locationProvider: locationProvider, resultId: $selectedPlaceChatResult)
             }
-        }.onAppear {
-            Task {
-                chatModel.assistiveHostDelegate = chatHost
-                chatHost.messagesDelegate = chatModel
-                if let location = chatModel.locationProvider.currentLocation() {
-                    chatModel.refreshModel(nearLocation: location)
-                } else {
-                    chatModel.locationProvider.authorize()
-                }
-            }
         }.onChange(of: locationProvider.lastKnownLocation) { oldValue, newValue in
             if let location = newValue {
                 guard let oldLocation = oldValue else {
-                    chatModel.refreshModel(nearLocation: location)
+                    let _ = Task {
+                        await chatModel.refreshModel(nearLocation: location)
+                    }
                     return
                 }
                 
                 if location.distance(from: oldLocation) > 1000 {
-                    chatModel.refreshModel(nearLocation: location)
-                }
+                    let _ = Task {
+                        await chatModel.refreshModel(nearLocation: location)
+                    }                }
             }
         }.onChange(of: selectedCategoryChatResult) { oldValue, newValue in
             guard let newValue = newValue else {
                 chatModel.resetPlaceModel()
                 return
             }
-            let chatResult = chatModel.chatResult(for: newValue)
-            chatHost.didTap(chatResult: chatResult)
+            
+            let _ = Task {
+                let chatResult = chatModel.chatResult(for: newValue)
+                await chatHost.didTap(chatResult: chatResult)
+            }
         }
-        .onChange(of: chatModel.searchText, { oldValue, newValue in
-            if newValue == "" {
+        .onChange(of: selectedPlaceChatResult, { oldValue, newValue in
+            guard newValue != nil else {
                 chatModel.resetPlaceModel()
-                isPlaceSelected = false
-                selectedPlaceChatResult = nil
+                return
             }
         })
-        .onChange(of: isPlaceSelected) { oldValue, newValue in
-            if !isPlaceSelected {
-                selectedPlaceChatResult = nil
+        .task {
+            chatModel.assistiveHostDelegate = chatHost
+            chatHost.messagesDelegate = chatModel
+            if let location = chatModel.locationProvider.currentLocation() {
+                await chatModel.refreshModel(nearLocation: location)
+            } else {
+                chatModel.locationProvider.authorize()
+            }
+            
+            if let selectedCategoryChatResult = selectedCategoryChatResult {
+                let chatResult = chatModel.chatResult(for: selectedCategoryChatResult)
+                await chatHost.didTap(chatResult: chatResult)
             }
         }
     }

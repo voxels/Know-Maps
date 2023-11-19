@@ -20,6 +20,7 @@ public protocol ChatResultViewModelDelegate : AnyObject {
     func didUpdateModel(for location:CLLocation?)
 }
 
+@MainActor
 public class ChatResultViewModel : ObservableObject {
     public weak var delegate:ChatResultViewModelDelegate?
     public weak var assistiveHostDelegate:AssistiveChatHostDelegate?
@@ -27,13 +28,8 @@ public class ChatResultViewModel : ObservableObject {
     public var locationProvider:LocationProvider
     private let maxChatResults:Int = 20
     
-    private var queryCaption:String?
     private var queryParametersHistory = [AssistiveChatHostQueryParameters]()
-    
-    public var lastIntent:AssistiveChatHostIntent? {
-        return queryParametersHistory.last?.queryIntents.last
-    }
-    
+        
     public static let modelDefaults:[ChatResult] = [
         ChatResult(title: "Where can I find",   placeResponse: nil, placeDetailsResponse: nil),
         ChatResult(title: "Tell me about",  placeResponse: nil, placeDetailsResponse: nil),
@@ -97,11 +93,10 @@ public class ChatResultViewModel : ObservableObject {
         }
     }
         
-    public init(delegate: ChatResultViewModelDelegate? = nil, assistiveHostDelegate: AssistiveChatHostDelegate? = nil, locationProvider: LocationProvider, queryCaption: String? = nil, queryParametersHistory: [AssistiveChatHostQueryParameters] = [AssistiveChatHostQueryParameters](), results: [ChatResult]) {
+    public init(delegate: ChatResultViewModelDelegate? = nil, assistiveHostDelegate: AssistiveChatHostDelegate? = nil, locationProvider: LocationProvider,  queryParametersHistory: [AssistiveChatHostQueryParameters] = [AssistiveChatHostQueryParameters](), results: [ChatResult]) {
         self.delegate = delegate
         self.assistiveHostDelegate = assistiveHostDelegate
         self.locationProvider = locationProvider
-        self.queryCaption = queryCaption
         self.queryParametersHistory = queryParametersHistory
         self.results = results
     }
@@ -111,9 +106,7 @@ public class ChatResultViewModel : ObservableObject {
     }
     
     public func resetPlaceModel() {
-        DispatchQueue.main.async {
-            self.placeResults = [ChatResult]()
-        }
+        self.placeResults = [ChatResult]()
     }
     
     public func placeChatResult(for selectedChatResultID:ChatResult.ID)->ChatResult{
@@ -154,10 +147,10 @@ public class ChatResultViewModel : ObservableObject {
     }
     
     public func receiveMessage(caption: String, parameters: AssistiveChatHostQueryParameters, isLocalParticipant: Bool, nearLocation:CLLocation) async throws {
-        self.queryCaption = caption
+        self.searchText = caption
         self.queryParametersHistory.append(parameters)
         if isLocalParticipant {
-            guard let lastIntent = self.lastIntent else {
+            guard let lastIntent = self.queryParametersHistory.last?.queryIntents.last else {
                 throw ChatResultViewModelError.MissingLastIntent
             }
             
@@ -205,41 +198,14 @@ public class ChatResultViewModel : ObservableObject {
         }
     }
     
-    
-    
-    public func refreshModel(queryIntents:[AssistiveChatHostIntent]? = nil, nearLocation:CLLocation) {
-        guard let queryIntents = queryIntents else {
-            zeroStateModel()
-            return
+    public func autocompletePlaceModel(intent: AssistiveChatHostIntent, nearLocation:CLLocation) async throws {
+        let autocompleteResponse = try await placeSearchSession.autocomplete(caption: searchText, parameters: intent.queryParameters, currentLocation:nearLocation.coordinate)
+        let placeSearchResponses = try PlaceResponseFormatter.autocompletePlaceSearchResponses(with: autocompleteResponse, nearLocation:nearLocation)
+        intent.placeSearchResponses = placeSearchResponses
+        if placeSearchResponses.count > 0 {
+            intent.placeDetailsResponses = try await fetchDetails(for: placeSearchResponses, nearLocation: nearLocation)
         }
-        
-        switch queryIntents.count {
-        case 0:
-            zeroStateModel()
-        default:
-            if let lastIntent = queryIntents.last {
-                model(intent:lastIntent, nearLocation: nearLocation)
-            } else {
-                zeroStateModel()
-            }
-        }
-    }
-    
-    public func model(intent:AssistiveChatHostIntent, nearLocation:CLLocation) {
-        switch intent.intent {
-        case .TellPlace:
-            do {
-                try tellQueryModel(intent: intent, nearLocation: nearLocation)
-            } catch {
-                print(error)
-            }
-        default:
-            searchQueryModel(intent: intent, nearLocation: nearLocation)
-        }
-    }
-    
-    
-    public func searchQueryModel(intent:AssistiveChatHostIntent, nearLocation:CLLocation ) {
+
         var chatResults = [ChatResult]()
         if let allResponses = intent.placeDetailsResponses {
             for index in 0..<min(allResponses.count,maxChatResults) {
@@ -250,12 +216,58 @@ public class ChatResultViewModel : ObservableObject {
             }
         }
         
-        DispatchQueue.main.async {
+        self.placeResults = chatResults
+    }
+    
+    public func refreshModel(queryIntents:[AssistiveChatHostIntent]? = nil, nearLocation:CLLocation) async {
+        guard let queryIntents = queryIntents else {
+            await zeroStateModel()
+            return
+        }
+        
+        switch queryIntents.count {
+        case 0:
+            await zeroStateModel()
+        default:
+            if let lastIntent = queryIntents.last {
+                await model(intent:lastIntent, nearLocation: nearLocation)
+            } else {
+                await zeroStateModel()
+            }
+        }
+    }
+    
+    public func model(intent:AssistiveChatHostIntent, nearLocation:CLLocation) async {
+        switch intent.intent {
+        case .TellPlace:
+            do {
+                try await tellQueryModel(intent: intent, nearLocation: nearLocation)
+            } catch {
+                print(error)
+            }
+        default:
+            await searchQueryModel(intent: intent, nearLocation: nearLocation)
+        }
+    }
+    
+    
+    public func searchQueryModel(intent:AssistiveChatHostIntent, nearLocation:CLLocation ) async {
+        var chatResults = [ChatResult]()
+        if let allResponses = intent.placeDetailsResponses {
+            for index in 0..<min(allResponses.count,maxChatResults) {
+                let response = allResponses[index]
+                
+                let results = PlaceResponseFormatter.placeChatResults(for: intent, place: response.searchResponse, details: response)
+                chatResults.append(contentsOf:results)
+            }
+        }
+        
+        await MainActor.run {
             self.placeResults = chatResults
         }
     }
     
-    public func tellQueryModel(intent:AssistiveChatHostIntent, nearLocation:CLLocation) throws {
+    public func tellQueryModel(intent:AssistiveChatHostIntent, nearLocation:CLLocation) async throws {
         var chatResults = [ChatResult]()
         
         guard let placeResponse = intent.selectedPlaceSearchResponse, let detailsResponse = intent.selectedPlaceSearchDetails, let photosResponses = detailsResponse.photoResponses, let tipsResponses = detailsResponse.tipsResponses else {
@@ -265,18 +277,18 @@ public class ChatResultViewModel : ObservableObject {
         let results = PlaceResponseFormatter.placeDetailsChatResults(for: placeResponse, details:detailsResponse, photos: photosResponses, tips: tipsResponses, results: [placeResponse])
         chatResults.append(contentsOf:results)
         
-        DispatchQueue.main.async {
+
+        await MainActor.run {
             self.placeResults = chatResults
         }
-
     }
     
-    public func zeroStateModel() {
+    public func zeroStateModel() async {
         let blendedResults = categoricalResults()
-        DispatchQueue.main.async { [weak self] in
-            guard let strongSelf = self else { return }
-            strongSelf.results.removeAll()
-            strongSelf.results = blendedResults
+        
+        await MainActor.run {
+            results.removeAll()
+            results = blendedResults
         }
     }
         
@@ -428,29 +440,27 @@ public class ChatResultViewModel : ObservableObject {
 }
 
 extension ChatResultViewModel : AssistiveChatHostMessagesDelegate {
-    public func didTap(chatResult: ChatResult, selectedPlaceSearchResponse: PlaceSearchResponse?, selectedPlaceSearchDetails: PlaceDetailsResponse?) {
+    public func didTap(chatResult: ChatResult, selectedPlaceSearchResponse: PlaceSearchResponse?, selectedPlaceSearchDetails: PlaceDetailsResponse?) async {
         guard chatResult.title.count > 0 else {
             resetPlaceModel()
             return
         }
         
-        let _ = Task.init {
-            do {
-                guard let chatHost = self.assistiveHostDelegate else {
-                    return
-                }
-                
-                let caption = chatResult.title
-                let intent = try chatHost.determineIntent(for: caption, placeSearchResponse: selectedPlaceSearchResponse)
-                let queryParameters = try await chatHost.defaultParameters(for: caption)
-                let newIntent = AssistiveChatHostIntent(caption: caption, intent: intent, selectedPlaceSearchResponse: selectedPlaceSearchResponse, selectedPlaceSearchDetails: selectedPlaceSearchDetails, placeSearchResponses: [PlaceSearchResponse](), placeDetailsResponses:nil, queryParameters: queryParameters)
-                chatHost.appendIntentParameters(intent: newIntent)
-                if let location = locationProvider.currentLocation() {
-                    try await chatHost.receiveMessage(caption: caption, isLocalParticipant: true, nearLocation: location)
-                }
-            } catch {
-                print(error)
+        do {
+            guard let chatHost = self.assistiveHostDelegate else {
+                return
             }
+            
+            let caption = chatResult.title
+            let intent = try chatHost.determineIntent(for: caption, placeSearchResponse: selectedPlaceSearchResponse)
+            let queryParameters = try await chatHost.defaultParameters(for: caption)
+            let newIntent = AssistiveChatHostIntent(caption: caption, intent: intent, selectedPlaceSearchResponse: selectedPlaceSearchResponse, selectedPlaceSearchDetails: selectedPlaceSearchDetails, placeSearchResponses: [PlaceSearchResponse](), placeDetailsResponses:nil, queryParameters: queryParameters)
+            chatHost.appendIntentParameters(intent: newIntent)
+            if let location = locationProvider.currentLocation() {
+                try await chatHost.receiveMessage(caption: caption, isLocalParticipant: true, nearLocation: location)
+            }
+        } catch {
+            print(error)
         }
     }
     
@@ -458,14 +468,14 @@ extension ChatResultViewModel : AssistiveChatHostMessagesDelegate {
         try await receiveMessage(caption: caption, parameters: parameters, isLocalParticipant: isLocalParticipant, nearLocation: nearLocation)
     }
     
-    public func didUpdateQuery(with parameters: AssistiveChatHostQueryParameters, nearLocation: CLLocation) {
-        refreshModel(queryIntents: parameters.queryIntents, nearLocation: nearLocation )
+    public func didUpdateQuery(with parameters: AssistiveChatHostQueryParameters, nearLocation: CLLocation) async {
+        await refreshModel(queryIntents: parameters.queryIntents, nearLocation: nearLocation )
     }
     
 }
 
 extension ChatResultViewModel : AssistiveChatHostStreamResponseDelegate {
-    public func didReceiveStreamingResult(with string: String, for result: ChatResult) {
+    public func didReceiveStreamingResult(with string: String, for result: ChatResult) async {
         let candidates = placeResults.filter { checkResult in
             return checkResult.placeResponse?.fsqID != nil && checkResult.placeResponse?.fsqID == result.placeResponse?.fsqID
         }
@@ -487,7 +497,7 @@ extension ChatResultViewModel : AssistiveChatHostStreamResponseDelegate {
                 }
             }
             
-            DispatchQueue.main.sync {
+            await MainActor.run {
                 self.placeResults = newPlaceResults
             }
         }

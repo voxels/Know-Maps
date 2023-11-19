@@ -83,7 +83,7 @@ open class LanguageGenerator : LanguageGeneratorDelegate {
         if let choicesArray = dict["choices"] as? [NSDictionary], let choices = choicesArray.first {
             if let message = choices["message"] as? [String:String] {
                 if let content = message["content"] {
-                    delegate.didReceiveStreamingResult(with: content, for: chatResult)
+                    await delegate.didReceiveStreamingResult(with: content, for: chatResult)
                 }
             }
         }
@@ -91,7 +91,7 @@ open class LanguageGenerator : LanguageGeneratorDelegate {
     
     public func fetchTipsSummary(with placeName:String, tips:[String], chatResult:ChatResult, delegate:AssistiveChatHostStreamResponseDelegate) async throws {
         if tips.count == 1, let firstTip = tips.first {
-            delegate.didReceiveStreamingResult(with: firstTip, for:chatResult)
+            await delegate.didReceiveStreamingResult(with: firstTip, for:chatResult)
             return
         }
         
@@ -107,7 +107,7 @@ open class LanguageGenerator : LanguageGeneratorDelegate {
         if let choicesArray = dict["choices"] as? [NSDictionary], let choices = choicesArray.first {
             if let message = choices["message"] as? [String:String] {
                 if let content = message["content"] {
-                    delegate.didReceiveStreamingResult(with: content, for: chatResult)
+                    await delegate.didReceiveStreamingResult(with: content, for: chatResult)
                 }
             }
         }

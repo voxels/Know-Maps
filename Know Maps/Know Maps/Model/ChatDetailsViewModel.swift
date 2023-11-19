@@ -37,14 +37,15 @@ public class ChatDetailsViewModel {
         guard let lastIntent = parameters.queryIntents.last else {
             throw ChatDetailsViewModelError.NoIntentFound
         }
-        self.currentIntent = lastIntent
-        self.queryParameters = parameters
-        self.responseString = responseString
-        self.placeSearchResponses = placeSearchResponses
-        self.placeDetailsResponses = placeDetailsResponses ?? [PlaceDetailsResponse]()
-        
         DispatchQueue.main.async { [weak self] in
-            self?.delegate?.modelDidUpdate()
+            guard let strongSelf = self else { return }
+            strongSelf.currentIntent = lastIntent
+            strongSelf.queryParameters = parameters
+            strongSelf.responseString = responseString
+            strongSelf.placeSearchResponses = placeSearchResponses
+            strongSelf.placeDetailsResponses = placeDetailsResponses ?? [PlaceDetailsResponse]()
+        
+            strongSelf.delegate?.modelDidUpdate()
         }
     }
     

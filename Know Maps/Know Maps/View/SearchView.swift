@@ -16,16 +16,16 @@ struct SearchView: View {
     var body: some View {
         List(model.filteredResults,selection: $resultId){ result in
             Text(result.title).bold()
-        }.onChange(of: resultId) { oldValue, newValue in
-            let result = model.filteredResults.first { checkResult in
-                return checkResult.id == newValue
+        }.searchable(text: $model.searchText)
+            .onChange(of: model.searchText) { oldValue, newValue in
+                if newValue == "" {
+                    model.selectedPlaceResult = nil
+                    model.resetPlaceModel()
+                    resultId = nil
+                } else {
+                    
+                }
             }
-            
-            guard let result = result else {
-                return
-            }
-            model.searchText = result.title
-        }
     }
 }
 

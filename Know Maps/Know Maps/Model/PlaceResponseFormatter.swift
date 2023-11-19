@@ -14,10 +14,10 @@ public enum PlaceResponseFormatterError : Error {
 }
 
 open class PlaceResponseFormatter {
-    public class func autocompletePlaceSearchResponses(with response:NSDictionary, nearLocation:CLLocation) throws ->[PlaceSearchResponse] {
+    public class func autocompletePlaceSearchResponses(with response:[String:Any], nearLocation:CLLocation) throws ->[PlaceSearchResponse] {
         var retVal = [PlaceSearchResponse]()
         
-        guard response.allKeys.count > 0 else {
+        guard response.keys.count > 0 else {
             throw PlaceResponseFormatterError.InvalidRawResponseType
         }
         

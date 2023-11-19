@@ -76,9 +76,7 @@ extension LocationProvider : CLLocationManagerDelegate {
         if retryCount >= maxRetries {
             return
         }
-        Task {
-            locationManager.requestLocation()
-        }
+        locationManager.requestLocation()
         retryCount += 1
 
         

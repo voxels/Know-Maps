@@ -13,11 +13,11 @@ import CoreML
 typealias AssistiveChatHostTaggedWord = [String: [String]]
 
 public protocol ChatHostingViewControllerDelegate : AnyObject {
-    func didTap(chatResult:ChatResult)
+    func didTap(chatResult:ChatResult) async
 }
 
 public protocol AssistiveChatHostStreamResponseDelegate {
-    func didReceiveStreamingResult(with string:String, for result:ChatResult)
+    func didReceiveStreamingResult(with string:String, for result:ChatResult) async
 }
 
 public class AssistiveChatHostIntent : Equatable {
@@ -47,9 +47,9 @@ public class AssistiveChatHostIntent : Equatable {
 }
 
 public protocol AssistiveChatHostMessagesDelegate : AnyObject {
-    func didTap(chatResult:ChatResult, selectedPlaceSearchResponse:PlaceSearchResponse?, selectedPlaceSearchDetails:PlaceDetailsResponse?)
+    func didTap(chatResult:ChatResult, selectedPlaceSearchResponse:PlaceSearchResponse?, selectedPlaceSearchDetails:PlaceDetailsResponse?) async
     func addReceivedMessage(caption:String, parameters:AssistiveChatHostQueryParameters, isLocalParticipant:Bool, nearLocation:CLLocation) async throws
-    func didUpdateQuery(with parameters:AssistiveChatHostQueryParameters, nearLocation:CLLocation)
+    func didUpdateQuery(with parameters:AssistiveChatHostQueryParameters, nearLocation:CLLocation) async
 }
 
 open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControllerDelegate, ObservableObject {
@@ -71,13 +71,10 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
     
     required public init(delegate:AssistiveChatHostMessagesDelegate? = nil) {
         self.messagesDelegate = delegate
-        
-        _ = Task.init{
-            do {
-                try organizeCategoryCodeList()
-            } catch {
-                print(error)
-            }
+        do {
+            try organizeCategoryCodeList()
+        } catch {
+            print(error)
         }
     }
     
@@ -99,9 +96,9 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
         }
     }
     
-    public func didTap(chatResult: ChatResult) {
+    public func didTap(chatResult: ChatResult) async {
         print("Did tap result:\(chatResult.title) for place:")
-        messagesDelegate?.didTap(chatResult: chatResult, selectedPlaceSearchResponse: chatResult.placeResponse, selectedPlaceSearchDetails:chatResult.placeDetailsResponse)
+        await messagesDelegate?.didTap(chatResult: chatResult, selectedPlaceSearchResponse: chatResult.placeResponse, selectedPlaceSearchDetails:chatResult.placeDetailsResponse)
     }
     
     
@@ -198,18 +195,20 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
             return nil
         }
     }
-    
+
+    @MainActor
     public func appendIntentParameters(intent:AssistiveChatHostIntent) {
-        queryIntentParameters.queryIntents.append(intent)
+            queryIntentParameters.queryIntents.append(intent)
     }
     
+    @MainActor
     public func resetIntentParameters() {
         queryIntentParameters.queryIntents = [AssistiveChatHostIntent]()
     }
     
     public func receiveMessage(caption:String, isLocalParticipant:Bool, nearLocation:CLLocation ) async throws {
         try await messagesDelegate?.addReceivedMessage(caption: caption, parameters: queryIntentParameters, isLocalParticipant: isLocalParticipant, nearLocation: nearLocation)
-        messagesDelegate?.didUpdateQuery(with:queryIntentParameters, nearLocation: nearLocation)
+        await messagesDelegate?.didUpdateQuery(with:queryIntentParameters, nearLocation: nearLocation)
     }
 }
 
@@ -289,7 +288,7 @@ extension AssistiveChatHost {
     internal func parsedQuery(for rawQuery:String, tags:AssistiveChatHostTaggedWord? = nil)->String {
         guard let tags = tags else { return rawQuery }
         
-        var revisedQuery = ""
+        var revisedQuery = [String]()
         var includedWords = Set<String>()
         
         for taggedWord in tags.keys {
@@ -297,19 +296,16 @@ extension AssistiveChatHost {
                 if taggedValues.contains("NONE"), !includedWords.contains(taggedWord) {
                     includedWords.insert(taggedWord)
                     revisedQuery.append(taggedWord)
-                    revisedQuery.append(" ")
                 }
 
                 if taggedValues.contains("TASTE"), !includedWords.contains(taggedWord) {
                     includedWords.insert(taggedWord)
                     revisedQuery.append(taggedWord)
-                    revisedQuery.append(" ")
                 }
 
                 if taggedValues.contains("CATEGORY"), !includedWords.contains(taggedWord) {
                     includedWords.insert(taggedWord)
                     revisedQuery.append(taggedWord)
-                    revisedQuery.append(" ")
                 }
                 
                 if taggedValues.contains("PLACE"), !taggedValues.contains("PlaceName"), !includedWords.contains(taggedWord) {
@@ -318,7 +314,6 @@ extension AssistiveChatHost {
                     print(taggedValues)
                     print(taggedValues.count)
                     revisedQuery.append(taggedWord)
-                    revisedQuery.append(" ")
                 }
                 
                 if taggedValues.contains("Noun"), !includedWords.contains(taggedWord) {
@@ -327,7 +322,6 @@ extension AssistiveChatHost {
                     print(taggedValues)
                     print(taggedValues.count)
                     revisedQuery.append(taggedWord)
-                    revisedQuery.append(" ")
                 }
                 
                 if taggedValues.contains("Adjective"), !includedWords.contains(taggedWord) {
@@ -336,17 +330,27 @@ extension AssistiveChatHost {
                     print(taggedValues)
                     print(taggedValues.count)
                     revisedQuery.append(taggedWord)
-                    revisedQuery.append(" ")
                 }
             }
         }
         print("Revised query")
-        if revisedQuery.count == 0 {
-            revisedQuery = rawQuery
+        
+        var parsedQuery = ""
+        let rawQueryComponents = rawQuery.components(separatedBy: .whitespacesAndNewlines)
+        for component in rawQueryComponents {
+            if revisedQuery.contains(component) {
+                parsedQuery.append(component)
+                parsedQuery.append(" ")
+            }
         }
-        revisedQuery = revisedQuery.trimmingCharacters(in: .whitespaces)
-        print(revisedQuery)
-        return revisedQuery
+        
+        
+        parsedQuery = parsedQuery.trimmingCharacters(in: .whitespaces)
+        if parsedQuery.count == 0 {
+            parsedQuery = rawQuery
+        }
+        print(parsedQuery)
+        return parsedQuery
     }
     
     internal func radius(for rawQuery:String)->Int? {

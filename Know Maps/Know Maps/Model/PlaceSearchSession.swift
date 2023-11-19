@@ -43,7 +43,7 @@ open class PlaceSearchSession : ObservableObject {
         }
     }
     
-    public func query(request:PlaceSearchRequest) async throws ->NSDictionary {
+    public func query(request:PlaceSearchRequest) async throws ->[String:Any] {
         if searchSession == nil {
             searchSession = try await session()
         }
@@ -111,8 +111,8 @@ open class PlaceSearchSession : ObservableObject {
         
         let placeSearchResponse = try await fetch(url: url, apiKey: self.foursquareApiKey)
         
-        guard let response = placeSearchResponse as? NSDictionary else {
-            return NSDictionary()
+        guard let response = placeSearchResponse as? [String:Any] else {
+            return [String:Any]()
         }
                 
         return response
@@ -229,7 +229,7 @@ open class PlaceSearchSession : ObservableObject {
         return try await fetch(url: url, apiKey: self.foursquareApiKey)
     }
     
-    public func autocomplete(caption:String, parameters:[String:Any]?, currentLocation:CLLocationCoordinate2D) async throws -> NSDictionary {
+    public func autocomplete(caption:String, parameters:[String:Any]?, currentLocation:CLLocationCoordinate2D) async throws -> [String:Any] {
         if searchSession == nil {
             searchSession = try await session()
         }
@@ -298,8 +298,8 @@ open class PlaceSearchSession : ObservableObject {
         
         let placeSearchResponse = try await fetch(url: url, apiKey: self.foursquareApiKey)
         
-        guard let response = placeSearchResponse as? NSDictionary else {
-            return NSDictionary()
+        guard let response = placeSearchResponse as? [String:Any] else {
+            return [String:Any]()
         }
                 
         return response
