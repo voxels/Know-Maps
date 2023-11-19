@@ -23,10 +23,10 @@ struct PlaceView: View {
                     let maxDistance = (currentLocation?.distance(from: placeCoordinate) ?? 4500) + 10000
                     Map(initialPosition: .automatic, bounds: MapCameraBounds(minimumDistance: maxDistance - 10000, maximumDistance:maxDistance)) {
                             Marker(selectedPlaceResult.title, coordinate: placeCoordinate.coordinate)
-                            if let currentLocation = currentLocation {
-                                Marker("Current Location", coordinate: currentLocation.coordinate)
+                            if let currentLocation = currentLocation, currentLocation.distance(from: placeCoordinate) < 10000 {
+                                    Marker("Current Location", coordinate: currentLocation.coordinate)
+                                }
                             }
-                        }
                         .mapControls {
                             MapPitchToggle()
                             MapUserLocationButton()

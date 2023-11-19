@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import CoreLocation
 
 public struct PlaceSearchRequest {
     let query:String
@@ -18,6 +19,11 @@ public struct PlaceSearchRequest {
     let openAt:String?
     let openNow:Bool?
     let nearLocation:String?
+    private(set) var nearLocationCoordinate:CLLocation?
     let sort:String?
     var limit:Int = 10
+    
+    mutating public func addNear(location:CLLocation) {
+        self.nearLocationCoordinate = location
+    }
 }

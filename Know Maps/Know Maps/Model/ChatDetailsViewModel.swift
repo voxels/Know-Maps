@@ -33,7 +33,7 @@ public class ChatDetailsViewModel {
         self.delegate = delegate
     }
     
-    public func updateModel(parameters:AssistiveChatHostQueryParameters, responseString:String? = nil, placeSearchResponses:[PlaceSearchResponse] = [PlaceSearchResponse](), placeDetailsResponses:[PlaceDetailsResponse]?, nearLocation:CLLocation) async throws {
+    public func updateModel(parameters:AssistiveChatHostQueryParameters, responseString:String? = nil, placeSearchResponses:[PlaceSearchResponse] = [PlaceSearchResponse](), placeDetailsResponses:[PlaceDetailsResponse]?) async throws {
         guard let lastIntent = parameters.queryIntents.last else {
             throw ChatDetailsViewModelError.NoIntentFound
         }

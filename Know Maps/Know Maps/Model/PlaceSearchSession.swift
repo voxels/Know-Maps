@@ -43,7 +43,7 @@ open class PlaceSearchSession : ObservableObject {
         }
     }
     
-    public func query(request:PlaceSearchRequest) async throws ->[String:Any] {
+    public func query(request:PlaceSearchRequest, location:CLLocation?) async throws ->[String:Any] {
         if searchSession == nil {
             searchSession = try await session()
         }
@@ -55,7 +55,14 @@ open class PlaceSearchSession : ObservableObject {
             components?.queryItems?.append(queryItem)
         }
         
-        if let nearLocation = request.nearLocation {
+        if let location = location {
+            let rawLocation = "\(location.coordinate.latitude),\(location.coordinate.longitude)"
+            let radiusQueryItem = URLQueryItem(name: "radius", value: "\(request.radius)")
+            components?.queryItems?.append(radiusQueryItem)
+            
+            let locationQueryItem = URLQueryItem(name: "ll", value: rawLocation)
+            components?.queryItems?.append(locationQueryItem)
+        } else if let nearLocation = request.nearLocation {
             let nearQueryItem = URLQueryItem(name: "near", value: nearLocation)
             components?.queryItems?.append(nearQueryItem)
         } else {
@@ -229,12 +236,12 @@ open class PlaceSearchSession : ObservableObject {
         return try await fetch(url: url, apiKey: self.foursquareApiKey)
     }
     
-    public func autocomplete(caption:String, parameters:[String:Any]?, currentLocation:CLLocationCoordinate2D) async throws -> [String:Any] {
+    public func autocomplete(caption:String, parameters:[String:Any]?, location:CLLocation) async throws -> [String:Any] {
         if searchSession == nil {
             searchSession = try await session()
         }
         
-        let ll = "\(currentLocation.latitude),\(currentLocation.longitude)"
+        let ll = "\(location.coordinate.latitude),\(location.coordinate.longitude)"
         var limit = 20
         var nameString:String = ""
         

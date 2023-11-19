@@ -22,6 +22,9 @@ public protocol AssistiveChatHostDelegate:AnyObject {
     func updateLastIntentParameters(intent:AssistiveChatHostIntent)
     func appendIntentParameters(intent:AssistiveChatHostIntent)
     func resetIntentParameters()
-    func receiveMessage(caption:String, isLocalParticipant:Bool, nearLocation:CLLocation ) async throws
+    func receiveMessage(caption:String, isLocalParticipant:Bool ) async throws
     func defaultParameters(for query:String) async throws -> [String:Any]?
+    func nearLocation(for rawQuery:String, tags:AssistiveChatHostTaggedWord?) async throws -> String?
+    func nearLocationCoordinate(for rawQuery:String, tags:AssistiveChatHostTaggedWord?) async throws -> CLLocation?
+    func tags(for rawQuery:String) throws ->AssistiveChatHostTaggedWord?
 }

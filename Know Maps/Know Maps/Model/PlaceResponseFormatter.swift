@@ -14,7 +14,7 @@ public enum PlaceResponseFormatterError : Error {
 }
 
 open class PlaceResponseFormatter {
-    public class func autocompletePlaceSearchResponses(with response:[String:Any], nearLocation:CLLocation) throws ->[PlaceSearchResponse] {
+    public class func autocompletePlaceSearchResponses(with response:[String:Any]) throws ->[PlaceSearchResponse] {
         var retVal = [PlaceSearchResponse]()
         
         guard response.keys.count > 0 else {
@@ -133,17 +133,10 @@ open class PlaceResponseFormatter {
             }
         }
         
-        let sortedPlaceSearchResponses = retVal.sorted(by: { firstLocation, checkLocation in
-            let firstLocationCoordinate = CLLocation(latitude: firstLocation.latitude, longitude: firstLocation.longitude)
-            let checkLocationCoordinate = CLLocation(latitude: checkLocation.latitude, longitude: checkLocation.longitude)
-            
-            return firstLocationCoordinate.distance(from: nearLocation) < checkLocationCoordinate.distance(from: nearLocation)
-        })
-        
-        return sortedPlaceSearchResponses
+        return retVal
     }
     
-    public class func placeSearchResponses(with response:Any, nearLocation:CLLocation) throws ->[PlaceSearchResponse] {
+    public class func placeSearchResponses(with response:Any) throws ->[PlaceSearchResponse] {
         var retVal = [PlaceSearchResponse]()
         
         guard let response = response as? NSDictionary else {
@@ -259,14 +252,7 @@ open class PlaceResponseFormatter {
             }
         }
         
-        let sortedPlaceSearchResponses = retVal.sorted(by: { firstLocation, checkLocation in
-            let firstLocationCoordinate = CLLocation(latitude: firstLocation.latitude, longitude: firstLocation.longitude)
-            let checkLocationCoordinate = CLLocation(latitude: checkLocation.latitude, longitude: checkLocation.longitude)
-            
-            return firstLocationCoordinate.distance(from: nearLocation) < checkLocationCoordinate.distance(from: nearLocation)
-        })
-        
-        return sortedPlaceSearchResponses
+        return retVal
     }
     
     public class func placeDetailsResponse(with response:Any, for placeSearchResponse:PlaceSearchResponse, placePhotosResponses:[PlacePhotoResponse]? = nil, placeTipsResponses:[PlaceTipsResponse]? = nil) throws ->PlaceDetailsResponse {

@@ -32,20 +32,6 @@ struct ContentView: View {
             } else {
                 PlaceView(chatHost: chatHost, model: chatModel, locationProvider: locationProvider, resultId: $chatModel.selectedPlaceChatResult)
             }
-        }.onChange(of: locationProvider.lastKnownLocation) { oldValue, newValue in
-            if let location = newValue {
-                guard let oldLocation = oldValue else {
-                    let _ = Task {
-                        await chatModel.refreshModel(nearLocation: location)
-                    }
-                    return
-                }
-                
-                if location.distance(from: oldLocation) > 1000 {
-                    let _ = Task {
-                        await chatModel.refreshModel(nearLocation: location)
-                    }                }
-            }
         }.onChange(of: chatModel.selectedCategoryChatResult) { oldValue, newValue in
             guard let newValue = newValue else {
                 chatModel.resetPlaceModel()
@@ -72,9 +58,10 @@ struct ContentView: View {
             chatModel.assistiveHostDelegate = chatHost
             chatHost.messagesDelegate = chatModel
             if let location = chatModel.locationProvider.currentLocation() {
-                await chatModel.refreshModel(nearLocation: location)
+                await chatModel.refreshModel()
             } else {
                 chatModel.locationProvider.authorize()
+                await chatModel.refreshModel()
             }
             
             if let selectedCategoryChatResult = chatModel.selectedCategoryChatResult, let chatResult = chatModel.chatResult(for: selectedCategoryChatResult) {

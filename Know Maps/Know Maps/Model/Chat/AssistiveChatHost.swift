@@ -5,12 +5,13 @@
 //  Created by Michael A Edgcumbe on 3/21/23.
 //
 
-import UIKit
+import Foundation
 import NaturalLanguage
 import CoreLocation
 import CoreML
 
-typealias AssistiveChatHostTaggedWord = [String: [String]]
+
+public typealias AssistiveChatHostTaggedWord = [String: [String]]
 
 public protocol ChatHostingViewControllerDelegate : AnyObject {
     func didTap(chatResult:ChatResult) async
@@ -51,8 +52,8 @@ public class AssistiveChatHostIntent : Equatable {
 public protocol AssistiveChatHostMessagesDelegate : AnyObject {
     func didSearch(caption:String) async
     func didTap(chatResult:ChatResult, selectedPlaceSearchResponse:PlaceSearchResponse?, selectedPlaceSearchDetails:PlaceDetailsResponse?) async
-    func addReceivedMessage(caption:String, parameters:AssistiveChatHostQueryParameters, isLocalParticipant:Bool, nearLocation:CLLocation) async throws
-    func didUpdateQuery(with parameters:AssistiveChatHostQueryParameters, nearLocation:CLLocation) async
+    func addReceivedMessage(caption:String, parameters:AssistiveChatHostQueryParameters, isLocalParticipant:Bool) async throws
+    func didUpdateQuery(with parameters:AssistiveChatHostQueryParameters) async
 }
 
 open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControllerDelegate, ObservableObject {
@@ -71,6 +72,8 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
     public var placeSearchSession = PlaceSearchSession()
     @Published public var queryIntentParameters = AssistiveChatHostQueryParameters()
     public var categoryCodes:[String:String] = [String:String]()
+    
+    let geocoder = CLGeocoder()
     
     required public init(delegate:AssistiveChatHostMessagesDelegate? = nil) {
         self.messagesDelegate = delegate
@@ -168,10 +171,10 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
                     rawParameters["max_price"] = maxPrice
                 }
                 
-                if let nearLocation = nearLocation(for: query, tags: tags) {
+                if let nearLocation = try await nearLocation(for: query, tags: tags) {
                     rawParameters["near"] = nearLocation
                 }
-                
+                                
                 if let openAt = openAt(for: query) {
                     rawParameters["open_at"] = openAt
                 }
@@ -217,25 +220,62 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
         queryIntentParameters.queryIntents = [AssistiveChatHostIntent]()
     }
     
-    public func receiveMessage(caption:String, isLocalParticipant:Bool, nearLocation:CLLocation ) async throws {
-        try await messagesDelegate?.addReceivedMessage(caption: caption, parameters: queryIntentParameters, isLocalParticipant: isLocalParticipant, nearLocation: nearLocation)
-        await messagesDelegate?.didUpdateQuery(with:queryIntentParameters, nearLocation: nearLocation)
+    public func receiveMessage(caption:String, isLocalParticipant:Bool ) async throws {
+        try await messagesDelegate?.addReceivedMessage(caption: caption, parameters: queryIntentParameters, isLocalParticipant: isLocalParticipant)
+        await messagesDelegate?.didUpdateQuery(with:queryIntentParameters)
     }
-}
-
-extension AssistiveChatHost {
-    public func searchQueryDescription(nearLocation:CLLocation) async throws -> String {
-        return try await languageDelegate.searchQueryDescription(nearLocation:nearLocation)
-    }
-        
-    public func placeDescription(chatResult:ChatResult, delegate:AssistiveChatHostStreamResponseDelegate) async throws {
-        try await languageDelegate.placeDescription(chatResult: chatResult, delegate: delegate)
-    }
-}
-
-extension AssistiveChatHost {
     
-    internal func tags(for rawQuery:String) throws ->AssistiveChatHostTaggedWord? {
+    public func nearLocation(for rawQuery:String, tags:AssistiveChatHostTaggedWord? = nil) async throws -> String? {
+        guard rawQuery.contains("near") else {
+            return nil
+        }
+        
+        let components = rawQuery.lowercased().components(separatedBy: "near")
+        
+        guard let lastComponent = components.last?.trimmingCharacters(in: .whitespacesAndNewlines) else {
+            return nil
+        }
+        
+        guard lastComponent.count > 0 else {
+            return nil
+        }
+        
+        do {
+            let coordinate = try await nearLocationCoordinate(for:lastComponent, tags: tags)
+            if coordinate != nil {
+                return lastComponent
+            }
+        } catch {
+            print(error)
+        }
+        
+        return nil
+    }
+    
+    public func nearLocationCoordinate(for rawQuery:String, tags:AssistiveChatHostTaggedWord? = nil) async throws -> CLLocation? {
+        guard rawQuery.contains("near") else {
+            return nil
+        }
+        
+        if geocoder.isGeocoding {
+            geocoder.cancelGeocode()
+        }
+        
+        let components = rawQuery.lowercased().components(separatedBy: "near")
+        
+        guard let lastComponent = components.last?.trimmingCharacters(in: .whitespacesAndNewlines) else {
+            return nil
+        }
+        
+        guard lastComponent.count > 0 else {
+            return nil
+        }
+
+        let placemarks = try await geocoder.geocodeAddressString(lastComponent)
+        return placemarks.first?.location
+    }
+    
+    public func tags(for rawQuery:String) throws ->AssistiveChatHostTaggedWord? {
         var retval:AssistiveChatHostTaggedWord = AssistiveChatHostTaggedWord()
         let mlModel = try LocalMapsQueryTagger(configuration: MLModelConfiguration()).model
         let customModel = try NLModel(mlModel: mlModel)
@@ -291,7 +331,19 @@ extension AssistiveChatHost {
         
         return nil
     }
-    
+}
+
+extension AssistiveChatHost {
+    public func searchQueryDescription(nearLocation:CLLocation) async throws -> String {
+        return try await languageDelegate.searchQueryDescription(nearLocation:nearLocation)
+    }
+        
+    public func placeDescription(chatResult:ChatResult, delegate:AssistiveChatHostStreamResponseDelegate) async throws {
+        try await languageDelegate.placeDescription(chatResult: chatResult, delegate: delegate)
+    }
+}
+
+extension AssistiveChatHost {
     internal func parsedQuery(for rawQuery:String, tags:AssistiveChatHostTaggedWord? = nil)->String {
         guard let tags = tags else { return rawQuery }
         
@@ -388,10 +440,6 @@ extension AssistiveChatHost {
         return nil
     }
     
-    internal func nearLocation(for rawQuery:String, tags:AssistiveChatHostTaggedWord? = nil)->String? {
-        return nil
-    }
-    
     internal func openAt(for rawQuery:String)->String? {
         return nil
     }
@@ -402,6 +450,7 @@ extension AssistiveChatHost {
         }
         return nil
     }
+    
         
     internal func categories(for rawQuery:String, tags:AssistiveChatHostTaggedWord? = nil)->[String]? {
         
