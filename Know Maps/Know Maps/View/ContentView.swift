@@ -47,7 +47,7 @@ struct ContentView: View {
             }
             let _ = Task {
                 do {
-                    if let placeChatResult = chatModel.placeChatResult(for: newValue), newValue != oldValue, placeChatResult.title != chatHost.queryIntentParameters.queryIntents.last?.caption {
+                    if let placeChatResult = chatModel.placeChatResult(for: newValue), newValue != oldValue, placeChatResult.title != chatModel.searchText {
                         try await chatModel.didTap(placeChatResult: placeChatResult)
                     }
                 } catch {

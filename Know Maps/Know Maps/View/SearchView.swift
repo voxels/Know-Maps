@@ -23,8 +23,7 @@ struct SearchView: View {
                     resultId = nil
                 } else if newValue != oldValue, newValue != chatHost.queryIntentParameters.queryIntents.last?.caption {
                     Task {
-                        await model.didSearch(caption:model.searchText)
-                        try await model.didUpdateQuery(with: chatHost.queryIntentParameters)
+                        try await model.didSearch(caption:model.searchText)
                     }
                 }
             }

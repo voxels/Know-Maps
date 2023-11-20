@@ -255,7 +255,7 @@ open class PlaceResponseFormatter {
         return retVal
     }
     
-    public class func placeDetailsResponse(with response:Any, for placeSearchResponse:PlaceSearchResponse, placePhotosResponses:[PlacePhotoResponse]? = nil, placeTipsResponses:[PlaceTipsResponse]? = nil) throws ->PlaceDetailsResponse {
+    public class func placeDetailsResponse(with response:Any, for placeSearchResponse:PlaceSearchResponse, placePhotosResponses:[PlacePhotoResponse]? = nil, placeTipsResponses:[PlaceTipsResponse]? = nil, previousDetails:[PlaceDetailsResponse]? = nil) throws ->PlaceDetailsResponse {
         
         guard let response = response as? NSDictionary else {
             throw PlaceResponseFormatterError.InvalidRawResponseType
@@ -268,6 +268,12 @@ open class PlaceResponseFormatter {
         if let rawDescription = response["description"] as? String {
             print(rawDescription)
             description = rawDescription
+        } else if let previousDetails = previousDetails {
+            for detail in previousDetails {
+                if detail.searchResponse.fsqID == searchResponse.fsqID, detail.description != nil {
+                    description = detail.description
+                }
+            }
         }
         
         var tel:String? = nil

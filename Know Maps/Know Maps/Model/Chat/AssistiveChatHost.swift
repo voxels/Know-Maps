@@ -50,7 +50,7 @@ public class AssistiveChatHostIntent : Equatable {
 }
 
 public protocol AssistiveChatHostMessagesDelegate : AnyObject {
-    func didSearch(caption:String) async
+    func didSearch(caption:String) async throws
     func didTap(placeChatResult:ChatResult) async throws
     func didTap(chatResult:ChatResult, selectedPlaceSearchResponse:PlaceSearchResponse?, selectedPlaceSearchDetails:PlaceDetailsResponse?) async
     func addReceivedMessage(caption:String, parameters:AssistiveChatHostQueryParameters, isLocalParticipant:Bool) async throws
@@ -107,7 +107,7 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
     }
     
     
-    public func determineIntent(for caption:String, placeSearchResponse:PlaceSearchResponse?) throws -> Intent
+    public func determineIntent(for caption:String) throws -> Intent
     {
         let components = caption.components(separatedBy: "near")
         if let prefix = components.first {
@@ -204,7 +204,7 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
     public func updateLastIntent(caption:String) async throws {
         if let lastIntent = queryIntentParameters.queryIntents.last {
             let queryParamters = try await defaultParameters(for: caption)
-            let intent = try determineIntent(for: caption, placeSearchResponse: lastIntent.selectedPlaceSearchResponse)
+            let intent = try determineIntent(for: caption)
             let newIntent = AssistiveChatHostIntent(caption: caption, intent:intent, selectedPlaceSearchResponse: lastIntent.selectedPlaceSearchResponse, selectedPlaceSearchDetails: lastIntent.selectedPlaceSearchDetails, placeSearchResponses: lastIntent.placeSearchResponses, placeDetailsResponses: lastIntent.placeDetailsResponses, queryParameters: queryParamters)
             updateLastIntentParameters(intent: newIntent)
         }
