@@ -33,18 +33,10 @@ struct ContentView: View {
                 PlaceView(chatHost: chatHost, model: chatModel, locationProvider: locationProvider, resultId: $chatModel.selectedPlaceChatResult)
             }
         }.onChange(of: chatModel.selectedCategoryChatResult) { oldValue, newValue in
-            guard let newValue = newValue else {
-                chatModel.resetPlaceModel()
-                return
-            }
-            
-            
+            chatModel.selectedPlaceChatResult = nil
             let _ = Task {
-                if let chatResult = chatModel.chatResult(for: newValue) {
+                if let newValue = newValue, let chatResult = chatModel.chatResult(for: newValue) {
                     await chatHost.didTap(chatResult: chatResult)
-                    await MainActor.run {
-                        chatModel.searchText = chatResult.title
-                    }
                 }
             }
         }
@@ -54,16 +46,10 @@ struct ContentView: View {
                 return
             }
         })
-        .onChange(of: locationProvider.mostRecentLocations, { oldValue, newValue in
-            if locationProvider.queryLocation == nil {
-                let _ = Task {
-                    await chatModel.refreshModel()
-                }
-            }
-        })
         .task {
             chatModel.assistiveHostDelegate = chatHost
             chatHost.messagesDelegate = chatModel
+            await chatModel.categoricalSearchModel()
             await chatModel.refreshModel()
             
             if let selectedCategoryChatResult = chatModel.selectedCategoryChatResult, let chatResult = chatModel.chatResult(for: selectedCategoryChatResult) {

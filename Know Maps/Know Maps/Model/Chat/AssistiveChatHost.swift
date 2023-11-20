@@ -5,7 +5,7 @@
 //  Created by Michael A Edgcumbe on 3/21/23.
 //
 
-import Foundation
+import UIKit
 import NaturalLanguage
 import CoreLocation
 import CoreML
@@ -59,12 +59,8 @@ public protocol AssistiveChatHostMessagesDelegate : AnyObject {
 open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControllerDelegate, ObservableObject {
     
     public enum Intent : String {
-        case Unsupported
-        case SearchDefault
-        case TellDefault
-        case SearchQuery
-        case TellPlace
-        case ShareResult
+        case Search
+        case Autocomplete
     }
     
     weak public var messagesDelegate:AssistiveChatHostMessagesDelegate?
@@ -74,6 +70,7 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
     public var categoryCodes:[String:String] = [String:String]()
     
     let geocoder = CLGeocoder()
+    var lastGeocodedPlacemark:CLPlacemark?
     
     required public init(delegate:AssistiveChatHostMessagesDelegate? = nil) {
         self.messagesDelegate = delegate
@@ -110,23 +107,22 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
     
     public func determineIntent(for caption:String, placeSearchResponse:PlaceSearchResponse?) throws -> Intent
     {
-        if caption == "Where can I find" {
-            return .SearchDefault
+        let components = caption.components(separatedBy: "near")
+        if let prefix = components.first {
+            if categoryCodes.keys.contains(prefix) {
+                return .Search
+            }
+            
+            if UIReferenceLibraryViewController.dictionaryHasDefinition(forTerm: prefix) {
+                return .Search
+            }
         }
         
-        if caption == "Tell me about" {
-            return .TellDefault
+        if let lastCharacter = caption.last, lastCharacter.isWhitespace || lastCharacter.isPunctuation {
+            return .Search
         }
         
-        
-        let mlModel = try LocalMapsQueryClassifier(configuration: MLModelConfiguration()).model
-        let predictor = try NLModel(mlModel: mlModel)
-        var predictedLabel:Intent = .Unsupported
-        if let label = predictor.predictedLabel(for: caption), let intent = Intent(rawValue: label) {
-            predictedLabel = intent
-        }
-        
-        return predictedLabel
+        return .Autocomplete        
     }
     
     public func defaultParameters(for query:String) async throws -> [String:Any]? {
@@ -174,7 +170,7 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
                 if let nearLocation = try await nearLocation(for: query, tags: tags) {
                     rawParameters["near"] = nearLocation
                 }
-                                
+                
                 if let openAt = openAt(for: query) {
                     rawParameters["open_at"] = openAt
                 }
@@ -186,7 +182,7 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
                 if let categories = categories(for: query, tags: tags) {
                     rawParameters["categories"] = categories
                 }
-                                
+                
                 encodedParameters["query"] = parsedQuery(for: query, tags: tags)
                 encodedParameters["parameters"] = rawParameters
                 print("Parsed Default Parameters:")
@@ -209,7 +205,7 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
         }
         queryIntentParameters.queryIntents.append(intent)
     }
-
+    
     @MainActor
     public func appendIntentParameters(intent:AssistiveChatHostIntent) {
         queryIntentParameters.queryIntents.append(intent)
@@ -225,14 +221,14 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
         await messagesDelegate?.didUpdateQuery(with:queryIntentParameters)
     }
     
-    public func nearLocation(for rawQuery:String, tags:AssistiveChatHostTaggedWord? = nil) async throws -> String? {
+    public func nearLocation(for rawQuery:String, tags:AssistiveChatHostTaggedWord? = nil) -> String? {
         guard rawQuery.contains("near") else {
             return nil
         }
         
         let components = rawQuery.lowercased().components(separatedBy: "near")
         
-        guard let lastComponent = components.last?.trimmingCharacters(in: .whitespacesAndNewlines) else {
+        guard let lastComponent = components.last else {
             return nil
         }
         
@@ -240,13 +236,8 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
             return nil
         }
         
-        do {
-            let coordinate = try await nearLocationCoordinate(for:lastComponent, tags: tags)
-            if coordinate != nil {
-                return lastComponent
-            }
-        } catch {
-            print(error)
+        if let lastCharacter = lastComponent.last, lastCharacter.isLetter || lastCharacter.isWhitespace || lastCharacter.isPunctuation {
+            return lastComponent
         }
         
         return nil
@@ -271,12 +262,9 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
             return nil
         }
         
-        if let lastCharacter = lastComponent.last,  lastCharacter.isWhitespace || lastCharacter.isPunctuation {
-            let placemarks = try await geocoder.geocodeAddressString(lastComponent)
-            return placemarks.first?.location
-        } else {
-            return nil
-        }
+        let placemarks = try await geocoder.geocodeAddressString(lastComponent)
+        lastGeocodedPlacemark = placemarks.first
+        return placemarks.first?.location
     }
     
     public func tags(for rawQuery:String) throws ->AssistiveChatHostTaggedWord? {
@@ -334,6 +322,10 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
         }
         
         return nil
+    }
+    
+    @objc func fireTimer() {
+        print("Timer fired!")
     }
 }
 
@@ -461,7 +453,14 @@ extension AssistiveChatHost {
         
     internal func categories(for rawQuery:String, tags:AssistiveChatHostTaggedWord? = nil)->[String]? {
         
-        guard let naicsCode = categoryCodes[rawQuery] else {
+        var query = rawQuery
+        
+        let components = query.components(separatedBy: "near")
+        if let prefix = components.first {
+            query = prefix.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+        
+        guard let naicsCode = categoryCodes[query] else {
             return nil
         }
         

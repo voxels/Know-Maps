@@ -55,18 +55,20 @@ open class PlaceSearchSession : ObservableObject {
             components?.queryItems?.append(queryItem)
         }
         
-        if let location = location {
+        if let location = location, request.nearLocation == nil {
             let rawLocation = "\(location.coordinate.latitude),\(location.coordinate.longitude)"
-            let radiusQueryItem = URLQueryItem(name: "radius", value: "\(request.radius)")
+            let radius = request.radius
+            let radiusQueryItem = URLQueryItem(name: "radius", value: "\(radius)")
             components?.queryItems?.append(radiusQueryItem)
             
             let locationQueryItem = URLQueryItem(name: "ll", value: rawLocation)
             components?.queryItems?.append(locationQueryItem)
-        } else if let nearLocation = request.nearLocation {
-            let nearQueryItem = URLQueryItem(name: "near", value: nearLocation)
-            components?.queryItems?.append(nearQueryItem)
         } else {
-            let radiusQueryItem = URLQueryItem(name: "radius", value: "\(request.radius)")
+            var value = request.radius
+            if let nearLocation = request.nearLocation, !nearLocation.isEmpty {
+                value = 100000
+            }
+            let radiusQueryItem = URLQueryItem(name: "radius", value: "\(value)")
             components?.queryItems?.append(radiusQueryItem)
 
             if let rawLocation = request.ll {
@@ -292,7 +294,11 @@ open class PlaceSearchSession : ObservableObject {
             let locationQueryItem = URLQueryItem(name: "ll", value: ll)
             queryComponents?.queryItems?.append(locationQueryItem)
             
-            let radiusQueryItem = URLQueryItem(name: "radius", value: "2000")
+            var value = 2000
+            if caption.contains("near") {
+                value = 100000
+            }
+            let radiusQueryItem = URLQueryItem(name: "radius", value:"\(value)")
             queryComponents?.queryItems?.append(radiusQueryItem)
         }
         
