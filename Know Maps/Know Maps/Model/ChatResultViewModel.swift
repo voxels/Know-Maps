@@ -50,7 +50,9 @@ public class ChatResultViewModel : ObservableObject {
                 return results
             }
             var filtered = results.filter { [self] result in
-                let foundResult = searchText.lowercased().trimmingCharacters(in: .whitespacesAndNewlines).contains(result.title.lowercased())
+                let checkResultTitle = result.title.lowercased()
+                let checkSearchText = searchText.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+                let foundResult = checkResultTitle.contains(checkSearchText) || checkSearchText.contains(checkResultTitle)
                 return foundResult
             }
             
@@ -89,7 +91,7 @@ public class ChatResultViewModel : ObservableObject {
     }
     
     public func placeChatResult(for selectedChatResultID:ChatResult.ID)->ChatResult?{
-        let selectedResult = filteredPlaceResults.first(where: { checkResult in
+        let selectedResult = placeResults.first(where: { checkResult in
             return checkResult.id == selectedChatResultID
         })
                 
@@ -127,7 +129,7 @@ public class ChatResultViewModel : ObservableObject {
             throw ChatResultViewModelError.MissingLastIntent
         }
         
-        guard var finalLocation = locationProvider.currentLocation() else {
+        guard var finalLocation = locationProvider.lastKnownLocation else {
             throw ChatResultViewModelError.MissingCurrentLocation
         }
         
@@ -140,26 +142,27 @@ public class ChatResultViewModel : ObservableObject {
         await MainActor.run {
             locationProvider.queryLocation = finalLocation
         }
-        
-        try await self.detailIntent(intent: lastIntent, location: finalLocation)
+                
+        try await self.searchIntent(intent: lastIntent, location: finalLocation)
     }
     
-    public func detailIntent( intent: AssistiveChatHostIntent, location:CLLocation) async throws {
-        switch intent.intent {        case .Search:
+    public func searchIntent(intent:AssistiveChatHostIntent, location:CLLocation) async throws {
+        switch intent.intent {
+        case .Search:
             let request = await placeSearchRequest(intent: intent)
             let rawQueryResponse = try await placeSearchSession.query(request:request, location: location)
             let placeSearchResponses = try PlaceResponseFormatter.placeSearchResponses(with: rawQueryResponse)
             intent.placeSearchResponses = placeSearchResponses
-            if placeSearchResponses.count > 0 {
-               intent.placeDetailsResponses = try await fetchDetails(for: placeSearchResponses)
-            }
         case .Autocomplete:
             let autocompleteResponse = try await placeSearchSession.autocomplete(caption: intent.caption, parameters: intent.queryParameters, location: location)
             let placeSearchResponses = try PlaceResponseFormatter.autocompletePlaceSearchResponses(with: autocompleteResponse)
             intent.placeSearchResponses = placeSearchResponses
-            if placeSearchResponses.count > 0 {
-                intent.placeDetailsResponses = try await fetchDetails(for: placeSearchResponses)
-            }
+        }
+    }
+    
+    public func detailIntent( intent: AssistiveChatHostIntent) async throws {
+        if intent.placeSearchResponses.count > 0 {
+            intent.placeDetailsResponses = try await fetchDetails(for: intent.placeSearchResponses)
         }
     }
     
@@ -167,18 +170,14 @@ public class ChatResultViewModel : ObservableObject {
         let autocompleteResponse = try await placeSearchSession.autocomplete(caption: caption, parameters: intent.queryParameters, location: location)
         let placeSearchResponses = try PlaceResponseFormatter.autocompletePlaceSearchResponses(with: autocompleteResponse)
         intent.placeSearchResponses = placeSearchResponses
-        if placeSearchResponses.count > 0 {
-            intent.placeDetailsResponses = try await fetchDetails(for: placeSearchResponses)
-        }
 
         var chatResults = [ChatResult]()
-        if let allResponses = intent.placeDetailsResponses {
-            for index in 0..<min(allResponses.count,maxChatResults) {
-                let response = allResponses[index]
-                
-                let results = PlaceResponseFormatter.placeChatResults(for: intent, place: response.searchResponse, details: response)
-                chatResults.append(contentsOf:results)
-            }
+        let allResponses = intent.placeSearchResponses
+        for index in 0..<allResponses.count {
+            let response = allResponses[index]
+            
+            let results = PlaceResponseFormatter.placeChatResults(for: intent, place: response, details: nil)
+            chatResults.append(contentsOf:results)
         }
         
         await MainActor.run {
@@ -186,9 +185,21 @@ public class ChatResultViewModel : ObservableObject {
         }
     }
     
-    public func refreshModel(queryIntents:[AssistiveChatHostIntent]? = nil) async {
+    public func refreshModel(queryIntents:[AssistiveChatHostIntent]? = nil) async throws {
+        guard let chatHost = self.assistiveHostDelegate else {
+            return
+        }
+
         if let lastIntent = queryIntents?.last {
             await model(intent:lastIntent)
+        } else {            
+            let caption = searchText
+            let intent = try chatHost.determineIntent(for: caption, placeSearchResponse: nil)
+            let queryParameters = try await chatHost.defaultParameters(for: caption)
+            let newIntent = AssistiveChatHostIntent(caption: caption, intent: intent, selectedPlaceSearchResponse: nil, selectedPlaceSearchDetails: nil, placeSearchResponses: [PlaceSearchResponse](), placeDetailsResponses:nil, queryParameters: queryParameters)
+            chatHost.appendIntentParameters(intent: newIntent)
+            try await chatHost.receiveMessage(caption: caption, isLocalParticipant: true)
+            await model(intent: newIntent)
         }
     }
     
@@ -198,7 +209,7 @@ public class ChatResultViewModel : ObservableObject {
             await searchQueryModel(intent: intent)
         case .Autocomplete:
             do {
-                guard var finalLocation = locationProvider.currentLocation() else {
+                guard var finalLocation = locationProvider.lastKnownLocation else {
                     throw ChatResultViewModelError.MissingCurrentLocation
                 }
                 
@@ -223,16 +234,33 @@ public class ChatResultViewModel : ObservableObject {
     public func searchQueryModel(intent:AssistiveChatHostIntent ) async {
         var chatResults = [ChatResult]()
         if let allResponses = intent.placeDetailsResponses {
-            for index in 0..<min(allResponses.count,maxChatResults) {
+            for index in 0..<allResponses.count {
                 let response = allResponses[index]
                 
                 let results = PlaceResponseFormatter.placeChatResults(for: intent, place: response.searchResponse, details: response)
+                chatResults.append(contentsOf:results)
+            }
+        } else {
+            let allResponses = intent.placeSearchResponses
+            for index in 0..<allResponses.count {
+                let response = allResponses[index]
+                
+                let results = PlaceResponseFormatter.placeChatResults(for: intent, place: response, details: nil)
                 chatResults.append(contentsOf:results)
             }
         }
         
         await MainActor.run {
             self.placeResults = chatResults
+            self.searchText = intent.caption
+
+            if let selectedPlaceSearchResponse = intent.selectedPlaceSearchResponse, selectedPlaceSearchResponse.name == intent.caption {
+                for result in chatResults {
+                    if result.placeResponse?.fsqID == selectedPlaceSearchResponse.fsqID {
+                        selectedPlaceChatResult = result.id
+                    }
+                }
+            }
         }
     }
     
@@ -440,6 +468,49 @@ extension ChatResultViewModel : AssistiveChatHostMessagesDelegate {
 
     }
     
+    public func updateLastIntentParameter(for placeChatResult:ChatResult) async throws {
+        guard let chatHost = assistiveHostDelegate, let lastIntent = assistiveHostDelegate?.queryIntentParameters.queryIntents.last, lastIntent.placeSearchResponses.count > 0 else {
+            return
+        }
+        
+        let queryParameters = try await chatHost.defaultParameters(for: placeChatResult.title)
+        let newIntent = AssistiveChatHostIntent(caption: placeChatResult.title, intent: .Search, selectedPlaceSearchResponse: placeChatResult.placeResponse, selectedPlaceSearchDetails:placeChatResult.placeDetailsResponse, placeSearchResponses: lastIntent.placeSearchResponses, placeDetailsResponses: nil, queryParameters: queryParameters)
+
+        guard let tappedResultPlaceResponse = placeChatResult.placeResponse else {
+            chatHost.updateLastIntentParameters(intent: newIntent)
+            try await chatHost.receiveMessage(caption: newIntent.caption, isLocalParticipant: true)
+            return
+        }
+
+        try await chatHost.receiveMessage(caption: newIntent.caption, isLocalParticipant: true)
+        try await self.detailIntent(intent: newIntent)
+        
+        for result in newIntent.placeSearchResponses {
+            if result.fsqID == tappedResultPlaceResponse.fsqID {
+                newIntent.selectedPlaceSearchResponse = result
+            }
+        }
+        
+        if let placeDetailsResponses = newIntent.placeDetailsResponses {
+            for result in placeDetailsResponses {
+                if result.fsqID == tappedResultPlaceResponse.fsqID {
+                    newIntent.selectedPlaceSearchDetails = result
+                }
+            }
+        }
+        
+        chatHost.updateLastIntentParameters(intent: newIntent)
+    }
+    
+    public func didTap(placeChatResult: ChatResult) async throws {
+        guard let lastIntent = assistiveHostDelegate?.queryIntentParameters.queryIntents.last, lastIntent.placeSearchResponses.count > 0, let chatHost = self.assistiveHostDelegate else {
+            return
+        }
+        
+        try await updateLastIntentParameter(for: placeChatResult)
+        try await didUpdateQuery(with: chatHost.queryIntentParameters)
+    }
+    
     public func didTap(chatResult: ChatResult, selectedPlaceSearchResponse: PlaceSearchResponse?, selectedPlaceSearchDetails: PlaceDetailsResponse?) async {
         guard chatResult.title.count > 0 else {
             resetPlaceModel()
@@ -452,22 +523,24 @@ extension ChatResultViewModel : AssistiveChatHostMessagesDelegate {
             }
             
             let caption = chatResult.title
-            let intent = try chatHost.determineIntent(for: caption, placeSearchResponse: selectedPlaceSearchResponse)
+            let intent = AssistiveChatHost.Intent.Search
             let queryParameters = try await chatHost.defaultParameters(for: caption)
             let newIntent = AssistiveChatHostIntent(caption: caption, intent: intent, selectedPlaceSearchResponse: selectedPlaceSearchResponse, selectedPlaceSearchDetails: selectedPlaceSearchDetails, placeSearchResponses: [PlaceSearchResponse](), placeDetailsResponses:nil, queryParameters: queryParameters)
             chatHost.appendIntentParameters(intent: newIntent)
-            try await chatHost.receiveMessage(caption: caption, isLocalParticipant: true)
+            try await chatHost.receiveMessage(caption: chatResult.title, isLocalParticipant: true)
+            try await didUpdateQuery(with: chatHost.queryIntentParameters)
         } catch {
             print(error)
         }
+        
     }
     
     public func addReceivedMessage(caption: String, parameters: AssistiveChatHostQueryParameters, isLocalParticipant: Bool) async throws {
         try await receiveMessage(caption: caption, parameters: parameters, isLocalParticipant: isLocalParticipant)
     }
     
-    public func didUpdateQuery(with parameters: AssistiveChatHostQueryParameters) async {
-        await refreshModel(queryIntents: parameters.queryIntents)
+    public func didUpdateQuery(with parameters: AssistiveChatHostQueryParameters) async throws {
+        try await refreshModel(queryIntents: parameters.queryIntents)
     }
     
 }

@@ -21,11 +21,10 @@ struct SearchView: View {
                 if newValue == "" {
                     model.resetPlaceModel()
                     resultId = nil
-                } else if let lastIntent = model.queryParametersHistory.last?.queryIntents.last, lastIntent.caption == newValue  {
-                    print("Showing results for: \(newValue)")
-                } else {
+                } else if newValue != oldValue, newValue != chatHost.queryIntentParameters.queryIntents.last?.caption {
                     Task {
-                        await model.didSearch(caption: model.searchText)
+                        await model.didSearch(caption:model.searchText)
+                        try await model.didUpdateQuery(with: chatHost.queryIntentParameters)
                     }
                 }
             }

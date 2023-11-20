@@ -13,3 +13,4 @@ public struct SearchQueryResponseViewModel {
     public let placeDetailsResponses:[PlaceDetailsResponse]
     public let targetLocation:CLLocation
 }
+

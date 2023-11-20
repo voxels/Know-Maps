@@ -41,20 +41,24 @@ struct ContentView: View {
             }
         }
         .onChange(of: chatModel.selectedPlaceChatResult, { oldValue, newValue in
-            guard newValue != nil else {
+            guard let newValue = newValue else {
                 chatModel.resetPlaceModel()
                 return
+            }
+            let _ = Task {
+                do {
+                    if let placeChatResult = chatModel.placeChatResult(for: newValue), newValue != oldValue, placeChatResult.title != chatHost.queryIntentParameters.queryIntents.last?.caption {
+                        try await chatModel.didTap(placeChatResult: placeChatResult)
+                    }
+                } catch {
+                    print(error)
+                }
             }
         })
         .task {
             chatModel.assistiveHostDelegate = chatHost
             chatHost.messagesDelegate = chatModel
             await chatModel.categoricalSearchModel()
-            await chatModel.refreshModel()
-            
-            if let selectedCategoryChatResult = chatModel.selectedCategoryChatResult, let chatResult = chatModel.chatResult(for: selectedCategoryChatResult) {
-                await chatHost.didTap(chatResult: chatResult)
-            }
         }
     }
 }

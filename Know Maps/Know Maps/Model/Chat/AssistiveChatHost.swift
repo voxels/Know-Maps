@@ -51,9 +51,11 @@ public class AssistiveChatHostIntent : Equatable {
 
 public protocol AssistiveChatHostMessagesDelegate : AnyObject {
     func didSearch(caption:String) async
+    func didTap(placeChatResult:ChatResult) async throws
     func didTap(chatResult:ChatResult, selectedPlaceSearchResponse:PlaceSearchResponse?, selectedPlaceSearchDetails:PlaceDetailsResponse?) async
     func addReceivedMessage(caption:String, parameters:AssistiveChatHostQueryParameters, isLocalParticipant:Bool) async throws
-    func didUpdateQuery(with parameters:AssistiveChatHostQueryParameters) async
+    func didUpdateQuery(with parameters:AssistiveChatHostQueryParameters) async throws
+    func updateLastIntentParameter(for placeChatResult:ChatResult) async throws
 }
 
 open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControllerDelegate, ObservableObject {
@@ -199,6 +201,16 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
     }
     
     @MainActor
+    public func updateLastIntent(caption:String) async throws {
+        if let lastIntent = queryIntentParameters.queryIntents.last {
+            let queryParamters = try await defaultParameters(for: caption)
+            let intent = try determineIntent(for: caption, placeSearchResponse: lastIntent.selectedPlaceSearchResponse)
+            let newIntent = AssistiveChatHostIntent(caption: caption, intent:intent, selectedPlaceSearchResponse: lastIntent.selectedPlaceSearchResponse, selectedPlaceSearchDetails: lastIntent.selectedPlaceSearchDetails, placeSearchResponses: lastIntent.placeSearchResponses, placeDetailsResponses: lastIntent.placeDetailsResponses, queryParameters: queryParamters)
+            updateLastIntentParameters(intent: newIntent)
+        }
+    }
+    
+    @MainActor
     public func updateLastIntentParameters(intent:AssistiveChatHostIntent) {
         if queryIntentParameters.queryIntents.count > 0 {
             queryIntentParameters.queryIntents.removeLast()
@@ -218,7 +230,6 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
     
     public func receiveMessage(caption:String, isLocalParticipant:Bool ) async throws {
         try await messagesDelegate?.addReceivedMessage(caption: caption, parameters: queryIntentParameters, isLocalParticipant: isLocalParticipant)
-        await messagesDelegate?.didUpdateQuery(with:queryIntentParameters)
     }
     
     public func nearLocation(for rawQuery:String, tags:AssistiveChatHostTaggedWord? = nil) -> String? {
@@ -394,6 +405,13 @@ extension AssistiveChatHost {
         let rawQueryComponents = rawQuery.components(separatedBy: .whitespacesAndNewlines)
         for component in rawQueryComponents {
             if revisedQuery.contains(component) {
+                parsedQuery.append(component)
+                parsedQuery.append(" ")
+            }
+            
+            if component.contains(where: { character in
+                character.isPunctuation
+            }) {
                 parsedQuery.append(component)
                 parsedQuery.append(" ")
             }
