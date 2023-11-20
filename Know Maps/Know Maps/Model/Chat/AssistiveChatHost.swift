@@ -263,16 +263,20 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
         
         let components = rawQuery.lowercased().components(separatedBy: "near")
         
-        guard let lastComponent = components.last?.trimmingCharacters(in: .whitespacesAndNewlines) else {
+        guard let lastComponent = components.last else {
             return nil
         }
         
         guard lastComponent.count > 0 else {
             return nil
         }
-
-        let placemarks = try await geocoder.geocodeAddressString(lastComponent)
-        return placemarks.first?.location
+        
+        if let lastCharacter = lastComponent.last,  lastCharacter.isWhitespace || lastCharacter.isPunctuation {
+            let placemarks = try await geocoder.geocodeAddressString(lastComponent)
+            return placemarks.first?.location
+        } else {
+            return nil
+        }
     }
     
     public func tags(for rawQuery:String) throws ->AssistiveChatHostTaggedWord? {

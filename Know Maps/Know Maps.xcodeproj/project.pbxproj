@@ -30,7 +30,6 @@
 		1EA7F78B2B052D92002AE371 /* LocationProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EA7F77A2B052D92002AE371 /* LocationProvider.swift */; };
 		1EA7F78C2B052D92002AE371 /* SearchQueryResponseViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EA7F77B2B052D92002AE371 /* SearchQueryResponseViewModel.swift */; };
 		1EA7F78D2B052D92002AE371 /* PlaceDetailsResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EA7F77C2B052D92002AE371 /* PlaceDetailsResponse.swift */; };
-		1EA7F78E2B052D92002AE371 /* ChatDetailsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EA7F77D2B052D92002AE371 /* ChatDetailsViewModel.swift */; };
 		1EA7F78F2B052D92002AE371 /* PlaceResponseFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EA7F77E2B052D92002AE371 /* PlaceResponseFormatter.swift */; };
 		1EA7F7902B052D92002AE371 /* PlaceSearchResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EA7F77F2B052D92002AE371 /* PlaceSearchResponse.swift */; };
 		1EA7F7912B052D92002AE371 /* PlaceSearchRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EA7F7802B052D92002AE371 /* PlaceSearchRequest.swift */; };
@@ -79,7 +78,6 @@
 		1EA7F77A2B052D92002AE371 /* LocationProvider.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LocationProvider.swift; sourceTree = "<group>"; };
 		1EA7F77B2B052D92002AE371 /* SearchQueryResponseViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SearchQueryResponseViewModel.swift; sourceTree = "<group>"; };
 		1EA7F77C2B052D92002AE371 /* PlaceDetailsResponse.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlaceDetailsResponse.swift; sourceTree = "<group>"; };
-		1EA7F77D2B052D92002AE371 /* ChatDetailsViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ChatDetailsViewModel.swift; sourceTree = "<group>"; };
 		1EA7F77E2B052D92002AE371 /* PlaceResponseFormatter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlaceResponseFormatter.swift; sourceTree = "<group>"; };
 		1EA7F77F2B052D92002AE371 /* PlaceSearchResponse.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlaceSearchResponse.swift; sourceTree = "<group>"; };
 		1EA7F7802B052D92002AE371 /* PlaceSearchRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlaceSearchRequest.swift; sourceTree = "<group>"; };
@@ -197,7 +195,6 @@
 				1EA7F7992B052E0C002AE371 /* LocalMapsQueryTagger.mlmodel */,
 				1EA7F7952B052DE4002AE371 /* AssistiveChatHost.swift */,
 				1EA7F7942B052DE4002AE371 /* AssistiveChatHostQueryParameters.swift */,
-				1EA7F77D2B052D92002AE371 /* ChatDetailsViewModel.swift */,
 				1EA7F7812B052D92002AE371 /* ChatResult.swift */,
 				1EA7F7782B052D92002AE371 /* integrated_category_taxonomy.json */,
 				1EA7F7822B052D92002AE371 /* ChatResultViewModel.swift */,
@@ -343,7 +340,6 @@
 				1EA7F7832B052D92002AE371 /* LanguageGeneratorRequest.swift in Sources */,
 				1EA7F7512B03FA71002AE371 /* ImmersiveView.swift in Sources */,
 				1EA7F7872B052D92002AE371 /* LanguageGenerator.swift in Sources */,
-				1EA7F78E2B052D92002AE371 /* ChatDetailsViewModel.swift in Sources */,
 				1EA7F79A2B052E0C002AE371 /* LocalMapsQueryClassifier.mlmodel in Sources */,
 				1EA7F7972B052DE4002AE371 /* AssistiveChatHost.swift in Sources */,
 				1EA7F78A2B052D92002AE371 /* PlaceTipsResponse.swift in Sources */,

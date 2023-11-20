@@ -430,11 +430,9 @@ public class ChatResultViewModel : ObservableObject {
         
         print("Created query for search request:\(query) near location:\(String(describing: nearLocation))")
         if nearLocation == nil {
-            let location = locationProvider.currentLocation()
-            if let l = location {
-                ll = "\(l.coordinate.latitude),\(l.coordinate.longitude)"
-            }
-            
+            let l = locationProvider.queryLocation
+            ll = "\(l.coordinate.latitude),\(l.coordinate.longitude)"
+
             print("Did not find a location in the query, using current location:\(String(describing: ll))")
         }
         
