@@ -8,6 +8,7 @@
 import SwiftUI
 import CoreLocation
 import MapKit
+import CallKit
 
 struct PlaceAboutView: View {
     
@@ -15,6 +16,8 @@ struct PlaceAboutView: View {
     @StateObject public var chatModel:ChatResultViewModel
     @StateObject public var locationProvider:LocationProvider
     @Binding public var resultId:ChatResult.ID?
+    
+    private let callController = CXCallController()
     
     static let defaultPadding:CGFloat = 8
     static let mapFrameConstraint:Double = 50000
@@ -70,6 +73,7 @@ struct PlaceAboutView: View {
                                 HStack {
                                     if let tel = placeDetailsResponse.tel {
                                         Button {
+                                            call(tel:tel)
                                         } label: {
                                             Text(tel)
                                         }.buttonStyle(.bordered)
@@ -150,6 +154,23 @@ struct PlaceAboutView: View {
                         ProgressView().frame(width: geo.size.width, height: geo.size.height, alignment: .center)
                     }
                 }
+            }
+        }
+    }
+    
+    func call(tel:String) {
+        let uuid = UUID()
+        var digits = tel.replacingOccurrences(of: "-", with: "").replacingOccurrences(of: "(", with: "").replacingOccurrences(of: ")", with: "").replacingOccurrences(of: " ", with: "")
+        let handle = CXHandle(type: .phoneNumber, value: digits)
+         
+        let startCallAction = CXStartCallAction(call: uuid, handle: handle)
+         
+        let transaction = CXTransaction(action: startCallAction)
+        callController.request(transaction) { error in
+            if let error = error {
+                print("Error requesting transaction: \(error)")
+            } else {
+                print("Requested transaction successfully")
             }
         }
     }
