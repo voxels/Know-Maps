@@ -14,24 +14,30 @@ struct PlaceView: View {
     @StateObject public var locationProvider:LocationProvider
     @Binding public var resultId:ChatResult.ID?
     
+    @State private var selectedTab = "About"
+    
     var body: some View {
-        TabView {
-            PlaceAboutView(chatHost:chatHost,chatModel: model, locationProvider: locationProvider, resultId: $resultId)
+        TabView(selection: $selectedTab) {
+            PlaceAboutView(chatHost:chatHost,chatModel: model, locationProvider: locationProvider, resultId: $resultId, selectedTab: $selectedTab)
                 .tabItem {
                     Label("About", systemImage: "target")
                 }
+                .tag("About")
             PlacePhotosView(chatHost:chatHost,chatModel: model, locationProvider: locationProvider, resultId: $resultId)
                 .tabItem {
                     Label("Photos", systemImage: "photo.stack")
                 }
+                .tag("Photos")
             PlaceReviewsView(chatHost:chatHost,chatModel: model, locationProvider: locationProvider, resultId: $resultId)
                 .tabItem {
                     Label("Reviews", systemImage: "quote.bubble")
                 }
+                .tag("Reviews")
             PlaceDirectionsView(chatHost:chatHost,chatModel: model, locationProvider: locationProvider, resultId: $resultId)
                 .tabItem {
                     Label("Directions", systemImage: "map")
                 }
+                .tag("Directions")
         }
     }
 }

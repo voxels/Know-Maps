@@ -16,7 +16,8 @@ struct PlaceAboutView: View {
     @StateObject public var chatModel:ChatResultViewModel
     @StateObject public var locationProvider:LocationProvider
     @Binding public var resultId:ChatResult.ID?
-    
+    @Binding public var selectedTab:String
+
     private let callController = CXCallController()
     
     static let defaultPadding:CGFloat = 8
@@ -64,6 +65,7 @@ struct PlaceAboutView: View {
                                 .padding(PlaceAboutView.defaultPadding)
                                 
                                 Button {
+                                    selectedTab = "Directions"
                                 } label: {
                                     Text(placeResponse.formattedAddress)
                                 }
@@ -75,7 +77,7 @@ struct PlaceAboutView: View {
                                         Button {
                                             call(tel:tel)
                                         } label: {
-                                            Text(tel)
+                                            Text("Call \(tel)")
                                         }.buttonStyle(.bordered)
                                     }
                                     
@@ -85,10 +87,9 @@ struct PlaceAboutView: View {
                                         ZStack {
                                             Capsule()
                                                 .foregroundColor(Color(uiColor:.systemFill))
-                                            Link("Website", destination: url).foregroundStyle(.primary)
+                                            Link("Visit Website", destination: url).foregroundStyle(.primary)
                                         }
                                     }
-                                    
                                     
                                     if let price = placeDetailsResponse.price {
                                         ZStack {
@@ -115,6 +116,9 @@ struct PlaceAboutView: View {
                                             Capsule().frame(width: PlaceAboutView.buttonHeight, height: PlaceAboutView.buttonHeight, alignment: .center)
                                                 .foregroundColor(Color(uiColor:.systemFill))
                                             Text(PlacesList.formatter.string(from: NSNumber(value: rating)) ?? "0")
+                                                
+                                        }.onTapGesture {
+                                            selectedTab = "Reviews"
                                         }
                                     }
                                     Spacer()
@@ -160,7 +164,7 @@ struct PlaceAboutView: View {
     
     func call(tel:String) {
         let uuid = UUID()
-        var digits = tel.replacingOccurrences(of: "-", with: "").replacingOccurrences(of: "(", with: "").replacingOccurrences(of: ")", with: "").replacingOccurrences(of: " ", with: "")
+        let digits = tel.replacingOccurrences(of: "-", with: "").replacingOccurrences(of: "(", with: "").replacingOccurrences(of: ")", with: "").replacingOccurrences(of: " ", with: "")
         let handle = CXHandle(type: .phoneNumber, value: digits)
          
         let startCallAction = CXStartCallAction(call: uuid, handle: handle)
@@ -183,5 +187,5 @@ struct PlaceAboutView: View {
     model.assistiveHostDelegate = chatHost
     chatHost.messagesDelegate = model
     
-    return PlaceAboutView(chatHost:chatHost,chatModel: model, locationProvider: locationProvider, resultId: .constant(nil))
+    return PlaceAboutView(chatHost:chatHost,chatModel: model, locationProvider: locationProvider, resultId: .constant(nil), selectedTab: .constant("About"))
 }

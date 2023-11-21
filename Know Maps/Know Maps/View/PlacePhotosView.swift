@@ -22,19 +22,20 @@ struct PlacePhotosView: View {
                     VStack(alignment: .leading) {
                         if let photoResponses = placeDetailsResponse.photoResponses {
                             ScrollView(.horizontal) {
-                                LazyHStack {
-                                    ForEach(photoResponses) { response in
-                                        if let url = response.photoUrl() {
-                                            AsyncImage(url: url) { image in
-                                                image.resizable()
-                                                    .aspectRatio(contentMode: .fit)
-                                                    .frame(maxWidth: geo.size.height)
-                                            } placeholder: {
-                                                Rectangle()
-                                                    .foregroundColor(.gray)
-                                                    .frame(width: geo.size.width, height:geo.size.height)
+                                Grid(alignment: .center) {
+                                    GridRow(alignment: .center) {
+                                        ForEach(photoResponses) { response in
+                                            if let url = response.photoUrl() {
+                                                AsyncImage(url: url) { image in
+                                                    image.resizable()
+                                                        .aspectRatio(contentMode: .fit)
+                                                        .frame(maxWidth: geo.size.width - 16, maxHeight:geo.size.height - 32)
+                                                } placeholder: {
+                                                    Rectangle()
+                                                        .foregroundColor(.gray)
+                                                        .frame(width: geo.size.height / 2, height:geo.size.height / 2)
+                                                }.padding(EdgeInsets(top: 16, leading: 8, bottom: 16, trailing: 8))
                                             }
-                                            
                                         }
                                     }
                                 }
