@@ -1,0 +1,166 @@
+//
+//  PlaceContantView.swift
+//  Know Maps
+//
+//  Created by Michael A Edgcumbe on 11/21/23.
+//
+
+import SwiftUI
+import CoreLocation
+import MapKit
+
+struct PlaceAboutView: View {
+    
+    @StateObject public var chatHost:AssistiveChatHost
+    @StateObject public var chatModel:ChatResultViewModel
+    @StateObject public var locationProvider:LocationProvider
+    @Binding public var resultId:ChatResult.ID?
+    
+    static let defaultPadding:CGFloat = 8
+    static let mapFrameConstraint:Double = 50000
+    static let buttonHeight:Double = 44
+    
+    var body: some View {
+        GeometryReader { geo in
+            ScrollView {
+                LazyVStack {
+                    if let resultId = resultId, let result = chatModel.placeChatResult(for: resultId), let currentLocation = locationProvider.lastKnownLocation, let placeResponse = result.placeResponse, let placeDetailsResponse = result.placeDetailsResponse {
+                        let placeCoordinate = CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude)
+                        let maxDistance = currentLocation.distance(from: placeCoordinate) + PlaceAboutView.mapFrameConstraint
+                        let title = placeResponse.name
+                        Map(initialPosition: .automatic, bounds: MapCameraBounds(minimumDistance: currentLocation.distance(from: placeCoordinate) + 500, maximumDistance:maxDistance)) {
+                            Marker(title, coordinate: placeCoordinate.coordinate)
+                            if currentLocation.distance(from: placeCoordinate) < PlaceAboutView.mapFrameConstraint {
+                                Marker("Current Location", coordinate: currentLocation.coordinate)
+                            }
+                        }
+                        .mapControls {
+                            MapPitchToggle()
+                            MapUserLocationButton()
+                            MapCompass()
+                        }
+                        .mapStyle(.hybrid(elevation: .realistic,
+                                          pointsOfInterest: .including([.publicTransport]),
+                                          showsTraffic: true))
+                        .frame(minHeight: geo.size.height / 2.0)
+                        .padding(EdgeInsets(top: 0, leading: PlaceAboutView.defaultPadding * 2, bottom: PlaceAboutView.defaultPadding, trailing: PlaceAboutView.defaultPadding * 2))
+
+                        ZStack(alignment: .leading) {
+                            Rectangle().foregroundStyle(.thinMaterial)
+                            VStack(){
+                                ZStack {
+                                    Rectangle().foregroundStyle(.thickMaterial)
+                                    VStack{
+                                        Text(placeResponse.name).bold()
+                                        
+                                        Text(placeResponse.categories.joined(separator: ", ")).italic()
+                                        
+                                    }
+                                    .padding(PlaceAboutView.defaultPadding)
+                                }
+                                .padding(PlaceAboutView.defaultPadding)
+                                
+                                Button {
+                                } label: {
+                                    Text(placeResponse.formattedAddress)
+                                }
+                                .buttonStyle(.bordered)
+                                .padding(PlaceAboutView.defaultPadding)
+                                
+                                HStack {
+                                    if let tel = placeDetailsResponse.tel {
+                                        Button {
+                                        } label: {
+                                            Text(tel)
+                                        }.buttonStyle(.bordered)
+                                    }
+                                    
+                                    
+                                    
+                                    if let website = placeDetailsResponse.website, let url = URL(string: website) {
+                                        ZStack {
+                                            Capsule()
+                                                .foregroundColor(Color(uiColor:.systemFill))
+                                            Link("Website", destination: url).foregroundStyle(.primary)
+                                        }
+                                    }
+                                    
+                                    
+                                    if let price = placeDetailsResponse.price {
+                                        ZStack {
+                                            Capsule().frame(width: PlaceAboutView.buttonHeight, height: PlaceAboutView.buttonHeight, alignment: .center)
+                                                .foregroundColor(Color(uiColor:.systemFill))
+                                            switch price {
+                                            case 1:
+                                                Text("$")
+                                            case 2:
+                                                Text("$$")
+                                            case 3:
+                                                Text("$$$")
+                                            case 4:
+                                                Text("$$$$")
+                                            default:
+                                                Text("\(price)")
+                                            }
+                                        }
+                                    }
+                                    
+                                    let rating = placeDetailsResponse.rating
+                                    if rating > 0 {
+                                        ZStack {
+                                            Capsule().frame(width: PlaceAboutView.buttonHeight, height: PlaceAboutView.buttonHeight, alignment: .center)
+                                                .foregroundColor(Color(uiColor:.systemFill))
+                                            Text(PlacesList.formatter.string(from: NSNumber(value: rating)) ?? "0")
+                                        }
+                                    }
+                                    Spacer()
+                                }.padding(PlaceAboutView.defaultPadding)
+                            }
+                        }.padding(EdgeInsets(top: 0, leading: PlaceAboutView.defaultPadding * 2, bottom: PlaceAboutView.defaultPadding, trailing: PlaceAboutView.defaultPadding * 2))
+                        
+                        if let description = placeDetailsResponse.description {
+                            ZStack {
+                                Rectangle().foregroundStyle(.thickMaterial)
+                                Text(description).padding(PlaceAboutView.defaultPadding * 2)
+                            }.padding(EdgeInsets(top: 0, leading: PlaceAboutView.defaultPadding * 2, bottom: PlaceAboutView.defaultPadding, trailing: PlaceAboutView.defaultPadding * 2))
+                        } else if let tips = placeDetailsResponse.tipsResponses, tips.count > 0  {
+                            Button {
+                                Task {
+                                    try await chatHost.placeDescription(chatResult: result, delegate: chatModel)
+                                }
+                            } label: {
+                                if chatModel.isFetchingPlaceDescription, result.id == chatModel.fetchingPlaceID {
+                                    ProgressView().progressViewStyle(.circular)
+                                } else {
+                                    Text("Generate description for \(placeDetailsResponse.searchResponse.name)")
+                                }
+                            }.buttonStyle(.bordered)
+                                .backgroundStyle(.primary)
+                        } else if let tastes = placeDetailsResponse.tastes, tastes.count > 0 {
+                            Button {
+                                Task {
+                                    try await chatHost.placeDescription(chatResult: result, delegate: chatModel)
+                                }
+                            } label: {
+                                Text("Generate description for \(placeDetailsResponse.searchResponse.name)")
+                            }.buttonStyle(.bordered)
+                                .backgroundStyle(.primary)
+                        }
+                    } else {
+                        ProgressView().frame(width: geo.size.width, height: geo.size.height, alignment: .center)
+                    }
+                }
+            }
+        }
+    }
+}
+
+#Preview {
+    let chatHost = AssistiveChatHost()
+    let locationProvider = LocationProvider()
+    let model = ChatResultViewModel(locationProvider: locationProvider, results: ChatResultViewModel.modelDefaults)
+    model.assistiveHostDelegate = chatHost
+    chatHost.messagesDelegate = model
+    
+    return PlaceAboutView(chatHost:chatHost,chatModel: model, locationProvider: locationProvider, resultId: .constant(nil))
+}

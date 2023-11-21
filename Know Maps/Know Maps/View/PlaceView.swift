@@ -15,7 +15,24 @@ struct PlaceView: View {
     @Binding public var resultId:ChatResult.ID?
     
     var body: some View {
-        PlaceContantView(chatHost:chatHost,chatModel: model, locationProvider: locationProvider, resultId: $resultId)
+        TabView {
+            PlaceAboutView(chatHost:chatHost,chatModel: model, locationProvider: locationProvider, resultId: $resultId)
+                .tabItem {
+                    Label("About", systemImage: "target")
+                }
+            PlacePhotosView(chatHost:chatHost,chatModel: model, locationProvider: locationProvider, resultId: $resultId)
+                .tabItem {
+                    Label("Photos", systemImage: "photo.stack")
+                }
+            PlaceReviewsView(chatHost:chatHost,chatModel: model, locationProvider: locationProvider, resultId: $resultId)
+                .tabItem {
+                    Label("Reviews", systemImage: "quote.bubble")
+                }
+            PlaceDirectionsView(chatHost:chatHost,chatModel: model, locationProvider: locationProvider, resultId: $resultId)
+                .tabItem {
+                    Label("Directions", systemImage: "map")
+                }
+        }
     }
 }
 
