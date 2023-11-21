@@ -78,6 +78,10 @@ public class ChatResultViewModel : ObservableObject {
                     return true
                 }
                 
+                if checkResult.id == selectedPlaceChatResult {
+                    return false
+                }
+                
                 if let location = locationProvider.lastKnownLocation, let resultPlaceResponse = result.placeResponse, let checkResultPlaceResponse = checkResult.placeResponse {
                     let resultCoordinate = CLLocation(latitude: resultPlaceResponse.latitude, longitude: resultPlaceResponse.longitude)
                     let checkResultCoordinate = CLLocation(latitude: checkResultPlaceResponse.latitude, longitude: checkResultPlaceResponse.longitude)
@@ -276,7 +280,13 @@ public class ChatResultViewModel : ObservableObject {
         
         await MainActor.run {
             self.placeResults = chatResults
-            self.searchText = intent.caption
+            if let title = intent.selectedPlaceSearchResponse?.name {
+                self.searchText = title
+            }
+            
+            if let categoryCodes = assistiveHostDelegate?.categoryCodes, categoryCodes.keys.contains(intent.caption.lowercased().trimmingCharacters(in: .whitespaces)) {
+                self.searchText = intent.caption
+            }
 
             if let selectedPlaceSearchResponse = intent.selectedPlaceSearchResponse, selectedPlaceSearchResponse.name == intent.caption {
                 for result in chatResults {
