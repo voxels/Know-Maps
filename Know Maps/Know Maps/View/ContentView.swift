@@ -20,44 +20,53 @@ struct ContentView: View {
     @Environment(\.dismissImmersiveSpace) var dismissImmersiveSpace
     
     var body: some View {
-        NavigationSplitView {
-            SearchView(chatHost: chatHost, model: chatModel, locationProvider: locationProvider, resultId: $chatModel.selectedCategoryChatResult)
-        } content: {
-            PlacesList(chatHost: chatHost, model: chatModel, resultId: $chatModel.selectedPlaceChatResult)
-        } detail: {
-            if chatModel.filteredPlaceResults.count == 0 && chatModel.selectedPlaceChatResult == nil {
-                MapResultsView(chatHost: chatHost, model: chatModel, locationProvider: locationProvider)
-            } else if chatModel.selectedPlaceChatResult == nil {
-                MapResultsView(chatHost: chatHost, model: chatModel, locationProvider: locationProvider)
-            } else {
-                PlaceView(chatHost: chatHost, model: chatModel, locationProvider: locationProvider, resultId: $chatModel.selectedPlaceChatResult)
-            }
-        }.onChange(of: chatModel.selectedCategoryChatResult) { oldValue, newValue in
-            chatModel.selectedPlaceChatResult = nil
-            let _ = Task {
-                if let newValue = newValue, let chatResult = chatModel.chatResult(for: newValue) {
-                    await chatHost.didTap(chatResult: chatResult)
+        TabView {
+            NavigationSplitView {
+                SearchView(chatHost: chatHost, model: chatModel, locationProvider: locationProvider, resultId: $chatModel.selectedCategoryChatResult)
+            } content: {
+                PlacesList(chatHost: chatHost, model: chatModel, resultId: $chatModel.selectedPlaceChatResult)
+            } detail: {
+                if chatModel.filteredPlaceResults.count == 0 && chatModel.selectedPlaceChatResult == nil {
+                    MapResultsView(chatHost: chatHost, model: chatModel, locationProvider: locationProvider)
+                } else if chatModel.selectedPlaceChatResult == nil {
+                    MapResultsView(chatHost: chatHost, model: chatModel, locationProvider: locationProvider)
+                } else {
+                    PlaceView(chatHost: chatHost, model: chatModel, locationProvider: locationProvider, resultId: $chatModel.selectedPlaceChatResult)
                 }
-            }
-        }
-        .onChange(of: chatModel.selectedPlaceChatResult, { oldValue, newValue in
-            guard let newValue = newValue else {
-                return
-            }
-            let _ = Task {
-                do {
-                    if let placeChatResult = chatModel.placeChatResult(for: newValue), newValue != oldValue, placeChatResult.title != chatModel.searchText {
-                        try await chatModel.didTap(placeChatResult: placeChatResult)
+            }.onChange(of: chatModel.selectedCategoryChatResult) { oldValue, newValue in
+                chatModel.selectedPlaceChatResult = nil
+                let _ = Task {
+                    if let newValue = newValue, let chatResult = chatModel.chatResult(for: newValue) {
+                        await chatHost.didTap(chatResult: chatResult)
                     }
-                } catch {
-                    print(error)
                 }
             }
-        })
-        .task {
-            chatModel.assistiveHostDelegate = chatHost
-            chatHost.messagesDelegate = chatModel
-            await chatModel.categoricalSearchModel()
+            .onChange(of: chatModel.selectedPlaceChatResult, { oldValue, newValue in
+                guard let newValue = newValue else {
+                    return
+                }
+                let _ = Task {
+                    do {
+                        if let placeChatResult = chatModel.placeChatResult(for: newValue), newValue != oldValue, placeChatResult.title != chatModel.searchText {
+                            try await chatModel.didTap(placeChatResult: placeChatResult)
+                        }
+                    } catch {
+                        print(error)
+                    }
+                }
+            })
+            .task {
+                chatModel.assistiveHostDelegate = chatHost
+                chatHost.messagesDelegate = chatModel
+                await chatModel.categoricalSearchModel()
+            }
+            .tabItem {
+                Label("Search", systemImage: "magnifyingglass")
+            }
+            SettingsView()
+                .tabItem {
+                    Label("Settings", systemImage: "gear")
+                }
         }
     }
 }

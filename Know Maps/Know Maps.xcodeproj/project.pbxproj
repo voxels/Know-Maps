@@ -40,6 +40,7 @@
 		1EA7F79A2B052E0C002AE371 /* LocalMapsQueryClassifier.mlmodel in Sources */ = {isa = PBXBuildFile; fileRef = 1EA7F7982B052E0C002AE371 /* LocalMapsQueryClassifier.mlmodel */; };
 		1EA7F79B2B052E0C002AE371 /* LocalMapsQueryTagger.mlmodel in Sources */ = {isa = PBXBuildFile; fileRef = 1EA7F7992B052E0C002AE371 /* LocalMapsQueryTagger.mlmodel */; };
 		1EE068862B0CE74C0016851A /* PlaceContantView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EE068852B0CE74C0016851A /* PlaceContantView.swift */; };
+		1EE068882B0D1ADB0016851A /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EE068872B0D1ADB0016851A /* SettingsView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -90,6 +91,7 @@
 		1EA7F7992B052E0C002AE371 /* LocalMapsQueryTagger.mlmodel */ = {isa = PBXFileReference; lastKnownFileType = file.mlmodel; name = LocalMapsQueryTagger.mlmodel; path = ML/LocalMapsQueryTagger.mlmodel; sourceTree = "<group>"; };
 		1EA7F79C2B053E62002AE371 /* Know Maps.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Know Maps.entitlements"; sourceTree = "<group>"; };
 		1EE068852B0CE74C0016851A /* PlaceContantView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceContantView.swift; sourceTree = "<group>"; };
+		1EE068872B0D1ADB0016851A /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -186,6 +188,7 @@
 				1EA7F7702B051BDE002AE371 /* PlacesList.swift */,
 				1EA588D22B09326E006B1F8F /* PlaceView.swift */,
 				1EE068852B0CE74C0016851A /* PlaceContantView.swift */,
+				1EE068872B0D1ADB0016851A /* SettingsView.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -340,6 +343,7 @@
 				1EA588CF2B065D8B006B1F8F /* AssistiveChatHostDelegate.swift in Sources */,
 				1EA7F76B2B04FF4D002AE371 /* MapResultsView.swift in Sources */,
 				1EA7F78C2B052D92002AE371 /* SearchQueryResponseViewModel.swift in Sources */,
+				1EE068882B0D1ADB0016851A /* SettingsView.swift in Sources */,
 				1EA7F7832B052D92002AE371 /* LanguageGeneratorRequest.swift in Sources */,
 				1EA7F7512B03FA71002AE371 /* ImmersiveView.swift in Sources */,
 				1EA7F7872B052D92002AE371 /* LanguageGenerator.swift in Sources */,
