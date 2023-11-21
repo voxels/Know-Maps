@@ -42,7 +42,6 @@ struct ContentView: View {
         }
         .onChange(of: chatModel.selectedPlaceChatResult, { oldValue, newValue in
             guard let newValue = newValue else {
-                chatModel.resetPlaceModel()
                 return
             }
             let _ = Task {

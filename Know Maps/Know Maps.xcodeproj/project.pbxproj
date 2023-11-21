@@ -39,6 +39,7 @@
 		1EA7F7972B052DE4002AE371 /* AssistiveChatHost.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EA7F7952B052DE4002AE371 /* AssistiveChatHost.swift */; };
 		1EA7F79A2B052E0C002AE371 /* LocalMapsQueryClassifier.mlmodel in Sources */ = {isa = PBXBuildFile; fileRef = 1EA7F7982B052E0C002AE371 /* LocalMapsQueryClassifier.mlmodel */; };
 		1EA7F79B2B052E0C002AE371 /* LocalMapsQueryTagger.mlmodel in Sources */ = {isa = PBXBuildFile; fileRef = 1EA7F7992B052E0C002AE371 /* LocalMapsQueryTagger.mlmodel */; };
+		1EE068862B0CE74C0016851A /* PlaceContantView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EE068852B0CE74C0016851A /* PlaceContantView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -88,6 +89,7 @@
 		1EA7F7982B052E0C002AE371 /* LocalMapsQueryClassifier.mlmodel */ = {isa = PBXFileReference; lastKnownFileType = file.mlmodel; name = LocalMapsQueryClassifier.mlmodel; path = ML/LocalMapsQueryClassifier.mlmodel; sourceTree = "<group>"; };
 		1EA7F7992B052E0C002AE371 /* LocalMapsQueryTagger.mlmodel */ = {isa = PBXFileReference; lastKnownFileType = file.mlmodel; name = LocalMapsQueryTagger.mlmodel; path = ML/LocalMapsQueryTagger.mlmodel; sourceTree = "<group>"; };
 		1EA7F79C2B053E62002AE371 /* Know Maps.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Know Maps.entitlements"; sourceTree = "<group>"; };
+		1EE068852B0CE74C0016851A /* PlaceContantView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceContantView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -183,6 +185,7 @@
 				1EA7F76C2B04FFD9002AE371 /* SearchView.swift */,
 				1EA7F7702B051BDE002AE371 /* PlacesList.swift */,
 				1EA588D22B09326E006B1F8F /* PlaceView.swift */,
+				1EE068852B0CE74C0016851A /* PlaceContantView.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -343,6 +346,7 @@
 				1EA7F79A2B052E0C002AE371 /* LocalMapsQueryClassifier.mlmodel in Sources */,
 				1EA7F7972B052DE4002AE371 /* AssistiveChatHost.swift in Sources */,
 				1EA7F78A2B052D92002AE371 /* PlaceTipsResponse.swift in Sources */,
+				1EE068862B0CE74C0016851A /* PlaceContantView.swift in Sources */,
 				1EA7F78B2B052D92002AE371 /* LocationProvider.swift in Sources */,
 				1EA7F7962B052DE4002AE371 /* AssistiveChatHostQueryParameters.swift in Sources */,
 				1EA7F78D2B052D92002AE371 /* PlaceDetailsResponse.swift in Sources */,

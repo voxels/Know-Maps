@@ -602,23 +602,29 @@ extension ChatResultViewModel : AssistiveChatHostStreamResponseDelegate {
             return
         }
         
+        var selectedId:ChatResult.ID = firstCandidate.id
         
         if let placeDetailsResponse = firstCandidate.placeDetailsResponse {
             let newDetailsResponse = PlaceDetailsResponse(searchResponse: placeDetailsResponse.searchResponse, photoResponses: placeDetailsResponse.photoResponses, tipsResponses: placeDetailsResponse.tipsResponses, description: (placeDetailsResponse.description ?? "").appending(string), tel: placeDetailsResponse.tel, fax: placeDetailsResponse.fax, email: placeDetailsResponse.email, website: placeDetailsResponse.website, socialMedia: placeDetailsResponse.socialMedia, verified: placeDetailsResponse.verified, hours: placeDetailsResponse.hours, openNow: placeDetailsResponse.openNow, hoursPopular:placeDetailsResponse.hoursPopular, rating: placeDetailsResponse.rating, stats: placeDetailsResponse.stats, popularity: placeDetailsResponse.popularity, price: placeDetailsResponse.price, menu: placeDetailsResponse.menu, dateClosed: placeDetailsResponse.dateClosed, tastes: placeDetailsResponse.tastes, features: placeDetailsResponse.features)
             var newPlaceResults = [ChatResult]()
             let fsqID = newDetailsResponse.fsqID
-            for placeResult in self.placeResults {
+            for placeResult in placeResults {
                 if placeResult.placeResponse?.fsqID == fsqID {
-                    var newPlaceResult = placeResult
-                    newPlaceResult.replaceDetails(response: newDetailsResponse)
+                    let newPlaceResult = ChatResult(title: placeResult.title, placeResponse: placeResult.placeResponse, placeDetailsResponse: newDetailsResponse)
                     newPlaceResults.append(newPlaceResult)
+                    selectedId = newPlaceResult.id
                 } else {
                     newPlaceResults.append(placeResult)
                 }
             }
             
+            
             await MainActor.run {
-                self.placeResults = newPlaceResults
+                placeResults = newPlaceResults
+            }
+            
+            await MainActor.run {
+                selectedPlaceChatResult = selectedId
             }
         }
     }

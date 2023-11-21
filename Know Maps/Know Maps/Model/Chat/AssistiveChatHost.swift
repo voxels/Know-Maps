@@ -169,7 +169,7 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
                     rawParameters["max_price"] = maxPrice
                 }
                 
-                if let nearLocation = try await nearLocation(for: query, tags: tags) {
+                if let nearLocation = nearLocation(for: query, tags: tags) {
                     rawParameters["near"] = nearLocation
                 }
                 
