@@ -7,7 +7,8 @@
 
 import Foundation
 
-public struct PlaceTipsResponse {
+public struct PlaceTipsResponse : Identifiable, Hashable  {
+    public var id: ObjectIdentifier
     let placeIdent:String
     let ident:String
     let createdAt:String

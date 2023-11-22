@@ -14,7 +14,16 @@ struct PlaceReviewsView: View {
     @Binding public var resultId:ChatResult.ID?
 
     var body: some View {
-        Text("Reviews")
+        if let resultId = resultId, let placeChatResult = chatModel.placeChatResult(for: resultId), let tipsResponses = placeChatResult.placeDetailsResponse?.tipsResponses, tipsResponses.count > 0 {
+            List{
+                ForEach(tipsResponses, id:\.self){ response in
+                    Text(response.text)
+                }
+            }
+            
+        } else {
+            ContentUnavailableView("No tips found for this location", systemImage: "x.circle.fill")
+        }
     }
 }
 

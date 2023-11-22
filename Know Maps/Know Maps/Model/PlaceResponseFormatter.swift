@@ -367,21 +367,6 @@ open class PlaceResponseFormatter {
         
     }
     
-    
-    /*
-     let ident:String
-     let createdAt:String
-     let height:Float
-     let width:Float
-     var aspectRatio:Float {
-     get {
-     return width/height
-     }
-     }
-     let classifications:[String]
-     let prefix:String
-     let suffix:String
-     */
     public class func placePhotoResponses(with response:Any, for placeID:String) throws ->[PlacePhotoResponse] {
         var retVal = [PlacePhotoResponse]()
         
@@ -457,7 +442,7 @@ open class PlaceResponseFormatter {
                 text = textString
             }
             
-            let response = PlaceTipsResponse(placeIdent:placeID, ident: ident, createdAt: createdAt, text: text)
+            let response = PlaceTipsResponse(id:ObjectIdentifier(NSString(string:placeID)), placeIdent:placeID, ident: ident, createdAt: createdAt, text: text)
             retVal.append(response)
         }
         return retVal
@@ -538,7 +523,7 @@ open class PlaceResponseFormatter {
         
         return placeResults
     }
-    
+        
     public class func placeChatResults(for intent:AssistiveChatHostIntent, place:PlaceSearchResponse, details:PlaceDetailsResponse?)->[ChatResult] {
         return [PlaceResponseFormatter.chatResult(title: place.name, placeResponse: place, placeDetailsResponse: details)]
     }

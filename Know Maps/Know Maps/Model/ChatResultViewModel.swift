@@ -39,7 +39,29 @@ public class ChatResultViewModel : ObservableObject {
     
     public var filteredResults:[CategoryResult] {
         get {
-            return categoryResults
+            var foundResults = [ChatResult]()
+
+            let chatResultsCollection = categoryResults.compactMap { categoryResult in
+                return categoryResult.categoricalChatResults
+            }
+            
+            for chatResults in chatResultsCollection {
+                for result in chatResults {
+                    if result.title.lowercased().contains(searchText.lowercased().trimmingCharacters(in: .whitespaces)) || searchText.lowercased().trimmingCharacters(in: .whitespaces).contains(result.title) {
+                        foundResults.append(ChatResult(title: result.title, placeResponse: result.placeResponse, placeDetailsResponse: result.placeDetailsResponse))
+                    }
+                }
+            }
+            
+            if foundResults.isEmpty {
+                return categoryResults
+            }
+            
+            let searchSection = CategoryResult(parentCategory: "Search Results", categoricalChatResults: foundResults)
+            
+            var filteredResults = [searchSection]
+            filteredResults.append(contentsOf: categoryResults)
+            return filteredResults
         }
     }
     
