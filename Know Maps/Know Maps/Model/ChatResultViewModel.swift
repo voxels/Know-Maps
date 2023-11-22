@@ -87,11 +87,15 @@ public class ChatResultViewModel : ObservableObject {
 
     
     public func chatResult(for selectedChatResultID:ChatResult.ID)->ChatResult?{
-        return nil
+        return categoryResults.compactMap { categoryResult in
+            return categoryResult.result(for:selectedChatResultID)
+        }.first
     }
     
-    public func chatResult(title:String)->ChatResult {
-        return ChatResult(title: title, placeResponse: nil)
+    public func chatResult(title:String)->ChatResult? {
+        return categoryResults.compactMap { categoryResult in
+            return categoryResult.result(title: title)
+        }.first
     }
     
     public func receiveMessage(caption: String, parameters: AssistiveChatHostQueryParameters, isLocalParticipant: Bool) async throws {

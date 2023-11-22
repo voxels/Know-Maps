@@ -19,4 +19,16 @@ public struct CategoryResult : Identifiable, Equatable, Hashable {
     mutating func replaceChatResults(with results:[ChatResult]) {
         categoricalChatResults = results
     }
+    
+    func result(for id:ChatResult.ID)->ChatResult? {
+        return categoricalChatResults.filter { result in
+            result.id == id
+        }.first
+    }
+    
+    func result(title:String)->ChatResult? {
+        return categoricalChatResults.filter { result in
+            result.title == title
+        }.first
+    }
 }

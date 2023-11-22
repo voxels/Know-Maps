@@ -109,15 +109,14 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
                             for key in candidate.keys {
                                 if key == parentCategory {
                                     retval.remove(candidate)
-                                    var values = candidate.values
+                                    let values = candidate.values
                                     var allCategoryDicts = [[String:String]]()
+                                    
                                     for value in values {
-                                        for newCategoryDictValue in values {
-                                            allCategoryDicts.append(contentsOf: newCategoryDictValue)
-                                        }
-                                        for newCategoryDictValue in newCategoryDict.values {
-                                            allCategoryDicts.append(contentsOf: newCategoryDictValue)
-                                        }
+                                        allCategoryDicts.append(contentsOf: value)
+                                    }
+                                    for newCategoryDictValue in newCategoryDict.values {
+                                        allCategoryDicts.append(contentsOf: newCategoryDictValue)
                                     }
                                     
                                     retval.insert([parentCategory : allCategoryDicts])
@@ -135,7 +134,9 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
                 var alpha = false
                 for codeKey in codes.keys {
                     for checkCodeKey in checkCodes.keys {
-                        alpha = true
+                        if codeKey < checkCodeKey {
+                            alpha = true
+                        }
                     }
                 }
                 
