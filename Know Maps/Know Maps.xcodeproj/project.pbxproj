@@ -44,6 +44,7 @@
 		1EE0688A2B0D1E2B0016851A /* PlaceDirectionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EE068892B0D1E2B0016851A /* PlaceDirectionsView.swift */; };
 		1EE0688C2B0D1E930016851A /* PlacePhotosView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EE0688B2B0D1E930016851A /* PlacePhotosView.swift */; };
 		1EE0688E2B0D1EB40016851A /* PlaceReviewsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EE0688D2B0D1EB40016851A /* PlaceReviewsView.swift */; };
+		1EE068902B0E57AD0016851A /* CategoryResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EE0688F2B0E57AD0016851A /* CategoryResult.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -98,6 +99,7 @@
 		1EE068892B0D1E2B0016851A /* PlaceDirectionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceDirectionsView.swift; sourceTree = "<group>"; };
 		1EE0688B2B0D1E930016851A /* PlacePhotosView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlacePhotosView.swift; sourceTree = "<group>"; };
 		1EE0688D2B0D1EB40016851A /* PlaceReviewsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceReviewsView.swift; sourceTree = "<group>"; };
+		1EE0688F2B0E57AD0016851A /* CategoryResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryResult.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -211,6 +213,7 @@
 				1EA7F7952B052DE4002AE371 /* AssistiveChatHost.swift */,
 				1EA7F7942B052DE4002AE371 /* AssistiveChatHostQueryParameters.swift */,
 				1EA7F7812B052D92002AE371 /* ChatResult.swift */,
+				1EE0688F2B0E57AD0016851A /* CategoryResult.swift */,
 				1EA7F7782B052D92002AE371 /* integrated_category_taxonomy.json */,
 				1EA7F7822B052D92002AE371 /* ChatResultViewModel.swift */,
 				1EA7F7762B052D92002AE371 /* LanguageGenerator.swift */,
@@ -334,6 +337,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1EE068902B0E57AD0016851A /* CategoryResult.swift in Sources */,
 				1EA7F7862B052D92002AE371 /* PlaceSearchSession.swift in Sources */,
 				1EA7F76D2B04FFD9002AE371 /* SearchView.swift in Sources */,
 				1EA588D32B09326E006B1F8F /* PlaceView.swift in Sources */,

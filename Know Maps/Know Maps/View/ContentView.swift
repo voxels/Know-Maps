@@ -22,7 +22,7 @@ struct ContentView: View {
     var body: some View {
         TabView {
             NavigationSplitView {
-                SearchView(chatHost: chatHost, model: chatModel, locationProvider: locationProvider, resultId: $chatModel.selectedCategoryChatResult)
+                SearchView(chatHost: chatHost, model: chatModel, locationProvider: locationProvider, categoricalResultId: $chatModel.selectedCategoryChatResult)
             } content: {
                 PlacesList(chatHost: chatHost, model: chatModel, resultId: $chatModel.selectedPlaceChatResult)
             } detail: {
@@ -73,6 +73,6 @@ struct ContentView: View {
 
 #Preview(windowStyle: .automatic) {
     let locationProvider = LocationProvider()
-    let chatModel = ChatResultViewModel(locationProvider: locationProvider, results: ChatResultViewModel.modelDefaults)
+    let chatModel = ChatResultViewModel(locationProvider: locationProvider)
     ContentView(chatModel: chatModel, locationProvider: locationProvider)
 }

@@ -28,7 +28,7 @@ struct PlacesList: View {
 #Preview {
     let chatHost = AssistiveChatHost()
     let locationProvider = LocationProvider()
-    let model = ChatResultViewModel(locationProvider: locationProvider, results: ChatResultViewModel.modelDefaults)
+    let model = ChatResultViewModel(locationProvider: locationProvider)
     model.assistiveHostDelegate = chatHost
     chatHost.messagesDelegate = model
 

@@ -69,7 +69,7 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
     public var languageDelegate:LanguageGeneratorDelegate = LanguageGenerator()
     public var placeSearchSession = PlaceSearchSession()
     @Published public var queryIntentParameters = AssistiveChatHostQueryParameters()
-    public var categoryCodes:[String:String] = [String:String]()
+    public var categoryCodes:[[String:[[String:String]]]] = [[String:[[String:String]]]]()
     
     let geocoder = CLGeocoder()
     var lastGeocodedPlacemark:CLPlacemark?
@@ -83,21 +83,83 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
         }
     }
     
-    internal func organizeCategoryCodeList() throws {
+    public func organizeCategoryCodeList() throws {
         if let path = Bundle.main.path(forResource: "integrated_category_taxonomy", ofType: "json")
         {
+            var retval = Set<[String:[[String:String]]]>()
             let url = URL(filePath: path)
             let data = try Data(contentsOf: url)
             let result = try JSONSerialization.jsonObject(with: data, options: .mutableContainers)
             if let dict = result as? NSDictionary {
-                for key in dict.allKeys {
+                for key in dict.allKeys as! [String] {
                     if let valueDict = dict[key] as? NSDictionary {
-                        if let labelsDict = valueDict["labels"] as? NSDictionary, let englishLabel = labelsDict["en"] as? String, let keyString = key as? String {
-                            categoryCodes[englishLabel.lowercased()] = keyString
+                        if let labelsDict = valueDict["full_label"] as? [String], let englishLabel = labelsDict.last, let parentCategory = labelsDict.first {
+                            
+                            let newCategoryDict = [parentCategory: [["category":englishLabel, "code":key]]]
+                            
+                            let candidate = retval.first { checkValue in
+                                return checkValue.keys.contains(parentCategory)
+                            }
+                            
+                            guard let candidate = candidate else {
+                                retval.insert(newCategoryDict)
+                                continue
+                            }
+                            
+                            for key in candidate.keys {
+                                if key == parentCategory {
+                                    retval.remove(candidate)
+                                    var values = candidate.values
+                                    var allCategoryDicts = [[String:String]]()
+                                    for value in values {
+                                        for newCategoryDictValue in values {
+                                            allCategoryDicts.append(contentsOf: newCategoryDictValue)
+                                        }
+                                        for newCategoryDictValue in newCategoryDict.values {
+                                            allCategoryDicts.append(contentsOf: newCategoryDictValue)
+                                        }
+                                    }
+                                    
+                                    retval.insert([parentCategory : allCategoryDicts])
+                                }
+                            }
                         }
                     }
                 }
             }
+        
+            var retvalArray = Array(retval)
+            
+            retvalArray = retvalArray.sorted(by: { codes, checkCodes in
+                
+                var alpha = false
+                for codeKey in codes.keys {
+                    for checkCodeKey in checkCodes.keys {
+                        alpha = true
+                    }
+                }
+                
+                return alpha
+            })
+            
+            var finalArray = [[String:[[String:String]]]]()
+            
+            for codes in retvalArray {
+                for key in codes.keys {
+                    if let values = codes[key] {
+                        let sortedValues = values.sorted { value, checkValue in
+                            if let valueCategory = value["category"], let checkValueCategory = checkValue["category"] {
+                                return valueCategory < checkValueCategory
+                            } else {
+                                return false
+                            }
+                        }
+                        finalArray.append([key:sortedValues])
+                    }
+                }
+            }
+            
+            categoryCodes = finalArray
         }
     }
     
@@ -107,12 +169,22 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
     }
     
     
-    public func determineIntent(for caption:String) throws -> Intent
+    public func determineIntent(for caption:String) -> Intent
     {
         let components = caption.components(separatedBy: "near")
         if let prefix = components.first {
-            if categoryCodes.keys.contains(prefix) {
-                return .Search
+            for code in categoryCodes {
+                if code.keys.contains(prefix) {
+                    return .Search
+                }
+                
+                for values in code.values {
+                    for value in values {
+                        if value["category"] == caption.lowercased().trimmingCharacters(in: .whitespaces) {
+                            return .Search
+                        }
+                    }
+                }
             }
             
             if UIReferenceLibraryViewController.dictionaryHasDefinition(forTerm: prefix) {
@@ -124,7 +196,7 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
             return .Search
         }
         
-        return .Autocomplete        
+        return .Autocomplete
     }
     
     public func defaultParameters(for query:String) async throws -> [String:Any]? {
@@ -181,7 +253,7 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
                     rawParameters["open_now"] = openNow
                 }
                 
-                if let categories = categories(for: query, tags: tags) {
+                if let categories = categoryCodes(for: query, tags: tags) {
                     rawParameters["categories"] = categories
                 }
                 
@@ -204,7 +276,7 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
     public func updateLastIntent(caption:String) async throws {
         if let lastIntent = queryIntentParameters.queryIntents.last {
             let queryParamters = try await defaultParameters(for: caption)
-            let intent = try determineIntent(for: caption)
+            let intent = determineIntent(for: caption)
             let newIntent = AssistiveChatHostIntent(caption: caption, intent:intent, selectedPlaceSearchResponse: lastIntent.selectedPlaceSearchResponse, selectedPlaceSearchDetails: lastIntent.selectedPlaceSearchDetails, placeSearchResponses: lastIntent.placeSearchResponses, placeDetailsResponses: lastIntent.placeDetailsResponses, queryParameters: queryParamters)
             updateLastIntentParameters(intent: newIntent)
         }
@@ -323,10 +395,10 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
                 }
                 print("\(rawQuery[tokenRange]): \(tag.rawValue)")
             }
-
+            
             return true
         }
-
+        
         
         if retval.count > 0 {
             return retval
@@ -344,7 +416,7 @@ extension AssistiveChatHost {
     public func searchQueryDescription(nearLocation:CLLocation) async throws -> String {
         return try await languageDelegate.searchQueryDescription(nearLocation:nearLocation)
     }
-        
+    
     public func placeDescription(chatResult:ChatResult, delegate:AssistiveChatHostStreamResponseDelegate) async throws {
         try await languageDelegate.placeDescription(chatResult: chatResult, delegate: delegate)
     }
@@ -363,12 +435,12 @@ extension AssistiveChatHost {
                     includedWords.insert(taggedWord)
                     revisedQuery.append(taggedWord)
                 }
-
+                
                 if taggedValues.contains("TASTE"), !includedWords.contains(taggedWord) {
                     includedWords.insert(taggedWord)
                     revisedQuery.append(taggedWord)
                 }
-
+                
                 if taggedValues.contains("CATEGORY"), !includedWords.contains(taggedWord) {
                     includedWords.insert(taggedWord)
                     revisedQuery.append(taggedWord)
@@ -468,20 +540,42 @@ extension AssistiveChatHost {
         return nil
     }
     
-        
-    internal func categories(for rawQuery:String, tags:AssistiveChatHostTaggedWord? = nil)->[String]? {
+    
+    internal func categoryCodes(for rawQuery:String, tags:AssistiveChatHostTaggedWord? = nil)->[String]? {
         
         var query = rawQuery
+        
+        var NAICSCodes = [String]()
         
         let components = query.components(separatedBy: "near")
         if let prefix = components.first {
             query = prefix.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
         }
         
-        guard let naicsCode = categoryCodes[query] else {
-            return nil
+        for categoryCode in self.categoryCodes {
+            let candidateKeys = categoryCode.keys.filter { key in
+                return rawQuery.contains(key)
+            }
+            
+            if candidateKeys.isEmpty {
+                return nil
+            } else {
+                
+                let candidates = categoryCode.filter { categoryDict in
+                    let key = categoryDict.key
+                    return candidateKeys.contains(key)
+                }
+                
+                for candidate in candidates.values {
+                    for values in candidate {
+                        if let code = values["code"] {
+                            NAICSCodes.append(code)
+                        }
+                    }
+                }
+            }
         }
         
-        return [naicsCode]
+        return NAICSCodes
     }
 }

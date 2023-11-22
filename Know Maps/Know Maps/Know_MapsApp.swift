@@ -13,7 +13,7 @@ struct Know_MapsApp: App {
     
     var body: some Scene {
         WindowGroup {
-            ContentView(chatModel: ChatResultViewModel(locationProvider: locationProvider, results: ChatResultViewModel.modelDefaults), locationProvider: locationProvider)
+            ContentView(chatModel: ChatResultViewModel(locationProvider: locationProvider), locationProvider: locationProvider)
         }
 
         ImmersiveSpace(id: "ImmersiveSpace") {

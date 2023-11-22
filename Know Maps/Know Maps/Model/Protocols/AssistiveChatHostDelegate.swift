@@ -14,11 +14,12 @@ public protocol AssistiveChatHostDelegate:AnyObject {
     var languageDelegate:LanguageGeneratorDelegate { get }
     var placeSearchSession:PlaceSearchSession { get }
     var queryIntentParameters:AssistiveChatHostQueryParameters { get }
-    var categoryCodes:[String:String] { get }
+    var categoryCodes:[[String:[[String:String]]]] { get }
     
     init(delegate:AssistiveChatHostMessagesDelegate?)
+    func organizeCategoryCodeList() throws
     func didTap(chatResult: ChatResult) async
-    func determineIntent(for caption:String) throws -> AssistiveChatHost.Intent
+    func determineIntent(for caption:String) -> AssistiveChatHost.Intent
     func updateLastIntentParameters(intent:AssistiveChatHostIntent)
     func appendIntentParameters(intent:AssistiveChatHostIntent)
     func resetIntentParameters()

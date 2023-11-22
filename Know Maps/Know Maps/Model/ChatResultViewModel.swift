@@ -27,47 +27,19 @@ public class ChatResultViewModel : ObservableObject {
     public weak var assistiveHostDelegate:AssistiveChatHostDelegate?
     private let placeSearchSession:PlaceSearchSession = PlaceSearchSession()
     public var locationProvider:LocationProvider
-    private let maxChatResults:Int = 20
     public var queryParametersHistory = [AssistiveChatHostQueryParameters]()
     public var fetchingPlaceID:ChatResult.ID?
-
-    public static let modelDefaults:[ChatResult] = [
-        ChatResult(title: "Where can I find",   placeResponse: nil, placeDetailsResponse: nil),
-        ChatResult(title: "Tell me about",  placeResponse: nil, placeDetailsResponse: nil),
-    ]
     
     @Published public var selectedCategoryChatResult:ChatResult.ID?
     @Published public var selectedPlaceChatResult:ChatResult.ID?
     @Published var isFetchingPlaceDescription:Bool = false
     @Published public var searchText: String = ""
-    @Published public var results:[ChatResult]
+    @Published public var categoryResults:[CategoryResult] = [CategoryResult]()
     @Published public var placeResults:[ChatResult] = [ChatResult]()
-
-
-    public var filteredResults:[ChatResult] {
+    
+    public var filteredResults:[CategoryResult] {
         get {
-            guard !searchText.isEmpty else {
-                return results
-            }
-            var filtered = results.filter { [self] result in
-                let checkResultTitle = result.title.lowercased()
-                let checkSearchText = searchText.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
-                let foundResult = checkResultTitle.contains(checkSearchText) || checkSearchText.contains(checkResultTitle)
-                return foundResult
-            }
-            
-            let filteredTitles = filtered.compactMap { result in
-                return result.title
-            }
-            
-            var remaining = results
-            
-            remaining.removeAll { result in
-                filteredTitles.contains(result.title.lowercased())
-            }
-            
-            filtered.append(contentsOf:remaining)
-            return filtered
+            return categoryResults
         }
     }
     
@@ -93,12 +65,11 @@ public class ChatResultViewModel : ObservableObject {
         }
     }
         
-    public init(delegate: ChatResultViewModelDelegate? = nil, assistiveHostDelegate: AssistiveChatHostDelegate? = nil, locationProvider: LocationProvider,  queryParametersHistory: [AssistiveChatHostQueryParameters] = [AssistiveChatHostQueryParameters](), results: [ChatResult]) {
+    public init(delegate: ChatResultViewModelDelegate? = nil, assistiveHostDelegate: AssistiveChatHostDelegate? = nil, locationProvider: LocationProvider,  queryParametersHistory: [AssistiveChatHostQueryParameters] = [AssistiveChatHostQueryParameters]() ) {
         self.delegate = delegate
         self.assistiveHostDelegate = assistiveHostDelegate
         self.locationProvider = locationProvider
         self.queryParametersHistory = queryParametersHistory
-        self.results = results
     }
         
     public func resetPlaceModel() {
@@ -116,24 +87,11 @@ public class ChatResultViewModel : ObservableObject {
 
     
     public func chatResult(for selectedChatResultID:ChatResult.ID)->ChatResult?{
-        let selectedResult = filteredResults.first(where: { checkResult in
-            return checkResult.id == selectedChatResultID
-        })
-
-        
-        return selectedResult
+        return nil
     }
     
     public func chatResult(title:String)->ChatResult {
-        let selectedResult = filteredResults.first(where: { checkResult in
-            return checkResult.title.lowercased().trimmingCharacters(in: .whitespaces) == title.lowercased().trimmingCharacters(in: .whitespaces)
-        })
-        
-        guard let selectedResult = selectedResult else {
-            return ChatResult(title: title, placeResponse: nil, placeDetailsResponse: nil)
-        }
-        
-        return selectedResult
+        return ChatResult(title: title, placeResponse: nil)
     }
     
     public func receiveMessage(caption: String, parameters: AssistiveChatHostQueryParameters, isLocalParticipant: Bool) async throws {
@@ -210,7 +168,7 @@ public class ChatResultViewModel : ObservableObject {
             try await model(intent:lastIntent)
         } else {
             let caption = searchText
-            let intent = try chatHost.determineIntent(for: caption)
+            let intent = chatHost.determineIntent(for: caption)
             let queryParameters = try await chatHost.defaultParameters(for: caption)
             let newIntent = AssistiveChatHostIntent(caption: caption, intent: intent, selectedPlaceSearchResponse: nil, selectedPlaceSearchDetails: nil, placeSearchResponses: [PlaceSearchResponse](), placeDetailsResponses:nil, queryParameters: queryParameters)
             chatHost.appendIntentParameters(intent: newIntent)
@@ -280,18 +238,37 @@ public class ChatResultViewModel : ObservableObject {
         
         await MainActor.run {
             self.placeResults = chatResults
-            if let title = intent.selectedPlaceSearchResponse?.name {
-                self.searchText = title
+            
+            guard let chatHost = self.assistiveHostDelegate else {
+                return
             }
             
-            if let categoryCodes = assistiveHostDelegate?.categoryCodes, categoryCodes.keys.contains(intent.caption.lowercased().trimmingCharacters(in: .whitespaces)) {
-                self.searchText = intent.caption
+            if let title = intent.selectedPlaceSearchResponse?.name {
+                self.searchText = title
+                
+                if let selectedPlaceSearchResponse = intent.selectedPlaceSearchResponse, selectedPlaceSearchResponse.name == intent.caption {
+                    for result in chatResults {
+                        if result.placeResponse?.fsqID == selectedPlaceSearchResponse.fsqID {
+                            selectedPlaceChatResult = result.id
+                        }
+                    }
+                }
+                return
             }
-
-            if let selectedPlaceSearchResponse = intent.selectedPlaceSearchResponse, selectedPlaceSearchResponse.name == intent.caption {
-                for result in chatResults {
-                    if result.placeResponse?.fsqID == selectedPlaceSearchResponse.fsqID {
-                        selectedPlaceChatResult = result.id
+            
+            let categoryCodes = chatHost.categoryCodes
+            for categoryCode in categoryCodes {
+                if categoryCode.keys.contains(intent.caption.lowercased().trimmingCharacters(in: .whitespaces)) {
+                    self.searchText = intent.caption
+                    return
+                }
+                
+                for values in categoryCode.values {
+                    for value in values {
+                        if value["category"] == intent.caption.lowercased().trimmingCharacters(in: .whitespaces) {
+                            self.searchText = intent.caption
+                            return
+                        }
                     }
                 }
             }
@@ -315,28 +292,70 @@ public class ChatResultViewModel : ObservableObject {
     }
     
     public func categoricalSearchModel() async {
-        let blendedResults = categoricalResults()
+        let blendedResults =  categoricalResults()
         
         await MainActor.run {
-            results.removeAll()
-            results = blendedResults
+            categoryResults.removeAll()
+            categoryResults = blendedResults
         }
     }
         
-    private func categoricalResults()->[ChatResult] {
-        guard let unsortedKeys = assistiveHostDelegate?.categoryCodes.keys else {
-            return ChatResultViewModel.modelDefaults
+    private func categoricalResults()->[CategoryResult] {
+        guard let chatHost = assistiveHostDelegate else {
+            return [CategoryResult]()
         }
         
-        var sortedKeys = unsortedKeys.sorted()
-        let bannedList = ["adult store"]
-        sortedKeys.removeAll { category in
-            bannedList.contains(category)
+        do {
+           try chatHost.organizeCategoryCodeList()
+        }catch {
+            print(error)
         }
-        let results = sortedKeys.map { category in
-            return ChatResult(title:category, placeResponse: nil, placeDetailsResponse: nil)
+        
+        var retval = [CategoryResult]()
+        
+        for categoryCode in chatHost.categoryCodes {
+            var newChatResults = [ChatResult]()
+            
+            for values in categoryCode.values {
+                for value in values {
+                    if let category = value["category"]{
+                        let chatResult = ChatResult(title:category, placeResponse:nil)
+                        newChatResults.append(chatResult)
+                    }
+                }
+            }
+
+            for key in categoryCode.keys {
+                if retval.contains(where: { checkResult in
+                    return checkResult.parentCategory == key
+                }) {
+                    let existingResults = retval.compactMap { checkResult in
+                        if checkResult.parentCategory == key {
+                            return checkResult
+                        }
+                        return nil
+                    }
+                    
+                    for result in existingResults {
+                        let existingValues = result.categoricalChatResults
+                        newChatResults.append(contentsOf:existingValues)
+                        retval.removeAll { checkResult in
+                            return checkResult.parentCategory == key
+                        }
+                        
+                        let newResult = CategoryResult(parentCategory: key, categoricalChatResults: newChatResults)
+                        retval.append(newResult)
+                    }
+                    
+                } else {
+                    let newResult = CategoryResult(parentCategory: key, categoricalChatResults: newChatResults)
+                    retval.append(newResult)
+                }
+            }
+            
         }
-        return results
+        
+        return retval
     }
     
     
@@ -455,7 +474,7 @@ public class ChatResultViewModel : ObservableObject {
             guard let strongSelf = self else {
                 return [PlaceDetailsResponse]()
             }
-            for index in 0..<(min(responses.count, strongSelf.maxChatResults)) {
+            for index in 0..<responses.count {
                 taskGroup.addTask {
                     let response = responses[index]
                     let request = PlaceDetailsRequest(fsqID: response.fsqID, description: true, tel: true, fax: false, email: false, website: true, socialMedia: true, verified: false, hours: true, hoursPopular: true, rating: true, stats: false, popularity: true, price: true, menu: true, tastes: true, features: false)
@@ -490,7 +509,7 @@ extension ChatResultViewModel : AssistiveChatHostMessagesDelegate {
                 return
             }
             
-            let intent:AssistiveChatHost.Intent = try chatHost.determineIntent(for: caption)
+            let intent:AssistiveChatHost.Intent = chatHost.determineIntent(for: caption)
             let queryParameters = try await chatHost.defaultParameters(for: caption)
             let newIntent = AssistiveChatHostIntent(caption: caption, intent: intent, selectedPlaceSearchResponse: nil, selectedPlaceSearchDetails: nil, placeSearchResponses: [PlaceSearchResponse](), placeDetailsResponses:nil, queryParameters: queryParameters)
             
@@ -564,7 +583,6 @@ extension ChatResultViewModel : AssistiveChatHostMessagesDelegate {
         } catch {
             print(error)
         }
-        
     }
     
     public func addReceivedMessage(caption: String, parameters: AssistiveChatHostQueryParameters, isLocalParticipant: Bool) async throws {

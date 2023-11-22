@@ -17,27 +17,38 @@ struct PlaceView: View {
     @State private var selectedTab = "About"
     
     var body: some View {
+        if let resultId = resultId, let placeChatResult = model.placeChatResult(for: resultId) {
         TabView(selection: $selectedTab) {
-            PlaceAboutView(chatHost:chatHost,chatModel: model, locationProvider: locationProvider, resultId: $resultId, selectedTab: $selectedTab)
-                .tabItem {
-                    Label("About", systemImage: "target")
+                PlaceAboutView(chatHost:chatHost,chatModel: model, locationProvider: locationProvider, resultId: $resultId, selectedTab: $selectedTab)
+                    .tabItem {
+                        Label("About", systemImage: "target")
+                    }
+                    .tag("About")
+                PlaceDirectionsView(chatHost:chatHost,chatModel: model, locationProvider: locationProvider, resultId: $resultId)
+                    .tabItem {
+                        Label("Directions", systemImage: "map")
+                    }
+                    .tag("Directions")
+                
+                if let detailsResponses = placeChatResult.placeDetailsResponse {
+                    if let photoResponses = detailsResponses.photoResponses, photoResponses.count > 0 {
+                        PlacePhotosView(chatHost:chatHost,chatModel: model, locationProvider: locationProvider, resultId: $resultId)
+                            .tabItem {
+                                Label("Photos", systemImage: "photo.stack")
+                            }
+                            .tag("Photos")
+                    }
+                    if let tipsResponses = detailsResponses.tipsResponses, tipsResponses.count > 0 {
+                        PlaceReviewsView(chatHost:chatHost,chatModel: model, locationProvider: locationProvider, resultId: $resultId)
+                            .tabItem {
+                                Label("Reviews", systemImage: "quote.bubble")
+                            }
+                            .tag("Reviews")
+                    }
                 }
-                .tag("About")
-            PlacePhotosView(chatHost:chatHost,chatModel: model, locationProvider: locationProvider, resultId: $resultId)
-                .tabItem {
-                    Label("Photos", systemImage: "photo.stack")
-                }
-                .tag("Photos")
-            PlaceReviewsView(chatHost:chatHost,chatModel: model, locationProvider: locationProvider, resultId: $resultId)
-                .tabItem {
-                    Label("Reviews", systemImage: "quote.bubble")
-                }
-                .tag("Reviews")
-            PlaceDirectionsView(chatHost:chatHost,chatModel: model, locationProvider: locationProvider, resultId: $resultId)
-                .tabItem {
-                    Label("Directions", systemImage: "map")
-                }
-                .tag("Directions")
+            }
+        } else {
+            ContentUnavailableView("No place selected", systemImage: "return")
         }
     }
 }
@@ -45,7 +56,7 @@ struct PlaceView: View {
 #Preview {
     let chatHost = AssistiveChatHost()
     let locationProvider = LocationProvider()
-    let model = ChatResultViewModel(locationProvider: locationProvider, results: ChatResultViewModel.modelDefaults)
+    let model = ChatResultViewModel(locationProvider: locationProvider)
     model.assistiveHostDelegate = chatHost
     chatHost.messagesDelegate = model
     return PlaceView(chatHost: chatHost, model: model, locationProvider: locationProvider, resultId: .constant(nil))
