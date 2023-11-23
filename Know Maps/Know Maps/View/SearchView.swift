@@ -8,9 +8,9 @@
 import SwiftUI
 
 struct SearchView: View {
-    @StateObject public var chatHost:AssistiveChatHost
-    @StateObject public var model:ChatResultViewModel
-    @StateObject public var locationProvider:LocationProvider
+    @ObservedObject public var chatHost:AssistiveChatHost
+    @ObservedObject public var model:ChatResultViewModel
+    @ObservedObject public var locationProvider:LocationProvider
     @Binding public var categoricalResultId:ChatResult.ID?
 
     var body: some View {

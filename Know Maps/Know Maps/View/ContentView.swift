@@ -13,9 +13,10 @@ struct ContentView: View {
     @State private var showImmersiveSpace = false
     @State private var immersiveSpaceIsShown = false
 
-    @State private var chatHost:AssistiveChatHost = AssistiveChatHost()
+    @StateObject private var chatHost:AssistiveChatHost = AssistiveChatHost()
     @StateObject public var chatModel:ChatResultViewModel
     @StateObject public var locationProvider:LocationProvider
+    @StateObject public var placeDirectionsChatViewModel = PlaceDirectionsViewModel()
     @Environment(\.openImmersiveSpace) var openImmersiveSpace
     @Environment(\.dismissImmersiveSpace) var dismissImmersiveSpace
     
@@ -31,7 +32,7 @@ struct ContentView: View {
                 } else if chatModel.selectedPlaceChatResult == nil {
                     MapResultsView(chatHost: chatHost, model: chatModel, locationProvider: locationProvider)
                 } else {
-                    PlaceView(chatHost: chatHost, model: chatModel, locationProvider: locationProvider, resultId: $chatModel.selectedPlaceChatResult)
+                    PlaceView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, placeDirectionsViewModel: placeDirectionsChatViewModel, resultId: $chatModel.selectedPlaceChatResult)
                 }
             }.onChange(of: chatModel.selectedCategoryChatResult) { oldValue, newValue in
                 chatModel.selectedPlaceChatResult = nil

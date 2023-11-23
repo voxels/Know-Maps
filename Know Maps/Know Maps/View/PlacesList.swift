@@ -8,8 +8,8 @@
 import SwiftUI
 
 struct PlacesList: View {
-    @StateObject public var chatHost:AssistiveChatHost
-    @StateObject public var model:ChatResultViewModel
+    @ObservedObject public var chatHost:AssistiveChatHost
+    @ObservedObject public var model:ChatResultViewModel
     @Binding public var resultId:ChatResult.ID?
     
     static var formatter:NumberFormatter {

@@ -69,21 +69,14 @@ extension LocationProvider : CLLocationManagerDelegate {
     }
     
     public func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        Task {
-            await MainActor.run {
-                mostRecentLocations = locations
-                print("Last Known Location:\(String(describing: locations.last?.coordinate.latitude)), \(String(describing: locations.last?.coordinate.longitude))")
-            }
+        Task { @MainActor in
+            mostRecentLocations = locations
+            print("Last Known Location:\(String(describing: locations.last?.coordinate.latitude)), \(String(describing: locations.last?.coordinate.longitude))")
         }
     }
     
     public func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
         print("Location Manager did fail with error:")
         print(error)
-        if retryCount >= maxRetries {
-            return
-        }
-        locationManager.requestLocation()
-        retryCount += 1
     }
 }

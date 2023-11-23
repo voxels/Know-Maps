@@ -10,9 +10,9 @@ import CoreLocation
 import MapKit
 
 struct MapResultsView: View {
-    @StateObject public var chatHost:AssistiveChatHost
-    @StateObject public var model:ChatResultViewModel
-    @StateObject public var locationProvider:LocationProvider
+    @ObservedObject public var chatHost:AssistiveChatHost
+    @ObservedObject public var model:ChatResultViewModel
+    @ObservedObject public var locationProvider:LocationProvider
 
     var body: some View {
         Map(initialPosition:.automatic, bounds: MapCameraBounds(minimumDistance: 500, maximumDistance: 100000)) {
@@ -34,8 +34,12 @@ struct MapResultsView: View {
                                pointsOfInterest: .including([.publicTransport]),
                                showsTraffic: false))
             .onChange(of: locationProvider.mostRecentLocations) { oldValue, newValue in
-                if oldValue != newValue, let lastLocation = newValue.last, let lastOldLocation = oldValue.last, lastLocation.coordinate.latitude != lastOldLocation.coordinate.latitude, lastLocation.coordinate.longitude != lastOldLocation.coordinate.longitude, let knownLocation = locationProvider.lastKnownLocation, knownLocation.coordinate.latitude == LocationProvider.defaultLocation.coordinate.latitude && knownLocation.coordinate.longitude == LocationProvider.defaultLocation.coordinate.longitude {
-                    locationProvider.queryLocation = lastLocation
+                if oldValue != newValue, let lastLocation = newValue.last {
+                    if let lastOldLocation = oldValue.last, lastLocation.coordinate.latitude != lastOldLocation.coordinate.latitude, lastLocation.coordinate.longitude != lastOldLocation.coordinate.longitude, lastLocation.coordinate.latitude != LocationProvider.defaultLocation.coordinate.latitude, lastLocation.coordinate.longitude != LocationProvider.defaultLocation.coordinate.longitude {
+                        locationProvider.queryLocation = lastLocation
+                    } else if oldValue.isEmpty, locationProvider.queryLocation.coordinate.latitude == LocationProvider.defaultLocation.coordinate.latitude, locationProvider.queryLocation.coordinate.longitude == LocationProvider.defaultLocation.coordinate.longitude {
+                        locationProvider.queryLocation = lastLocation
+                    }
                 }
             }
     }
@@ -48,5 +52,5 @@ struct MapResultsView: View {
     model.assistiveHostDelegate = chatHost
     chatHost.messagesDelegate = model
 
-    return MapResultsView(chatHost: chatHost, model: model, locationProvider: locationProvider)
+    return MapResultsView(chatHost: chatHost, model:model, locationProvider: locationProvider)
 }

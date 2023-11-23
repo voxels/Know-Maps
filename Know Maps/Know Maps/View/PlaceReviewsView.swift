@@ -8,9 +8,9 @@
 import SwiftUI
 
 struct PlaceReviewsView: View {
-    @StateObject public var chatHost:AssistiveChatHost
-    @StateObject public var chatModel:ChatResultViewModel
-    @StateObject public var locationProvider:LocationProvider
+    @ObservedObject public var chatHost:AssistiveChatHost
+    @ObservedObject public var chatModel:ChatResultViewModel
+    @ObservedObject public var locationProvider:LocationProvider
     @Binding public var resultId:ChatResult.ID?
 
     var body: some View {

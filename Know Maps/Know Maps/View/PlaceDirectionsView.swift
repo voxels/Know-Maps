@@ -10,17 +10,12 @@ import CoreLocation
 import MapKit
 
 struct PlaceDirectionsView: View {
-    @StateObject public var chatHost:AssistiveChatHost
-    @StateObject public var chatModel:ChatResultViewModel
-    @StateObject public var locationProvider:LocationProvider
+    @ObservedObject public var chatHost:AssistiveChatHost
+    @ObservedObject public var chatModel:ChatResultViewModel
+    @ObservedObject public var locationProvider:LocationProvider
+    @ObservedObject public var model:PlaceDirectionsViewModel
     @Binding public var resultId:ChatResult.ID?
-    @State private var route:MKRoute?
-    @State private var source:MKMapItem?
-    @State private var destination:MKMapItem?
-    @State private var polyline:MKPolyline?
-    @State private var transportType:MKDirectionsTransportType?
-    @State private var rawTransportType = 0
-    @State private var chatRouteResults:[ChatRouteResult]?
+    
     static let mapFrameConstraint:Double = 200000
     static let mapFrameMinimumPadding:Double = 1000
     static let polylineStrokeWidth:CGFloat = 16
@@ -38,11 +33,15 @@ struct PlaceDirectionsView: View {
             let maxDistance = currentLocation.distance(from: placeCoordinate) + PlaceDirectionsView.mapFrameConstraint
             let title = placeResponse.name
             GeometryReader { geo in
-                LazyVStack(alignment: .center) {
-                    Picker("Transport Type", selection: $rawTransportType) {
-                        Text(RawTransportType.Walking.rawValue).tag(0)
-                        Text(RawTransportType.Transit.rawValue).tag(1)
-                        Text(RawTransportType.Automobile.rawValue).tag(2)
+                LazyVStack(alignment: .leading) {
+                    HStack {
+                        Spacer()
+                        Picker("Transport Type", selection: $model.rawTransportType) {
+                            Text(RawTransportType.Walking.rawValue).tag(0)
+                            Text(RawTransportType.Transit.rawValue).tag(1)
+                            Text(RawTransportType.Automobile.rawValue).tag(2)
+                        }
+                        Spacer()
                     }
                     Map(initialPosition: .automatic, bounds: MapCameraBounds(minimumDistance: currentLocation.distance(from: placeCoordinate) + PlaceDirectionsView.mapFrameMinimumPadding, maximumDistance:maxDistance)) {
                         Marker(title, coordinate: placeCoordinate.coordinate)
@@ -50,7 +49,7 @@ struct PlaceDirectionsView: View {
                             Marker("Current Location", coordinate: currentLocation.coordinate)
                         }
                         
-                        if let polyline = polyline {
+                        if let polyline = model.polyline {
                             MapPolyline(polyline)
                                 .stroke(.blue, lineWidth: PlaceDirectionsView.polylineStrokeWidth)
                         }
@@ -65,20 +64,8 @@ struct PlaceDirectionsView: View {
                                       showsTraffic: true))
                     .frame(minWidth: geo.size.width, minHeight:geo.size.height * 2.0 / 3.0)
                     .padding()
-                    .onChange(of: rawTransportType) { oldValue, newValue in
-                        switch newValue {
-                        case 0:
-                            transportType = .walking
-                        case 1:
-                            transportType = .transit
-                        case 2:
-                            transportType = .automobile
-                        default:
-                            transportType = .any
-                        }
-                    }
                     
-                    if let chatRouteResults = chatRouteResults, chatRouteResults.count > 0  {
+                    if let chatRouteResults = model.chatRouteResults, chatRouteResults.count > 0  {
                         ForEach(chatRouteResults) { chatRouteResult in
                             Label(chatRouteResult.instructions, systemImage: "arrowtriangle.right.fill").frame(alignment: .leading)
                         }
@@ -91,7 +78,44 @@ struct PlaceDirectionsView: View {
                 }
                 
                 if oldValue != newValue, let sourceMapItem = mapItem(for: locationProvider.lastKnownLocation), let destinationMapItem = mapItem(for: CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude)) {
-                    getDirections(source:sourceMapItem, destination:destinationMapItem)
+                    Task { @MainActor in
+                        do {
+                            try await getDirections(source:sourceMapItem, destination:destinationMapItem, model:model)
+                            self.resultId = resultId
+                        } catch {
+                            print(error)
+                        }
+                        
+                    }
+                }
+            }
+            .onChange(of: model.rawTransportType) { oldValue, newValue in
+                switch newValue {
+                case 0:
+                    model.transportType = .walking
+                case 1:
+                    model.transportType = .transit
+                case 2:
+                    model.transportType = .automobile
+                default:
+                    model.transportType = .any
+                }
+            }
+            .onChange(of: model.transportType) { oldValue, newValue in
+                guard let placeChatResult = chatModel.placeChatResult(for: resultId), let placeResponse = placeChatResult.placeResponse else {
+                    return
+                }
+                
+                if let sourceMapItem = mapItem(for: locationProvider.lastKnownLocation), let destinationMapItem = mapItem(for: CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude)) {
+                    Task { @MainActor in
+                        do {
+                            try await getDirections(source:sourceMapItem, destination:destinationMapItem, model:model)
+                            self.resultId = resultId
+                        } catch {
+                            print(error)
+                        }
+                        
+                    }
                 }
             }
         }
@@ -114,46 +138,44 @@ struct PlaceDirectionsView: View {
         return MKPlacemark(coordinate: location.coordinate)
     }
     
-    func getDirections(source:MKMapItem?, destination:MKMapItem?) {
+    @MainActor
+    func getDirections(source:MKMapItem?, destination:MKMapItem?, model:PlaceDirectionsViewModel) async throws{
         guard let source = source, let destination = destination else {
             return
         }
-        route = nil
+                
         let request = MKDirections.Request()
         request.source = source
         request.destination = destination
-        if let transportType = transportType {
-            request.transportType = transportType
+        request.transportType = model.transportType
+        
+        let directions = MKDirections(request: request)
+                                    
+        let response = try? await directions.calculate()
+        model.source = source
+        model.route = response?.routes.first
+        if let route = model.route {
+            model.polyline = route.polyline
+            model.chatRouteResults = route.steps.compactMap({ step in
+                let instructions = step.instructions
+                if !instructions.isEmpty {
+                    return ChatRouteResult(route: route, instructions: instructions)
+                }
+                return nil
+            })
         }
         
-        Task {
-            let directions = MKDirections(request: request)
-                                        
-            let response = try? await directions.calculate()
-            await MainActor.run {
-                self.source = source
-                self.route = response?.routes.first
-                if let route = self.route {
-                    self.polyline = route.polyline
-                    self.chatRouteResults = route.steps.compactMap({ step in
-                        let instructions = step.instructions
-                        if !instructions.isEmpty {
-                            return ChatRouteResult(route: route, instructions: instructions)
-                        }
-                        return nil
-                    })
-                }
-            }
-        }
+        return
     }
 }
 
 #Preview {
     let chatHost = AssistiveChatHost()
     let locationProvider = LocationProvider()
-    let model = ChatResultViewModel(locationProvider: locationProvider)
-    model.assistiveHostDelegate = chatHost
-    chatHost.messagesDelegate = model
+    let chatModel = ChatResultViewModel(locationProvider: locationProvider)
+    chatModel.assistiveHostDelegate = chatHost
+    chatHost.messagesDelegate = chatModel
+    let model = PlaceDirectionsViewModel()
 
-    return PlaceDirectionsView(chatHost: chatHost, chatModel: model, locationProvider: locationProvider, resultId: .constant(nil))
+    return PlaceDirectionsView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, model: model, resultId: .constant(nil))
 }

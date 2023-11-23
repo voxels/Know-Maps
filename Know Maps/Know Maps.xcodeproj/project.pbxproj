@@ -46,6 +46,7 @@
 		1EE0688E2B0D1EB40016851A /* PlaceReviewsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EE0688D2B0D1EB40016851A /* PlaceReviewsView.swift */; };
 		1EE068902B0E57AD0016851A /* CategoryResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EE0688F2B0E57AD0016851A /* CategoryResult.swift */; };
 		1EE068922B0FBADE0016851A /* ChatRouteResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EE068912B0FBADE0016851A /* ChatRouteResult.swift */; };
+		1EE068942B100CE30016851A /* PlaceDirectionsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EE068932B100CE30016851A /* PlaceDirectionsViewModel.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -102,6 +103,7 @@
 		1EE0688D2B0D1EB40016851A /* PlaceReviewsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceReviewsView.swift; sourceTree = "<group>"; };
 		1EE0688F2B0E57AD0016851A /* CategoryResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryResult.swift; sourceTree = "<group>"; };
 		1EE068912B0FBADE0016851A /* ChatRouteResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatRouteResult.swift; sourceTree = "<group>"; };
+		1EE068932B100CE30016851A /* PlaceDirectionsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceDirectionsViewModel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -225,6 +227,7 @@
 				1EA7F77A2B052D92002AE371 /* LocationProvider.swift */,
 				1EA7F7772B052D92002AE371 /* PlaceDetailsRequest.swift */,
 				1EA7F77C2B052D92002AE371 /* PlaceDetailsResponse.swift */,
+				1EE068932B100CE30016851A /* PlaceDirectionsViewModel.swift */,
 				1EA7F7732B052D92002AE371 /* PlacePhotoResponse.swift */,
 				1EA7F77E2B052D92002AE371 /* PlaceResponseFormatter.swift */,
 				1EA7F7802B052D92002AE371 /* PlaceSearchRequest.swift */,
@@ -369,6 +372,7 @@
 				1EA7F7872B052D92002AE371 /* LanguageGenerator.swift in Sources */,
 				1EA7F79A2B052E0C002AE371 /* LocalMapsQueryClassifier.mlmodel in Sources */,
 				1EA7F7972B052DE4002AE371 /* AssistiveChatHost.swift in Sources */,
+				1EE068942B100CE30016851A /* PlaceDirectionsViewModel.swift in Sources */,
 				1EA7F78A2B052D92002AE371 /* PlaceTipsResponse.swift in Sources */,
 				1EE068862B0CE74C0016851A /* PlaceAboutView.swift in Sources */,
 				1EA7F78B2B052D92002AE371 /* LocationProvider.swift in Sources */,
