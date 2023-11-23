@@ -41,9 +41,9 @@ struct PlaceView: View {
                     if let tipsResponses = detailsResponses.tipsResponses, tipsResponses.count > 0 {
                         PlaceReviewsView(chatHost:chatHost,chatModel: model, locationProvider: locationProvider, resultId: $resultId)
                             .tabItem {
-                                Label("Reviews", systemImage: "quote.bubble")
+                                Label("Tips", systemImage: "quote.bubble")
                             }
-                            .tag("Reviews")
+                            .tag("Tips")
                     }
                 }
             }

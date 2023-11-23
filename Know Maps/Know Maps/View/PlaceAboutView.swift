@@ -118,7 +118,7 @@ struct PlaceAboutView: View {
                                             Text(PlacesList.formatter.string(from: NSNumber(value: rating)) ?? "0")
                                                 
                                         }.onTapGesture {
-                                            selectedTab = "Reviews"
+                                            selectedTab = "Tips"
                                         }
                                     }
                                     Spacer()

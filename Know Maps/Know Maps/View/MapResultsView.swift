@@ -34,7 +34,7 @@ struct MapResultsView: View {
                                pointsOfInterest: .including([.publicTransport]),
                                showsTraffic: false))
             .onChange(of: locationProvider.mostRecentLocations) { oldValue, newValue in
-                if let lastLocation = newValue.last, let knownLocation = locationProvider.lastKnownLocation, knownLocation.coordinate.latitude == LocationProvider.defaultLocation.coordinate.latitude && knownLocation.coordinate.longitude == LocationProvider.defaultLocation.coordinate.longitude {
+                if oldValue != newValue, let lastLocation = newValue.last, let lastOldLocation = oldValue.last, lastLocation.coordinate.latitude != lastOldLocation.coordinate.latitude, lastLocation.coordinate.longitude != lastOldLocation.coordinate.longitude, let knownLocation = locationProvider.lastKnownLocation, knownLocation.coordinate.latitude == LocationProvider.defaultLocation.coordinate.latitude && knownLocation.coordinate.longitude == LocationProvider.defaultLocation.coordinate.longitude {
                     locationProvider.queryLocation = lastLocation
                 }
             }
