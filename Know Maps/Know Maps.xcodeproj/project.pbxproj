@@ -45,6 +45,7 @@
 		1EE0688C2B0D1E930016851A /* PlacePhotosView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EE0688B2B0D1E930016851A /* PlacePhotosView.swift */; };
 		1EE0688E2B0D1EB40016851A /* PlaceReviewsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EE0688D2B0D1EB40016851A /* PlaceReviewsView.swift */; };
 		1EE068902B0E57AD0016851A /* CategoryResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EE0688F2B0E57AD0016851A /* CategoryResult.swift */; };
+		1EE068922B0FBADE0016851A /* ChatRouteResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EE068912B0FBADE0016851A /* ChatRouteResult.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -100,6 +101,7 @@
 		1EE0688B2B0D1E930016851A /* PlacePhotosView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlacePhotosView.swift; sourceTree = "<group>"; };
 		1EE0688D2B0D1EB40016851A /* PlaceReviewsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceReviewsView.swift; sourceTree = "<group>"; };
 		1EE0688F2B0E57AD0016851A /* CategoryResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryResult.swift; sourceTree = "<group>"; };
+		1EE068912B0FBADE0016851A /* ChatRouteResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatRouteResult.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -214,6 +216,7 @@
 				1EA7F7942B052DE4002AE371 /* AssistiveChatHostQueryParameters.swift */,
 				1EA7F7812B052D92002AE371 /* ChatResult.swift */,
 				1EE0688F2B0E57AD0016851A /* CategoryResult.swift */,
+				1EE068912B0FBADE0016851A /* ChatRouteResult.swift */,
 				1EA7F7782B052D92002AE371 /* integrated_category_taxonomy.json */,
 				1EA7F7822B052D92002AE371 /* ChatResultViewModel.swift */,
 				1EA7F7762B052D92002AE371 /* LanguageGenerator.swift */,
@@ -359,6 +362,7 @@
 				1EA7F78C2B052D92002AE371 /* SearchQueryResponseViewModel.swift in Sources */,
 				1EE068882B0D1ADB0016851A /* SettingsView.swift in Sources */,
 				1EE0688C2B0D1E930016851A /* PlacePhotosView.swift in Sources */,
+				1EE068922B0FBADE0016851A /* ChatRouteResult.swift in Sources */,
 				1EA7F7832B052D92002AE371 /* LanguageGeneratorRequest.swift in Sources */,
 				1EE0688E2B0D1EB40016851A /* PlaceReviewsView.swift in Sources */,
 				1EA7F7512B03FA71002AE371 /* ImmersiveView.swift in Sources */,

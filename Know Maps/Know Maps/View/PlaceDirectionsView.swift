@@ -19,9 +19,17 @@ struct PlaceDirectionsView: View {
     @State private var destination:MKMapItem?
     @State private var polyline:MKPolyline?
     @State private var transportType:MKDirectionsTransportType?
+    @State private var rawTransportType = 0
+    @State private var chatRouteResults:[ChatRouteResult]?
     static let mapFrameConstraint:Double = 200000
     static let mapFrameMinimumPadding:Double = 1000
     static let polylineStrokeWidth:CGFloat = 16
+    
+    public enum RawTransportType : String {
+        case Walking
+        case Transit
+        case Automobile
+    }
     
 
     var body: some View {
@@ -29,26 +37,54 @@ struct PlaceDirectionsView: View {
             let placeCoordinate = CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude)
             let maxDistance = currentLocation.distance(from: placeCoordinate) + PlaceDirectionsView.mapFrameConstraint
             let title = placeResponse.name
-            Map(initialPosition: .automatic, bounds: MapCameraBounds(minimumDistance: currentLocation.distance(from: placeCoordinate) + PlaceDirectionsView.mapFrameMinimumPadding, maximumDistance:maxDistance)) {
-                Marker(title, coordinate: placeCoordinate.coordinate)
-                if currentLocation.distance(from: placeCoordinate) < PlaceDirectionsView.mapFrameConstraint {
-                    Marker("Current Location", coordinate: currentLocation.coordinate)
-                }
-                
-                if let polyline = polyline {
-                    MapPolyline(polyline)
-                        .stroke(.blue, lineWidth: PlaceDirectionsView.polylineStrokeWidth)
+            GeometryReader { geo in
+                LazyVStack(alignment: .center) {
+                    Picker("Transport Type", selection: $rawTransportType) {
+                        Text(RawTransportType.Walking.rawValue).tag(0)
+                        Text(RawTransportType.Transit.rawValue).tag(1)
+                        Text(RawTransportType.Automobile.rawValue).tag(2)
+                    }
+                    Map(initialPosition: .automatic, bounds: MapCameraBounds(minimumDistance: currentLocation.distance(from: placeCoordinate) + PlaceDirectionsView.mapFrameMinimumPadding, maximumDistance:maxDistance)) {
+                        Marker(title, coordinate: placeCoordinate.coordinate)
+                        if currentLocation.distance(from: placeCoordinate) < PlaceDirectionsView.mapFrameConstraint {
+                            Marker("Current Location", coordinate: currentLocation.coordinate)
+                        }
+                        
+                        if let polyline = polyline {
+                            MapPolyline(polyline)
+                                .stroke(.blue, lineWidth: PlaceDirectionsView.polylineStrokeWidth)
+                        }
+                    }
+                    .mapControls {
+                        MapPitchToggle()
+                        MapUserLocationButton()
+                        MapCompass()
+                    }
+                    .mapStyle(.hybrid(elevation: .realistic,
+                                      pointsOfInterest: .including([.publicTransport]),
+                                      showsTraffic: true))
+                    .frame(minWidth: geo.size.width, minHeight:geo.size.height * 2.0 / 3.0)
+                    .padding()
+                    .onChange(of: rawTransportType) { oldValue, newValue in
+                        switch newValue {
+                        case 0:
+                            transportType = .walking
+                        case 1:
+                            transportType = .transit
+                        case 2:
+                            transportType = .automobile
+                        default:
+                            transportType = .any
+                        }
+                    }
+                    
+                    if let chatRouteResults = chatRouteResults, chatRouteResults.count > 0  {
+                        ForEach(chatRouteResults) { chatRouteResult in
+                            Label(chatRouteResult.instructions, systemImage: "arrowtriangle.right.fill").frame(alignment: .leading)
+                        }
+                    }
                 }
             }
-            .mapControls {
-                MapPitchToggle()
-                MapUserLocationButton()
-                MapCompass()
-            }
-            .mapStyle(.hybrid(elevation: .realistic,
-                              pointsOfInterest: .including([.publicTransport]),
-                              showsTraffic: true))
-            .padding()
             .onChange(of: resultId) { oldValue, newValue in
                 guard let placeChatResult = chatModel.placeChatResult(for: newValue), let placeResponse = placeChatResult.placeResponse else {
                     return
@@ -86,14 +122,27 @@ struct PlaceDirectionsView: View {
         let request = MKDirections.Request()
         request.source = source
         request.destination = destination
+        if let transportType = transportType {
+            request.transportType = transportType
+        }
         
         Task {
             let directions = MKDirections(request: request)
+                                        
             let response = try? await directions.calculate()
             await MainActor.run {
-                self.route = response?.routes.first
                 self.source = source
-                self.polyline = self.route?.polyline
+                self.route = response?.routes.first
+                if let route = self.route {
+                    self.polyline = route.polyline
+                    self.chatRouteResults = route.steps.compactMap({ step in
+                        let instructions = step.instructions
+                        if !instructions.isEmpty {
+                            return ChatRouteResult(route: route, instructions: instructions)
+                        }
+                        return nil
+                    })
+                }
             }
         }
     }

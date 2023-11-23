@@ -29,7 +29,6 @@ struct PlaceView: View {
                         Label("Directions", systemImage: "map")
                     }
                     .tag("Directions")
-                
                 if let detailsResponses = placeChatResult.placeDetailsResponse {
                     if let photoResponses = detailsResponses.photoResponses, photoResponses.count > 0 {
                         PlacePhotosView(chatHost:chatHost,chatModel: model, locationProvider: locationProvider, resultId: $resultId)
