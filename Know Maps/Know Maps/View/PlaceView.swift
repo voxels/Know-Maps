@@ -39,7 +39,7 @@ struct PlaceView: View {
                             .tag("Photos")
                     }
                     if let tipsResponses = detailsResponses.tipsResponses, tipsResponses.count > 0 {
-                        PlaceReviewsView(chatHost:chatHost, chatModel: chatModel, locationProvider: locationProvider, resultId: $resultId)
+                        PlaceTipsView(chatHost:chatHost, chatModel: chatModel, locationProvider: locationProvider, resultId: $resultId)
                             .tabItem {
                                 Label("Tips", systemImage: "quote.bubble")
                             }

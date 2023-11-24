@@ -18,6 +18,7 @@ struct PlaceDirectionsView: View {
     
     @State private var lookAroundScene: MKLookAroundScene?
     @State private var lookAroundSceneRequest:MKLookAroundSceneRequest?
+    @State private var showLookAroundScene:Bool = false
     
     static let mapFrameConstraint:Double = 200000
     static let mapFrameMinimumPadding:Double = 1000
@@ -45,65 +46,81 @@ struct PlaceDirectionsView: View {
             GeometryReader { geo in
                 ScrollView {
                     LazyVStack(alignment: .leading) {
-                        ZStack(alignment: .topLeading) {
-                            HStack {
+                        ZStack(){
+                            if showLookAroundScene, let lookAroundScene = lookAroundScene {
+                                LookAroundPreview(initialScene: lookAroundScene)
+                                    .overlay(alignment: .bottomTrailing) {
+                                        HStack {
+                                            Text ("\(model.destination?.name ?? "")")
+                                            if let travelTime {
+                                                Text(travelTime)
+                                            }
+                                        }
+                                        .font(.caption)
+                                        .foregroundStyle(.white)
+                                        .padding()
+                                    }
+                                    .onAppear {
+                                        if let destination = model.destination {
+                                            Task {
+                                                try await getLookAroundScene(mapItem:destination)
+                                            }
+                                        }
+                                    }
+                                    .onChange(of: model.destination) {
+                                        if let destination = model.destination {
+                                            Task {
+                                                try await getLookAroundScene(mapItem:destination)
+                                            }
+                                        }
+                                    }
+                                    .frame(minWidth: geo.size.width, minHeight:geo.size.height * 2.0 / 3.0)
+                            } else {
+                                Map(initialPosition: .automatic, bounds: MapCameraBounds(minimumDistance: currentLocation.distance(from: placeCoordinate) + PlaceDirectionsView.mapFrameMinimumPadding, maximumDistance:maxDistance)) {
+                                    Marker(title, coordinate: placeCoordinate.coordinate)
+                                    if currentLocation.distance(from: placeCoordinate) < PlaceDirectionsView.mapFrameConstraint {
+                                        Marker("Current Location", coordinate: currentLocation.coordinate)
+                                    }
+                                    
+                                    if let polyline = model.polyline {
+                                        MapPolyline(polyline)
+                                            .stroke(.blue, lineWidth: PlaceDirectionsView.polylineStrokeWidth)
+                                    }
+                                }
+                                .mapControls {
+                                    MapPitchToggle()
+                                    MapUserLocationButton()
+                                    MapCompass()
+                                }
+                                .mapStyle(.hybrid(elevation: .realistic,
+                                                  pointsOfInterest: .including([.publicTransport]),
+                                                  showsTraffic: true))
+                                .frame(minWidth: geo.size.width, minHeight:geo.size.height * 2.0 / 3.0)
+                            }
+                        }
+                        
+                        HStack {
+                            Spacer()
+                            if !showLookAroundScene {
                                 Picker("Transport Type", selection: $model.rawTransportType) {
                                     Text(RawTransportType.Walking.rawValue).tag(0)
                                     Text(RawTransportType.Transit.rawValue).tag(1)
                                     Text(RawTransportType.Automobile.rawValue).tag(2)
                                 }
-                                Spacer()
+                                .padding(4)
                             }
-                            Map(initialPosition: .automatic, bounds: MapCameraBounds(minimumDistance: currentLocation.distance(from: placeCoordinate) + PlaceDirectionsView.mapFrameMinimumPadding, maximumDistance:maxDistance)) {
-                                Marker(title, coordinate: placeCoordinate.coordinate)
-                                if currentLocation.distance(from: placeCoordinate) < PlaceDirectionsView.mapFrameConstraint {
-                                    Marker("Current Location", coordinate: currentLocation.coordinate)
+                            if showLookAroundScene {
+                                Button("Directions", systemImage: "map.fill") {
+                                    showLookAroundScene.toggle()
                                 }
-                                
-                                if let polyline = model.polyline {
-                                    MapPolyline(polyline)
-                                        .stroke(.blue, lineWidth: PlaceDirectionsView.polylineStrokeWidth)
+                                .padding(4)
+                            } else {
+                                Button("Look Around", systemImage: "binoculars.fill") {
+                                    showLookAroundScene.toggle()
                                 }
+                                .padding(4)
                             }
-                            .mapControls {
-                                MapPitchToggle()
-                                MapUserLocationButton()
-                                MapCompass()
-                            }
-                            .mapStyle(.hybrid(elevation: .realistic,
-                                              pointsOfInterest: .including([.publicTransport]),
-                                              showsTraffic: true))
-                            .frame(minWidth: geo.size.width, minHeight:geo.size.height * 2.0 / 3.0)
-                        }
-                        
-                        if let lookAroundScene = lookAroundScene {
-                            LookAroundPreview(initialScene: lookAroundScene)
-                                .overlay(alignment: .bottomTrailing) {
-                                    HStack {
-                                        Text ("\(model.destination?.name ?? "")")
-                                        if let travelTime {
-                                            Text(travelTime)
-                                        }
-                                    }
-                                    .font(.caption)
-                                    .foregroundStyle(.white)
-                                    .padding()
-                                }
-                                .onAppear {
-                                    if let destination = model.destination {
-                                        Task {
-                                            try await getLookAroundScene(mapItem:destination)
-                                        }
-                                    }
-                                }
-                                .onChange(of: model.destination) {
-                                    if let destination = model.destination {
-                                        Task {
-                                            try await getLookAroundScene(mapItem:destination)
-                                        }
-                                    }
-                                }
-                                .frame(minWidth: geo.size.width, minHeight:geo.size.height * 2.0 / 3.0)
+                            Spacer()
                         }
                         
                         if let chatRouteResults = model.chatRouteResults, chatRouteResults.count > 0  {

@@ -125,35 +125,6 @@ struct PlaceAboutView: View {
                                 }.padding(PlaceAboutView.defaultPadding)
                             }
                         }.padding(EdgeInsets(top: 0, leading: PlaceAboutView.defaultPadding * 2, bottom: PlaceAboutView.defaultPadding, trailing: PlaceAboutView.defaultPadding * 2))
-                        
-                        if let description = placeDetailsResponse.description {
-                            ZStack {
-                                Rectangle().foregroundStyle(.thickMaterial)
-                                Text(description).padding(PlaceAboutView.defaultPadding * 2)
-                            }.padding(EdgeInsets(top: 0, leading: PlaceAboutView.defaultPadding * 2, bottom: PlaceAboutView.defaultPadding, trailing: PlaceAboutView.defaultPadding * 2))
-                        } else if let tips = placeDetailsResponse.tipsResponses, tips.count > 0  {
-                            Button {
-                                Task {
-                                    try await chatHost.placeDescription(chatResult: result, delegate: chatModel)
-                                }
-                            } label: {
-                                if chatModel.isFetchingPlaceDescription, result.id == chatModel.fetchingPlaceID {
-                                    ProgressView().progressViewStyle(.circular)
-                                } else {
-                                    Text("Generate description for \(placeDetailsResponse.searchResponse.name)")
-                                }
-                            }.buttonStyle(.bordered)
-                                .backgroundStyle(.primary)
-                        } else if let tastes = placeDetailsResponse.tastes, tastes.count > 0 {
-                            Button {
-                                Task {
-                                    try await chatHost.placeDescription(chatResult: result, delegate: chatModel)
-                                }
-                            } label: {
-                                Text("Generate description for \(placeDetailsResponse.searchResponse.name)")
-                            }.buttonStyle(.bordered)
-                                .backgroundStyle(.primary)
-                        }
                     } else {
                         ProgressView().frame(width: geo.size.width, height: geo.size.height, alignment: .center)
                     }
