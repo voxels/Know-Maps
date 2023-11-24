@@ -27,6 +27,11 @@ open class LocationProvider : NSObject, ObservableObject  {
             return queryLocation
         }
     }
+    
+    public var lastKnownLocationName:String? {
+        
+    }
+    
     public func authorize() {
         if locationManager.authorizationStatus != .authorizedWhenInUse {
             locationManager.requestWhenInUseAuthorization()

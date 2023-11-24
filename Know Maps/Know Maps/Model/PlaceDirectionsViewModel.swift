@@ -26,4 +26,24 @@ public class PlaceDirectionsViewModel : ObservableObject {
         self.transportType = transportType
         self.chatRouteResults = chatRouteResults
     }
+    
+    public func appleMapsLaunchOptions()->[String:Any] {
+        var retval = [String:Any]()
+        var directionsModeValue = MKLaunchOptionsDirectionsModeDefault
+        
+        switch transportType {
+        case.walking:
+            directionsModeValue = MKLaunchOptionsDirectionsModeWalking
+        case .transit:
+            directionsModeValue = MKLaunchOptionsDirectionsModeTransit
+        case .automobile:
+            directionsModeValue = MKLaunchOptionsDirectionsModeDriving
+        default:
+            directionsModeValue = MKLaunchOptionsDirectionsModeDefault
+        }
+        
+        retval[MKLaunchOptionsDirectionsModeKey] = directionsModeValue
+        
+        return retval
+    }
 }

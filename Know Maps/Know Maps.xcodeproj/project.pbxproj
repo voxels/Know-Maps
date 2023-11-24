@@ -47,6 +47,7 @@
 		1EE068902B0E57AD0016851A /* CategoryResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EE0688F2B0E57AD0016851A /* CategoryResult.swift */; };
 		1EE068922B0FBADE0016851A /* ChatRouteResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EE068912B0FBADE0016851A /* ChatRouteResult.swift */; };
 		1EE068942B100CE30016851A /* PlaceDirectionsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EE068932B100CE30016851A /* PlaceDirectionsViewModel.swift */; };
+		1EE068962B111E880016851A /* PlaceDirectionsControlsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EE068952B111E870016851A /* PlaceDirectionsControlsView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -104,6 +105,7 @@
 		1EE0688F2B0E57AD0016851A /* CategoryResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryResult.swift; sourceTree = "<group>"; };
 		1EE068912B0FBADE0016851A /* ChatRouteResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatRouteResult.swift; sourceTree = "<group>"; };
 		1EE068932B100CE30016851A /* PlaceDirectionsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceDirectionsViewModel.swift; sourceTree = "<group>"; };
+		1EE068952B111E870016851A /* PlaceDirectionsControlsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceDirectionsControlsView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -200,6 +202,7 @@
 				1EA588D22B09326E006B1F8F /* PlaceView.swift */,
 				1EE068852B0CE74C0016851A /* PlaceAboutView.swift */,
 				1EE068892B0D1E2B0016851A /* PlaceDirectionsView.swift */,
+				1EE068952B111E870016851A /* PlaceDirectionsControlsView.swift */,
 				1EE0688B2B0D1E930016851A /* PlacePhotosView.swift */,
 				1EE0688D2B0D1EB40016851A /* PlaceTipsView.swift */,
 				1EE068872B0D1ADB0016851A /* SettingsView.swift */,
@@ -371,6 +374,7 @@
 				1EA7F7512B03FA71002AE371 /* ImmersiveView.swift in Sources */,
 				1EA7F7872B052D92002AE371 /* LanguageGenerator.swift in Sources */,
 				1EA7F79A2B052E0C002AE371 /* LocalMapsQueryClassifier.mlmodel in Sources */,
+				1EE068962B111E880016851A /* PlaceDirectionsControlsView.swift in Sources */,
 				1EA7F7972B052DE4002AE371 /* AssistiveChatHost.swift in Sources */,
 				1EE068942B100CE30016851A /* PlaceDirectionsViewModel.swift in Sources */,
 				1EA7F78A2B052D92002AE371 /* PlaceTipsResponse.swift in Sources */,

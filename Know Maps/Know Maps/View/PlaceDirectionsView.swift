@@ -24,12 +24,6 @@ struct PlaceDirectionsView: View {
     static let mapFrameMinimumPadding:Double = 1000
     static let polylineStrokeWidth:CGFloat = 16
     
-    public enum RawTransportType : String {
-        case Walking
-        case Transit
-        case Automobile
-    }
-    
     private var travelTime: String? {
         guard let route = model.route else { return nil }
         let formatter = DateComponentsFormatter()
@@ -99,29 +93,7 @@ struct PlaceDirectionsView: View {
                             }
                         }
                         
-                        HStack {
-                            Spacer()
-                            if !showLookAroundScene {
-                                Picker("Transport Type", selection: $model.rawTransportType) {
-                                    Text(RawTransportType.Walking.rawValue).tag(0)
-                                    Text(RawTransportType.Transit.rawValue).tag(1)
-                                    Text(RawTransportType.Automobile.rawValue).tag(2)
-                                }
-                                .padding(4)
-                            }
-                            if showLookAroundScene {
-                                Button("Directions", systemImage: "map.fill") {
-                                    showLookAroundScene.toggle()
-                                }
-                                .padding(4)
-                            } else {
-                                Button("Look Around", systemImage: "binoculars.fill") {
-                                    showLookAroundScene.toggle()
-                                }
-                                .padding(4)
-                            }
-                            Spacer()
-                        }
+                        PlaceDirectionsControlsView(model: model, showLookAroundScene: $showLookAroundScene)
                         
                         if let chatRouteResults = model.chatRouteResults, chatRouteResults.count > 0  {
                             ZStack() {
@@ -224,11 +196,15 @@ struct PlaceDirectionsView: View {
         }
     }
     
-    func mapItem(for location:CLLocation?)->MKMapItem? {
+    func mapItem(for location:CLLocation?, name:String? = nil)->MKMapItem? {
         guard let location = location, let placemark = placemark(for: location) else {
             return nil
         }
-        return MKMapItem(placemark: placemark)
+        
+        let mapItem = MKMapItem(placemark: placemark)
+        mapItem.name = name
+        
+        return mapItem
     }
     
     func placemark(for location:CLLocation?)->MKPlacemark? {
