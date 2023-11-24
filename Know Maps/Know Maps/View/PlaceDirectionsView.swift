@@ -115,7 +115,7 @@ struct PlaceDirectionsView: View {
                     return
                 }
                 
-                if oldValue != newValue, let sourceMapItem = mapItem(for: locationProvider.lastKnownLocation), let destinationMapItem = mapItem(for: CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude)) {
+                if oldValue != newValue, let sourceMapItem = mapItem(for: locationProvider.lastKnownLocation, name:locationProvider.lastKnownLocationName), let destinationMapItem = mapItem(for: CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude), name:placeResponse.name) {
                     Task { @MainActor in
                         do {
                             try await getDirections(source:sourceMapItem, destination:destinationMapItem, model:model)
@@ -144,7 +144,7 @@ struct PlaceDirectionsView: View {
                     return
                 }
                 
-                if let sourceMapItem = mapItem(for: locationProvider.lastKnownLocation), let destinationMapItem = mapItem(for: CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude)) {
+                if let sourceMapItem = mapItem(for: locationProvider.lastKnownLocation, name:locationProvider.lastKnownLocationName), let destinationMapItem = mapItem(for: CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude), name:placeResponse.name) {
                     Task { @MainActor in
                         do {
                             try await getDirections(source:sourceMapItem, destination:destinationMapItem, model:model)
@@ -175,7 +175,7 @@ struct PlaceDirectionsView: View {
                         print(error)
                     }
                 } else {
-                    if let sourceMapItem = mapItem(for: locationProvider.lastKnownLocation), let destinationMapItem = mapItem(for: CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude)) {
+                    if let sourceMapItem = mapItem(for: locationProvider.lastKnownLocation, name:locationProvider.lastKnownLocationName), let destinationMapItem = mapItem(for: CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude), name:placeResponse.name) {
                         Task { @MainActor in
                             do {
                                 try await getDirections(source:sourceMapItem, destination:destinationMapItem, model:model)

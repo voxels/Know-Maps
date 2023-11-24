@@ -28,8 +28,8 @@ open class LocationProvider : NSObject, ObservableObject  {
         }
     }
     
-    public var lastKnownLocationName:String? {
-        
+    public var lastKnownLocationName:String {
+        return "Query Location"
     }
     
     public func authorize() {
