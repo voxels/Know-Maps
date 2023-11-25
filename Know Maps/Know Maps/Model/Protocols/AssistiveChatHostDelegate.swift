@@ -15,6 +15,7 @@ public protocol AssistiveChatHostDelegate:AnyObject {
     var placeSearchSession:PlaceSearchSession { get }
     var queryIntentParameters:AssistiveChatHostQueryParameters { get }
     var categoryCodes:[[String:[[String:String]]]] { get }
+    var lastGeocodedPlacemarks:[CLPlacemark]? { get }
     
     init(delegate:AssistiveChatHostMessagesDelegate?)
     func organizeCategoryCodeList() throws
@@ -26,6 +27,6 @@ public protocol AssistiveChatHostDelegate:AnyObject {
     func receiveMessage(caption:String, isLocalParticipant:Bool ) async throws
     func defaultParameters(for query:String) async throws -> [String:Any]?
     func nearLocation(for rawQuery:String, tags:AssistiveChatHostTaggedWord?) async throws -> String?
-    func nearLocationCoordinate(for rawQuery:String, tags:AssistiveChatHostTaggedWord?) async throws -> CLLocation?
+    func nearLocationCoordinate(for rawQuery:String, tags:AssistiveChatHostTaggedWord?) async throws -> [CLPlacemark]?
     func tags(for rawQuery:String) throws ->AssistiveChatHostTaggedWord?
 }

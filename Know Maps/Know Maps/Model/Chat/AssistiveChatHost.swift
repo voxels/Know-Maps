@@ -72,7 +72,7 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
     public var categoryCodes:[[String:[[String:String]]]] = [[String:[[String:String]]]]()
     
     let geocoder = CLGeocoder()
-    var lastGeocodedPlacemark:CLPlacemark?
+    public var lastGeocodedPlacemarks:[CLPlacemark]?
     
     required public init(delegate:AssistiveChatHostMessagesDelegate? = nil) {
         self.messagesDelegate = delegate
@@ -327,28 +327,24 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
         return nil
     }
     
-    public func nearLocationCoordinate(for rawQuery:String, tags:AssistiveChatHostTaggedWord? = nil) async throws -> CLLocation? {
-        guard rawQuery.contains("near") else {
-            return nil
-        }
-        
+    public func nearLocationCoordinate(for rawQuery:String, tags:AssistiveChatHostTaggedWord? = nil) async throws -> [CLPlacemark]? {
         if geocoder.isGeocoding {
-            geocoder.cancelGeocode()
+            return lastGeocodedPlacemarks
         }
         
         let components = rawQuery.lowercased().components(separatedBy: "near")
+        var addressString = rawQuery
+        if let lastComponent = components.last {
+            addressString = lastComponent
+        }
         
-        guard let lastComponent = components.last else {
+        guard addressString.count > 0 else {
             return nil
         }
         
-        guard lastComponent.count > 0 else {
-            return nil
-        }
-        
-        let placemarks = try await geocoder.geocodeAddressString(lastComponent)
-        lastGeocodedPlacemark = placemarks.first
-        return placemarks.first?.location
+        let placemarks = try await geocoder.geocodeAddressString(addressString)
+        lastGeocodedPlacemarks  = placemarks
+        return lastGeocodedPlacemarks
     }
     
     public func tags(for rawQuery:String) throws ->AssistiveChatHostTaggedWord? {

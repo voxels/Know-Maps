@@ -48,6 +48,7 @@
 		1EE068922B0FBADE0016851A /* ChatRouteResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EE068912B0FBADE0016851A /* ChatRouteResult.swift */; };
 		1EE068942B100CE30016851A /* PlaceDirectionsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EE068932B100CE30016851A /* PlaceDirectionsViewModel.swift */; };
 		1EE068962B111E880016851A /* PlaceDirectionsControlsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EE068952B111E870016851A /* PlaceDirectionsControlsView.swift */; };
+		1EE068982B121F710016851A /* LocationResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EE068972B121F710016851A /* LocationResult.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -106,6 +107,7 @@
 		1EE068912B0FBADE0016851A /* ChatRouteResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatRouteResult.swift; sourceTree = "<group>"; };
 		1EE068932B100CE30016851A /* PlaceDirectionsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceDirectionsViewModel.swift; sourceTree = "<group>"; };
 		1EE068952B111E870016851A /* PlaceDirectionsControlsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceDirectionsControlsView.swift; sourceTree = "<group>"; };
+		1EE068972B121F710016851A /* LocationResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationResult.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -222,6 +224,7 @@
 				1EA7F7812B052D92002AE371 /* ChatResult.swift */,
 				1EE0688F2B0E57AD0016851A /* CategoryResult.swift */,
 				1EE068912B0FBADE0016851A /* ChatRouteResult.swift */,
+				1EE068972B121F710016851A /* LocationResult.swift */,
 				1EA7F7782B052D92002AE371 /* integrated_category_taxonomy.json */,
 				1EA7F7822B052D92002AE371 /* ChatResultViewModel.swift */,
 				1EA7F7762B052D92002AE371 /* LanguageGenerator.swift */,
@@ -353,6 +356,7 @@
 				1EA7F7842B052D92002AE371 /* PlacePhotoResponse.swift in Sources */,
 				1EA7F7932B052D92002AE371 /* ChatResultViewModel.swift in Sources */,
 				1EA7F79B2B052E0C002AE371 /* LocalMapsQueryTagger.mlmodel in Sources */,
+				1EE068982B121F710016851A /* LocationResult.swift in Sources */,
 				1EA7F7912B052D92002AE371 /* PlaceSearchRequest.swift in Sources */,
 				1EA7F7852B052D92002AE371 /* LanguageGeneratorSession.swift in Sources */,
 				1EA7F7882B052D92002AE371 /* PlaceDetailsRequest.swift in Sources */,

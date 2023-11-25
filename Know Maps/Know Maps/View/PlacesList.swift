@@ -6,10 +6,13 @@
 //
 
 import SwiftUI
+import CoreLocation
 
 struct PlacesList: View {
     @ObservedObject public var chatHost:AssistiveChatHost
     @ObservedObject public var model:ChatResultViewModel
+    @ObservedObject public var locationProvider:LocationProvider
+
     @Binding public var resultId:ChatResult.ID?
     
     static var formatter:NumberFormatter {
@@ -20,8 +23,27 @@ struct PlacesList: View {
 
     var body: some View {
         List(model.filteredPlaceResults,selection: $resultId){ result in
-            Text(result.title).foregroundColor(Color(uiColor: UIColor.label))
+            HStack {
+                Text(result.title).foregroundColor(Color(uiColor: UIColor.label))
+                Spacer()
+                Text(distanceString(for:result.placeResponse))
+            }
         }
+    }
+    
+    func distanceString(for placeResponse:PlaceSearchResponse?)->String {
+        var retval = ""
+        guard let placeResponse = placeResponse else {
+            return retval
+        }
+        let queryLocation = locationProvider.queryLocation
+        let placeResponseLocation = CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude)
+        
+        let distance = queryLocation.distance(from: placeResponseLocation)
+        
+        retval = "\(distance.rounded().formatted(.number.precision(.fractionLength(0)))) meters"
+        
+        return retval
     }
 }
 
@@ -32,5 +54,5 @@ struct PlacesList: View {
     model.assistiveHostDelegate = chatHost
     chatHost.messagesDelegate = model
 
-    return PlacesList(chatHost: chatHost, model: model, resultId: .constant(nil))
+    return PlacesList(chatHost: chatHost, model: model, locationProvider: locationProvider, resultId: .constant(nil))
 }

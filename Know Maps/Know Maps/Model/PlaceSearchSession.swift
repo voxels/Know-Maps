@@ -66,7 +66,7 @@ open class PlaceSearchSession : ObservableObject {
         } else {
             var value = request.radius
             if let nearLocation = request.nearLocation, !nearLocation.isEmpty {
-                value = 100000
+                value = 15000
             }
             let radiusQueryItem = URLQueryItem(name: "radius", value: "\(value)")
             components?.queryItems?.append(radiusQueryItem)
