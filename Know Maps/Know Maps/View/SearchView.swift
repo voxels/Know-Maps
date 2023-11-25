@@ -11,13 +11,11 @@ struct SearchView: View {
     @ObservedObject public var chatHost:AssistiveChatHost
     @ObservedObject public var model:ChatResultViewModel
     @ObservedObject public var locationProvider:LocationProvider
-    @Binding public var categoricalResultId:ChatResult.ID?
 
     var body: some View {
-        List(model.filteredResults, selection:$categoricalResultId) { result in
+        List(model.filteredResults, selection:$model.selectedCategoryChatResult) { result in
             ForEach(model.filteredResults) { result in
                 Section {
-                    
                     ForEach(result.categoricalChatResults) { chatResult in
                         Label(chatResult.title, systemImage:"folder").listItemTint(.white)
                     }
@@ -26,17 +24,29 @@ struct SearchView: View {
                 }
             }
         }
-        .searchable(text: $model.searchText)
-            .onChange(of: model.searchText) { oldValue, newValue in
-                if newValue == "" {
-                    model.resetPlaceModel()
-                    categoricalResultId = nil
-                } else if newValue != oldValue, newValue != chatHost.queryIntentParameters.queryIntents.last?.caption {
-                    Task {
-                        try await model.didSearch(caption:model.searchText)
+        .searchable(text: $model.locationSearchText)
+        .onChange(of: model.locationSearchText) { oldValue, newValue in
+            if model.locationSearchText == "" {
+                model.resetPlaceModel()
+                model.selectedCategoryChatResult = nil
+            } else if newValue != oldValue {
+                Task { @MainActor in
+                    do {
+                        try await model.didSearch(caption: model.locationSearchText)
+                    } catch {
+                        print(error)
                     }
                 }
             }
+        }
+        .onChange(of: model.selectedCategoryChatResult) { oldValue, newValue in
+            model.selectedPlaceChatResult = nil
+            Task {@MainActor in
+                if let newValue = newValue, oldValue != newValue, let categoricalResult  = model.categoricalResult(for: newValue) {
+                    await chatHost.didTap(chatResult: categoricalResult)
+                }
+            }
+        }
     }
 }
 
@@ -46,5 +56,5 @@ struct SearchView: View {
     let model = ChatResultViewModel(locationProvider: locationProvider)
     model.assistiveHostDelegate = chatHost
     chatHost.messagesDelegate = model
-    return SearchView(chatHost: chatHost, model: model, locationProvider: locationProvider, categoricalResultId: .constant(nil))
+    return SearchView(chatHost: chatHost, model: model, locationProvider: locationProvider)
 }

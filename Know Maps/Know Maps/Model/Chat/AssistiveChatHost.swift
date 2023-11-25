@@ -164,6 +164,12 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
         }
     }
     
+    public func didTap(categoricalResult:CategoryResult, chatResult:ChatResult?) async {
+        if let chatResult = chatResult {
+            await didTap(chatResult: chatResult)
+        }
+    }
+    
     public func didTap(chatResult: ChatResult) async {
         print("Did tap result:\(chatResult.title) for place:")
         await messagesDelegate?.didTap(chatResult: chatResult, selectedPlaceSearchResponse: chatResult.placeResponse, selectedPlaceSearchDetails:chatResult.placeDetailsResponse)
@@ -328,6 +334,7 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
     }
     
     public func nearLocationCoordinate(for rawQuery:String, tags:AssistiveChatHostTaggedWord? = nil) async throws -> [CLPlacemark]? {
+        
         if geocoder.isGeocoding {
             return lastGeocodedPlacemarks
         }
@@ -343,7 +350,13 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
         }
         
         let placemarks = try await geocoder.geocodeAddressString(addressString)
-        lastGeocodedPlacemarks  = placemarks
+        let filteredPlacemarks = placemarks.filter { placemark in
+            if let name = placemark.name {
+                return name.contains(rawQuery)
+            }
+            return false
+        }
+        lastGeocodedPlacemarks  = filteredPlacemarks
         return lastGeocodedPlacemarks
     }
     

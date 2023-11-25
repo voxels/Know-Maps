@@ -34,18 +34,15 @@ struct ContentView: View {
                                         chatModel.locationSearchText.removeAll()
                                         if let location = result.location {
                                             locationProvider.queryLocation = location
-                                            if result.locationName == "Current Location" {
-                                                chatModel.resetPlaceModel()
-                                            } else {
-                                                chatModel.locationSearchText = result.locationName
-                                                chatModel.searchText = chatModel.locationSearchText
-                                            }
+                                            chatModel.resetPlaceModel()
+                                            chatModel.locationSearchText.removeAll()
+                                            chatModel.searchText = chatModel.locationSearchText
                                         }
                                     }
                             }
                             .searchable(text: $chatModel.locationSearchText)
                                 .frame(maxHeight: geo.size.height / 4)
-                            SearchView(chatHost: chatHost, model: chatModel, locationProvider: locationProvider, categoricalResultId: $chatModel.selectedCategoryChatResult)
+                            SearchView(chatHost: chatHost, model: chatModel, locationProvider: locationProvider)
                                 .toolbarBackground(
                                     Color.accentColor, for: .navigationBar, .tabBar)
                                 .toolbarColorScheme(
@@ -76,15 +73,6 @@ struct ContentView: View {
                                     Color.accentColor, for: .navigationBar, .tabBar)
                                 .toolbarColorScheme(
                                     .dark, for: .navigationBar, .tabBar)
-                        }
-                    }
-                    
-                    .onChange(of: chatModel.selectedCategoryChatResult) { oldValue, newValue in
-                        chatModel.selectedPlaceChatResult = nil
-                        let _ = Task {
-                            if let newValue = newValue, let chatResult = chatModel.chatResult(for: newValue) {
-                                await chatHost.didTap(chatResult: chatResult)
-                            }
                         }
                     }
                     .onChange(of: chatModel.selectedPlaceChatResult, { oldValue, newValue in

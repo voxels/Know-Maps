@@ -33,15 +33,6 @@ struct MapResultsView: View {
             .mapStyle(.hybrid(elevation: .automatic,
                                pointsOfInterest: .including([.publicTransport]),
                                showsTraffic: false))
-            .onChange(of: locationProvider.mostRecentLocations) { oldValue, newValue in
-                if oldValue != newValue, let lastLocation = newValue.last {
-                    if let lastOldLocation = oldValue.last, lastLocation.coordinate.latitude != lastOldLocation.coordinate.latitude, lastLocation.coordinate.longitude != lastOldLocation.coordinate.longitude, lastLocation.coordinate.latitude != LocationProvider.defaultLocation.coordinate.latitude, lastLocation.coordinate.longitude != LocationProvider.defaultLocation.coordinate.longitude {
-                        locationProvider.queryLocation = lastLocation
-                    } else if oldValue.isEmpty, locationProvider.queryLocation.coordinate.latitude == LocationProvider.defaultLocation.coordinate.latitude, locationProvider.queryLocation.coordinate.longitude == LocationProvider.defaultLocation.coordinate.longitude {
-                        locationProvider.queryLocation = lastLocation
-                    }
-                }
-            }
     }
 }
 

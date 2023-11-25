@@ -30,7 +30,7 @@ public class ChatResultViewModel : ObservableObject {
     public var queryParametersHistory = [AssistiveChatHostQueryParameters]()
     public var fetchingPlaceID:ChatResult.ID?
     
-    @Published public var selectedCategoryChatResult:CategoryResult.ID?
+    @Published public var selectedCategoryChatResult:ChatResult.ID?
     @Published public var selectedPlaceChatResult:ChatResult.ID?
     @Published public var selectedLocationChatResult:LocationResult.ID?
     @Published var isFetchingPlaceDescription:Bool = false
@@ -123,11 +123,20 @@ public class ChatResultViewModel : ObservableObject {
         return selectedResult
     }
     
-    
-    public func chatResult(for selectedChatResultID:CategoryResult.ID)->ChatResult?{
-        return categoryResults.compactMap { categoryResult in
-            return categoryResult.result(for:selectedChatResultID)
-        }.first
+    public func categoricalResult(for selectedCategoryResultID:ChatResult.ID)->ChatResult? {
+        let results = categoryResults.first { result in
+            return result.categoricalChatResults.contains { chatResult in
+                return chatResult.id == selectedCategoryResultID
+            }
+        }
+        
+        
+        return results?.categoricalChatResults.compactMap { result in
+            if result.id == selectedCategoryResultID {
+                return result
+            }
+            return nil
+        }.first        
     }
     
     public func chatResult(title:String)->ChatResult? {
@@ -138,36 +147,39 @@ public class ChatResultViewModel : ObservableObject {
     
     public func checkSearchTextForLocations(with text:String) async throws ->[CLPlacemark]? {
         let tags = try assistiveHostDelegate?.tags(for: text)
-        let nearLocation = try await assistiveHostDelegate?.nearLocationCoordinate(for: text, tags:tags)
-        return nearLocation
+        
+        if let _ = chatResult(title: text) {
+            return nil
+        } else {
+            return try await assistiveHostDelegate?.nearLocationCoordinate(for: text, tags:tags)
+        }
     }
     
     public func receiveMessage(caption: String, parameters: AssistiveChatHostQueryParameters, isLocalParticipant: Bool) async throws {
-        await MainActor.run {
-            self.queryParametersHistory.append(parameters)
-        }
-        
-        guard let lastIntent = self.queryParametersHistory.last?.queryIntents.last else {
-            throw ChatResultViewModelError.MissingLastIntent
-        }
-        
         guard var finalLocation = locationProvider.lastKnownLocation else {
             throw ChatResultViewModelError.MissingCurrentLocation
         }
+
+        let placemarks = try? await checkSearchTextForLocations(with: caption)
         
-        if let placemarks = try await checkSearchTextForLocations(with: caption), let location = placemarks.first?.location {
+        if let placemarks = placemarks, let location = placemarks.first?.location, chatResult(title: caption) == nil {
             finalLocation = location
             
             await MainActor.run {
+                queryParametersHistory.append(parameters)
                 locationProvider.queryLocation = finalLocation
                 locationResults = placemarks.compactMap({ placemark in
                     return LocationResult(locationName: placemark.name ?? "Unknown Location", location: placemark.location)
                 })
+                locationSearchText = caption
+            }
+        }  else {
+            await MainActor.run {
+                queryParametersHistory.append(parameters)
+                locationProvider.queryLocation = finalLocation
+                locationResults.removeAll()
             }
         }
-        
-        
-        try await self.searchIntent(intent: lastIntent, location: finalLocation)
     }
     
     public func searchIntent(intent:AssistiveChatHostIntent, location:CLLocation) async throws {
@@ -293,8 +305,6 @@ public class ChatResultViewModel : ObservableObject {
         }
         
         await MainActor.run {
-            self.placeResults = chatResults
-            
             guard let chatHost = self.assistiveHostDelegate else {
                 return
             }
@@ -328,6 +338,7 @@ public class ChatResultViewModel : ObservableObject {
                     }
                 }
             }
+            self.placeResults = chatResults
         }
     }
     
@@ -497,8 +508,8 @@ public class ChatResultViewModel : ObservableObject {
         }
         
         print("Created query for search request:\(query) near location:\(String(describing: nearLocation))")
-        if nearLocation == nil {
-            let l = locationProvider.queryLocation
+        if nearLocation == nil, let currentLocation = locationProvider.currentLocation(), locationProvider.queryLocation.coordinate.latitude == currentLocation.coordinate.latitude && locationProvider.queryLocation.coordinate.longitude == currentLocation.coordinate.longitude {
+            let l = currentLocation
             ll = "\(l.coordinate.latitude),\(l.coordinate.longitude)"
             
             print("Did not find a location in the query, using current location:\(String(describing: ll))")
@@ -620,10 +631,6 @@ extension ChatResultViewModel : AssistiveChatHostMessagesDelegate {
     }
     
     public func didTap(chatResult: ChatResult, selectedPlaceSearchResponse: PlaceSearchResponse?, selectedPlaceSearchDetails: PlaceDetailsResponse?) async {
-        guard chatResult.title.count > 0 else {
-            resetPlaceModel()
-            return
-        }
         
         do {
             guard let chatHost = self.assistiveHostDelegate else {
@@ -643,6 +650,12 @@ extension ChatResultViewModel : AssistiveChatHostMessagesDelegate {
     
     public func addReceivedMessage(caption: String, parameters: AssistiveChatHostQueryParameters, isLocalParticipant: Bool) async throws {
         try await receiveMessage(caption: caption, parameters: parameters, isLocalParticipant: isLocalParticipant)
+        
+        guard let lastIntent = queryParametersHistory.last?.queryIntents.last else {
+            throw ChatResultViewModelError.MissingLastIntent
+        }
+        
+        try await searchIntent(intent: lastIntent, location: locationProvider.queryLocation)
         try await didUpdateQuery(with: parameters)
     }
     

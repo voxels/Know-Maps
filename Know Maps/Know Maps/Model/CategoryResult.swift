@@ -28,7 +28,7 @@ public struct CategoryResult : Identifiable, Equatable, Hashable {
     
     func result(title:String)->ChatResult? {
         return categoricalChatResults.filter { result in
-            result.title == title.lowercased().trimmingCharacters(in: .whitespaces)
+            result.title.lowercased() == title.lowercased().trimmingCharacters(in: .whitespaces)
         }.first
     }
 }
