@@ -48,7 +48,9 @@ struct SearchView: View {
             }
         }
         .onChange(of: model.selectedCategoryChatResult) { oldValue, newValue in
-            model.selectedPlaceChatResult = nil
+            if newValue == nil {
+                model.selectedPlaceChatResult = nil
+            }
             Task { @MainActor in
                 if let newValue = newValue, oldValue != newValue, let categoricalResult  = model.categoricalResult(for: newValue) {
                     await chatHost.didTap(chatResult: categoricalResult)

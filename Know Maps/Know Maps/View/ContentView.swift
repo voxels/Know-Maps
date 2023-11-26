@@ -81,7 +81,7 @@ struct ContentView: View {
                         }
                         let _ = Task {
                             do {
-                                if let placeChatResult = chatModel.placeChatResult(for: newValue), newValue != oldValue, placeChatResult.title != chatModel.searchText {
+                                if newValue != oldValue, let placeChatResult = chatModel.placeChatResult(for: newValue) {
                                     try await chatModel.didTap(placeChatResult: placeChatResult)
                                 }
                             } catch {
@@ -90,9 +90,11 @@ struct ContentView: View {
                         }
                     })
                     .task {
-                        chatModel.assistiveHostDelegate = chatHost
-                        chatHost.messagesDelegate = chatModel
-                        await chatModel.categoricalSearchModel()
+                        if chatModel.categoryResults.isEmpty {
+                            chatModel.assistiveHostDelegate = chatHost
+                            chatHost.messagesDelegate = chatModel
+                            await chatModel.categoricalSearchModel()
+                        }
                     }
                     .tabItem {
                         Label("Search", systemImage: "magnifyingglass")
