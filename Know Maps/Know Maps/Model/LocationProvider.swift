@@ -74,6 +74,16 @@ extension LocationProvider : CLLocationManagerDelegate {
     }
     
     public func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        guard let lastLocation = locations.last else {
+            return
+        }
+        
+        if let lastRecentLocation = mostRecentLocations.last {
+            if lastRecentLocation.coordinate.latitude == lastLocation.coordinate.latitude && lastRecentLocation.coordinate.longitude == lastLocation.coordinate.longitude {
+                return
+            }
+        }
+        
         Task { @MainActor in
             mostRecentLocations = locations
             print("Last Known Location:\(String(describing: locations.last?.coordinate.latitude)), \(String(describing: locations.last?.coordinate.longitude))")
@@ -85,3 +95,4 @@ extension LocationProvider : CLLocationManagerDelegate {
         print(error)
     }
 }
+

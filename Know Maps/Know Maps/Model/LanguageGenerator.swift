@@ -11,6 +11,7 @@ import CoreLocation
 public protocol LanguageGeneratorDelegate {
     func searchQueryDescription(nearLocation:CLLocation) async throws -> String
     func placeDescription(chatResult:ChatResult, delegate:AssistiveChatHostStreamResponseDelegate) async throws
+    func lookUpLocation(location:CLLocation) async throws -> [CLPlacemark]?
 }
 
 
@@ -21,11 +22,7 @@ open class LanguageGenerator : LanguageGeneratorDelegate {
     public func searchQueryDescription(nearLocation:CLLocation) async throws -> String {
         let retval = "Sorted by distance"
         
-        let placemark = await withUnsafeContinuation { continuation in
-            lookUpLocation(location: nearLocation) { placemark in
-                continuation.resume(returning: placemark)
-            }
-        }
+        let placemark = try await lookUpLocation(location: nearLocation)?.first
         
         if let name = placemark?.name {
             return retval.appending(" from \(name):")
@@ -96,25 +93,10 @@ open class LanguageGenerator : LanguageGeneratorDelegate {
             }
         }
     }
-}
-
-extension LanguageGenerator {
-    func lookUpLocation(location:CLLocation, completionHandler: @escaping (CLPlacemark?)
-                        -> Void ) {
-        // Use the last reported location.
+    
+    public func lookUpLocation(location:CLLocation) async throws -> [CLPlacemark]? {
         let geocoder = CLGeocoder()
-        
-        // Look up the location and pass it to the completion handler
-        geocoder.reverseGeocodeLocation(location,
-                                        completionHandler: { (placemarks, error) in
-            if error == nil {
-                let firstLocation = placemarks?[0]
-                completionHandler(firstLocation)
-            }
-            else {
-                // An error occurred during geocoding.
-                completionHandler(nil)
-            }
-        })
+       
+        return try await geocoder.reverseGeocodeLocation(location)
     }
 }

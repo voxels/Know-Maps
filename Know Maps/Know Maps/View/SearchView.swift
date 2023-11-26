@@ -26,13 +26,21 @@ struct SearchView: View {
         }
         .searchable(text: $model.locationSearchText)
         .onChange(of: model.locationSearchText) { oldValue, newValue in
-            if model.locationSearchText == "" {
+            if model.locationSearchText.isEmpty {
                 model.resetPlaceModel()
                 model.selectedCategoryChatResult = nil
-            } else if newValue != oldValue {
+            } else if newValue != oldValue, chatHost.queryIntentParameters.queryIntents.isEmpty {
                 Task { @MainActor in
                     do {
-                        try await model.didSearch(caption: model.locationSearchText)
+                        try await model.didSearch(caption:newValue)
+                    } catch {
+                        print(error)
+                    }
+                }
+            } else if newValue != oldValue, let lastIntent = chatHost.queryIntentParameters.queryIntents.last, lastIntent.caption != newValue {
+                Task { @MainActor in
+                    do {
+                        try await model.didSearch(caption:newValue)
                     } catch {
                         print(error)
                     }
@@ -41,7 +49,7 @@ struct SearchView: View {
         }
         .onChange(of: model.selectedCategoryChatResult) { oldValue, newValue in
             model.selectedPlaceChatResult = nil
-            Task {@MainActor in
+            Task { @MainActor in
                 if let newValue = newValue, oldValue != newValue, let categoricalResult  = model.categoricalResult(for: newValue) {
                     await chatHost.didTap(chatResult: categoricalResult)
                 }

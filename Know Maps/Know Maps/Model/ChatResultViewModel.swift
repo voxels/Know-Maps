@@ -57,33 +57,54 @@ public class ChatResultViewModel : ObservableObject {
         get {
             var foundResults = [ChatResult]()
             
+            var searchSection = CategoryResult(parentCategory: "Search Results", categoricalChatResults: foundResults)
+
             let chatResultsCollection = categoryResults.compactMap { categoryResult in
                 return categoryResult.categoricalChatResults
             }
             
             for chatResults in chatResultsCollection {
                 for result in chatResults {
-                    if result.title.lowercased().contains(searchText.lowercased().trimmingCharacters(in: .whitespaces)) || searchText.lowercased().trimmingCharacters(in: .whitespaces).contains(result.title) {
-                        foundResults.append(ChatResult(title: result.title, placeResponse: result.placeResponse, placeDetailsResponse: result.placeDetailsResponse))
+                    let categoryResult = locationSearchText.components(separatedBy: "near").first?.lowercased().trimmingCharacters(in: .whitespaces) ?? locationSearchText
+                    if result.title.lowercased().contains(categoryResult) || result.title.lowercased().contains(categoryResult.dropLast()) || locationSearchText.lowercased().trimmingCharacters(in: .whitespaces).contains(result.title) {
+                        var searchResult = ChatResult(title: result.title, placeResponse: result.placeResponse, placeDetailsResponse: result.placeDetailsResponse)
+                        searchResult.attachParentId(uuid: result.id)
+                        foundResults.append(searchResult)
                     }
                 }
             }
             
-            if foundResults.isEmpty {
+            searchSection.replaceChatResults(with: foundResults)
+            
+            if !searchSection.categoricalChatResults.isEmpty {
+                var filteredResults = [searchSection]
+                filteredResults.append(contentsOf: categoryResults)
+                return filteredResults
+            } else {
                 return categoryResults
             }
-            
-            let searchSection = CategoryResult(parentCategory: "Search Results", categoricalChatResults: foundResults)
-            
-            var filteredResults = [searchSection]
-            filteredResults.append(contentsOf: categoryResults)
-            return filteredResults
         }
     }
     
     public var filteredPlaceResults:[ChatResult] {
         get {
-            return placeResults.sorted { result, checkResult in
+            var retval = placeResults
+            
+            retval = retval.filter({ result in
+                if let categories = result.placeResponse?.categories {
+                    if selectedCategoryChatResult != nil, let chatResult = chatResult(title: locationSearchText) {
+                        return categories.contains(chatResult.title)
+                    } else if selectedCategoryChatResult == nil {
+                        return true
+                    } else {
+                        return false
+                    }
+                } else {
+                    return false
+                }
+            })
+            
+            return retval.sorted { result, checkResult in
                 if result.id == selectedPlaceChatResult {
                     return true
                 }
@@ -111,8 +132,9 @@ public class ChatResultViewModel : ObservableObject {
     }
     
     public func resetPlaceModel() {
-        self.selectedPlaceChatResult = nil
-        self.placeResults = [ChatResult]()
+        selectedPlaceChatResult = nil
+        searchText = locationSearchText
+        placeResults.removeAll()
     }
     
     public func placeChatResult(for selectedChatResultID:ChatResult.ID)->ChatResult?{
@@ -126,13 +148,13 @@ public class ChatResultViewModel : ObservableObject {
     public func categoricalResult(for selectedCategoryResultID:ChatResult.ID)->ChatResult? {
         let results = categoryResults.first { result in
             return result.categoricalChatResults.contains { chatResult in
-                return chatResult.id == selectedCategoryResultID
+                return chatResult.title.lowercased().contains(locationSearchText.lowercased().trimmingCharacters(in: .whitespaces)) || chatResult.id == selectedCategoryResultID
             }
         }
         
         
         return results?.categoricalChatResults.compactMap { result in
-            if result.id == selectedCategoryResultID {
+            if result.id == selectedCategoryResultID || result.title.lowercased().contains(locationSearchText.lowercased().trimmingCharacters(in: .whitespaces)) {
                 return result
             }
             return nil
@@ -156,13 +178,21 @@ public class ChatResultViewModel : ObservableObject {
     }
     
     public func receiveMessage(caption: String, parameters: AssistiveChatHostQueryParameters, isLocalParticipant: Bool) async throws {
+        guard let chatHost = self.assistiveHostDelegate else {
+            return
+        }
+     
+        if let previousIntent = chatHost.queryIntentParameters.queryIntents.last, !previousIntent.placeSearchResponses.isEmpty, previousIntent.caption == caption  {
+            return
+        }
+        
         guard var finalLocation = locationProvider.lastKnownLocation else {
             throw ChatResultViewModelError.MissingCurrentLocation
         }
 
-        let placemarks = try? await checkSearchTextForLocations(with: caption)
+         let placemarks = try? await checkSearchTextForLocations(with: caption)
         
-        if let placemarks = placemarks, let location = placemarks.first?.location, chatResult(title: caption) == nil {
+         if let placemarks = placemarks, let location = placemarks.first?.location, chatResult(title: caption) == nil {
             finalLocation = location
             
             await MainActor.run {
@@ -171,13 +201,29 @@ public class ChatResultViewModel : ObservableObject {
                 locationResults = placemarks.compactMap({ placemark in
                     return LocationResult(locationName: placemark.name ?? "Unknown Location", location: placemark.location)
                 })
-                locationSearchText = caption
             }
         }  else {
             await MainActor.run {
                 queryParametersHistory.append(parameters)
                 locationProvider.queryLocation = finalLocation
                 locationResults.removeAll()
+            }
+        }
+        
+        if locationProvider.queryLocation.coordinate.latitude != locationProvider.currentLocation()?.coordinate.latitude || locationProvider.queryLocation.coordinate.longitude != locationProvider.currentLocation()?.coordinate.longitude {
+            
+            if let queryPlacemarks = try await chatHost.languageDelegate.lookUpLocation(location: locationProvider.queryLocation) {
+                
+                let existingLocationNames = locationResults.compactMap { result in
+                    return result.locationName
+                }
+                
+                for queryPlacemark in queryPlacemarks {
+                    if let locality = queryPlacemark.locality, !existingLocationNames.contains(locality) {
+                        let newLocationResult = LocationResult(locationName: queryPlacemark.locality ?? "Query Location", location: queryPlacemark.location)
+                        locationResults.append(newLocationResult)
+                    }
+                }
             }
         }
     }
@@ -217,7 +263,9 @@ public class ChatResultViewModel : ObservableObject {
         }
         
         await MainActor.run {
-            self.placeResults = chatResults
+            if placeResults != chatResults {
+                placeResults = chatResults
+            }
         }
     }
     
@@ -225,6 +273,8 @@ public class ChatResultViewModel : ObservableObject {
         guard let chatHost = self.assistiveHostDelegate else {
             return
         }
+        
+        searchText = locationSearchText.lowercased().components(separatedBy: "near").first ?? ""
         
         if let lastIntent = queryIntents?.last {
             try await model(intent:lastIntent)
@@ -239,6 +289,23 @@ public class ChatResultViewModel : ObservableObject {
                 locationResults = placemarks.compactMap({ placemark in
                     return LocationResult(locationName: placemark.name ?? "Unknown Location", location: placemark.location)
                 })
+            }
+            
+            if locationProvider.queryLocation.coordinate.latitude != locationProvider.currentLocation()?.coordinate.latitude || locationProvider.queryLocation.coordinate.longitude != locationProvider.currentLocation()?.coordinate.longitude {
+                
+                if let queryPlacemarks = try await chatHost.languageDelegate.lookUpLocation(location: locationProvider.queryLocation) {
+                    
+                    let existingLocationNames = locationResults.compactMap { result in
+                        return result.locationName
+                    }
+                    
+                    for queryPlacemark in queryPlacemarks {
+                        if let locality = queryPlacemark.locality, !existingLocationNames.contains(locality) {
+                            let newLocationResult = LocationResult(locationName: queryPlacemark.locality ?? "Query Location", location: queryPlacemark.location)
+                            locationResults.append(newLocationResult)
+                        }
+                    }
+                }
             }
 
             try await model(intent: newIntent)
@@ -309,9 +376,7 @@ public class ChatResultViewModel : ObservableObject {
                 return
             }
             
-            if let title = intent.selectedPlaceSearchResponse?.name {
-                self.searchText = title
-                
+            if let _ = intent.selectedPlaceSearchResponse?.name {
                 if let selectedPlaceSearchResponse = intent.selectedPlaceSearchResponse, selectedPlaceSearchResponse.name == intent.caption {
                     for result in chatResults {
                         if result.placeResponse?.fsqID == selectedPlaceSearchResponse.fsqID {
@@ -322,23 +387,27 @@ public class ChatResultViewModel : ObservableObject {
                 return
             }
             
+            
             let categoryCodes = chatHost.categoryCodes
             for categoryCode in categoryCodes {
                 if categoryCode.keys.contains(intent.caption.lowercased().trimmingCharacters(in: .whitespaces)) {
-                    self.searchText = intent.caption
-                    return
+                    self.placeResults = chatResults
+                    locationSearchText = intent.caption
                 }
                 
                 for values in categoryCode.values {
                     for value in values {
-                        if value["category"] == intent.caption.lowercased().trimmingCharacters(in: .whitespaces) {
-                            self.searchText = intent.caption
-                            return
+                        if let valueCategory =  value["category"], valueCategory.lowercased().contains(intent.caption.lowercased().trimmingCharacters(in: .whitespaces)), locationSearchText != intent.caption {
+                            self.placeResults = chatResults
+                            locationSearchText = intent.caption
                         }
                     }
                 }
             }
-            self.placeResults = chatResults
+            
+            if self.placeResults != chatResults {
+                self.placeResults = chatResults
+            }
         }
     }
     
@@ -370,12 +439,6 @@ public class ChatResultViewModel : ObservableObject {
     private func categoricalResults()->[CategoryResult] {
         guard let chatHost = assistiveHostDelegate else {
             return [CategoryResult]()
-        }
-        
-        do {
-            try chatHost.organizeCategoryCodeList()
-        }catch {
-            print(error)
         }
         
         var retval = [CategoryResult]()
@@ -570,18 +633,24 @@ extension ChatResultViewModel : AssistiveChatHostMessagesDelegate {
             resetPlaceModel()
             return
         }
-        
+                
         do {
             guard let chatHost = self.assistiveHostDelegate else {
                 return
             }
-            
+         
             let intent:AssistiveChatHost.Intent = chatHost.determineIntent(for: caption)
             let queryParameters = try await chatHost.defaultParameters(for: caption)
-            let newIntent = AssistiveChatHostIntent(caption: caption, intent: intent, selectedPlaceSearchResponse: nil, selectedPlaceSearchDetails: nil, placeSearchResponses: [PlaceSearchResponse](), placeDetailsResponses:nil, queryParameters: queryParameters)
-            
-            chatHost.updateLastIntentParameters(intent: newIntent)
-            try await chatHost.receiveMessage(caption: caption, isLocalParticipant: true)
+            if let lastIntent = chatHost.queryIntentParameters.queryIntents.last, lastIntent.caption == caption {
+                let newIntent = AssistiveChatHostIntent(caption: caption, intent: intent, selectedPlaceSearchResponse: lastIntent.selectedPlaceSearchResponse, selectedPlaceSearchDetails: lastIntent.selectedPlaceSearchDetails, placeSearchResponses: lastIntent.placeSearchResponses, placeDetailsResponses:lastIntent.placeDetailsResponses, queryParameters: queryParameters)
+
+                chatHost.updateLastIntentParameters(intent:newIntent)
+            } else {
+                let newIntent = AssistiveChatHostIntent(caption: caption, intent: intent, selectedPlaceSearchResponse: nil, selectedPlaceSearchDetails: nil, placeSearchResponses: [PlaceSearchResponse](), placeDetailsResponses:nil, queryParameters: queryParameters)
+
+                chatHost.appendIntentParameters(intent: newIntent)
+            }
+            try await chatHost.receiveMessage(caption: caption, isLocalParticipant:true)
         } catch {
             print(error)
         }
@@ -649,14 +718,28 @@ extension ChatResultViewModel : AssistiveChatHostMessagesDelegate {
     }
     
     public func addReceivedMessage(caption: String, parameters: AssistiveChatHostQueryParameters, isLocalParticipant: Bool) async throws {
-        try await receiveMessage(caption: caption, parameters: parameters, isLocalParticipant: isLocalParticipant)
-        
-        guard let lastIntent = queryParametersHistory.last?.queryIntents.last else {
-            throw ChatResultViewModelError.MissingLastIntent
+        if let lastIntent = queryParametersHistory.last?.queryIntents.last, lastIntent.caption == caption {
+            try await receiveMessage(caption: caption, parameters: parameters, isLocalParticipant: isLocalParticipant)
+            try await searchIntent(intent: lastIntent, location: locationProvider.queryLocation)
+            try await didUpdateQuery(with: parameters)
+        } else {
+            do {
+                guard let chatHost = self.assistiveHostDelegate else {
+                    return
+                }
+             
+                let intent:AssistiveChatHost.Intent = chatHost.determineIntent(for: caption)
+                let queryParameters = try await chatHost.defaultParameters(for: caption)
+                let newIntent = AssistiveChatHostIntent(caption: caption, intent: intent, selectedPlaceSearchResponse: nil, selectedPlaceSearchDetails: nil, placeSearchResponses: [PlaceSearchResponse](), placeDetailsResponses:nil, queryParameters: queryParameters)
+                
+                chatHost.appendIntentParameters(intent: newIntent)
+                try await receiveMessage(caption: caption, parameters: parameters, isLocalParticipant: isLocalParticipant)
+                try await searchIntent(intent: newIntent, location: locationProvider.queryLocation)
+                try await didUpdateQuery(with: parameters)
+            } catch {
+                print(error)
+            }
         }
-        
-        try await searchIntent(intent: lastIntent, location: locationProvider.queryLocation)
-        try await didUpdateQuery(with: parameters)
     }
     
     public func didUpdateQuery(with parameters: AssistiveChatHostQueryParameters) async throws {

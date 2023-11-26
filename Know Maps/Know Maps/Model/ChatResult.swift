@@ -13,9 +13,14 @@ public struct ChatResult : Identifiable, Equatable, Hashable {
     }
     
     public let id = UUID()
+    private(set) var parentId:UUID? = nil
     let title:String
     let placeResponse:PlaceSearchResponse?
     private(set) var placeDetailsResponse:PlaceDetailsResponse?
+    
+    mutating func attachParentId(uuid:UUID) {
+        parentId = uuid
+    }
     
     mutating func replaceDetails(response:PlaceDetailsResponse) {
         placeDetailsResponse = response

@@ -195,14 +195,10 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
             }
             
             if UIReferenceLibraryViewController.dictionaryHasDefinition(forTerm: prefix) {
-                return .Search
+                return .Autocomplete
             }
         }
-        
-        if let lastCharacter = caption.last, lastCharacter.isWhitespace || lastCharacter.isPunctuation {
-            return .Search
-        }
-        
+                
         return .Autocomplete
     }
     
@@ -299,7 +295,13 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
     
     @MainActor
     public func appendIntentParameters(intent:AssistiveChatHostIntent) {
-        queryIntentParameters.queryIntents.append(intent)
+        if queryIntentParameters.queryIntents.isEmpty {
+            let newQueryParameters = AssistiveChatHostQueryParameters()
+            newQueryParameters.queryIntents = [intent]
+            queryIntentParameters = newQueryParameters
+        } else {
+            queryIntentParameters.queryIntents.append(intent)
+        }
     }
     
     @MainActor
@@ -327,7 +329,7 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
         }
         
         if let lastCharacter = lastComponent.last, lastCharacter.isLetter || lastCharacter.isWhitespace || lastCharacter.isPunctuation {
-            return lastComponent
+            return lastComponent.trimmingCharacters(in: .whitespacesAndNewlines)
         }
         
         return nil
@@ -352,7 +354,36 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
         let placemarks = try await geocoder.geocodeAddressString(addressString)
         let filteredPlacemarks = placemarks.filter { placemark in
             if let name = placemark.name {
-                return name.contains(rawQuery)
+                
+                let categoryParents = self.categoryCodes.compactMap { categoryParent in
+                    return categoryParent.keys
+                }
+                
+                let categoryParentValues = self.categoryCodes.compactMap { categoryParent in
+                    return categoryParent.values
+                }
+                
+                var foundCategoryName = false
+                for parent in categoryParents {
+                    if parent.contains(where: { category in
+                        category.lowercased() == name.lowercased()
+                    }) {
+                        foundCategoryName = true
+                    }
+                }
+                
+                for values in categoryParentValues {
+                    for value in values {
+                        for categoryDict in value {
+                            if let category = categoryDict["category"], category.lowercased() == name.lowercased() {
+                                foundCategoryName = true
+                            }
+                        }
+                    }
+                }
+                
+                
+                return rawQuery.lowercased().contains(name.lowercased()) && !foundCategoryName
             }
             return false
         }

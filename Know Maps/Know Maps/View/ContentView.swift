@@ -89,9 +89,6 @@ struct ContentView: View {
                             }
                         }
                     })
-                    .onChange(of: chatModel.locationSearchText, { oldValue, newValue in
-                        chatModel.searchText = newValue
-                    })
                     .task {
                         chatModel.assistiveHostDelegate = chatHost
                         chatHost.messagesDelegate = chatModel
