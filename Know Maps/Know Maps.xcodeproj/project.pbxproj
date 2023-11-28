@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1E630C842B1636E400A57CCB /* ActivityViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E630C832B1636E400A57CCB /* ActivityViewController.swift */; };
 		1EA588CF2B065D8B006B1F8F /* AssistiveChatHostDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EA588CE2B065D8B006B1F8F /* AssistiveChatHostDelegate.swift */; };
 		1EA588D32B09326E006B1F8F /* PlaceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EA588D22B09326E006B1F8F /* PlaceView.swift */; };
 		1EA7F74B2B03FA71002AE371 /* RealityKitContent in Frameworks */ = {isa = PBXBuildFile; productRef = 1EA7F74A2B03FA71002AE371 /* RealityKitContent */; };
@@ -62,6 +63,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		1E630C832B1636E400A57CCB /* ActivityViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityViewController.swift; sourceTree = "<group>"; };
 		1EA588CE2B065D8B006B1F8F /* AssistiveChatHostDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistiveChatHostDelegate.swift; sourceTree = "<group>"; };
 		1EA588D22B09326E006B1F8F /* PlaceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceView.swift; sourceTree = "<group>"; };
 		1EA7F7452B03FA70002AE371 /* Know Maps.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Know Maps.app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -208,6 +210,7 @@
 				1EE0688B2B0D1E930016851A /* PlacePhotosView.swift */,
 				1EE0688D2B0D1EB40016851A /* PlaceTipsView.swift */,
 				1EE068872B0D1ADB0016851A /* SettingsView.swift */,
+				1E630C832B1636E400A57CCB /* ActivityViewController.swift */,
 				1EA7F7522B03FA72002AE371 /* Assets.xcassets */,
 			);
 			path = View;
@@ -384,6 +387,7 @@
 				1EA7F78A2B052D92002AE371 /* PlaceTipsResponse.swift in Sources */,
 				1EE068862B0CE74C0016851A /* PlaceAboutView.swift in Sources */,
 				1EA7F78B2B052D92002AE371 /* LocationProvider.swift in Sources */,
+				1E630C842B1636E400A57CCB /* ActivityViewController.swift in Sources */,
 				1EA7F7962B052DE4002AE371 /* AssistiveChatHostQueryParameters.swift in Sources */,
 				1EA7F78D2B052D92002AE371 /* PlaceDetailsResponse.swift in Sources */,
 			);
