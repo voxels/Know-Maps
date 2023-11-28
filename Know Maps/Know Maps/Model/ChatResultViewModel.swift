@@ -181,10 +181,8 @@ public class ChatResultViewModel : ObservableObject {
         guard let chatHost = self.assistiveHostDelegate else {
             return
         }
-        
-        guard var finalLocation = locationProvider.lastKnownLocation else {
-            throw ChatResultViewModelError.MissingCurrentLocation
-        }
+
+        var finalLocation = locationProvider.lastKnownLocation
 
          let placemarks = try? await checkSearchTextForLocations(with: caption)
         
@@ -200,7 +198,6 @@ public class ChatResultViewModel : ObservableObject {
             }
         }  else {
             await MainActor.run {
-                queryParametersHistory.append(parameters)
                 locationProvider.queryLocation = finalLocation
                 locationResults.removeAll()
             }
@@ -245,10 +242,15 @@ public class ChatResultViewModel : ObservableObject {
     }
     
     public func autocompletePlaceModel(caption:String, intent: AssistiveChatHostIntent, location:CLLocation) async throws {
-        let autocompleteResponse = try await placeSearchSession.autocomplete(caption: caption, parameters: intent.queryParameters, location: location)
-        let placeSearchResponses = try PlaceResponseFormatter.autocompletePlaceSearchResponses(with: autocompleteResponse)
-        intent.placeSearchResponses = placeSearchResponses
         
+        if intent.caption == caption, !intent.placeSearchResponses.isEmpty {
+            // Do nothing
+        } else {
+            let autocompleteResponse = try await placeSearchSession.autocomplete(caption: caption, parameters: intent.queryParameters, location: location)
+            let placeSearchResponses = try PlaceResponseFormatter.autocompletePlaceSearchResponses(with: autocompleteResponse)
+            intent.placeSearchResponses = placeSearchResponses
+        }
+                    
         var chatResults = [ChatResult]()
         let allResponses = intent.placeSearchResponses
         for index in 0..<allResponses.count {
@@ -265,7 +267,8 @@ public class ChatResultViewModel : ObservableObject {
         }
     }
     
-    public func refreshModel(queryIntents:[AssistiveChatHostIntent]? = nil) async throws {
+    public func 
+    refreshModel(queryIntents:[AssistiveChatHostIntent]? = nil) async throws {
         guard let chatHost = self.assistiveHostDelegate else {
             return
         }
@@ -324,10 +327,8 @@ public class ChatResultViewModel : ObservableObject {
             await searchQueryModel(intent: intent)
         case .Autocomplete:
             do {
-                guard var finalLocation = locationProvider.lastKnownLocation else {
-                    throw ChatResultViewModelError.MissingCurrentLocation
-                }
-                
+                var finalLocation = locationProvider.lastKnownLocation
+
                 let tags = try assistiveHostDelegate?.tags(for: intent.caption)
                 let nearLocation = try await assistiveHostDelegate?.nearLocationCoordinate(for: intent.caption, tags:tags)
                 if let nearLocation = nearLocation, let location = nearLocation.first?.location {
@@ -664,9 +665,15 @@ public class ChatResultViewModel : ObservableObject {
 }
 
 extension ChatResultViewModel : AssistiveChatHostMessagesDelegate {
+
+    
     public func didSearch(caption: String) async throws {
         guard caption.count > 0 else {
             resetPlaceModel()
+            return
+        }
+        
+        if let lastIntent = assistiveHostDelegate?.queryIntentParameters.queryIntents.last, lastIntent.caption == caption {
             return
         }
                 
@@ -782,6 +789,12 @@ extension ChatResultViewModel : AssistiveChatHostMessagesDelegate {
         try await refreshModel(queryIntents: parameters.queryIntents)
     }
     
+    public func updateQueryParametersHistory(with parameters: AssistiveChatHostQueryParameters) {
+        if !queryParametersHistory.isEmpty {
+            queryParametersHistory = queryParametersHistory.dropLast()
+        }
+        queryParametersHistory.append(parameters)
+    }
 }
 
 extension ChatResultViewModel : AssistiveChatHostStreamResponseDelegate {

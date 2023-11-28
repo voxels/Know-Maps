@@ -28,7 +28,8 @@ struct PlaceAboutView: View {
         GeometryReader { geo in
             ScrollView {
                 LazyVStack {
-                    if let resultId = resultId, let result = chatModel.placeChatResult(for: resultId), let currentLocation = locationProvider.lastKnownLocation, let placeResponse = result.placeResponse, let placeDetailsResponse = result.placeDetailsResponse {
+                    let currentLocation = locationProvider.lastKnownLocation
+                    if let resultId = resultId, let result = chatModel.placeChatResult(for: resultId), let placeResponse = result.placeResponse, let placeDetailsResponse = result.placeDetailsResponse {
                         let placeCoordinate = CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude)
                         let maxDistance = currentLocation.distance(from: placeCoordinate) + PlaceAboutView.mapFrameConstraint
                         let title = placeResponse.name

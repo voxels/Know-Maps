@@ -19,11 +19,8 @@ open class LocationProvider : NSObject, ObservableObject  {
     public static let defaultLocation:CLLocation = CLLocation(latitude: 40.730610, longitude: -73.935242)
     @Published public var queryLocation:CLLocation = LocationProvider.defaultLocation
     @Published public var mostRecentLocations = [CLLocation]()
-    public var lastKnownLocation:CLLocation? {
+    public var lastKnownLocation:CLLocation {
         get {
-            if queryLocation.isEqual(LocationProvider.defaultLocation) {
-                return currentLocation()
-            }
             return queryLocation
         }
     }
@@ -76,6 +73,12 @@ extension LocationProvider : CLLocationManagerDelegate {
     public func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let lastLocation = locations.last else {
             return
+        }
+        
+        if queryLocation.coordinate.latitude == LocationProvider.defaultLocation.coordinate.latitude && queryLocation.coordinate.longitude == LocationProvider.defaultLocation.coordinate.longitude {
+            Task { @MainActor in
+                queryLocation = lastLocation
+            }
         }
         
         if let lastRecentLocation = mostRecentLocations.last {

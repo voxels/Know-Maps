@@ -26,6 +26,7 @@ struct SearchView: View {
         }
         .searchable(text: $model.locationSearchText)
         .onChange(of: model.locationSearchText) { oldValue, newValue in
+            /*
             if model.locationSearchText.isEmpty {
                 model.resetPlaceModel()
                 model.selectedCategoryChatResult = nil
@@ -46,6 +47,7 @@ struct SearchView: View {
                     }
                 }
             }
+             */
         }
         .onChange(of: model.selectedCategoryChatResult) { oldValue, newValue in
             if newValue == nil {

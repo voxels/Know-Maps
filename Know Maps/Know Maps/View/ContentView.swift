@@ -42,6 +42,26 @@ struct ContentView: View {
                             }
                             .searchable(text: $chatModel.locationSearchText)
                                 .frame(maxHeight: geo.size.height / 4)
+                                .onSubmit(of: .search, {
+                                    if chatModel.locationSearchText.isEmpty {
+                                        chatModel.resetPlaceModel()
+                                        chatModel.selectedCategoryChatResult = nil
+                                    } else {
+                                        Task { @MainActor in
+                                            do {
+                                                try await chatModel.didSearch(caption:chatModel.locationSearchText)
+                                            } catch {
+                                                print(error)
+                                            }
+                                        }
+                                    }
+                                })
+                                .onChange(of: chatModel.locationSearchText) { oldValue, newValue in
+                                    if newValue.isEmpty {
+                                        chatModel.resetPlaceModel()
+                                        chatModel.selectedCategoryChatResult = nil
+                                    }
+                                }
                             SearchView(chatHost: chatHost, model: chatModel, locationProvider: locationProvider)
                                 .toolbarBackground(
                                     Color.accentColor, for: .navigationBar, .tabBar)

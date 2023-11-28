@@ -21,7 +21,8 @@ struct MapResultsView: View {
                         Marker(result.title, coordinate: CLLocationCoordinate2D(latitude: placeResponse.latitude, longitude: placeResponse.longitude))
                     }
                 }
-                if model.filteredPlaceResults.count == 0, let location = locationProvider.lastKnownLocation {
+                if model.filteredPlaceResults.count == 0 {
+                    let location = locationProvider.lastKnownLocation
                     Marker("Query Location", coordinate: CLLocationCoordinate2D(latitude: location.coordinate.latitude, longitude: location.coordinate.longitude))
                 }
             }

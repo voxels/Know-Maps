@@ -56,6 +56,7 @@ public protocol AssistiveChatHostMessagesDelegate : AnyObject {
     func addReceivedMessage(caption:String, parameters:AssistiveChatHostQueryParameters, isLocalParticipant:Bool) async throws
     func didUpdateQuery(with parameters:AssistiveChatHostQueryParameters) async throws
     func updateLastIntentParameter(for placeChatResult:ChatResult) async throws
+    func updateQueryParametersHistory(with parameters: AssistiveChatHostQueryParameters)
 }
 
 open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControllerDelegate, ObservableObject {
@@ -291,6 +292,7 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
             queryIntentParameters.queryIntents.removeLast()
         }
         queryIntentParameters.queryIntents.append(intent)
+        messagesDelegate?.updateQueryParametersHistory(with:queryIntentParameters)
     }
     
     @MainActor
@@ -302,6 +304,7 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
         } else {
             queryIntentParameters.queryIntents.append(intent)
         }
+        messagesDelegate?.updateQueryParametersHistory(with:queryIntentParameters)
     }
     
     @MainActor
@@ -351,8 +354,8 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
             return nil
         }
         
-        let placemarks = try await geocoder.geocodeAddressString(addressString)
-        let filteredPlacemarks = placemarks.filter { placemark in
+        let placemarks = try? await geocoder.geocodeAddressString(addressString)
+        let filteredPlacemarks = placemarks?.filter { placemark in
             if let name = placemark.name {
                 
                 let categoryParents = self.categoryCodes.compactMap { categoryParent in
