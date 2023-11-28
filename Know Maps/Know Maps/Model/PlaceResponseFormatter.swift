@@ -255,7 +255,7 @@ open class PlaceResponseFormatter {
         return retVal
     }
     
-    public class func placeDetailsResponse(with response:Any, for placeSearchResponse:PlaceSearchResponse, placePhotosResponses:[PlacePhotoResponse]? = nil, placeTipsResponses:[PlaceTipsResponse]? = nil, previousDetails:[PlaceDetailsResponse]? = nil) throws ->PlaceDetailsResponse {
+    public class func placeDetailsResponse(with response:Any, for placeSearchResponse:PlaceSearchResponse, placePhotosResponses:[PlacePhotoResponse]? = nil, placeTipsResponses:[PlaceTipsResponse]? = nil, previousDetails:[PlaceDetailsResponse]? = nil, cloudCache:CloudCache?) async throws ->PlaceDetailsResponse {
         
         guard let response = response as? NSDictionary else {
             throw PlaceResponseFormatterError.InvalidRawResponseType
@@ -263,14 +263,14 @@ open class PlaceResponseFormatter {
         
         let searchResponse = placeSearchResponse
         
-        var description:String? = nil
+        var description:String? = try await cloudCache?.fetchGeneratedDescription(for: searchResponse.fsqID)
         
         if let rawDescription = response["description"] as? String {
             print(rawDescription)
             description = rawDescription
         } else if let previousDetails = previousDetails {
             for detail in previousDetails {
-                if detail.searchResponse.fsqID == searchResponse.fsqID, detail.description != nil {
+                if detail.searchResponse.fsqID == searchResponse.fsqID, let desc = detail.description, !desc.isEmpty  {
                     description = detail.description
                 }
             }

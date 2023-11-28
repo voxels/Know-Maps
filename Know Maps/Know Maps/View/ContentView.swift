@@ -16,6 +16,7 @@ struct ContentView: View {
     @StateObject public var chatModel:ChatResultViewModel
     @StateObject public var locationProvider:LocationProvider
     @StateObject public var placeDirectionsChatViewModel = PlaceDirectionsViewModel()
+    @StateObject public var settingsModel = SettingsModel(userId: "")
     @Environment(\.openImmersiveSpace) var openImmersiveSpace
     @Environment(\.dismissImmersiveSpace) var dismissImmersiveSpace
     
@@ -119,7 +120,7 @@ struct ContentView: View {
                     .tabItem {
                         Label("Search", systemImage: "magnifyingglass")
                     }
-                SettingsView()
+                SettingsView(model:settingsModel)
                     .tabItem {
                         Label("Settings", systemImage: "gear")
                     }

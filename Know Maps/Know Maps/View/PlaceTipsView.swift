@@ -19,7 +19,7 @@ struct PlaceTipsView: View {
                 ForEach(tipsResponses, id:\.self){ response in
                     Text(response.text)
                 }
-                if let description = placeDetailsResponse.description {
+                if let description = placeDetailsResponse.description, !description.isEmpty {
                     Text(description)
                 } else if let tips = placeDetailsResponse.tipsResponses, tips.count > 0  {
                     HStack() {

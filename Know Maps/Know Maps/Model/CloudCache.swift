@@ -36,14 +36,17 @@ open class CloudCache : NSObject, ObservableObject {
         
         let success = try await withCheckedThrowingContinuation { checkedContinuation in
             operation.queryResultBlock = { result in
-                if self.desc == "" {
-                    checkedContinuation.resume(with: .success(false))
-                } else {
+                
+                switch result {
+                case .success(let cursor):
                     checkedContinuation.resume(with: .success(true))
+                case .failure(let error):
+                    print(error)
+                    checkedContinuation.resume(with: .success(false))
                 }
             }
             
-            cacheContainer.publicCloudDatabase.add(operation)
+            cacheContainer.privateCloudDatabase.add(operation)
         }
         
         if success {

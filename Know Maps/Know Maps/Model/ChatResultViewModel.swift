@@ -647,7 +647,7 @@ public class ChatResultViewModel : ObservableObject {
                     let request = PlaceDetailsRequest(fsqID: response.fsqID, description: true, tel: true, fax: false, email: false, website: true, socialMedia: true, verified: false, hours: true, hoursPopular: true, rating: true, stats: false, popularity: true, price: true, menu: true, tastes: true, features: false)
                     print("Fetching details for \(response.name)")
                     let rawDetailsResponse = try await strongSelf.placeSearchSession.details(for: request)
-                    let detailsResponse = try await PlaceResponseFormatter.placeDetailsResponse(with: rawDetailsResponse, for: response, previousDetails: strongSelf.assistiveHostDelegate?.queryIntentParameters.queryIntents.last?.placeDetailsResponses)
+                    let detailsResponse = try await PlaceResponseFormatter.placeDetailsResponse(with: rawDetailsResponse, for: response, previousDetails: strongSelf.assistiveHostDelegate?.queryIntentParameters.queryIntents.last?.placeDetailsResponses, cloudCache: strongSelf.assistiveHostDelegate?.cache)
                     return detailsResponse
                 }
             }
