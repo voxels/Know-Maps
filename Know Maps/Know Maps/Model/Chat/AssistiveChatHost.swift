@@ -5,7 +5,7 @@
 //  Created by Michael A Edgcumbe on 3/21/23.
 //
 
-import UIKit
+import SwiftUI
 import NaturalLanguage
 import CoreLocation
 import CoreML
@@ -70,6 +70,7 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
     public var languageDelegate:LanguageGeneratorDelegate = LanguageGenerator()
     public var placeSearchSession = PlaceSearchSession()
     @Published public var queryIntentParameters = AssistiveChatHostQueryParameters()
+    @StateObject public var cache = CloudCache()
     public var categoryCodes:[[String:[[String:String]]]] = [[String:[[String:String]]]]()
     
     let geocoder = CLGeocoder()
@@ -462,7 +463,14 @@ extension AssistiveChatHost {
     }
     
     public func placeDescription(chatResult:ChatResult, delegate:AssistiveChatHostStreamResponseDelegate) async throws {
-        try await languageDelegate.placeDescription(chatResult: chatResult, delegate: delegate)
+        if let fsqid = chatResult.placeResponse?.fsqID {
+            let desc = try await cache.fetchGeneratedDescription(for: fsqid)
+            if desc.isEmpty {
+                try await languageDelegate.placeDescription(chatResult: chatResult, delegate: delegate)
+            } else {
+                await languageDelegate.placeDescription(with: desc, chatResult: chatResult, delegate: delegate)
+            }
+        }
     }
 }
 

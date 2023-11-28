@@ -806,6 +806,10 @@ extension ChatResultViewModel : AssistiveChatHostStreamResponseDelegate {
     }
     
     public func didFinishStreamingResult() async {
+        if let fetchingPlaceID = selectedPlaceChatResult, let placeChatResult = placeChatResult(for: fetchingPlaceID), let fsqid = placeChatResult.placeDetailsResponse?.fsqID, let description = placeChatResult.placeDetailsResponse?.description {
+            assistiveHostDelegate?.cache.storeGeneratedDescription(for: fsqid, description:description)
+        }
+        
         fetchingPlaceID = nil
         await MainActor.run {
             isFetchingPlaceDescription = false

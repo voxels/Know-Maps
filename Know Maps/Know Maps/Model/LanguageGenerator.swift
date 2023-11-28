@@ -11,6 +11,7 @@ import CoreLocation
 public protocol LanguageGeneratorDelegate {
     func searchQueryDescription(nearLocation:CLLocation) async throws -> String
     func placeDescription(chatResult:ChatResult, delegate:AssistiveChatHostStreamResponseDelegate) async throws
+    func placeDescription(with description:String, chatResult:ChatResult, delegate:AssistiveChatHostStreamResponseDelegate) async
     func lookUpLocation(location:CLLocation) async throws -> [CLPlacemark]?
 }
 
@@ -31,21 +32,30 @@ open class LanguageGenerator : LanguageGeneratorDelegate {
         }
     }
     
+    public func placeDescription(with description:String, chatResult:ChatResult, delegate:AssistiveChatHostStreamResponseDelegate) async {
+        await delegate.willReceiveStreamingResult(for: chatResult.id)
+        await delegate.didReceiveStreamingResult(with: description, for: chatResult)
+        await delegate.didFinishStreamingResult()
+
+    }
+    
     public func placeDescription(chatResult: ChatResult, delegate: AssistiveChatHostStreamResponseDelegate) async throws {
         await delegate.willReceiveStreamingResult(for: chatResult.id)
-
-        if let tips = chatResult.placeDetailsResponse?.tipsResponses, tips.count > 0, let name = chatResult.placeResponse?.name {
-            let tipsText = tips.compactMap { response in
-                return response.text
+        
+            if let tips = chatResult.placeDetailsResponse?.tipsResponses, tips.count > 0, let name = chatResult.placeResponse?.name {
+                let tipsText = tips.compactMap { response in
+                    return response.text
+                }
+                
+                try? await fetchTipsSummary(with:name,tips:tipsText, chatResult: chatResult,delegate: delegate)
+                await delegate.didFinishStreamingResult()
+                return
             }
             
-            try await fetchTipsSummary(with:name,tips:tipsText, chatResult: chatResult,delegate: delegate)
-            return
-        }
+            if let tastes = chatResult.placeDetailsResponse?.tastes, tastes.count > 0, let name = chatResult.placeResponse?.name  {
+                try? await fetchTastesSummary(with: name, tastes: tastes, chatResult: chatResult, delegate: delegate)
+            }
         
-        if let tastes = chatResult.placeDetailsResponse?.tastes, tastes.count > 0, let name = chatResult.placeResponse?.name  {
-            try await fetchTastesSummary(with: name, tastes: tastes, chatResult: chatResult, delegate: delegate)
-        }
         await delegate.didFinishStreamingResult()
     }
 
