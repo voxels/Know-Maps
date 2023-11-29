@@ -41,7 +41,15 @@ struct PlacesList: View {
         
         let distance = queryLocation.distance(from: placeResponseLocation)
         
-        retval = "\(distance.rounded().formatted(.number.precision(.fractionLength(0)))) meters"
+        let meters = Measurement(value:distance.rounded(), unit:UnitLength(forLocale: Locale.current) )
+        switch Locale.current.measurementSystem {
+        case .metric:
+            retval = "\(meters.converted(to: .kilometers).value.formatted(.number.precision(.fractionLength(1)))) kilometers"
+        case .uk, .us:
+            retval = "\(meters.converted(to: .miles).value.formatted(.number.precision(.fractionLength(1)))) miles"
+        default:
+            retval = "\(meters.converted(to: .kilometers).value.formatted(.number.precision(.fractionLength(1)))) kilometers"
+        }
         
         return retval
     }

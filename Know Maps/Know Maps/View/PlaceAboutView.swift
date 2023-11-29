@@ -28,7 +28,7 @@ struct PlaceAboutView: View {
         GeometryReader { geo in
             if !isPresentingShareSheet {
                 ScrollView {
-                    LazyVStack {
+                    VStack {
                         let currentLocation = locationProvider.lastKnownLocation
                         if let resultId = resultId, let result = chatModel.placeChatResult(for: resultId), let placeResponse = result.placeResponse, let placeDetailsResponse = result.placeDetailsResponse {
                             let placeCoordinate = CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude)

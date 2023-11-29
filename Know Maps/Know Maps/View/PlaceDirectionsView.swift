@@ -40,7 +40,7 @@ struct PlaceDirectionsView: View {
             let title = placeResponse.name
             GeometryReader { geo in
                 ScrollView {
-                    LazyVStack(alignment: .leading) {
+                    VStack(alignment: .leading) {
                         ZStack(){
                             if showLookAroundScene, let lookAroundScene = lookAroundScene {
                                 LookAroundPreview(initialScene: lookAroundScene)

@@ -10,6 +10,8 @@ import RealityKit
 import RealityKitContent
 
 struct ContentView: View {
+    
+    @State private var searchIsPresented = false
     @State private var showImmersiveSpace = false
     @State private var immersiveSpaceIsShown = false
     @StateObject private var chatHost:AssistiveChatHost = AssistiveChatHost()
@@ -41,12 +43,14 @@ struct ContentView: View {
                                         }
                                     }
                             }
-                            .searchable(text: $chatModel.locationSearchText)
-                            .frame(maxHeight: geo.size.height / 4)
+                            .searchable(text: $chatModel.locationSearchText, isPresented:$searchIsPresented)
                             .onSubmit(of: .search, {
-                                if chatModel.locationSearchText.isEmpty {
+                                if chatModel.locationSearchText.isEmpty, !chatModel.placeResults.isEmpty {
                                     chatModel.resetPlaceModel()
                                     chatModel.selectedCategoryChatResult = nil
+                                } else if chatModel.locationSearchText.isEmpty, chatModel.placeResults.isEmpty {
+                                    print("Submit Empty Search \(chatModel.locationSearchText)")
+                                    searchIsPresented = true
                                 } else {
                                     Task { @MainActor in
                                         do {

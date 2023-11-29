@@ -15,7 +15,7 @@ struct MapResultsView: View {
     @ObservedObject public var locationProvider:LocationProvider
 
     var body: some View {
-        Map(initialPosition:.automatic, bounds: MapCameraBounds(minimumDistance: 500, maximumDistance: 100000)) {
+        Map(initialPosition:.automatic, bounds: MapCameraBounds(minimumDistance: 500, maximumDistance: 250000)) {
                 ForEach(model.filteredPlaceResults) { result in
                     if let placeResponse = result.placeResponse {
                         Marker(result.title, coordinate: CLLocationCoordinate2D(latitude: placeResponse.latitude, longitude: placeResponse.longitude))

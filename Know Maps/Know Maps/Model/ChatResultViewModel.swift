@@ -148,6 +148,7 @@ public class ChatResultViewModel : ObservableObject {
     
     public func resetPlaceModel() {
         selectedPlaceChatResult = nil
+        locationSearchText.removeAll()
         searchText = locationSearchText
         placeResults.removeAll()
     }
