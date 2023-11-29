@@ -393,7 +393,6 @@ open class PlaceSearchSession : ObservableObject {
     
     
     public func session(service:String = PlaceSearchService.foursquare.rawValue) async throws -> URLSession {
-        let task = Task.init { () -> Bool in
             let predicate = NSPredicate(format: "service == %@", service)
             let query = CKQuery(recordType: "KeyString", predicate: predicate)
             let operation = CKQueryOperation(query: query)
@@ -416,34 +415,27 @@ open class PlaceSearchSession : ObservableObject {
                 }
             }
             
-            let success = try await withCheckedThrowingContinuation { checkedContinuation in
-                operation.queryResultBlock = { result in
-                    print(self.foursquareApiKey)
-                    if self.foursquareApiKey == "" {
-                        checkedContinuation.resume(with: .success(false))
-                    } else {
-                        checkedContinuation.resume(with: .success(true))
-                    }
-                }
+            operation.queuePriority = .veryHigh
+            operation.qualityOfService = .userInitiated
+        
+        
+        let success = try await withCheckedThrowingContinuation { checkedContinuation in
+            operation.queryResultBlock = { result in
                 
-                operation.queuePriority = .veryHigh
-                operation.qualityOfService = .userInitiated
-  
-                keysContainer.publicCloudDatabase.add(operation)
+                switch result {
+                case .success(_):
+                    checkedContinuation.resume(with: .success(true))
+                case .failure(let error):
+                    print(error)
+                    checkedContinuation.resume(with: .success(false))
+                }
             }
             
-            return success
+            keysContainer.publicCloudDatabase.add(operation)
         }
         
-        
-        let foundApiKey = try await task.value
-        if foundApiKey {
-            switch PlaceSearchService(rawValue:service) {
-            case .foursquare:
-                return configuredSession()
-            default:
-                throw PlaceSearchSessionError.ServiceNotFound
-            }
+        if success {
+            return configuredSession()
         } else {
             throw PlaceSearchSessionError.ServiceNotFound
         }

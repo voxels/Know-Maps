@@ -9,6 +9,8 @@ import SwiftUI
 import AuthenticationServices
 
 open class SettingsModel : NSObject, ASAuthorizationControllerDelegate,  ObservableObject {
+    public static let tag = "com.noisederived.Know-Maps.keys.appleuserid".data(using: .utf8)!
+
     @Published public var userId:String
     @Published public var keychainId:String?
     @Published public var fullName:String?

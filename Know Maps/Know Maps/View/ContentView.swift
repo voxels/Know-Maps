@@ -23,10 +23,10 @@ struct ContentView: View {
     var body: some View {
         GeometryReader() { geo in
             
-        ZStack {
-            Color.black.opacity(0.25)
-                .ignoresSafeArea()
-            TabView {
+            ZStack {
+                Color.black.opacity(0.25)
+                    .ignoresSafeArea()
+                TabView {
                     NavigationSplitView {
                         VStack() {
                             List(chatModel.filteredLocationResults) { result in
@@ -42,27 +42,27 @@ struct ContentView: View {
                                     }
                             }
                             .searchable(text: $chatModel.locationSearchText)
-                                .frame(maxHeight: geo.size.height / 4)
-                                .onSubmit(of: .search, {
-                                    if chatModel.locationSearchText.isEmpty {
-                                        chatModel.resetPlaceModel()
-                                        chatModel.selectedCategoryChatResult = nil
-                                    } else {
-                                        Task { @MainActor in
-                                            do {
-                                                try await chatModel.didSearch(caption:chatModel.locationSearchText)
-                                            } catch {
-                                                print(error)
-                                            }
+                            .frame(maxHeight: geo.size.height / 4)
+                            .onSubmit(of: .search, {
+                                if chatModel.locationSearchText.isEmpty {
+                                    chatModel.resetPlaceModel()
+                                    chatModel.selectedCategoryChatResult = nil
+                                } else {
+                                    Task { @MainActor in
+                                        do {
+                                            try await chatModel.didSearch(caption:chatModel.locationSearchText)
+                                        } catch {
+                                            print(error)
                                         }
                                     }
-                                })
-                                .onChange(of: chatModel.locationSearchText) { oldValue, newValue in
-                                    if newValue.isEmpty {
-                                        chatModel.resetPlaceModel()
-                                        chatModel.selectedCategoryChatResult = nil
-                                    }
                                 }
+                            })
+                            .onChange(of: chatModel.locationSearchText) { oldValue, newValue in
+                                if newValue.isEmpty {
+                                    chatModel.resetPlaceModel()
+                                    chatModel.selectedCategoryChatResult = nil
+                                }
+                            }
                             SearchView(chatHost: chatHost, model: chatModel, locationProvider: locationProvider)
                                 .toolbarBackground(
                                     Color.accentColor, for: .navigationBar, .tabBar)
@@ -120,14 +120,32 @@ struct ContentView: View {
                     .tabItem {
                         Label("Search", systemImage: "magnifyingglass")
                     }
-                SettingsView(model:settingsModel)
-                    .tabItem {
-                        Label("Settings", systemImage: "gear")
-                    }
+                    SettingsView(model:settingsModel)
+                        .tabItem {
+                            Label("Settings", systemImage: "gear")
+                        }
+                }
             }
         }
+        .task {
+            let getquery: [String: Any] = [kSecClass as String: kSecClassKey,
+                                           kSecAttrApplicationTag as String: SettingsModel.tag,
+                                           kSecReturnData as String: true]
+            
+            var item: CFTypeRef?
+            let status = SecItemCopyMatching(getquery as CFDictionary, &item)
+            guard status == errSecSuccess else {
+                settingsModel.userId = ""
+                return
+            }
+            guard let keyData = item as? Data  else {
+                settingsModel.userId = ""
+                return
+            }
+            
+            settingsModel.keychainId = String(data: keyData, encoding: .utf8) ?? ""
+        }
     }
-}
 }
 
 

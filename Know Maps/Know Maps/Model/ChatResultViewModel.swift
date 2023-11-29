@@ -75,14 +75,29 @@ public class ChatResultViewModel : ObservableObject {
             }
             
             searchSection.replaceChatResults(with: foundResults)
-            
+            var filteredResults = categoryResults
             if !searchSection.categoricalChatResults.isEmpty {
-                var filteredResults = [searchSection]
-                filteredResults.append(contentsOf: categoryResults)
-                return filteredResults
-            } else {
-                return categoryResults
+                if let firstCategory = categoryResults.first, firstCategory.parentCategory == "Search Results" {
+                    let searchSectionTitles = searchSection.categoricalChatResults.compactMap { result in
+                        result.title
+                    }
+                    
+                    let firstCategoryTitles = firstCategory.categoricalChatResults.compactMap { result in
+                        result.title
+                    }
+                    
+                    if searchSectionTitles == firstCategoryTitles {
+                        //Do nothing
+                    } else {
+                        filteredResults.remove(at: 0)
+                        filteredResults.insert(searchSection, at: 0)
+                    }
+                } else {
+                    filteredResults.insert(searchSection, at: 0)
+                }
             }
+            
+            return filteredResults
         }
     }
     
@@ -146,19 +161,29 @@ public class ChatResultViewModel : ObservableObject {
     }
     
     public func categoricalResult(for selectedCategoryResultID:ChatResult.ID)->ChatResult? {
-        let results = categoryResults.first { result in
+        var results = categoryResults.first { result in
             return result.categoricalChatResults.contains { chatResult in
-                return chatResult.title.lowercased().contains(locationSearchText.lowercased().trimmingCharacters(in: .whitespaces)) || chatResult.id == selectedCategoryResultID
+                return chatResult.id == selectedCategoryResultID || chatResult.parentId == selectedCategoryResultID
             }
         }
         
-        
-        return results?.categoricalChatResults.compactMap { result in
-            if result.id == selectedCategoryResultID || result.title.lowercased().contains(locationSearchText.lowercased().trimmingCharacters(in: .whitespaces)) {
-                return result
+        if results == nil {
+            results = categoryResults.first { result in
+                return result.categoricalChatResults.contains { chatResult in
+                    if locationSearchText.lowercased().contains(chatResult.title.lowercased()) {
+                        return result.result(title: chatResult.title ) != nil
+                    }
+                    return false
+                }
             }
-            return nil
-        }.first        
+            
+            return results?.categoricalChatResults.first { chatResult in
+                return locationSearchText.lowercased().contains(chatResult.title.lowercased())
+            }
+        }
+        else {
+            return results?.result(for: selectedCategoryResultID)
+        }
     }
     
     public func chatResult(title:String)->ChatResult? {
@@ -267,13 +292,16 @@ public class ChatResultViewModel : ObservableObject {
         }
     }
     
-    public func 
+    public func
     refreshModel(queryIntents:[AssistiveChatHostIntent]? = nil) async throws {
         guard let chatHost = self.assistiveHostDelegate else {
             return
         }
         
+        var caption = ""
+        
         if let lastIntent = queryIntents?.last {
+            caption = lastIntent.caption
             try await model(intent:lastIntent)
                 
             if let selectedPlaceChatResult = selectedPlaceChatResult, let placeChatResult = placeChatResult(for: selectedPlaceChatResult) {
@@ -282,36 +310,37 @@ public class ChatResultViewModel : ObservableObject {
                 searchText = locationSearchText.lowercased().components(separatedBy: "near").first ?? ""
             }
         } else {
-            let caption = locationSearchText
+            caption = locationSearchText
             let intent = chatHost.determineIntent(for: caption)
             let queryParameters = try await chatHost.defaultParameters(for: caption)
             let newIntent = AssistiveChatHostIntent(caption: caption, intent: intent, selectedPlaceSearchResponse: nil, selectedPlaceSearchDetails: nil, placeSearchResponses: [PlaceSearchResponse](), placeDetailsResponses:nil, queryParameters: queryParameters)
             chatHost.appendIntentParameters(intent: newIntent)
             try await chatHost.receiveMessage(caption: caption, isLocalParticipant: true)
-            if let placemarks = try await checkSearchTextForLocations(with: caption) {
-                locationResults = placemarks.compactMap({ placemark in
-                    return LocationResult(locationName: placemark.name ?? "Unknown Location", location: placemark.location)
-                })
-            }
+            try await model(intent: newIntent)
+
+        }
+        
+        if let placemarks = try await checkSearchTextForLocations(with: caption) {
+            locationResults = placemarks.compactMap({ placemark in
+                return LocationResult(locationName: placemark.name ?? "Unknown Location", location: placemark.location)
+            })
+        }
+        
+        if locationProvider.queryLocation.coordinate.latitude != locationProvider.currentLocation()?.coordinate.latitude || locationProvider.queryLocation.coordinate.longitude != locationProvider.currentLocation()?.coordinate.longitude {
             
-            if locationProvider.queryLocation.coordinate.latitude != locationProvider.currentLocation()?.coordinate.latitude || locationProvider.queryLocation.coordinate.longitude != locationProvider.currentLocation()?.coordinate.longitude {
+            if let queryPlacemarks = try await chatHost.languageDelegate.lookUpLocation(location: locationProvider.queryLocation) {
                 
-                if let queryPlacemarks = try await chatHost.languageDelegate.lookUpLocation(location: locationProvider.queryLocation) {
-                    
-                    let existingLocationNames = locationResults.compactMap { result in
-                        return result.locationName
-                    }
-                    
-                    for queryPlacemark in queryPlacemarks {
-                        if let locality = queryPlacemark.locality, !existingLocationNames.contains(locality) {
-                            let newLocationResult = LocationResult(locationName: queryPlacemark.locality ?? "Query Location", location: queryPlacemark.location)
-                            locationResults.append(newLocationResult)
-                        }
+                let existingLocationNames = locationResults.compactMap { result in
+                    return result.locationName
+                }
+                
+                for queryPlacemark in queryPlacemarks {
+                    if let locality = queryPlacemark.locality, !existingLocationNames.contains(locality) {
+                        let newLocationResult = LocationResult(locationName: queryPlacemark.locality ?? "Query Location", location: queryPlacemark.location)
+                        locationResults.append(newLocationResult)
                     }
                 }
             }
-
-            try await model(intent: newIntent)
         }
     }
     
@@ -672,10 +701,6 @@ extension ChatResultViewModel : AssistiveChatHostMessagesDelegate {
             resetPlaceModel()
             return
         }
-        
-        if let lastIntent = assistiveHostDelegate?.queryIntentParameters.queryIntents.last, lastIntent.caption == caption {
-            return
-        }
                 
         do {
             guard let chatHost = self.assistiveHostDelegate else {
@@ -790,9 +815,6 @@ extension ChatResultViewModel : AssistiveChatHostMessagesDelegate {
     }
     
     public func updateQueryParametersHistory(with parameters: AssistiveChatHostQueryParameters) {
-        if !queryParametersHistory.isEmpty {
-            queryParametersHistory = queryParametersHistory.dropLast()
-        }
         queryParametersHistory.append(parameters)
     }
 }

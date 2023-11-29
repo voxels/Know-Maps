@@ -22,7 +22,7 @@ public struct CategoryResult : Identifiable, Equatable, Hashable {
     
     func result(for id:ChatResult.ID)->ChatResult? {
         return categoricalChatResults.filter { result in
-            result.id == id
+            result.id == id || result.parentId == id
         }.first
     }
     
