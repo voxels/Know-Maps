@@ -1,6 +1,7 @@
 {
   "images" : [
     {
+      "filename" : "know_maps_front.png",
       "idiom" : "vision",
       "scale" : "2x"
     }
