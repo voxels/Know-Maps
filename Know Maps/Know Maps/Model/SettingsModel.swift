@@ -26,8 +26,10 @@ open class SettingsModel : NSObject, ASAuthorizationControllerDelegate,  Observa
         didCompleteWithAuthorization authorization: ASAuthorization
     ) {
         if let appleIDCredential = authorization.credential as? ASAuthorizationAppleIDCredential {
-            userId = appleIDCredential.user
-            fullName = "\(appleIDCredential.fullName?.givenName ?? "") \(appleIDCredential.fullName?.familyName ?? "")"
+            if userId.isEmpty {
+                userId = appleIDCredential.user
+                fullName = "\(appleIDCredential.fullName?.givenName ?? "") \(appleIDCredential.fullName?.familyName ?? "")"
+            }
             print("Authorization successful for \(fullName).")
         }
     }

@@ -10,11 +10,10 @@ import AuthenticationServices
 
 struct SettingsView: View {
     @ObservedObject public var model:SettingsModel
-
+    @Binding public var selectedTab:String
+    
     var body: some View {
         if model.userId.isEmpty {
-            ZStack() {
-                Rectangle().frame(width: <#T##CGFloat?#>)
                 SignInWithAppleButton { request in
                     if !model.userId.isEmpty {
                         request.user = model.userId
@@ -27,7 +26,7 @@ struct SettingsView: View {
                             model.userId = appleIDCredential.user
                             model.fullName = "\(appleIDCredential.fullName?.givenName ?? "") \(appleIDCredential.fullName?.familyName ?? "")"
                             print("Authorization successful.")
-
+                            selectedTab = "Settings"
                             Task {
                                 let key =  model.userId.data(using: .utf8)
                                 let addquery: [String: Any] = [kSecClass as String: kSecClassKey,
@@ -45,14 +44,13 @@ struct SettingsView: View {
                         print("Authorization failed: " + error.localizedDescription)
                     }
                 }
-                .signInWithAppleButtonStyle(.black)
-            }
+                .signInWithAppleButtonStyle(.whiteOutline)
         }
         else {
-            if let fullName = model.fullName?.trimmingCharacters(in: .whitespaces) {
+            if let fullName = model.fullName?.trimmingCharacters(in: .whitespaces), !fullName.isEmpty {
                 Label("Welcome \(fullName)", systemImage:"apple.logo")
             } else {
-                Label("Welcome", systemImage:"apple.logo")
+                Label("Signed in with Apple ID", systemImage:"apple.logo")
             }
         }
     }
@@ -60,5 +58,5 @@ struct SettingsView: View {
 
 #Preview {
     let model = SettingsModel(userId:"")
-    return SettingsView(model:model)
+    return SettingsView(model:model, selectedTab: .constant("Settings"))
 }

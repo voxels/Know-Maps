@@ -22,13 +22,15 @@ struct ContentView: View {
     @Environment(\.openImmersiveSpace) var openImmersiveSpace
     @Environment(\.dismissImmersiveSpace) var dismissImmersiveSpace
     
+    @State private var selectedTab = "Search"
+    
     var body: some View {
         GeometryReader() { geo in
             
             ZStack {
                 Color.black.opacity(0.25)
                     .ignoresSafeArea()
-                TabView {
+                TabView(selection: $selectedTab) {
                     NavigationSplitView {
                         VStack() {
                             List(chatModel.filteredLocationResults) { result in
@@ -124,10 +126,12 @@ struct ContentView: View {
                     .tabItem {
                         Label("Search", systemImage: "magnifyingglass")
                     }
-                    SettingsView(model:settingsModel)
+                    .tag("Search")
+                    SettingsView(model:settingsModel, selectedTab: $selectedTab)
                         .tabItem {
                             Label("Settings", systemImage: "gear")
                         }
+                        .tag("Settings")
                 }
             }
         }
