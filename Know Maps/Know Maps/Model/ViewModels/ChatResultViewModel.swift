@@ -103,10 +103,10 @@ public class ChatResultViewModel : ObservableObject {
         get {
             var retval = placeResults
             
-            retval = retval.filter({ result in
+            var filteredCategories = retval.filter({ result in
                 if let categories = result.placeResponse?.categories {
                     if selectedCategoryChatResult != nil, let chatResult = chatResult(title: locationSearchText) {
-                        return categories.contains(chatResult.title)
+                        return categories.contains(chatResult.title.lowercased())
                     } else if selectedCategoryChatResult == nil {
                         return true
                     } else {
@@ -116,6 +116,21 @@ public class ChatResultViewModel : ObservableObject {
                     return false
                 }
             })
+            
+            if filteredCategories.isEmpty {
+                return placeResults
+            }
+            
+            
+            for category in filteredCategories {
+                retval.removeAll { result in
+                    category.id == result.id
+                }
+            }
+            
+            for category in filteredCategories.reversed() {
+                retval.insert(category, at: 0)
+            }
             
             return retval.sorted { result, checkResult in
                 if result.id == selectedPlaceChatResult {
@@ -161,24 +176,21 @@ public class ChatResultViewModel : ObservableObject {
     }
     
     public func categoricalResult(for selectedCategoryResultID:ChatResult.ID)->ChatResult? {
-        var results = categoryResults.first { result in
+        var results = filteredResults.first { result in
             return result.categoricalChatResults.contains { chatResult in
                 return chatResult.id == selectedCategoryResultID || chatResult.parentId == selectedCategoryResultID
             }
         }
         
         if results == nil {
-            results = categoryResults.first { result in
+            results = filteredResults.first { result in
                 return result.categoricalChatResults.contains { chatResult in
-                    if locationSearchText.lowercased().contains(chatResult.title.lowercased()) {
-                        return result.result(title: chatResult.title ) != nil
-                    }
-                    return false
+                    return result.result(title: chatResult.title ) != nil
                 }
             }
             
             return results?.categoricalChatResults.first { chatResult in
-                return locationSearchText.lowercased().contains(chatResult.title.lowercased())
+                return chatResult.title.lowercased().contains(locationSearchText.lowercased().trimmingCharacters(in: .whitespacesAndNewlines))
             }
         }
         else {
@@ -239,7 +251,11 @@ public class ChatResultViewModel : ObservableObject {
                 
                 for queryPlacemark in queryPlacemarks {
                     if let locality = queryPlacemark.locality, !existingLocationNames.contains(locality) {
-                        let newLocationResult = LocationResult(locationName: queryPlacemark.locality ?? "Query Location", location: queryPlacemark.location)
+                        var name = locality
+                        if let neighborhood = queryPlacemark.subLocality {
+                            name = "\(neighborhood), \(locality)"
+                        }
+                        let newLocationResult = LocationResult(locationName: name, location: queryPlacemark.location)
                         locationResults.append(newLocationResult)
                     }
                 }
@@ -265,7 +281,7 @@ public class ChatResultViewModel : ObservableObject {
     
     public func detailIntent( intent: AssistiveChatHostIntent) async throws {
         if intent.placeSearchResponses.count > 0, let placeSearchResponse = intent.selectedPlaceSearchResponse {
-            intent.placeDetailsResponses = try await fetchDetails(for: [placeSearchResponse])
+            intent.selectedPlaceSearchDetails = try await fetchDetails(for: [placeSearchResponse]).first
         }
     }
     
@@ -305,13 +321,13 @@ public class ChatResultViewModel : ObservableObject {
         
         if let lastIntent = queryIntents?.last {
             caption = lastIntent.caption
-            try await model(intent:lastIntent)
                 
             if let selectedPlaceChatResult = selectedPlaceChatResult, let placeChatResult = placeChatResult(for: selectedPlaceChatResult) {
                 searchText = placeChatResult.title
             } else {
-                searchText = locationSearchText.lowercased().components(separatedBy: "near").first ?? ""
+                searchText = caption
             }
+            try await model(intent: lastIntent)
         } else {
             caption = locationSearchText
             let intent = chatHost.determineIntent(for: caption)
@@ -320,7 +336,6 @@ public class ChatResultViewModel : ObservableObject {
             chatHost.appendIntentParameters(intent: newIntent)
             try await chatHost.receiveMessage(caption: caption, isLocalParticipant: true)
             try await model(intent: newIntent)
-
         }
         
         if let placemarks = try await checkSearchTextForLocations(with: caption) {
@@ -478,6 +493,7 @@ public class ChatResultViewModel : ObservableObject {
             }
             
             if placeResults != chatResults {
+                locationSearchText = intent.caption
                 placeResults = chatResults
             }
         }

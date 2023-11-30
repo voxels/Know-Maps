@@ -47,6 +47,7 @@ struct ContentView: View {
                                         }
                                     }
                             }
+                            .autocorrectionDisabled(true)
                             .searchable(text: $chatModel.locationSearchText, isPresented:$searchIsPresented)
                             .onSubmit(of: .search, {
                                 if chatModel.locationSearchText.isEmpty, !chatModel.placeResults.isEmpty {

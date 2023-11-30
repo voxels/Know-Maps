@@ -112,6 +112,7 @@ struct PlaceDirectionsView: View {
                     }
                 }
             }.onAppear(perform: {
+                model.rawTransportType = 0
                 model.transportType = .walking
                 let _ = Task{ @MainActor in
                     do {
