@@ -30,7 +30,7 @@ open class SettingsModel : NSObject, ASAuthorizationControllerDelegate,  Observa
                 userId = appleIDCredential.user
                 fullName = "\(appleIDCredential.fullName?.givenName ?? "") \(appleIDCredential.fullName?.familyName ?? "")"
             }
-            print("Authorization successful for \(fullName).")
+            print("Authorization successful for \(String(describing: fullName)).")
         }
     }
 }

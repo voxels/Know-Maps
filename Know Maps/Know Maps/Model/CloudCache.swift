@@ -38,7 +38,7 @@ open class CloudCache : NSObject, ObservableObject {
             operation.queryResultBlock = { result in
                 
                 switch result {
-                case .success(let cursor):
+                case .success(_):
                     checkedContinuation.resume(with: .success(true))
                 case .failure(let error):
                     print(error)

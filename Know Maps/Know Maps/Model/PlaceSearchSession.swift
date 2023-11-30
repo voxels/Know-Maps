@@ -207,6 +207,7 @@ open class PlaceSearchSession : ObservableObject {
             throw PlaceSearchSessionError.UnsupportedRequest
         }
         
+        
         return try await fetch(url: url, apiKey: self.foursquareApiKey)
     }
     
@@ -380,7 +381,8 @@ open class PlaceSearchSession : ObservableObject {
                             print(error)
                             let returnedString = String(data: d, encoding: String.Encoding.utf8) ?? ""
                             print(returnedString)
-                            checkedContinuation.resume(returning: NSDictionary())                        }
+                            checkedContinuation.resume(throwing: PlaceSearchSessionError.ServerErrorMessage)
+                        }
                     }
                 }
             })

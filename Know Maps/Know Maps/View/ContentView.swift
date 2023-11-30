@@ -8,6 +8,7 @@
 import SwiftUI
 import RealityKit
 import RealityKitContent
+import Segment
 
 struct ContentView: View {
     
@@ -21,6 +22,7 @@ struct ContentView: View {
     @StateObject public var settingsModel = SettingsModel(userId: "")
     @Environment(\.openImmersiveSpace) var openImmersiveSpace
     @Environment(\.dismissImmersiveSpace) var dismissImmersiveSpace
+    
     
     @State private var selectedTab = "Search"
     
@@ -36,12 +38,12 @@ struct ContentView: View {
                             List(chatModel.filteredLocationResults) { result in
                                 Label(result.locationName, systemImage: "mappin")
                                     .onTapGesture {
-                                        chatModel.locationSearchText.removeAll()
                                         if let location = result.location {
                                             locationProvider.queryLocation = location
                                             chatModel.resetPlaceModel()
-                                            chatModel.locationSearchText.removeAll()
                                             chatModel.searchText = chatModel.locationSearchText
+                                        } else {
+                                            chatModel.locationSearchText.removeAll()
                                         }
                                     }
                             }
@@ -58,6 +60,7 @@ struct ContentView: View {
                                         do {
                                             try await chatModel.didSearch(caption:chatModel.locationSearchText)
                                         } catch {
+                                            chatModel.analytics?.track(name: "error \(error)")
                                             print(error)
                                         }
                                     }
@@ -112,6 +115,7 @@ struct ContentView: View {
                                     try await chatModel.didTap(placeChatResult: placeChatResult)
                                 }
                             } catch {
+                                chatModel.analytics?.track(name: "error \(error)")
                                 print(error)
                             }
                         }
@@ -152,6 +156,15 @@ struct ContentView: View {
             }
             
             settingsModel.keychainId = String(data: keyData, encoding: .utf8) ?? ""
+            
+            let config = Configuration(writeKey: "igx8ZOr5NLbaBsab5j5juFECMzqulFla")
+                // Automatically track Lifecycle events
+                .trackApplicationLifecycleEvents(true)
+                .flushAt(3)
+                .flushInterval(10)
+
+            chatModel.analytics = Analytics(configuration: config)
+            chatHost.analytics = chatModel.analytics
         }
     }
 }

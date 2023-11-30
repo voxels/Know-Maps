@@ -115,7 +115,7 @@ open class LanguageGeneratorSession : NSObject, ObservableObject {
             
             if let firstChoice = choices.first, let text = firstChoice["text"] as? String {
                 fullString.append(text)
-                await delegate.didReceiveStreamingResult(with: text, for:languageGeneratorRequest.chatResult)
+                await delegate.didReceiveStreamingResult(with: text, for:languageGeneratorRequest.chatResult, promptTokens: 0, completionTokens: 0)
             }
         }
         

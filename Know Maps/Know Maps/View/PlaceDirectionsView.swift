@@ -8,6 +8,7 @@
 import SwiftUI
 import CoreLocation
 import MapKit
+import Segment
 
 struct PlaceDirectionsView: View {
     @ObservedObject public var chatHost:AssistiveChatHost
@@ -122,6 +123,7 @@ struct PlaceDirectionsView: View {
                             try await getDirections(source:sourceMapItem, destination:destinationMapItem, model:model)
                             self.resultId = resultId
                         } catch {
+                            chatModel.analytics?.track(name: "error \(error)")
                             print(error)
                         }
                         
@@ -151,6 +153,7 @@ struct PlaceDirectionsView: View {
                             try await getDirections(source:sourceMapItem, destination:destinationMapItem, model:model)
                             self.resultId = resultId
                         } catch {
+                            chatModel.analytics?.track(name: "error \(error)")
                             print(error)
                         }
                         
@@ -163,6 +166,7 @@ struct PlaceDirectionsView: View {
                         do {
                             try await getLookAroundScene(mapItem:newValue)
                         } catch {
+                            chatModel.analytics?.track(name: "error \(error)")
                             print(error)
                         }
                     }
@@ -173,6 +177,7 @@ struct PlaceDirectionsView: View {
                     do {
                         try await getLookAroundScene(mapItem:destination)
                     } catch {
+                        chatModel.analytics?.track(name: "error \(error)")
                         print(error)
                     }
                 } else {
@@ -185,6 +190,7 @@ struct PlaceDirectionsView: View {
                                 }
                                 self.resultId = resultId
                             } catch {
+                                chatModel.analytics?.track(name: "error \(error)")
                                 print(error)
                             }
                         }

@@ -8,6 +8,7 @@
 import SwiftUI
 import NaturalLanguage
 import CoreLocation
+import Segment
 
 enum ChatResultViewModelError : Error {
     case MissingLastIntent
@@ -29,6 +30,7 @@ public class ChatResultViewModel : ObservableObject {
     public var locationProvider:LocationProvider
     public var queryParametersHistory = [AssistiveChatHostQueryParameters]()
     public var fetchingPlaceID:ChatResult.ID?
+    public var analytics:Analytics?
     
     @Published public var selectedCategoryChatResult:ChatResult.ID?
     @Published public var selectedPlaceChatResult:ChatResult.ID?
@@ -151,6 +153,7 @@ public class ChatResultViewModel : ObservableObject {
         locationSearchText.removeAll()
         searchText = locationSearchText
         placeResults.removeAll()
+        analytics?.track(name: "resetPlaceModel")
     }
     
     public func placeChatResult(for selectedChatResultID:ChatResult.ID)->ChatResult?{
@@ -221,6 +224,7 @@ public class ChatResultViewModel : ObservableObject {
                 locationResults = placemarks.compactMap({ placemark in
                     return LocationResult(locationName: placemark.name ?? "Unknown Location", location: placemark.location)
                 })
+                analytics?.track(name: "foundPlacemarksInQuery")
             }
         }  else {
             await MainActor.run {
@@ -254,10 +258,12 @@ public class ChatResultViewModel : ObservableObject {
             let rawQueryResponse = try await placeSearchSession.query(request:request, location: location)
             let placeSearchResponses = intent.placeSearchResponses.isEmpty ? try PlaceResponseFormatter.placeSearchResponses(with: rawQueryResponse) : intent.placeSearchResponses
             intent.placeSearchResponses = placeSearchResponses
+            analytics?.track(name: "searchIntentWithSearch")
         case .Autocomplete:
             let autocompleteResponse = try await placeSearchSession.autocomplete(caption: intent.caption, parameters: intent.queryParameters, location: location)
             let placeSearchResponses = intent.placeSearchResponses.isEmpty ? try PlaceResponseFormatter.autocompletePlaceSearchResponses(with: autocompleteResponse) : intent.placeSearchResponses
             intent.placeSearchResponses = placeSearchResponses
+            analytics?.track(name: "searchIntentWithAutocomplete")
         }
     }
     
@@ -267,7 +273,7 @@ public class ChatResultViewModel : ObservableObject {
         }
     }
     
-    public func autocompletePlaceModel(caption:String, intent: AssistiveChatHostIntent, location:CLLocation) async throws {
+    public func `autocompletePlaceModel`(caption:String, intent: AssistiveChatHostIntent, location:CLLocation) async throws {
         
         if intent.caption == caption, !intent.placeSearchResponses.isEmpty {
             // Do nothing
@@ -355,6 +361,7 @@ public class ChatResultViewModel : ObservableObject {
         case .Search:
             try await detailIntent(intent: intent)
             await searchQueryModel(intent: intent)
+            analytics?.track(name: "modelSearchQueryBuilt")
         case .Autocomplete:
             do {
                 var finalLocation = locationProvider.lastKnownLocation
@@ -370,7 +377,9 @@ public class ChatResultViewModel : ObservableObject {
                 }
                 
                 try await autocompletePlaceModel(caption: intent.caption, intent: intent, location: finalLocation)
+                analytics?.track(name: "modelAutocompletePlaceModelBuilt")
             } catch {
+                analytics?.track(name: "error \(error)")
                 print(error)
             }
         }
@@ -655,6 +664,7 @@ public class ChatResultViewModel : ObservableObject {
                     let l = locationProvider.queryLocation
                     ll = "\(l.coordinate.latitude),\(l.coordinate.longitude)"
                 } catch {
+                    analytics?.track(name: "error \(error)")
                     print(error)
                 }
             }
@@ -677,6 +687,7 @@ public class ChatResultViewModel : ObservableObject {
                     let request = PlaceDetailsRequest(fsqID: response.fsqID, description: true, tel: true, fax: false, email: false, website: true, socialMedia: true, verified: false, hours: true, hoursPopular: true, rating: true, stats: false, popularity: true, price: true, menu: true, tastes: true, features: false)
                     print("Fetching details for \(response.name)")
                     let rawDetailsResponse = try await strongSelf.placeSearchSession.details(for: request)
+                    await strongSelf.analytics?.track(name: "fetchDetails")
                     let detailsResponse = try await PlaceResponseFormatter.placeDetailsResponse(with: rawDetailsResponse, for: response, previousDetails: strongSelf.assistiveHostDelegate?.queryIntentParameters.queryIntents.last?.placeDetailsResponses, cloudCache: strongSelf.assistiveHostDelegate?.cache)
                     return detailsResponse
                 }
@@ -721,6 +732,7 @@ extension ChatResultViewModel : AssistiveChatHostMessagesDelegate {
             }
             try await chatHost.receiveMessage(caption: caption, isLocalParticipant:true)
         } catch {
+            analytics?.track(name: "error \(error)")
             print(error)
         }
         
@@ -782,6 +794,7 @@ extension ChatResultViewModel : AssistiveChatHostMessagesDelegate {
             chatHost.appendIntentParameters(intent: newIntent)
             try await chatHost.receiveMessage(caption: chatResult.title, isLocalParticipant: true)
         } catch {
+            analytics?.track(name: "error \(error)")
             print(error)
         }
     }
@@ -806,6 +819,7 @@ extension ChatResultViewModel : AssistiveChatHostMessagesDelegate {
                 try await searchIntent(intent: newIntent, location: locationProvider.queryLocation)
                 try await didUpdateQuery(with: parameters)
             } catch {
+                analytics?.track(name: "error \(error)")
                 print(error)
             }
         }
@@ -821,6 +835,13 @@ extension ChatResultViewModel : AssistiveChatHostMessagesDelegate {
 }
 
 extension ChatResultViewModel : AssistiveChatHostStreamResponseDelegate {
+    public func didReceiveStreamingResult(with string: String, for result: ChatResult, promptTokens: Int, completionTokens: Int) async {
+        await didReceiveStreamingResult(with: string, for: result)
+        if promptTokens > 0 || completionTokens > 0 {
+            analytics?.track(name: "usingGeneratedGPTDescription", properties: ["promptTokens":promptTokens, "completionTokens":completionTokens])
+        }
+    }
+    
     public func willReceiveStreamingResult(for chatResultID: ChatResult.ID) async {
         fetchingPlaceID = chatResultID
         await MainActor.run {
@@ -839,7 +860,7 @@ extension ChatResultViewModel : AssistiveChatHostStreamResponseDelegate {
         }
     }
     
-    public func didReceiveStreamingResult(with string: String, for result: ChatResult) async {
+    private func didReceiveStreamingResult(with string: String, for result: ChatResult) async {
         let candidates = placeResults.filter { checkResult in
             return checkResult.placeResponse?.fsqID != nil && checkResult.placeResponse?.fsqID == result.placeResponse?.fsqID
         }

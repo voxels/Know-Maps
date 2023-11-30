@@ -34,7 +34,7 @@ open class LanguageGenerator : LanguageGeneratorDelegate {
     
     public func placeDescription(with description:String, chatResult:ChatResult, delegate:AssistiveChatHostStreamResponseDelegate) async {
         await delegate.willReceiveStreamingResult(for: chatResult.id)
-        await delegate.didReceiveStreamingResult(with: description, for: chatResult)
+        await delegate.didReceiveStreamingResult(with: description, for: chatResult, promptTokens: 0, completionTokens: 0)
         await delegate.didFinishStreamingResult()
 
     }
@@ -74,7 +74,18 @@ open class LanguageGenerator : LanguageGeneratorDelegate {
         if let choicesArray = dict["choices"] as? [NSDictionary], let choices = choicesArray.first {
             if let message = choices["message"] as? [String:String] {
                 if let content = message["content"] {
-                    await delegate.didReceiveStreamingResult(with: content, for: chatResult)
+                    var promptTokens = 0
+                    var completionTokens = 0
+                    if let usageDict = dict["usage"] as? NSDictionary {
+                        if let prompt = usageDict["prompt_tokens"] as? Int {
+                            promptTokens = prompt
+                        }
+                        
+                        if let completion = usageDict["completion_tokens"] as? Int {
+                            completionTokens = completion
+                        }
+                    }
+                    await delegate.didReceiveStreamingResult(with: content, for: chatResult, promptTokens: promptTokens, completionTokens: completionTokens)
                 }
             }
         }
@@ -82,7 +93,7 @@ open class LanguageGenerator : LanguageGeneratorDelegate {
     
     public func fetchTipsSummary(with placeName:String, tips:[String], chatResult:ChatResult, delegate:AssistiveChatHostStreamResponseDelegate) async throws {
         if tips.count == 1, let firstTip = tips.first {
-            await delegate.didReceiveStreamingResult(with: firstTip, for:chatResult)
+            await delegate.didReceiveStreamingResult(with: firstTip, for:chatResult, promptTokens: 0, completionTokens: 0)
             return
         }
         
@@ -98,7 +109,20 @@ open class LanguageGenerator : LanguageGeneratorDelegate {
         if let choicesArray = dict["choices"] as? [NSDictionary], let choices = choicesArray.first {
             if let message = choices["message"] as? [String:String] {
                 if let content = message["content"] {
-                    await delegate.didReceiveStreamingResult(with: content, for: chatResult)
+                    var promptTokens = 0
+                    var completionTokens = 0
+                    if let usageDict = dict["usage"] as? NSDictionary {
+                        if let prompt = usageDict["prompt_tokens"] as? Int {
+                            promptTokens = prompt
+                        }
+                        
+                        if let completion = usageDict["completion_tokens"] as? Int {
+                            completionTokens = completion
+                        }
+                    }
+
+                    
+                    await delegate.didReceiveStreamingResult(with: content, for: chatResult, promptTokens: promptTokens, completionTokens: completionTokens)
                 }
             }
         }

@@ -9,6 +9,7 @@ import SwiftUI
 import NaturalLanguage
 import CoreLocation
 import CoreML
+import Segment
 
 
 public typealias AssistiveChatHostTaggedWord = [String: [String]]
@@ -19,7 +20,7 @@ public protocol ChatHostingViewControllerDelegate : AnyObject {
 
 public protocol AssistiveChatHostStreamResponseDelegate {
     func willReceiveStreamingResult(for chatResultID:ChatResult.ID) async
-    func didReceiveStreamingResult(with string:String, for result:ChatResult) async
+    func didReceiveStreamingResult(with string:String, for result:ChatResult, promptTokens:Int, completionTokens:Int) async
     func didFinishStreamingResult() async
 }
 
@@ -69,6 +70,7 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
     weak public var messagesDelegate:AssistiveChatHostMessagesDelegate?
     public var languageDelegate:LanguageGeneratorDelegate = LanguageGenerator()
     public var placeSearchSession = PlaceSearchSession()
+    public var analytics:Analytics?
     @Published public var queryIntentParameters = AssistiveChatHostQueryParameters()
     @StateObject public var cache = CloudCache()
     public var categoryCodes:[[String:[[String:String]]]] = [[String:[[String:String]]]]()
@@ -469,6 +471,7 @@ extension AssistiveChatHost {
                 try await languageDelegate.placeDescription(chatResult: chatResult, delegate: delegate)
             } else {
                 await languageDelegate.placeDescription(with: desc, chatResult: chatResult, delegate: delegate)
+                analytics?.track(name: "usingCachedGPTDescription")
             }
         }
     }
