@@ -113,6 +113,14 @@ struct PlaceDirectionsView: View {
                 }
             }.onAppear(perform: {
                 model.transportType = .walking
+                let _ = Task{ @MainActor in
+                    do {
+                        try await refreshDirections(with: placeResponse)
+                    } catch {
+                        chatModel.analytics?.track(name: "error \(error)")
+                        print(error)
+                    }
+                }
             })
             .onChange(of: resultId) { oldValue, newValue in
                 guard let placeChatResult = chatModel.placeChatResult(for: newValue), let placeResponse = placeChatResult.placeResponse else {
