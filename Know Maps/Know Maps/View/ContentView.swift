@@ -91,20 +91,31 @@ struct ContentView: View {
                                     Color.accentColor, for: .navigationBar, .tabBar)
                                 .toolbarColorScheme(
                                     .dark, for: .navigationBar, .tabBar)
+                                .onAppear(perform: {
+                                    chatModel.analytics?.screen(title: "MapResultsView")
+                                })
+                            
                         } else if chatModel.selectedPlaceChatResult == nil {
                             MapResultsView(chatHost: chatHost, model: chatModel, locationProvider: locationProvider)
                                 .toolbarBackground(
                                     Color.accentColor, for: .navigationBar, .tabBar)
                                 .toolbarColorScheme(
                                     .dark, for: .navigationBar, .tabBar)
+                                .onAppear(perform: {
+                                    chatModel.analytics?.screen(title: "MapResultsView")
+                                })
                         } else {
                             PlaceView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, placeDirectionsViewModel: placeDirectionsChatViewModel, resultId: $chatModel.selectedPlaceChatResult)
                                 .toolbarBackground(
                                     Color.accentColor, for: .navigationBar, .tabBar)
                                 .toolbarColorScheme(
-                                    .dark, for: .navigationBar, .tabBar)
+                                    .dark, for: .navigationBar, .tabBar).onAppear(perform: {
+                                        chatModel.analytics?.screen(title: "PlaceView")
+                                    })
                         }
-                    }
+                    }.onAppear(perform: {
+                        chatModel.analytics?.screen(title: "NavigationSplitView")
+                    })
                     .onChange(of: chatModel.selectedPlaceChatResult, { oldValue, newValue in
                         guard let newValue = newValue else {
                             return
@@ -118,6 +129,11 @@ struct ContentView: View {
                                 chatModel.analytics?.track(name: "error \(error)")
                                 print(error)
                             }
+                        }
+                    })
+                    .onChange(of: settingsModel.userId, { oldValue, newValue in
+                        if !newValue.isEmpty, let vendorId = UIDevice().identifierForVendor {
+                            chatModel.analytics?.identify(userId: vendorId.uuidString)
                         }
                     })
                     .task {
@@ -135,7 +151,10 @@ struct ContentView: View {
                         .tabItem {
                             Label("Settings", systemImage: "gear")
                         }
-                        .tag("Settings")
+                        .tag("Settings")                    
+                        .onAppear(perform: {
+                            chatModel.analytics?.screen(title: "SettingsView")
+                        })
                 }
             }
         }

@@ -14,52 +14,6 @@ import Segment
 
 public typealias AssistiveChatHostTaggedWord = [String: [String]]
 
-public protocol ChatHostingViewControllerDelegate : AnyObject {
-    func didTap(chatResult:ChatResult) async
-}
-
-public protocol AssistiveChatHostStreamResponseDelegate {
-    func willReceiveStreamingResult(for chatResultID:ChatResult.ID) async
-    func didReceiveStreamingResult(with string:String, for result:ChatResult, promptTokens:Int, completionTokens:Int) async
-    func didFinishStreamingResult() async
-}
-
-public class AssistiveChatHostIntent : Equatable {
-    public let uuid = UUID()
-    public let caption:String
-    public let intent:AssistiveChatHost.Intent
-    public var selectedPlaceSearchResponse:PlaceSearchResponse?
-    public var selectedPlaceSearchDetails:PlaceDetailsResponse?
-    public var placeSearchResponses:[PlaceSearchResponse]
-    
-    public var placeDetailsResponses:[PlaceDetailsResponse]?
-    public let queryParameters:[String:Any]?
-    
-    public init(caption: String, intent: AssistiveChatHost.Intent, selectedPlaceSearchResponse: PlaceSearchResponse?, selectedPlaceSearchDetails: PlaceDetailsResponse?, placeSearchResponses: [PlaceSearchResponse], placeDetailsResponses:[PlaceDetailsResponse]?, queryParameters: [String : Any]?) {
-        self.caption = caption
-        self.intent = intent
-        self.selectedPlaceSearchResponse = selectedPlaceSearchResponse
-        self.selectedPlaceSearchDetails = selectedPlaceSearchDetails
-        self.placeSearchResponses = placeSearchResponses
-        self.placeDetailsResponses = placeDetailsResponses
-        self.queryParameters = queryParameters
-    }
-    
-    public static func == (lhs: AssistiveChatHostIntent, rhs: AssistiveChatHostIntent) -> Bool {
-        return lhs.uuid == rhs.uuid
-    }
-}
-
-public protocol AssistiveChatHostMessagesDelegate : AnyObject {
-    func didSearch(caption:String) async throws
-    func didTap(placeChatResult:ChatResult) async throws
-    func didTap(chatResult:ChatResult, selectedPlaceSearchResponse:PlaceSearchResponse?, selectedPlaceSearchDetails:PlaceDetailsResponse?) async
-    func addReceivedMessage(caption:String, parameters:AssistiveChatHostQueryParameters, isLocalParticipant:Bool) async throws
-    func didUpdateQuery(with parameters:AssistiveChatHostQueryParameters) async throws
-    func updateLastIntentParameter(for placeChatResult:ChatResult) async throws
-    func updateQueryParametersHistory(with parameters: AssistiveChatHostQueryParameters)
-}
-
 open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControllerDelegate, ObservableObject {
     
     public enum Intent : String {

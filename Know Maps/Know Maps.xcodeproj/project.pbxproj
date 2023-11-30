@@ -11,6 +11,11 @@
 		1E630C842B1636E400A57CCB /* ActivityViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E630C832B1636E400A57CCB /* ActivityViewController.swift */; };
 		1E630C862B16440100A57CCB /* CloudCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E630C852B16440100A57CCB /* CloudCache.swift */; };
 		1E98C7CD2B18B5F400283E92 /* Segment in Frameworks */ = {isa = PBXBuildFile; productRef = 1E98C7CC2B18B5F400283E92 /* Segment */; };
+		1E98C7CF2B18DC2200283E92 /* ChatHostingViewControllerDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E98C7CE2B18DC2200283E92 /* ChatHostingViewControllerDelegate.swift */; };
+		1E98C7D12B18DC4100283E92 /* AssistiveChatHostStreamResponseDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E98C7D02B18DC4100283E92 /* AssistiveChatHostStreamResponseDelegate.swift */; };
+		1E98C7D32B18DC7400283E92 /* AssistiveChatHostIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E98C7D22B18DC7400283E92 /* AssistiveChatHostIntent.swift */; };
+		1E98C7D52B18DC9600283E92 /* AssistiveChatHostMessagesDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E98C7D42B18DC9600283E92 /* AssistiveChatHostMessagesDelegate.swift */; };
+		1E98C7D72B18DCF900283E92 /* ChatResultViewModelDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E98C7D62B18DCF900283E92 /* ChatResultViewModelDelegate.swift */; };
 		1EA588CF2B065D8B006B1F8F /* AssistiveChatHostDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EA588CE2B065D8B006B1F8F /* AssistiveChatHostDelegate.swift */; };
 		1EA588D32B09326E006B1F8F /* PlaceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EA588D22B09326E006B1F8F /* PlaceView.swift */; };
 		1EA7F74B2B03FA71002AE371 /* RealityKitContent in Frameworks */ = {isa = PBXBuildFile; productRef = 1EA7F74A2B03FA71002AE371 /* RealityKitContent */; };
@@ -69,6 +74,11 @@
 		1E583F7C2B1671F300B2EC26 /* SettingsModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsModel.swift; sourceTree = "<group>"; };
 		1E630C832B1636E400A57CCB /* ActivityViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityViewController.swift; sourceTree = "<group>"; };
 		1E630C852B16440100A57CCB /* CloudCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudCache.swift; sourceTree = "<group>"; };
+		1E98C7CE2B18DC2200283E92 /* ChatHostingViewControllerDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatHostingViewControllerDelegate.swift; sourceTree = "<group>"; };
+		1E98C7D02B18DC4100283E92 /* AssistiveChatHostStreamResponseDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistiveChatHostStreamResponseDelegate.swift; sourceTree = "<group>"; };
+		1E98C7D22B18DC7400283E92 /* AssistiveChatHostIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistiveChatHostIntent.swift; sourceTree = "<group>"; };
+		1E98C7D42B18DC9600283E92 /* AssistiveChatHostMessagesDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistiveChatHostMessagesDelegate.swift; sourceTree = "<group>"; };
+		1E98C7D62B18DCF900283E92 /* ChatResultViewModelDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatResultViewModelDelegate.swift; sourceTree = "<group>"; };
 		1EA588CE2B065D8B006B1F8F /* AssistiveChatHostDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistiveChatHostDelegate.swift; sourceTree = "<group>"; };
 		1EA588D22B09326E006B1F8F /* PlaceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceView.swift; sourceTree = "<group>"; };
 		1EA7F7452B03FA70002AE371 /* Know Maps.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Know Maps.app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -141,6 +151,10 @@
 			isa = PBXGroup;
 			children = (
 				1EA588CE2B065D8B006B1F8F /* AssistiveChatHostDelegate.swift */,
+				1E98C7CE2B18DC2200283E92 /* ChatHostingViewControllerDelegate.swift */,
+				1E98C7D02B18DC4100283E92 /* AssistiveChatHostStreamResponseDelegate.swift */,
+				1E98C7D42B18DC9600283E92 /* AssistiveChatHostMessagesDelegate.swift */,
+				1E98C7D62B18DCF900283E92 /* ChatResultViewModelDelegate.swift */,
 			);
 			path = Protocols;
 			sourceTree = "<group>";
@@ -229,6 +243,7 @@
 				1EA7F7982B052E0C002AE371 /* LocalMapsQueryClassifier.mlmodel */,
 				1EA7F7992B052E0C002AE371 /* LocalMapsQueryTagger.mlmodel */,
 				1EA7F7952B052DE4002AE371 /* AssistiveChatHost.swift */,
+				1E98C7D22B18DC7400283E92 /* AssistiveChatHostIntent.swift */,
 				1EA7F7942B052DE4002AE371 /* AssistiveChatHostQueryParameters.swift */,
 				1EA7F7812B052D92002AE371 /* ChatResult.swift */,
 				1EE0688F2B0E57AD0016851A /* CategoryResult.swift */,
@@ -366,8 +381,10 @@
 			files = (
 				1EE068902B0E57AD0016851A /* CategoryResult.swift in Sources */,
 				1EA7F7862B052D92002AE371 /* PlaceSearchSession.swift in Sources */,
+				1E98C7D52B18DC9600283E92 /* AssistiveChatHostMessagesDelegate.swift in Sources */,
 				1EA7F76D2B04FFD9002AE371 /* SearchView.swift in Sources */,
 				1EA588D32B09326E006B1F8F /* PlaceView.swift in Sources */,
+				1E98C7CF2B18DC2200283E92 /* ChatHostingViewControllerDelegate.swift in Sources */,
 				1EA7F7842B052D92002AE371 /* PlacePhotoResponse.swift in Sources */,
 				1EA7F7932B052D92002AE371 /* ChatResultViewModel.swift in Sources */,
 				1EA7F79B2B052E0C002AE371 /* LocalMapsQueryTagger.mlmodel in Sources */,
@@ -384,8 +401,11 @@
 				1EA7F74F2B03FA71002AE371 /* ContentView.swift in Sources */,
 				1EA7F74D2B03FA71002AE371 /* Know_MapsApp.swift in Sources */,
 				1EA588CF2B065D8B006B1F8F /* AssistiveChatHostDelegate.swift in Sources */,
+				1E98C7D32B18DC7400283E92 /* AssistiveChatHostIntent.swift in Sources */,
 				1EA7F76B2B04FF4D002AE371 /* MapResultsView.swift in Sources */,
 				1EA7F78C2B052D92002AE371 /* SearchQueryResponseViewModel.swift in Sources */,
+				1E98C7D72B18DCF900283E92 /* ChatResultViewModelDelegate.swift in Sources */,
+				1E98C7D12B18DC4100283E92 /* AssistiveChatHostStreamResponseDelegate.swift in Sources */,
 				1EE068882B0D1ADB0016851A /* SettingsView.swift in Sources */,
 				1EE0688C2B0D1E930016851A /* PlacePhotosView.swift in Sources */,
 				1EE068922B0FBADE0016851A /* ChatRouteResult.swift in Sources */,

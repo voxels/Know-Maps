@@ -18,10 +18,6 @@ enum ChatResultViewModelError : Error {
     case MissingCurrentLocation
 }
 
-public protocol ChatResultViewModelDelegate : AnyObject {
-    func didUpdateModel(for location:CLLocation?)
-}
-
 @MainActor
 public class ChatResultViewModel : ObservableObject {
     public weak var delegate:ChatResultViewModelDelegate?

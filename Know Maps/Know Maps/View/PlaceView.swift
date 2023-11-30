@@ -25,11 +25,17 @@ struct PlaceView: View {
                         Label("About", systemImage: "target")
                     }
                     .tag("About")
+                    .onAppear(perform: {
+                        chatModel.analytics?.screen(title: "PlaceAboutView")
+                    })
             PlaceDirectionsView(chatHost:chatHost, chatModel: chatModel, locationProvider: locationProvider, model: placeDirectionsViewModel, resultId: $resultId)
                     .tabItem {
                         Label("Directions", systemImage: "map")
                     }
                     .tag("Directions")
+                    .onAppear(perform: {
+                        chatModel.analytics?.screen(title: "PlaceDirectionsView")
+                    })
                 if let detailsResponses = placeChatResult.placeDetailsResponse {
                     if let photoResponses = detailsResponses.photoResponses, photoResponses.count > 0 {
                         PlacePhotosView(chatHost:chatHost,chatModel: chatModel, locationProvider: locationProvider, resultId: $resultId)
@@ -37,6 +43,9 @@ struct PlaceView: View {
                                 Label("Photos", systemImage: "photo.stack")
                             }
                             .tag("Photos")
+                            .onAppear(perform: {
+                                chatModel.analytics?.screen(title: "PlacePhotosView")
+                            })
                     }
                     if let tipsResponses = detailsResponses.tipsResponses, tipsResponses.count > 0 {
                         PlaceTipsView(chatHost:chatHost, chatModel: chatModel, locationProvider: locationProvider, resultId: $resultId)
@@ -44,11 +53,17 @@ struct PlaceView: View {
                                 Label("Tips", systemImage: "quote.bubble")
                             }
                             .tag("Tips")
+                            .onAppear(perform: {
+                                chatModel.analytics?.screen(title: "PlaceTipsView")
+                            })
                     }
                 }
             }
         } else {
             ContentUnavailableView("No place selected", systemImage: "return")
+                .onAppear(perform: {
+                chatModel.analytics?.screen(title: "ContentUnavailableView")
+            })
         }
     }
 }
