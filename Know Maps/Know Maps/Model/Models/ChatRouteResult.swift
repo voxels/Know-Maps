@@ -15,6 +15,6 @@ public struct ChatRouteResult : Identifiable, Equatable, Hashable {
         lhs.id == rhs.id
     }
     
-    let route:MKRoute
+    let route:MKRoute?
     let instructions:String
 }

@@ -25,7 +25,6 @@ struct PlaceDirectionsControlsView: View {
             if !showLookAroundScene {
                 Picker("Transport Type", selection: $model.rawTransportType) {
                     Text(RawTransportType.Walking.rawValue).tag(0)
-                    Text(RawTransportType.Transit.rawValue).tag(1)
                     Text(RawTransportType.Automobile.rawValue).tag(2)
                 }
                 .padding(4)

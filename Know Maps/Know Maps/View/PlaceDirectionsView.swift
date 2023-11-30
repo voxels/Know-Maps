@@ -111,7 +111,9 @@ struct PlaceDirectionsView: View {
                         }
                     }
                 }
-            }
+            }.onAppear(perform: {
+                model.transportType = .walking
+            })
             .onChange(of: resultId) { oldValue, newValue in
                 guard let placeChatResult = chatModel.placeChatResult(for: newValue), let placeResponse = placeChatResult.placeResponse else {
                     return
@@ -147,16 +149,35 @@ struct PlaceDirectionsView: View {
                     return
                 }
                 
-                if let sourceMapItem = mapItem(for: locationProvider.lastKnownLocation, name:locationProvider.lastKnownLocationName), let destinationMapItem = mapItem(for: CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude), name:placeResponse.name) {
-                    Task { @MainActor in
-                        do {
-                            try await getDirections(source:sourceMapItem, destination:destinationMapItem, model:model)
-                            self.resultId = resultId
-                        } catch {
-                            chatModel.analytics?.track(name: "error \(error)")
-                            print(error)
-                        }
-                        
+                if newValue == oldValue {
+                    return
+                }
+                
+                let _ = Task{ @MainActor in
+                    do {
+                        try await refreshDirections(with: placeResponse)
+                    } catch {
+                        chatModel.analytics?.track(name: "error \(error)")
+                        print(error)
+                    }
+                }
+            }
+            .onChange(of: model.source) { oldValue, newValue in
+                guard let placeChatResult = chatModel.placeChatResult(for: resultId), let placeResponse = placeChatResult.placeResponse else {
+                    return
+                }
+                
+                if newValue == oldValue {
+                    return
+                }
+                
+
+                let _ = Task{ @MainActor in
+                    do {
+                        try await refreshDirections(with: placeResponse)
+                    } catch {
+                        chatModel.analytics?.track(name: "error \(error)")
+                        print(error)
                     }
                 }
             }
@@ -169,6 +190,15 @@ struct PlaceDirectionsView: View {
                             chatModel.analytics?.track(name: "error \(error)")
                             print(error)
                         }
+                    }
+                }
+                
+                let _ = Task{ @MainActor in
+                    do {
+                        try await refreshDirections(with: placeResponse)
+                    } catch {
+                        chatModel.analytics?.track(name: "error \(error)")
+                        print(error)
                     }
                 }
             }
@@ -188,7 +218,6 @@ struct PlaceDirectionsView: View {
                                 if let destination = model.destination {
                                     try await getLookAroundScene(mapItem:destination)
                                 }
-                                self.resultId = resultId
                             } catch {
                                 chatModel.analytics?.track(name: "error \(error)")
                                 print(error)
@@ -200,6 +229,20 @@ struct PlaceDirectionsView: View {
         }
         else {
             ContentUnavailableView("No route available", image: "x.circle.fill")
+        }
+    }
+    
+    func refreshDirections(with placeResponse:PlaceSearchResponse) async throws {
+        if let sourceMapItem = mapItem(for: locationProvider.lastKnownLocation, name:locationProvider.lastKnownLocationName), let destinationMapItem = mapItem(for: CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude), name:placeResponse.name) {
+            Task { @MainActor in
+                do {
+                    try await getDirections(source:sourceMapItem, destination:destinationMapItem, model:model)
+                } catch {
+                    chatModel.analytics?.track(name: "error \(error)")
+                    print(error)
+                }
+                
+            }
         }
     }
     
@@ -227,6 +270,10 @@ struct PlaceDirectionsView: View {
             return
         }
         
+        model.route = nil
+        model.polyline = nil
+        model.chatRouteResults?.removeAll()
+        
         let request = MKDirections.Request()
         request.source = source
         request.destination = destination
@@ -244,9 +291,16 @@ struct PlaceDirectionsView: View {
                 let instructions = step.instructions
                 if !instructions.isEmpty {
                     return ChatRouteResult(route: route, instructions: instructions)
+                } else {
+                    return route.steps.count > 0 ? nil : ChatRouteResult(route: route, instructions: "Check Apple Maps for a route")
                 }
-                return nil
             })
+            
+            if let routeResults = model.chatRouteResults, routeResults.isEmpty {
+                model.chatRouteResults = [ChatRouteResult(route: route, instructions: "Check Apple Maps for a route")]
+            }
+        } else {
+            model.chatRouteResults = [ChatRouteResult(route: nil, instructions: "Check Apple Maps for a route")]
         }
     }
     
