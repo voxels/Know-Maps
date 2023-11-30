@@ -10,6 +10,7 @@
 		1E583F7D2B1671F300B2EC26 /* SettingsModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E583F7C2B1671F300B2EC26 /* SettingsModel.swift */; };
 		1E630C842B1636E400A57CCB /* ActivityViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E630C832B1636E400A57CCB /* ActivityViewController.swift */; };
 		1E630C862B16440100A57CCB /* CloudCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E630C852B16440100A57CCB /* CloudCache.swift */; };
+		1E98C7CD2B18B5F400283E92 /* Segment in Frameworks */ = {isa = PBXBuildFile; productRef = 1E98C7CC2B18B5F400283E92 /* Segment */; };
 		1EA588CF2B065D8B006B1F8F /* AssistiveChatHostDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EA588CE2B065D8B006B1F8F /* AssistiveChatHostDelegate.swift */; };
 		1EA588D32B09326E006B1F8F /* PlaceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EA588D22B09326E006B1F8F /* PlaceView.swift */; };
 		1EA7F74B2B03FA71002AE371 /* RealityKitContent in Frameworks */ = {isa = PBXBuildFile; productRef = 1EA7F74A2B03FA71002AE371 /* RealityKitContent */; };
@@ -121,6 +122,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1E98C7CD2B18B5F400283E92 /* Segment in Frameworks */,
 				1EA7F74B2B03FA71002AE371 /* RealityKitContent in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -272,6 +274,7 @@
 			name = "Know Maps";
 			packageProductDependencies = (
 				1EA7F74A2B03FA71002AE371 /* RealityKitContent */,
+				1E98C7CC2B18B5F400283E92 /* Segment */,
 			);
 			productName = "Know Maps";
 			productReference = 1EA7F7452B03FA70002AE371 /* Know Maps.app */;
@@ -323,6 +326,9 @@
 				Base,
 			);
 			mainGroup = 1EA7F73C2B03FA70002AE371;
+			packageReferences = (
+				1E98C7CB2B18B5F400283E92 /* XCRemoteSwiftPackageReference "analytics-swift" */,
+			);
 			productRefGroup = 1EA7F7462B03FA70002AE371 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -669,7 +675,23 @@
 		};
 /* End XCConfigurationList section */
 
+/* Begin XCRemoteSwiftPackageReference section */
+		1E98C7CB2B18B5F400283E92 /* XCRemoteSwiftPackageReference "analytics-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/segmentio/analytics-swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.5.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
 /* Begin XCSwiftPackageProductDependency section */
+		1E98C7CC2B18B5F400283E92 /* Segment */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 1E98C7CB2B18B5F400283E92 /* XCRemoteSwiftPackageReference "analytics-swift" */;
+			productName = Segment;
+		};
 		1EA7F74A2B03FA71002AE371 /* RealityKitContent */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = RealityKitContent;
