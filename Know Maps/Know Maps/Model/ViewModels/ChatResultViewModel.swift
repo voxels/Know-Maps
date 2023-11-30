@@ -206,12 +206,7 @@ public class ChatResultViewModel : ObservableObject {
     
     public func checkSearchTextForLocations(with text:String) async throws ->[CLPlacemark]? {
         let tags = try assistiveHostDelegate?.tags(for: text)
-        
-        if let _ = chatResult(title: text) {
-            return nil
-        } else {
-            return try await assistiveHostDelegate?.nearLocationCoordinate(for: text, tags:tags)
-        }
+        return try await assistiveHostDelegate?.nearLocationCoordinate(for: text, tags:tags)
     }
     
     public func receiveMessage(caption: String, parameters: AssistiveChatHostQueryParameters, isLocalParticipant: Bool) async throws {
@@ -223,7 +218,7 @@ public class ChatResultViewModel : ObservableObject {
 
          let placemarks = try? await checkSearchTextForLocations(with: caption)
         
-         if let placemarks = placemarks, let location = placemarks.first?.location, chatResult(title: caption) == nil {
+         if let placemarks = placemarks, let location = placemarks.first?.location{
             finalLocation = location
             
             await MainActor.run {
@@ -368,6 +363,18 @@ public class ChatResultViewModel : ObservableObject {
             return
         }
         
+        var finalLocation = locationProvider.lastKnownLocation
+
+        let tags = try assistiveHostDelegate?.tags(for: intent.caption)
+        let nearLocation = try await checkSearchTextForLocations(with: intent.caption)
+        if let nearLocation = nearLocation, let location = nearLocation.first?.location {
+            finalLocation = location
+        }
+        
+        await MainActor.run {
+            locationProvider.queryLocation = finalLocation
+        }
+        
         switch intent.intent {
         case .Search:
             try await detailIntent(intent: intent)
@@ -375,18 +382,6 @@ public class ChatResultViewModel : ObservableObject {
             analytics?.track(name: "modelSearchQueryBuilt")
         case .Autocomplete:
             do {
-                var finalLocation = locationProvider.lastKnownLocation
-
-                let tags = try assistiveHostDelegate?.tags(for: intent.caption)
-                let nearLocation = try await assistiveHostDelegate?.nearLocationCoordinate(for: intent.caption, tags:tags)
-                if let nearLocation = nearLocation, let location = nearLocation.first?.location {
-                    finalLocation = location
-                }
-                
-                await MainActor.run {
-                    locationProvider.queryLocation = finalLocation
-                }
-                
                 try await autocompletePlaceModel(caption: intent.caption, intent: intent, location: finalLocation)
                 analytics?.track(name: "modelAutocompletePlaceModelBuilt")
             } catch {
@@ -665,20 +660,18 @@ public class ChatResultViewModel : ObservableObject {
             
             print("Did not find a location in the query, using current location:\(String(describing: ll))")
         } else {
-            if let delegate = assistiveHostDelegate {
-                do {
-                    if let placemarks = try await delegate.nearLocationCoordinate(for: intent.caption, tags: delegate.tags(for: intent.caption)), let location = placemarks.first?.location {
-                        await MainActor.run {
-                            locationProvider.queryLocation = location
-                        }
+            do {
+                if let placemarks = try await checkSearchTextForLocations(with: query), let location = placemarks.first?.location {
+                    await MainActor.run {
+                        locationProvider.queryLocation = location
                     }
-                    
-                    let l = locationProvider.queryLocation
-                    ll = "\(l.coordinate.latitude),\(l.coordinate.longitude)"
-                } catch {
-                    analytics?.track(name: "error \(error)")
-                    print(error)
                 }
+                
+                let l = locationProvider.queryLocation
+                ll = "\(l.coordinate.latitude),\(l.coordinate.longitude)"
+            } catch {
+                analytics?.track(name: "error \(error)")
+                print(error)
             }
         }
         

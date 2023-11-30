@@ -41,7 +41,7 @@ struct ContentView: View {
                                         if let location = result.location {
                                             locationProvider.queryLocation = location
                                             chatModel.resetPlaceModel()
-                                            chatModel.searchText = chatModel.locationSearchText
+                                            chatModel.locationSearchText = result.locationName
                                         } else {
                                             chatModel.locationSearchText.removeAll()
                                         }

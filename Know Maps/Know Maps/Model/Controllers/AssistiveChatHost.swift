@@ -139,13 +139,13 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
         let components = caption.components(separatedBy: "near")
         if let prefix = components.first {
             for code in categoryCodes {
-                if code.keys.contains(prefix) {
+                if code.keys.contains(prefix.capitalized) {
                     return .Search
                 }
                 
                 for values in code.values {
                     for value in values {
-                        if value["category"] == caption.lowercased().trimmingCharacters(in: .whitespaces) {
+                        if ((value["category"]?.lowercased().contains( caption.lowercased().trimmingCharacters(in: .whitespaces))) != nil) {
                             return .Search
                         }
                     }
@@ -153,7 +153,7 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
             }
             
             if UIReferenceLibraryViewController.dictionaryHasDefinition(forTerm: prefix) {
-                return .Autocomplete
+                return .Search
             }
         }
                 
@@ -302,6 +302,7 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
         }
         
         let components = rawQuery.lowercased().components(separatedBy: "near")
+        
         var addressString = rawQuery
         if let lastComponent = components.last {
             addressString = lastComponent
