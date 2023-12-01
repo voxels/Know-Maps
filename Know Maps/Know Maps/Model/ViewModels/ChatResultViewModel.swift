@@ -35,6 +35,7 @@ public class ChatResultViewModel : ObservableObject {
     @Published public var searchText: String = ""
     @Published public var locationSearchText: String = ""
     @Published public var categoryResults:[CategoryResult] = [CategoryResult]()
+    public var searchCategoryResults:CategoryResult = CategoryResult(parentCategory: "Search Results", categoricalChatResults: [ChatResult]())
     @Published public var placeResults:[ChatResult] = [ChatResult]()
     @Published public var locationResults:[LocationResult] = [LocationResult]()
     
@@ -74,7 +75,24 @@ public class ChatResultViewModel : ObservableObject {
             
             searchSection.replaceChatResults(with: foundResults)
             var filteredResults = categoryResults
-            if !searchSection.categoricalChatResults.isEmpty {
+            
+            if searchCategoryResults.categoricalChatResults.isEmpty {
+                searchCategoryResults = searchSection
+            } else {
+                let searchCategoricalChatResultTitles = searchCategoryResults.categoricalChatResults.compactMap { result in
+                    return result.title
+                }
+                
+                let searchSectionTitles = searchSection.categoricalChatResults.compactMap { result in
+                    return result.title
+                }
+                
+                if searchCategoricalChatResultTitles != searchSectionTitles {
+                    searchCategoryResults = searchSection
+                }
+            }
+            
+            if !searchCategoryResults.categoricalChatResults.isEmpty {
                 if let firstCategory = categoryResults.first, firstCategory.parentCategory == "Search Results" {
                     let searchSectionTitles = searchSection.categoricalChatResults.compactMap { result in
                         result.title
@@ -88,10 +106,10 @@ public class ChatResultViewModel : ObservableObject {
                         //Do nothing
                     } else {
                         filteredResults.remove(at: 0)
-                        filteredResults.insert(searchSection, at: 0)
+                        filteredResults.insert(searchCategoryResults, at: 0)
                     }
                 } else {
-                    filteredResults.insert(searchSection, at: 0)
+                    filteredResults.insert(searchCategoryResults, at: 0)
                 }
             }
             
@@ -103,10 +121,10 @@ public class ChatResultViewModel : ObservableObject {
         get {
             var retval = placeResults
             
-            var filteredCategories = retval.filter({ result in
+            let filteredCategories = retval.filter({ result in
                 if let categories = result.placeResponse?.categories {
-                    if selectedCategoryChatResult != nil, let chatResult = chatResult(title: locationSearchText) {
-                        return categories.contains(chatResult.title.lowercased())
+                    if !locationSearchText.isEmpty, let chatResult = chatResult(title: locationSearchText) {
+                        return categories.contains(chatResult.title.capitalized)
                     } else if selectedCategoryChatResult == nil {
                         return true
                     } else {
@@ -167,6 +185,8 @@ public class ChatResultViewModel : ObservableObject {
         analytics?.track(name: "resetPlaceModel")
     }
     
+    
+    
     public func placeChatResult(for selectedChatResultID:ChatResult.ID)->ChatResult?{
         let selectedResult = placeResults.first(where: { checkResult in
             return checkResult.id == selectedChatResultID
@@ -190,7 +210,7 @@ public class ChatResultViewModel : ObservableObject {
             }
             
             return results?.categoricalChatResults.first { chatResult in
-                return chatResult.title.lowercased().contains(locationSearchText.lowercased().trimmingCharacters(in: .whitespacesAndNewlines))
+                return chatResult.title.lowercased() == locationSearchText.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
             }
         }
         else {
@@ -203,6 +223,28 @@ public class ChatResultViewModel : ObservableObject {
             return categoryResult.result(title: title)
         }.first
     }
+    
+    public func chatResult(for selectedChatResultID:ChatResult.ID)->ChatResult?{
+        let allResults = categoryResults.compactMap({ categoryResult in
+            return categoryResult.categoricalChatResults
+        })
+        
+        var foundResult:ChatResult?
+        for allResult in allResults {
+            for result in allResult {
+                if result.id == selectedChatResultID || result.parentId == selectedChatResultID {
+                    foundResult = result
+                }
+            }
+        }
+        
+        if foundResult == nil {
+            return chatResult(title: locationSearchText)
+        }
+                
+        return foundResult
+    }
+
     
     public func checkSearchTextForLocations(with text:String) async throws ->[CLPlacemark]? {
         let tags = try assistiveHostDelegate?.tags(for: text)

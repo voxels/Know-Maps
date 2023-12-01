@@ -28,7 +28,9 @@ struct SearchView: View {
                 model.selectedPlaceChatResult = nil
             }
             Task { @MainActor in
-                if let newValue = newValue, let categoricalResult  = model.categoricalResult(for: newValue) {
+                if let newValue = newValue, let categoricalResult  =
+                    model.categoricalResult(for: newValue) {
+                    model.locationSearchText = model.chatResult(for: newValue)?.title ?? model.locationSearchText
                     await chatHost.didTap(chatResult: categoricalResult)
                 }
             }
