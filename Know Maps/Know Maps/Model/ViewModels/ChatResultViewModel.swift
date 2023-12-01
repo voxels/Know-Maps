@@ -625,7 +625,7 @@ public class ChatResultViewModel : ObservableObject {
         var maxPrice = 4
         var radius = 2000
         var sort:String? = nil
-        var limit:Int = 8
+        var limit:Int = 50
         var categories = ""
         
         if let revisedQuery = intent.queryParameters?["query"] as? String {

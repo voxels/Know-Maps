@@ -161,6 +161,7 @@
 				1EA7F77C2B052D92002AE371 /* PlaceDetailsResponse.swift */,
 				1EA7F7732B052D92002AE371 /* PlacePhotoResponse.swift */,
 				1EA7F7802B052D92002AE371 /* PlaceSearchRequest.swift */,
+				1EA7F77F2B052D92002AE371 /* PlaceSearchResponse.swift */,
 				1EA7F7792B052D92002AE371 /* PlaceTipsResponse.swift */,
 			);
 			path = Models;
@@ -189,7 +190,6 @@
 				1EA7F7742B052D92002AE371 /* LanguageGeneratorSession.swift */,
 				1EA7F77A2B052D92002AE371 /* LocationProvider.swift */,
 				1EA7F77E2B052D92002AE371 /* PlaceResponseFormatter.swift */,
-				1EA7F77F2B052D92002AE371 /* PlaceSearchResponse.swift */,
 				1EA7F7752B052D92002AE371 /* PlaceSearchSession.swift */,
 			);
 			path = Controllers;

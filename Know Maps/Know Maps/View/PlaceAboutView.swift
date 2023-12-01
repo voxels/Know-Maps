@@ -144,7 +144,7 @@ struct PlaceAboutView: View {
             }
             else {
                 if let resultId = resultId, let result = chatModel.placeChatResult(for: resultId), let placeDetailsResponse = result.placeDetailsResponse  {
-                    let items:[Any] = [placeDetailsResponse.searchResponse.name, AsyncImage(url:URL(string:""), scale:1), placeDetailsResponse.website ?? placeDetailsResponse.searchResponse.address]
+                    let items:[Any] = [placeDetailsResponse.website ?? placeDetailsResponse.searchResponse.address]
                     ActivityViewController(activityItems:items, applicationActivities:[UIActivity](), isPresentingShareSheet: $isPresentingShareSheet)
                 }
             }
