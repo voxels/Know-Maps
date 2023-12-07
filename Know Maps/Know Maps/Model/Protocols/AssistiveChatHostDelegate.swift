@@ -7,6 +7,7 @@
 
 import Foundation
 import CoreLocation
+import Segment
 
 public protocol AssistiveChatHostDelegate:AnyObject {
     
@@ -18,7 +19,7 @@ public protocol AssistiveChatHostDelegate:AnyObject {
     var lastGeocodedPlacemarks:[CLPlacemark]? { get }
     var cache:CloudCache { get }
     
-    init(delegate:AssistiveChatHostMessagesDelegate?)
+    init(messagesDelegate: AssistiveChatHostMessagesDelegate?, analytics: Analytics?, cache: CloudCache, lastGeocodedPlacemarks: [CLPlacemark]?)
     func organizeCategoryCodeList() throws
     func didTap(chatResult: ChatResult) async
     func didTap(categoricalResult:CategoryResult, chatResult:ChatResult?) async

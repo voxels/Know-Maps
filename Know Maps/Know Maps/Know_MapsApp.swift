@@ -23,7 +23,7 @@ struct Know_MapsApp: App {
     
     var body: some Scene {
         WindowGroup(id:"ContentView") {
-            ContentView(chatHost: AssistiveChatHost(), chatModel: ChatResultViewModel(locationProvider: locationProvider, cloudCache: cloudCache), locationProvider: locationProvider)
+            ContentView(chatHost: AssistiveChatHost(cache: cloudCache), chatModel: ChatResultViewModel(locationProvider: locationProvider, cloudCache: cloudCache), locationProvider: locationProvider)
         }
         
         WindowGroup(id:"SettingsView"){

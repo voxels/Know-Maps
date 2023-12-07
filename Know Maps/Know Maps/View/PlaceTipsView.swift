@@ -73,21 +73,20 @@ struct PlaceTipsView: View {
                                     Rectangle().foregroundStyle(.thickMaterial)
                                     Text(description).padding()
                                 }.padding()
+#if os(visionOS)
                                 Spacer()
+
                                 ZStack {
                                     Capsule()
                                         .frame(minWidth:60, maxWidth:60, minHeight:60, maxHeight:60)
-                                    #if os(visionOS)
                                         .foregroundColor(Color(uiColor:.systemFill))
-                                    #endif
-                                    #if os(macOS)
-                                        .foregroundStyle(.background)
-                                    #endif
                                     Image(systemName: "square.and.arrow.up")
                                 }.padding()
                                 .onTapGesture {
                                     self.isPresentingShareSheet.toggle()
                                 }
+#endif
+
                             }
                             
                             if let tips = placeDetailsResponse.tipsResponses, tips.count > 0 {
@@ -113,9 +112,10 @@ struct PlaceTipsView: View {
 }
 
 #Preview {
-    let chatHost = AssistiveChatHost()
+
     let locationProvider = LocationProvider()
     let cache = CloudCache()
+    let chatHost = AssistiveChatHost(cache: cache)
     let model = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cache)
     model.assistiveHostDelegate = chatHost
     chatHost.messagesDelegate = model

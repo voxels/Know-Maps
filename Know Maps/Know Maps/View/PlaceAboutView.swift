@@ -31,7 +31,7 @@ struct PlaceAboutView: View {
             if !isPresentingShareSheet {
                 ScrollView {
                     VStack {                        
-                        if let resultId = resultId, let result = chatModel.placeChatResult(for: resultId), let placeResponse = result.placeResponse, let placeDetailsResponse = result.placeDetailsResponse, let currentLocation = locationProvider.currentLocation() {
+                        if let resultId = resultId, let result = chatModel.placeChatResult(for: resultId), let placeResponse = result.placeResponse, let placeDetailsResponse = result.placeDetailsResponse, let sourceLocationID = chatModel.selectedSourceLocationChatResult, let locationResult = chatModel.locationChatResult(for: sourceLocationID), let currentLocation = locationResult.location {
                             let placeCoordinate = CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude)
                             let maxDistance = currentLocation.distance(from: placeCoordinate) + PlaceAboutView.mapFrameConstraint
                             let title = placeResponse.name
@@ -97,22 +97,18 @@ struct PlaceAboutView: View {
                                                 Link("Visit Website", destination: url).foregroundStyle(.primary)
                                             }
                                         }
-                                        
+#if os(visionOS)
+
                                         ZStack {
                                             Capsule()
-                                            #if os(visionOS)
                                                 .foregroundColor(Color(uiColor:.systemFill))
-                                            #endif
-                                            #if os(macOS)
-                                                .foregroundStyle(.background)
-                                            #endif
-
                                             Image(systemName: "square.and.arrow.up")
                                         }
                                         .onTapGesture {
                                             self.isPresentingShareSheet.toggle()
                                         }
-                                        
+#endif
+
                                         
                                         if let price = placeDetailsResponse.price {
                                             ZStack {
@@ -197,9 +193,10 @@ struct PlaceAboutView: View {
 }
 
 #Preview {
-    let chatHost = AssistiveChatHost()
+
     let locationProvider = LocationProvider()
     let cache = CloudCache()
+    let chatHost = AssistiveChatHost(cache:cache)
     let model = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cache)
     model.assistiveHostDelegate = chatHost
     chatHost.messagesDelegate = model

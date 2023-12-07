@@ -74,7 +74,7 @@ struct PlaceDirectionsView: View {
                                 Map(initialPosition: .automatic, bounds: MapCameraBounds(minimumDistance: currentLocation.distance(from: placeCoordinate) + PlaceDirectionsView.mapFrameMinimumPadding, maximumDistance:maxDistance)) {
                                     Marker(title, coordinate: placeCoordinate.coordinate)
                                     if currentLocation.distance(from: placeCoordinate) < PlaceDirectionsView.mapFrameConstraint {
-                                        Marker("Current Location", coordinate: currentLocation.coordinate)
+                                        Marker("Origin Location", coordinate: currentLocation.coordinate)
                                     }
                                     
                                     if let polyline = model.polyline {
@@ -198,7 +198,16 @@ struct PlaceDirectionsView: View {
                         print(error)
                     }
                 }
-            }
+            }.onAppear(perform: {
+                let _ = Task{ @MainActor in
+                    do {
+                        try await refreshDirections(with: placeResponse)
+                    } catch {
+                        chatModel.analytics?.track(name: "error \(error)")
+                        print(error)
+                    }
+                }
+            })
             .task {
                 if let destination = model.destination  {
                     do {
@@ -315,9 +324,10 @@ struct PlaceDirectionsView: View {
 }
 
 #Preview {
-    let chatHost = AssistiveChatHost()
+
     let locationProvider = LocationProvider()
     let cache = CloudCache()
+    let chatHost = AssistiveChatHost(cache:cache)
     let chatModel = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cache)
     chatModel.assistiveHostDelegate = chatHost
     chatHost.messagesDelegate = chatModel

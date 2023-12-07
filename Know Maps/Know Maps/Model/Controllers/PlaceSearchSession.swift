@@ -245,7 +245,7 @@ open class PlaceSearchSession : ObservableObject {
         }
         
         let ll = "\(location.coordinate.latitude),\(location.coordinate.longitude)"
-        var limit = 20
+        var limit = 50
         var nameString:String = ""
         
         if let parameters = parameters, let rawQuery = parameters["query"] as? String {

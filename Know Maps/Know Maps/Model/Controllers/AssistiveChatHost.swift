@@ -26,20 +26,20 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
     public var placeSearchSession = PlaceSearchSession()
     public var analytics:Analytics?
     @Published public var queryIntentParameters = AssistiveChatHostQueryParameters()
-    @EnvironmentObject public var cache:CloudCache
+    @ObservedObject public var cache:CloudCache
     public var categoryCodes:[[String:[[String:String]]]] = [[String:[[String:String]]]]()
     
     let geocoder = CLGeocoder()
     public var lastGeocodedPlacemarks:[CLPlacemark]?
     
-    required public init(delegate:AssistiveChatHostMessagesDelegate? = nil) {
-        self.messagesDelegate = delegate
-        do {
-            try organizeCategoryCodeList()
-        } catch {
-            print(error)
-        }
+    required public init(messagesDelegate: AssistiveChatHostMessagesDelegate? = nil, analytics: Analytics? = nil, cache: CloudCache, lastGeocodedPlacemarks: [CLPlacemark]? = nil) {
+        self.messagesDelegate = messagesDelegate
+        self.analytics = analytics
+        self.cache = cache
+        self.lastGeocodedPlacemarks = lastGeocodedPlacemarks
     }
+    
+    
     
     public func organizeCategoryCodeList() throws {
         if let path = Bundle.main.path(forResource: "integrated_category_taxonomy", ofType: "json")
@@ -171,7 +171,7 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
                         {
                              "radius":50000,
                              "sort":"distance",
-                             "limit":20,
+                             "limit":50,
                         }
                     }
                 """

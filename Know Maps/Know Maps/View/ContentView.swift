@@ -55,17 +55,19 @@ struct ContentView: View {
                                 }
                             }
                         }
+                    }).onChange(of: chatModel.locationSearchText, { oldValue, newValue in
+                        if newValue.isEmpty {
+                            chatModel.resetPlaceModel()
+                            chatModel.selectedCategoryChatResult = nil
+                        }
                     })
                     .onChange(of: chatModel.selectedDestinationLocationChatResult, { oldValue, newValue in
-                        Task {
-                            do {
-                                try await chatModel.didSearch(caption:chatModel.locationSearchText, selectedDestinationChatResultID:newValue)
-                            } catch {
-                                chatModel.analytics?.track(name: "error \(error)")
-                                print(error)
-                            }
-                        }
                         
+                        chatModel.selectedSourceLocationChatResult = chatModel.filteredLocationResults.first?.id
+
+                            if let newValue = newValue, let locationChatResult = chatModel.locationChatResult(for: newValue),  !chatModel.locationSearchText.lowercased().contains(locationChatResult.locationName.lowercased()) {
+                                chatModel.locationSearchText = locationChatResult.locationName
+                            }
                     })
                     .task {
                         chatModel.selectedDestinationLocationChatResult = chatModel.filteredLocationResults.first?.id
@@ -194,6 +196,6 @@ struct ContentView: View {
     let locationProvider = LocationProvider()
     let cache = CloudCache()
     let chatModel = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cache)
-    let chatHost = AssistiveChatHost()
+    let chatHost = AssistiveChatHost(cache:cache)
     return ContentView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider)
 }

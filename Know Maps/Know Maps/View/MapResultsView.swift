@@ -34,10 +34,11 @@ struct MapResultsView: View {
 }
 
 #Preview {
-    let chatHost = AssistiveChatHost()
+
     let locationProvider = LocationProvider()
     let cache = CloudCache()
-    let model = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cache)    
+    let chatHost = AssistiveChatHost(cache: cache)
+    let model = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cache)
     model.assistiveHostDelegate = chatHost
     chatHost.messagesDelegate = model
 

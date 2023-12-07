@@ -193,7 +193,6 @@ public class ChatResultViewModel : ObservableObject {
         locationSearchText.removeAll()
         searchText = locationSearchText
         placeResults.removeAll()
-        locationResults = [LocationResult(locationName: "Current Location", location: locationProvider.currentLocation())]
         analytics?.track(name: "resetPlaceModel")
     }
     
