@@ -7,6 +7,8 @@
 
 import SwiftUI
 import RealityKit
+
+#if os(visionOS)
 import RealityKitContent
 
 struct ImmersiveView: View {
@@ -24,3 +26,4 @@ struct ImmersiveView: View {
     ImmersiveView()
         .previewLayout(.sizeThatFits)
 }
+#endif

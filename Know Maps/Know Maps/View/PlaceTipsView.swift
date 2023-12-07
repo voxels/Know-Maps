@@ -18,7 +18,9 @@ struct PlaceTipsView: View {
     var body: some View {
         if isPresentingShareSheet, let resultId = resultId, let placeChatResult = chatModel.placeChatResult(for: resultId), let placeDetailsResponse = placeChatResult.placeDetailsResponse, let description = placeDetailsResponse.description, !description.isEmpty  {
             let items:[Any] = [description]
+            #if os(visionOS)
             ActivityViewController(activityItems:items, applicationActivities:[UIActivity](), isPresentingShareSheet: $isPresentingShareSheet)
+            #endif
 
         } else {
             if let resultId = resultId, let placeChatResult = chatModel.placeChatResult(for: resultId), let placeDetailsResponse = placeChatResult.placeDetailsResponse{
@@ -73,8 +75,14 @@ struct PlaceTipsView: View {
                                 }.padding()
                                 Spacer()
                                 ZStack {
-                                    Capsule().foregroundColor(Color(uiColor:.systemFill))
+                                    Capsule()
                                         .frame(minWidth:60, maxWidth:60, minHeight:60, maxHeight:60)
+                                    #if os(visionOS)
+                                        .foregroundColor(Color(uiColor:.systemFill))
+                                    #endif
+                                    #if os(macOS)
+                                        .foregroundStyle(.background)
+                                    #endif
                                     Image(systemName: "square.and.arrow.up")
                                 }.padding()
                                 .onTapGesture {
@@ -107,7 +115,8 @@ struct PlaceTipsView: View {
 #Preview {
     let chatHost = AssistiveChatHost()
     let locationProvider = LocationProvider()
-    let model = ChatResultViewModel(locationProvider: locationProvider)
+    let cache = CloudCache()
+    let model = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cache)
     model.assistiveHostDelegate = chatHost
     chatHost.messagesDelegate = model
     

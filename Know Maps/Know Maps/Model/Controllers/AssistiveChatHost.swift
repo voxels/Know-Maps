@@ -26,7 +26,7 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
     public var placeSearchSession = PlaceSearchSession()
     public var analytics:Analytics?
     @Published public var queryIntentParameters = AssistiveChatHostQueryParameters()
-    @StateObject public var cache = CloudCache()
+    @EnvironmentObject public var cache:CloudCache
     public var categoryCodes:[[String:[[String:String]]]] = [[String:[[String:String]]]]()
     
     let geocoder = CLGeocoder()
@@ -152,9 +152,11 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
                 }
             }
             
+            #if os(visionOS)
             if UIReferenceLibraryViewController.dictionaryHasDefinition(forTerm: prefix) {
                 return .Search
             }
+            #endif
         }
                 
         return .Autocomplete
@@ -167,7 +169,7 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
                         "query":"",
                         "parameters":
                         {
-                             "radius":3000,
+                             "radius":50000,
                              "sort":"distance",
                              "limit":20,
                         }

@@ -14,7 +14,7 @@ public class PlaceDirectionsViewModel : ObservableObject {
     @Published public var source:MKMapItem?
     @Published public var destination:MKMapItem?
     @Published public var polyline:MKPolyline?
-    @Published public var transportType:MKDirectionsTransportType = .walking
+    @Published public var transportType:MKDirectionsTransportType = .automobile
     @Published public var rawTransportType:Int = 0
     @Published public var chatRouteResults:[ChatRouteResult]?
 

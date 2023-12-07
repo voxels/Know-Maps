@@ -71,7 +71,8 @@ struct PlaceView: View {
 #Preview {
     let chatHost = AssistiveChatHost()
     let locationProvider = LocationProvider()
-    let chatModel = ChatResultViewModel(locationProvider: locationProvider)
+    let cache = CloudCache()
+    let chatModel = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cache)
     chatModel.assistiveHostDelegate = chatHost
     chatHost.messagesDelegate = chatModel
     let placeDirectionViewModel = PlaceDirectionsViewModel()

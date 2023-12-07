@@ -18,7 +18,9 @@ struct PlaceAboutView: View {
     @Binding public var resultId:ChatResult.ID?
     @Binding public var selectedTab:String
     
+    #if os(visionOS)
     @State private var callController = CXCallController()
+    #endif
     @State private var isPresentingShareSheet:Bool = false
     static let defaultPadding:CGFloat = 8
     static let mapFrameConstraint:Double = 50000
@@ -28,17 +30,13 @@ struct PlaceAboutView: View {
         GeometryReader { geo in
             if !isPresentingShareSheet {
                 ScrollView {
-                    VStack {
-                        let currentLocation = locationProvider.lastKnownLocation
-                        if let resultId = resultId, let result = chatModel.placeChatResult(for: resultId), let placeResponse = result.placeResponse, let placeDetailsResponse = result.placeDetailsResponse {
+                    VStack {                        
+                        if let resultId = resultId, let result = chatModel.placeChatResult(for: resultId), let placeResponse = result.placeResponse, let placeDetailsResponse = result.placeDetailsResponse, let currentLocation = locationProvider.currentLocation() {
                             let placeCoordinate = CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude)
                             let maxDistance = currentLocation.distance(from: placeCoordinate) + PlaceAboutView.mapFrameConstraint
                             let title = placeResponse.name
                             Map(initialPosition: .automatic, bounds: MapCameraBounds(minimumDistance: currentLocation.distance(from: placeCoordinate) + 500, maximumDistance:maxDistance)) {
                                 Marker(title, coordinate: placeCoordinate.coordinate)
-                                if currentLocation.distance(from: placeCoordinate) < PlaceAboutView.mapFrameConstraint {
-                                    Marker("Current Location", coordinate: currentLocation.coordinate)
-                                }
                             }
                             .mapControls {
                                 MapPitchToggle()
@@ -77,7 +75,9 @@ struct PlaceAboutView: View {
                                     HStack {
                                         if let tel = placeDetailsResponse.tel {
                                             Button {
+                                                #if os(visionOS)
                                                 call(tel:tel)
+                                                #endif
                                             } label: {
                                                 Text("Call \(tel)")
                                             }.buttonStyle(.bordered)
@@ -88,13 +88,25 @@ struct PlaceAboutView: View {
                                         if let website = placeDetailsResponse.website, let url = URL(string: website) {
                                             ZStack {
                                                 Capsule()
+                                                #if os(visionOS)
                                                     .foregroundColor(Color(uiColor:.systemFill))
+                                                #endif
+                                                #if os(macOS)
+                                                    .foregroundStyle(.background)
+                                                #endif
                                                 Link("Visit Website", destination: url).foregroundStyle(.primary)
                                             }
                                         }
                                         
                                         ZStack {
-                                            Capsule().foregroundColor(Color(uiColor:.systemFill))
+                                            Capsule()
+                                            #if os(visionOS)
+                                                .foregroundColor(Color(uiColor:.systemFill))
+                                            #endif
+                                            #if os(macOS)
+                                                .foregroundStyle(.background)
+                                            #endif
+
                                             Image(systemName: "square.and.arrow.up")
                                         }
                                         .onTapGesture {
@@ -105,7 +117,12 @@ struct PlaceAboutView: View {
                                         if let price = placeDetailsResponse.price {
                                             ZStack {
                                                 Capsule().frame(width: PlaceAboutView.buttonHeight, height: PlaceAboutView.buttonHeight, alignment: .center)
+                                                #if os(visionOS)
                                                     .foregroundColor(Color(uiColor:.systemFill))
+                                                #endif
+                                                #if os(macOS)
+                                                    .foregroundStyle(.background)
+                                                #endif
                                                 switch price {
                                                 case 1:
                                                     Text("$")
@@ -125,7 +142,12 @@ struct PlaceAboutView: View {
                                         if rating > 0 {
                                             ZStack {
                                                 Capsule().frame(width: PlaceAboutView.buttonHeight, height: PlaceAboutView.buttonHeight, alignment: .center)
+                                                #if os(visionOS)
                                                     .foregroundColor(Color(uiColor:.systemFill))
+                                                #endif
+                                                #if os(macOS)
+                                                    .foregroundStyle(.background)
+                                                #endif
                                                 Text(PlacesList.formatter.string(from: NSNumber(value: rating)) ?? "0")
                                                 
                                             }.onTapGesture {
@@ -145,13 +167,16 @@ struct PlaceAboutView: View {
             else {
                 if let resultId = resultId, let result = chatModel.placeChatResult(for: resultId), let placeDetailsResponse = result.placeDetailsResponse  {
                     let items:[Any] = [placeDetailsResponse.website ?? placeDetailsResponse.searchResponse.address]
+                    #if os(visionOS)
                     ActivityViewController(activityItems:items, applicationActivities:[UIActivity](), isPresentingShareSheet: $isPresentingShareSheet)
+                    #endif
                 }
             }
         }
     }
     
     
+    #if os(visionOS)
     func call(tel:String) {
         let uuid = UUID()
         let digits = tel.replacingOccurrences(of: "-", with: "").replacingOccurrences(of: "(", with: "").replacingOccurrences(of: ")", with: "").replacingOccurrences(of: " ", with: "")
@@ -168,12 +193,14 @@ struct PlaceAboutView: View {
             }
         }
     }
+    #endif
 }
 
 #Preview {
     let chatHost = AssistiveChatHost()
     let locationProvider = LocationProvider()
-    let model = ChatResultViewModel(locationProvider: locationProvider)
+    let cache = CloudCache()
+    let model = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cache)
     model.assistiveHostDelegate = chatHost
     chatHost.messagesDelegate = model
     

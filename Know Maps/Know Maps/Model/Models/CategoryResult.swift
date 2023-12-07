@@ -16,6 +16,11 @@ public struct CategoryResult : Identifiable, Equatable, Hashable {
     let parentCategory:String
     private(set) var categoricalChatResults:[ChatResult]
     
+    public init(parentCategory: String, categoricalChatResults: [ChatResult]) {
+        self.parentCategory = parentCategory
+        self.categoricalChatResults = categoricalChatResults
+    }
+    
     mutating func replaceChatResults(with results:[ChatResult]) {
         categoricalChatResults = results
     }

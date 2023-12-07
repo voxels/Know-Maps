@@ -21,10 +21,6 @@ struct MapResultsView: View {
                         Marker(result.title, coordinate: CLLocationCoordinate2D(latitude: placeResponse.latitude, longitude: placeResponse.longitude))
                     }
                 }
-                if model.filteredPlaceResults.count == 0 {
-                    let location = locationProvider.lastKnownLocation
-                    Marker("Query Location", coordinate: CLLocationCoordinate2D(latitude: location.coordinate.latitude, longitude: location.coordinate.longitude))
-                }
             }
             .mapControls {
                 MapPitchToggle()
@@ -40,7 +36,8 @@ struct MapResultsView: View {
 #Preview {
     let chatHost = AssistiveChatHost()
     let locationProvider = LocationProvider()
-    let model = ChatResultViewModel(locationProvider: locationProvider)
+    let cache = CloudCache()
+    let model = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cache)    
     model.assistiveHostDelegate = chatHost
     chatHost.messagesDelegate = model
 

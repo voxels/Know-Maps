@@ -13,24 +13,29 @@ open class CloudCache : NSObject, ObservableObject {
     @Published var fsqid:String = ""
     @Published var desc:String = ""
     public func fetchGeneratedDescription(for fsqid:String) async throws -> String {
-        self.fsqid = fsqid
+        
         let predicate = NSPredicate(format: "fsqid == %@", fsqid)
         let query = CKQuery(recordType: "GeneratedDescription", predicate: predicate)
         let operation = CKQueryOperation(query: query)
         operation.desiredKeys = ["description"]
         operation.resultsLimit = 1
         operation.recordMatchedBlock = { recordId, result in
-            do {
-                let record = try result.get()
-                if let description = record["description"] as? String {
-                    print("Found Generated Description \(description)")
-                    self.desc = description
-                } else {
-                    self.desc = ""
-                    print("Did not find description")
+            Task { @MainActor in
+                
+                do {
+                    let record = try result.get()
+                    if let description = record["description"] as? String {
+                        print("Found Generated Description \(description)")
+                        self.fsqid = fsqid
+                        self.desc = description
+                    } else {
+                        self.desc = ""
+                        print("Did not find description")
+                    }
+                } catch {
+                    print(error)
                 }
-            } catch {
-                print(error)
+                
             }
         }
         
@@ -61,8 +66,11 @@ open class CloudCache : NSObject, ObservableObject {
         record.setObject(fsqid as NSString, forKey: "fsqid")
         record.setObject(description as NSString, forKey: "description")
         cacheContainer.privateCloudDatabase.save(record) { [weak self] record, error in
-            self?.fsqid = fsqid
-            self?.desc = description
+            guard let strongSelf = self else { return }
+            Task { @MainActor in
+                strongSelf.fsqid = fsqid
+                strongSelf.desc = description
+            }
         }
     }
 }

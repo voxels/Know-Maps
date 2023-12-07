@@ -22,7 +22,6 @@ struct SearchView: View {
                 Text(result.parentCategory)
             }
         }
-        .searchable(text: $model.locationSearchText)
         .onChange(of: model.selectedCategoryChatResult) { oldValue, newValue in
             if newValue == nil {
                 model.selectedPlaceChatResult = nil
@@ -41,7 +40,8 @@ struct SearchView: View {
 #Preview {
     let chatHost = AssistiveChatHost()
     let locationProvider = LocationProvider()
-    let model = ChatResultViewModel(locationProvider: locationProvider)
+    let cache = CloudCache()
+    let model = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cache)
     model.assistiveHostDelegate = chatHost
     chatHost.messagesDelegate = model
     return SearchView(chatHost: chatHost, model: model, locationProvider: locationProvider)

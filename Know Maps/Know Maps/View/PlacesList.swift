@@ -10,7 +10,7 @@ import CoreLocation
 
 struct PlacesList: View {
     @ObservedObject public var chatHost:AssistiveChatHost
-    @ObservedObject public var model:ChatResultViewModel
+    @ObservedObject public var chatModel:ChatResultViewModel
     @ObservedObject public var locationProvider:LocationProvider
 
     @Binding public var resultId:ChatResult.ID?
@@ -22,9 +22,12 @@ struct PlacesList: View {
     }
 
     var body: some View {
-        List(model.filteredPlaceResults,selection: $resultId){ result in
+        List(chatModel.filteredPlaceResults,selection: $resultId){ result in
             HStack {
-                Text(result.title).foregroundColor(Color(uiColor: UIColor.label))
+                Text(result.title)
+                #if os(visionOS)
+                    .foregroundColor(Color(uiColor: UIColor.label))
+                #endif
                 Spacer()
                 Text(distanceString(for:result.placeResponse))
             }
@@ -33,10 +36,10 @@ struct PlacesList: View {
     
     func distanceString(for placeResponse:PlaceSearchResponse?)->String {
         var retval = ""
-        guard let placeResponse = placeResponse else {
+        guard let placeResponse = placeResponse, let queryLocationID = chatModel.selectedSourceLocationChatResult, let queryLocation = chatModel.locationChatResult(for: queryLocationID), let queryLocation = queryLocation.location else {
             return retval
         }
-        let queryLocation = locationProvider.queryLocation
+        
         let placeResponseLocation = CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude)
         
         let distance = queryLocation.distance(from: placeResponseLocation)
@@ -58,9 +61,10 @@ struct PlacesList: View {
 #Preview {
     let chatHost = AssistiveChatHost()
     let locationProvider = LocationProvider()
-    let model = ChatResultViewModel(locationProvider: locationProvider)
+    let cache = CloudCache()
+    let model = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cache)
     model.assistiveHostDelegate = chatHost
     chatHost.messagesDelegate = model
 
-    return PlacesList(chatHost: chatHost, model: model, locationProvider: locationProvider, resultId: .constant(nil))
+    return PlacesList(chatHost: chatHost, chatModel: model, locationProvider: locationProvider, resultId: .constant(nil))
 }

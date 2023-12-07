@@ -23,7 +23,7 @@ struct PlaceDirectionsView: View {
     
     static let mapFrameConstraint:Double = 200000
     static let mapFrameMinimumPadding:Double = 1000
-    static let polylineStrokeWidth:CGFloat = 16
+    static let polylineStrokeWidth:CGFloat = 8
     
     private var travelTime: String? {
         guard let route = model.route else { return nil }
@@ -34,8 +34,7 @@ struct PlaceDirectionsView: View {
     }
     
     var body: some View {
-        let currentLocation = locationProvider.lastKnownLocation
-        if let resultId = resultId, let result = chatModel.placeChatResult(for: resultId), let placeResponse = result.placeResponse {
+        if let resultId = resultId, let result = chatModel.placeChatResult(for: resultId), let placeResponse = result.placeResponse, let currentLocationID = chatModel.selectedSourceLocationChatResult, let locationResult = chatModel.locationChatResult(for: currentLocationID), let currentLocation = locationResult.location {
             let placeCoordinate = CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude)
             let maxDistance = currentLocation.distance(from: placeCoordinate) + PlaceDirectionsView.mapFrameConstraint
             let title = placeResponse.name
@@ -111,24 +110,13 @@ struct PlaceDirectionsView: View {
                         }
                     }
                 }
-            }.onAppear(perform: {
-                model.rawTransportType = 0
-                model.transportType = .walking
-                let _ = Task{ @MainActor in
-                    do {
-                        try await refreshDirections(with: placeResponse)
-                    } catch {
-                        chatModel.analytics?.track(name: "error \(error)")
-                        print(error)
-                    }
-                }
-            })
+            }
             .onChange(of: resultId) { oldValue, newValue in
                 guard let placeChatResult = chatModel.placeChatResult(for: newValue), let placeResponse = placeChatResult.placeResponse else {
                     return
                 }
                 
-                if oldValue != newValue, let sourceMapItem = mapItem(for: locationProvider.lastKnownLocation, name:locationProvider.lastKnownLocationName), let destinationMapItem = mapItem(for: CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude), name:placeResponse.name) {
+                if oldValue != newValue, let currentLocationID = chatModel.selectedSourceLocationChatResult, let locationResult = chatModel.locationChatResult(for: currentLocationID), let currentLocation = locationResult.location, let sourceMapItem = mapItem(for: currentLocation, name:locationResult.locationName), let destinationMapItem = mapItem(for: CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude), name:placeResponse.name) {
                     Task { @MainActor in
                         do {
                             try await getDirections(source:sourceMapItem, destination:destinationMapItem, model:model)
@@ -220,7 +208,7 @@ struct PlaceDirectionsView: View {
                         print(error)
                     }
                 } else {
-                    if let sourceMapItem = mapItem(for: locationProvider.lastKnownLocation, name:locationProvider.lastKnownLocationName), let destinationMapItem = mapItem(for: CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude), name:placeResponse.name) {
+                    if  let currentLocationID = chatModel.selectedSourceLocationChatResult, let locationResult = chatModel.locationChatResult(for: currentLocationID), let currentLocation = locationResult.location, let sourceMapItem = mapItem(for: currentLocation, name:locationResult.locationName), let destinationMapItem = mapItem(for: CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude), name:placeResponse.name) {
                         Task { @MainActor in
                             do {
                                 try await getDirections(source:sourceMapItem, destination:destinationMapItem, model:model)
@@ -242,7 +230,7 @@ struct PlaceDirectionsView: View {
     }
     
     func refreshDirections(with placeResponse:PlaceSearchResponse) async throws {
-        if let sourceMapItem = mapItem(for: locationProvider.lastKnownLocation, name:locationProvider.lastKnownLocationName), let destinationMapItem = mapItem(for: CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude), name:placeResponse.name) {
+        if let currentLocationID = chatModel.selectedSourceLocationChatResult, let locationResult = chatModel.locationChatResult(for: currentLocationID), let currentLocation = locationResult.location, let sourceMapItem = mapItem(for: currentLocation, name:locationResult.locationName), let destinationMapItem = mapItem(for: CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude), name:placeResponse.name) {
             Task { @MainActor in
                 do {
                     try await getDirections(source:sourceMapItem, destination:destinationMapItem, model:model)
@@ -329,7 +317,8 @@ struct PlaceDirectionsView: View {
 #Preview {
     let chatHost = AssistiveChatHost()
     let locationProvider = LocationProvider()
-    let chatModel = ChatResultViewModel(locationProvider: locationProvider)
+    let cache = CloudCache()
+    let chatModel = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cache)
     chatModel.assistiveHostDelegate = chatHost
     chatHost.messagesDelegate = chatModel
     let model = PlaceDirectionsViewModel()

@@ -10,7 +10,6 @@ import AuthenticationServices
 
 struct SettingsView: View {
     @ObservedObject public var model:SettingsModel
-    @Binding public var selectedTab:String
     
     var body: some View {
         if model.userId.isEmpty {
@@ -26,7 +25,6 @@ struct SettingsView: View {
                             model.userId = appleIDCredential.user
                             model.fullName = "\(appleIDCredential.fullName?.givenName ?? "") \(appleIDCredential.fullName?.familyName ?? "")"
                             print("Authorization successful.")
-                            selectedTab = "Settings"
                             Task {
                                 let key =  model.userId.data(using: .utf8)
                                 let addquery: [String: Any] = [kSecClass as String: kSecClassKey,
@@ -58,5 +56,5 @@ struct SettingsView: View {
 
 #Preview {
     let model = SettingsModel(userId:"")
-    return SettingsView(model:model, selectedTab: .constant("Settings"))
+    return SettingsView(model:model)
 }

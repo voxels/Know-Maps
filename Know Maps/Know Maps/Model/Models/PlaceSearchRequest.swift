@@ -11,7 +11,7 @@ import CoreLocation
 public struct PlaceSearchRequest {
     let query:String
     let ll:String?
-    var radius:Int = 3000
+    var radius:Int = 50000
     let categories:String?
     let fields:String?
     var minPrice:Int = 1
