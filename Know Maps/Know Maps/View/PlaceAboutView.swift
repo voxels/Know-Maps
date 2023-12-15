@@ -18,7 +18,7 @@ struct PlaceAboutView: View {
     @Binding public var resultId:ChatResult.ID?
     @Binding public var selectedTab:String
     
-    #if os(visionOS)
+    #if os(visionOS) || os(iOS)
     @State private var callController = CXCallController()
     #endif
     @State private var isPresentingShareSheet:Bool = false
@@ -75,7 +75,7 @@ struct PlaceAboutView: View {
                                     HStack {
                                         if let tel = placeDetailsResponse.tel {
                                             Button {
-                                                #if os(visionOS)
+                                                #if os(visionOS) || os(iOS)
                                                 call(tel:tel)
                                                 #endif
                                             } label: {
@@ -88,7 +88,7 @@ struct PlaceAboutView: View {
                                         if let website = placeDetailsResponse.website, let url = URL(string: website) {
                                             ZStack {
                                                 Capsule()
-                                                #if os(visionOS)
+                                                #if os(visionOS) || os(iOS)
                                                     .foregroundColor(Color(uiColor:.systemFill))
                                                 #endif
                                                 #if os(macOS)
@@ -97,7 +97,7 @@ struct PlaceAboutView: View {
                                                 Link("Visit Website", destination: url).foregroundStyle(.primary)
                                             }
                                         }
-#if os(visionOS)
+#if os(visionOS) || os(iOS)
 
                                         ZStack {
                                             Capsule()
@@ -113,7 +113,7 @@ struct PlaceAboutView: View {
                                         if let price = placeDetailsResponse.price {
                                             ZStack {
                                                 Capsule().frame(width: PlaceAboutView.buttonHeight, height: PlaceAboutView.buttonHeight, alignment: .center)
-                                                #if os(visionOS)
+                                                #if os(visionOS) || os(iOS)
                                                     .foregroundColor(Color(uiColor:.systemFill))
                                                 #endif
                                                 #if os(macOS)
@@ -138,7 +138,7 @@ struct PlaceAboutView: View {
                                         if rating > 0 {
                                             ZStack {
                                                 Capsule().frame(width: PlaceAboutView.buttonHeight, height: PlaceAboutView.buttonHeight, alignment: .center)
-                                                #if os(visionOS)
+                                                #if os(visionOS) || os(iOS)
                                                     .foregroundColor(Color(uiColor:.systemFill))
                                                 #endif
                                                 #if os(macOS)
@@ -163,7 +163,7 @@ struct PlaceAboutView: View {
             else {
                 if let resultId = resultId, let result = chatModel.placeChatResult(for: resultId), let placeDetailsResponse = result.placeDetailsResponse  {
                     let items:[Any] = [placeDetailsResponse.website ?? placeDetailsResponse.searchResponse.address]
-                    #if os(visionOS)
+                    #if os(visionOS) || os(iOS)
                     ActivityViewController(activityItems:items, applicationActivities:[UIActivity](), isPresentingShareSheet: $isPresentingShareSheet)
                     #endif
                 }
@@ -172,7 +172,7 @@ struct PlaceAboutView: View {
     }
     
     
-    #if os(visionOS)
+    #if os(visionOS) || os(iOS)
     func call(tel:String) {
         let uuid = UUID()
         let digits = tel.replacingOccurrences(of: "-", with: "").replacingOccurrences(of: "(", with: "").replacingOccurrences(of: ")", with: "").replacingOccurrences(of: " ", with: "")

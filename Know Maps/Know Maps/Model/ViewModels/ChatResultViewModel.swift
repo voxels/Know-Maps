@@ -221,6 +221,14 @@ public class ChatResultViewModel : ObservableObject {
         return selectedResult
     }
     
+    public func placeChatResult(for selectedPlaceFsqID:String)->ChatResult? {
+        let selectedResult = placeResults.first(where: { checkResult in
+            return checkResult.placeResponse?.fsqID == selectedPlaceFsqID
+        })
+        
+        return selectedResult
+    }
+    
     public func categoricalResult(for selectedCategoryResultID:ChatResult.ID)->ChatResult? {
         var results = filteredResults.first { result in
             return result.categoricalChatResults.contains { chatResult in
@@ -879,6 +887,16 @@ extension ChatResultViewModel : AssistiveChatHostMessagesDelegate {
         
         chatHost.updateLastIntentParameters(intent: newIntent)
         try await didUpdateQuery(with: chatHost.queryIntentParameters)
+    }
+    
+    public func didTapMarker(with fsqId:String?) async throws {
+        guard let fsqId = fsqId else {
+            return
+        }
+        
+        if let placeChatResult = placeChatResult(for:fsqId) {
+            selectedPlaceChatResult = placeChatResult.id
+        }
     }
     
     public func didTap(placeChatResult: ChatResult) async throws {

@@ -22,14 +22,16 @@ struct PlacesList: View {
     }
 
     var body: some View {
-        List(chatModel.filteredPlaceResults,selection: $resultId){ result in
-            HStack {
-                Text(result.title)
-                #if os(visionOS)
-                    .foregroundColor(Color(uiColor: UIColor.label))
-                #endif
-                Spacer()
-                Text(distanceString(for:result.placeResponse))
+        Section("Places") {
+            List(chatModel.filteredPlaceResults,selection: $resultId){ result in
+                HStack {
+                    Text(result.title)
+                    #if os(visionOS) || os(iOS)
+                        .foregroundColor(Color(uiColor: UIColor.label))
+                    #endif
+                    Spacer()
+                    Text(distanceString(for:result.placeResponse))
+                }
             }
         }
     }

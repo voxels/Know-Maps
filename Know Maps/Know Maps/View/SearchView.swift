@@ -13,24 +13,26 @@ struct SearchView: View {
     @ObservedObject public var locationProvider:LocationProvider
 
     var body: some View { 
-        List(model.filteredResults, selection:$model.selectedCategoryChatResult) { result in
-            Section {
-                ForEach(result.categoricalChatResults) { chatResult in
-                    Label(chatResult.title, systemImage:"folder").listItemTint(.white)
+        Section("Categories") {
+            List(model.filteredResults, selection:$model.selectedCategoryChatResult) { result in
+                Section {
+                    ForEach(result.categoricalChatResults) { chatResult in
+                        Label(chatResult.title, systemImage:"folder").listItemTint(Color.accentColor)
+                    }
+                } header: {
+                    Text(result.parentCategory)
                 }
-            } header: {
-                Text(result.parentCategory)
-            }
-        }
-        .onChange(of: model.selectedCategoryChatResult) { oldValue, newValue in
-            if newValue == nil {
-                model.selectedPlaceChatResult = nil
-            }
-            Task { @MainActor in
-                if let newValue = newValue, let categoricalResult  =
-                    model.categoricalResult(for: newValue) {
-                    model.locationSearchText = model.chatResult(for: newValue)?.title ?? model.locationSearchText
-                    await chatHost.didTap(chatResult: categoricalResult)
+            }        
+            .onChange(of: model.selectedCategoryChatResult) { oldValue, newValue in
+                if newValue == nil {
+                    model.selectedPlaceChatResult = nil
+                }
+                Task { @MainActor in
+                    if let newValue = newValue, let categoricalResult  =
+                        model.categoricalResult(for: newValue) {
+                        model.locationSearchText = model.chatResult(for: newValue)?.title ?? model.locationSearchText
+                        await chatHost.didTap(chatResult: categoricalResult)
+                    }
                 }
             }
         }

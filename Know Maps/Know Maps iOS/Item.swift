@@ -1,8 +1,8 @@
 //
 //  Item.swift
-//  Know Maps MacOS
+//  Know Maps iOS
 //
-//  Created by Michael A Edgcumbe on 12/6/23.
+//  Created by Michael A Edgcumbe on 12/15/23.
 //
 
 import Foundation

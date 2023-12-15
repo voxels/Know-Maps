@@ -8,16 +8,20 @@
 import SwiftUI
 import RealityKit
 import Segment
+import MapKit
 
 struct ContentView: View {
     
-    @State private var searchIsPresented = false
+
     @State private var showImmersiveSpace = false
     @State private var immersiveSpaceIsShown = false
+    @State private var columnVisibility =
+    NavigationSplitViewVisibility.all
     @StateObject public var chatHost:AssistiveChatHost
     @StateObject public var chatModel:ChatResultViewModel
     @StateObject public var locationProvider:LocationProvider
     @StateObject public var placeDirectionsChatViewModel = PlaceDirectionsViewModel()
+    @State private var selectedItem: String?
     @Environment(\.openWindow) private var openWindow
 #if os(visionOS)
     @Environment(\.openImmersiveSpace) var openImmersiveSpace
@@ -28,130 +32,49 @@ struct ContentView: View {
     
     var body: some View {
         GeometryReader() { geo in
-            NavigationSplitView {
+            NavigationSplitView(columnVisibility: $columnVisibility) {
                 VStack() {
-                    Section("Destination") {
-                        List(chatModel.filteredDestinationLocationResults, selection:$chatModel.selectedDestinationLocationChatResult) { result in
-                            if result.id == chatModel.selectedDestinationLocationChatResult {
-                                Label(result.locationName, systemImage: "mappin").tint(.red)
-                            } else {
-                                Label(result.locationName, systemImage: "mappin").tint(.accent)
-                            }
-                        }
-                    }
-                    .autocorrectionDisabled(true)
-                    .searchable(text: $chatModel.locationSearchText, isPresented:$searchIsPresented)
-                    .onSubmit(of: .search, {
-                        if chatModel.locationSearchText.isEmpty, !chatModel.placeResults.isEmpty {
-                            chatModel.resetPlaceModel()
-                            chatModel.selectedCategoryChatResult = nil
-                        } else {
-                            Task {
-                                do {
-                                    try await chatModel.didSearch(caption:chatModel.locationSearchText, selectedDestinationChatResultID:chatModel.selectedDestinationLocationChatResult)
-                                } catch {
-                                    chatModel.analytics?.track(name: "error \(error)")
-                                    print(error)
-                                }
-                            }
-                        }
-                    }).onChange(of: chatModel.locationSearchText, { oldValue, newValue in
-                        if newValue.isEmpty {
-                            chatModel.resetPlaceModel()
-                            chatModel.selectedCategoryChatResult = nil
-                        }
-                    })
-                    .onChange(of: chatModel.selectedDestinationLocationChatResult, { oldValue, newValue in
-                        
-                        chatModel.selectedSourceLocationChatResult = chatModel.filteredLocationResults.first?.id
-
-                            if let newValue = newValue, let locationChatResult = chatModel.locationChatResult(for: newValue),  !chatModel.locationSearchText.lowercased().contains(locationChatResult.locationName.lowercased()) {
-                                chatModel.locationSearchText = locationChatResult.locationName
-                            }
-                    })
-                    .task {
-                        chatModel.selectedDestinationLocationChatResult = chatModel.filteredLocationResults.first?.id
-                        
-                        Task {
-                            do {
-                                if let name = try await chatModel.currentLocationName() {
-                                    try await chatModel.didSearch(caption:name, selectedDestinationChatResultID:chatModel.selectedDestinationLocationChatResult)
-                                }
-                            } catch {
-                                chatModel.analytics?.track(name: "error \(error)")
-                                print(error)
-                            }
-                        }
-                        
-                    }
-                    
-                    Section("Origin") {
-                        List(chatModel.filteredSourceLocationResults, selection:$chatModel.selectedSourceLocationChatResult) { result in
-                            if result.id == chatModel.selectedSourceLocationChatResult {
-                                Label(result.locationName, systemImage: "mappin").tint(.red)
-                            } else {
-                                Label(result.locationName, systemImage: "mappin").tint(.accent)
-                            }
-                        }
-                    }.task {
-                        chatModel.selectedSourceLocationChatResult = chatModel.filteredLocationResults.first?.id
-                    }
-                    
+                    NavigationLocationView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, resultId: $chatModel.selectedPlaceChatResult)
                     SearchView(chatHost: chatHost, model: chatModel, locationProvider: locationProvider)
-#if os(visionOS)
-                        .toolbarBackground(
-                            Color.accentColor, for: .navigationBar, .tabBar)
-                        .toolbarColorScheme(
-                            .dark, for: .navigationBar, .tabBar)
-#endif
-                    
+
+                }.toolbar {
+                    ToolbarItem(placement: .automatic) {
+                        Button {
+                            openWindow(id: "SettingsView")
+                        } label: {
+                            Image(systemName: "gear")
+                        }
+                    }
                 }
+
             } content: {
                 PlacesList(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, resultId: $chatModel.selectedPlaceChatResult)
-#if os(visionOS)
-                    .toolbarBackground(
-                        Color.accentColor, for: .navigationBar, .tabBar)
-                    .toolbarColorScheme(
-                        .dark, for: .navigationBar, .tabBar)
-#endif
+
             } detail: {
                 if chatModel.filteredPlaceResults.count == 0 && chatModel.selectedPlaceChatResult == nil {
-                    MapResultsView(chatHost: chatHost, model: chatModel, locationProvider: locationProvider)
-#if os(visionOS)
-                        .toolbarBackground(
-                            Color.accentColor, for: .navigationBar, .tabBar)
-                        .toolbarColorScheme(
-                            .dark, for: .navigationBar, .tabBar)
-#endif
+                    MapResultsView(chatHost: chatHost, model: chatModel, locationProvider: locationProvider, selectedMapItem: $selectedItem)
                         .onAppear(perform: {
                             chatModel.analytics?.screen(title: "MapResultsView")
                         })
                     
                 } else if chatModel.selectedPlaceChatResult == nil {
-                    MapResultsView(chatHost: chatHost, model: chatModel, locationProvider: locationProvider)
-#if os(visionOS)
-                        .toolbarBackground(
-                            Color.accentColor, for: .navigationBar, .tabBar)
-                        .toolbarColorScheme(
-                            .dark, for: .navigationBar, .tabBar)
-#endif
+                    MapResultsView(chatHost: chatHost, model: chatModel, locationProvider: locationProvider, selectedMapItem: $selectedItem)
                         .onAppear(perform: {
                             chatModel.analytics?.screen(title: "MapResultsView")
                         })
                 } else {
                     PlaceView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, placeDirectionsViewModel: placeDirectionsChatViewModel, resultId: $chatModel.selectedPlaceChatResult)
-#if os(visionOS)
-                        .toolbarBackground(
-                            Color.accentColor, for: .navigationBar, .tabBar)
-                        .toolbarColorScheme(
-                            .dark, for: .navigationBar, .tabBar)
-#endif
                         .onAppear(perform: {
                             chatModel.analytics?.screen(title: "PlaceView")
                         })
                 }
             }.onAppear(perform: {
                 chatModel.analytics?.screen(title: "NavigationSplitView")
+            })
+            .onChange(of: selectedItem, { oldValue, newValue in
+                Task {
+                    try await chatModel.didTapMarker(with: newValue)
+                }
             })
             .onChange(of: chatModel.selectedPlaceChatResult, { oldValue, newValue in
                 guard let newValue = newValue else {
@@ -176,18 +99,11 @@ struct ContentView: View {
                 }
             }
             .tag("Search")
-            .toolbar {
-                ToolbarItem(placement: .automatic) {
-                    Button {
-                        openWindow(id: "SettingsView")
-                    } label: {
-                        Image(systemName: "gear")
-                    }
-
-                }
-            }
-        }.padding()
-            
+#if os(visionOS) || os(iOS)
+                    .toolbarColorScheme(
+                        .dark, for: .navigationBar, .tabBar)
+#endif
+        }
     }
 }
 

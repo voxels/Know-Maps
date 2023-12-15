@@ -30,7 +30,7 @@ struct Know_MapsApp: App {
             SettingsView(model:settingsModel)
                 .tag("Settings")
                 .onChange(of: settingsModel.userId, { oldValue, newValue in
-#if os(visionOS)
+#if os(visionOS) || os(iOS)
                     if !newValue.isEmpty, let vendorId = UIDevice().identifierForVendor {
                         analytics?.identify(userId: vendorId.uuidString)
                     }

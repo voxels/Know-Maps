@@ -18,7 +18,7 @@ open class LocationProvider : NSObject, ObservableObject  {
     private var maxRetries = 2
     
     public func authorize() {
-        #if os(visionOS)
+        #if os(visionOS) || os(iOS)
         if locationManager.authorizationStatus != .authorizedWhenInUse {
             locationManager.requestWhenInUseAuthorization()
         }
@@ -34,7 +34,7 @@ open class LocationProvider : NSObject, ObservableObject  {
     }
         
     public func currentLocation()->CLLocation? {
-#if os(visionOS)
+#if os(visionOS) || os(iOS)
 if locationManager.authorizationStatus != .authorizedWhenInUse {
     authorize()
 }

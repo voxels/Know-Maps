@@ -1,8 +1,8 @@
 //
 //  ContentView.swift
-//  Know Maps MacOS
+//  Know Maps iOS
 //
-//  Created by Michael A Edgcumbe on 12/6/23.
+//  Created by Michael A Edgcumbe on 12/15/23.
 //
 
 import SwiftUI
@@ -24,8 +24,10 @@ struct ContentView: View {
                 }
                 .onDelete(perform: deleteItems)
             }
-            .navigationSplitViewColumnWidth(min: 180, ideal: 200)
             .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    EditButton()
+                }
                 ToolbarItem {
                     Button(action: addItem) {
                         Label("Add Item", systemImage: "plus")

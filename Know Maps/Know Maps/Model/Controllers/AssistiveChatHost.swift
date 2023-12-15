@@ -37,6 +37,7 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
         self.analytics = analytics
         self.cache = cache
         self.lastGeocodedPlacemarks = lastGeocodedPlacemarks
+        try? organizeCategoryCodeList()
     }
     
     
@@ -152,7 +153,7 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
                 }
             }
             
-            #if os(visionOS)
+            #if os(visionOS) || os(iOS)
             if UIReferenceLibraryViewController.dictionaryHasDefinition(forTerm: prefix) {
                 return .Search
             }

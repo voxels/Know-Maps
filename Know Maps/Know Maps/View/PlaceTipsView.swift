@@ -18,7 +18,7 @@ struct PlaceTipsView: View {
     var body: some View {
         if isPresentingShareSheet, let resultId = resultId, let placeChatResult = chatModel.placeChatResult(for: resultId), let placeDetailsResponse = placeChatResult.placeDetailsResponse, let description = placeDetailsResponse.description, !description.isEmpty  {
             let items:[Any] = [description]
-            #if os(visionOS)
+            #if os(visionOS) || os(iOS)
             ActivityViewController(activityItems:items, applicationActivities:[UIActivity](), isPresentingShareSheet: $isPresentingShareSheet)
             #endif
 
@@ -73,7 +73,7 @@ struct PlaceTipsView: View {
                                     Rectangle().foregroundStyle(.thickMaterial)
                                     Text(description).padding()
                                 }.padding()
-#if os(visionOS)
+#if os(visionOS) || os(iOS)
                                 Spacer()
 
                                 ZStack {
