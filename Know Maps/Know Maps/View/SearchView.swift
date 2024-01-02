@@ -14,21 +14,15 @@ struct SearchView: View {
 
     var body: some View { 
         Section("Categories") {
-            List(model.filteredResults, selection:$model.selectedCategoryChatResult) { result in
-                Section {
-                    ForEach(result.categoricalChatResults) { chatResult in
-                        Label(chatResult.title, systemImage:"folder").listItemTint(Color.accentColor)
-                    }
-                } header: {
-                    Text(result.parentCategory)
-                }
-            }        
-            .onChange(of: model.selectedCategoryChatResult) { oldValue, newValue in
+            List(model.filteredResults, children:\.children, selection:$model.selectedCategoryResult) { parent in
+                Text("\(parent.parentCategory)")
+            }
+            .onChange(of: model.selectedCategoryResult) { oldValue, newValue in
                 if newValue == nil {
                     model.selectedPlaceChatResult = nil
                 }
                 Task { @MainActor in
-                    if let newValue = newValue, let categoricalResult  =
+                    if let newValue = newValue, let categoricalResult =
                         model.categoricalResult(for: newValue) {
                         model.locationSearchText = model.chatResult(for: newValue)?.title ?? model.locationSearchText
                         await chatHost.didTap(chatResult: categoricalResult)

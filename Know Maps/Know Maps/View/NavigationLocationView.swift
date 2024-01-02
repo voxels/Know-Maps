@@ -17,13 +17,11 @@ struct NavigationLocationView: View {
     var body: some View {
         GeometryReader { geo in
             VStack() {
-                Section("Search Location") {
-                    List(chatModel.filteredDestinationLocationResults, selection:$chatModel.selectedDestinationLocationChatResult) { result in
-                        if result.id == chatModel.selectedDestinationLocationChatResult {
-                            Label(result.locationName, systemImage: "mappin").tint(.red)
-                        } else {
-                            Label(result.locationName, systemImage: "mappin").tint(.blue)
-                        }
+                List(chatModel.filteredDestinationLocationResults, selection:$chatModel.selectedDestinationLocationChatResult) { result in
+                    if result.id == chatModel.selectedDestinationLocationChatResult {
+                        Label(result.locationName, systemImage: "mappin").tint(.red)
+                    } else {
+                        Label(result.locationName, systemImage: "mappin").tint(.blue)
                     }
                 }
                 .autocorrectionDisabled(true)
@@ -56,16 +54,16 @@ struct NavigationLocationView: View {
                         chatModel.locationSearchText = locationChatResult.locationName
                     }
                 })
-                
-                Section("Departing Location") {
-                    List(chatModel.filteredSourceLocationResults, selection:$chatModel.selectedSourceLocationChatResult) { result in
-                        if result.id == chatModel.selectedSourceLocationChatResult {
-                            Label(result.locationName, systemImage: "mappin").tint(.red)
-                        } else {
-                            Label(result.locationName, systemImage: "mappin").tint(.blue)
-                        }
-                    }
-                }
+//                
+//                Section("Departing Location") {
+//                    List(chatModel.filteredSourceLocationResults, selection:$chatModel.selectedSourceLocationChatResult) { result in
+//                        if result.id == chatModel.selectedSourceLocationChatResult {
+//                            Label(result.locationName, systemImage: "mappin").tint(.red)
+//                        } else {
+//                            Label(result.locationName, systemImage: "mappin").tint(.blue)
+//                        }
+//                    }
+//                }
             }
         }
     }

@@ -35,8 +35,8 @@ struct ContentView: View {
             NavigationSplitView(columnVisibility: $columnVisibility) {
                 VStack() {
                     NavigationLocationView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, resultId: $chatModel.selectedPlaceChatResult)
+                        .frame(maxHeight: geo.size.height / 4)
                     SearchView(chatHost: chatHost, model: chatModel, locationProvider: locationProvider)
-
                 }.toolbar {
                     ToolbarItem(placement: .automatic) {
                         Button {
@@ -46,7 +46,6 @@ struct ContentView: View {
                         }
                     }
                 }
-
             } content: {
                 PlacesList(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, resultId: $chatModel.selectedPlaceChatResult)
 

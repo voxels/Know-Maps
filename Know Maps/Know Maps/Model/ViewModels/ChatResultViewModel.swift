@@ -30,6 +30,7 @@ public class ChatResultViewModel : ObservableObject {
     public var analytics:Analytics?
 
     @ObservedObject public var cloudCache:CloudCache
+    @Published public var selectedCategoryResult:CategoryResult.ID?
     @Published public var selectedCategoryChatResult:ChatResult.ID?
     @Published public var selectedPlaceChatResult:ChatResult.ID?
     @Published public var selectedSourceLocationChatResult:LocationResult.ID?
@@ -86,14 +87,18 @@ public class ChatResultViewModel : ObservableObject {
             searchSection.replaceChatResults(with: foundResults)
             var filteredResults = categoryResults
             
-            if searchCategoryResults.categoricalChatResults.isEmpty {
+            guard let categoricalChatResults = searchCategoryResults.categoricalChatResults else {
+                return filteredResults
+            }
+            
+            if categoricalChatResults.isEmpty {
                 searchCategoryResults = searchSection
             } else {
-                let searchCategoricalChatResultTitles = searchCategoryResults.categoricalChatResults.compactMap { result in
+                let searchCategoricalChatResultTitles = categoricalChatResults.compactMap { result in
                     return result.title
                 }
                 
-                let searchSectionTitles = searchSection.categoricalChatResults.compactMap { result in
+                let searchSectionTitles = searchSection.categoricalChatResults?.compactMap { result in
                     return result.title
                 }
                 
@@ -102,13 +107,13 @@ public class ChatResultViewModel : ObservableObject {
                 }
             }
             
-            if !searchCategoryResults.categoricalChatResults.isEmpty {
+            if !categoricalChatResults.isEmpty {
                 if let firstCategory = categoryResults.first, firstCategory.parentCategory == "Search Results" {
-                    let searchSectionTitles = searchSection.categoricalChatResults.compactMap { result in
+                    let searchSectionTitles = searchSection.categoricalChatResults?.compactMap { result in
                         result.title
                     }
                     
-                    let firstCategoryTitles = firstCategory.categoricalChatResults.compactMap { result in
+                    let firstCategoryTitles = firstCategory.categoricalChatResults?.compactMap { result in
                         result.title
                     }
                     
@@ -183,7 +188,7 @@ public class ChatResultViewModel : ObservableObject {
         self.categoryResults = categoryResults
         self.searchCategoryResults = searchCategoryResults
         self.placeResults = placeResults
-        self.locationResults = [LocationResult(locationName: "Current Location", location: locationProvider.currentLocation())]
+        self.locationResults = locationResults
     }
     
     
@@ -229,27 +234,47 @@ public class ChatResultViewModel : ObservableObject {
         return selectedResult
     }
     
-    public func categoricalResult(for selectedCategoryResultID:ChatResult.ID)->ChatResult? {
-        var results = filteredResults.first { result in
-            return result.categoricalChatResults.contains { chatResult in
-                return chatResult.id == selectedCategoryResultID || chatResult.parentId == selectedCategoryResultID
+    public func categoricalResult(for selectedCategoryID:CategoryResult.ID)->ChatResult? {
+        var searchCategories = [CategoryResult]()
+        for result in filteredResults {
+            if let children = result.children {
+                for child in children {
+                    searchCategories.append(child)
+                }
             }
         }
         
-        if results == nil {
-            results = filteredResults.first { result in
-                return result.categoricalChatResults.contains { chatResult in
-                    return result.result(title: chatResult.title ) != nil
+        
+        let parentCategory = searchCategories.first { result in
+            if let children = result.children {
+                for child in children {
+                    if child.id == selectedCategoryID {
+                        print("found match:\(child.id)")
+                    }
+                }
+            } else {
+                return result.id == selectedCategoryID
+            }
+            return false
+        }
+
+        guard let parentCategory = parentCategory else {
+            return nil
+        }
+        
+        if parentCategory.id == selectedCategoryID {
+            return parentCategory.categoricalChatResults?.first
+        }
+        
+        if let children = parentCategory.children {
+            for child in children {
+                if child.id == selectedCategoryID {
+                    return child.categoricalChatResults?.first
                 }
             }
-            
-            return results?.categoricalChatResults.first { chatResult in
-                return chatResult.title.lowercased() == locationSearchText.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
-            }
         }
-        else {
-            return results?.result(for: selectedCategoryResultID)
-        }
+        
+        return nil
     }
     
     public func chatResult(title:String)->ChatResult? {
@@ -674,8 +699,9 @@ public class ChatResultViewModel : ObservableObject {
                     }
                     
                     for result in existingResults {
-                        let existingValues = result.categoricalChatResults
-                        newChatResults.append(contentsOf:existingValues)
+                        if let existingValues = result.categoricalChatResults {
+                            newChatResults.append(contentsOf:existingValues)
+                        }
                         retval.removeAll { checkResult in
                             return checkResult.parentCategory == key
                         }
@@ -930,10 +956,14 @@ extension ChatResultViewModel : AssistiveChatHostMessagesDelegate {
     }
     
     public func addReceivedMessage(caption: String, parameters: AssistiveChatHostQueryParameters, isLocalParticipant: Bool) async throws {
-        if selectedDestinationLocationChatResult == nil {
-            selectedDestinationLocationChatResult = filteredLocationResults.first?.id
+        if selectedDestinationLocationChatResult == nil, let firstLocation = filteredLocationResults.first {
+            selectedDestinationLocationChatResult = firstLocation.id
+        } else if selectedDestinationLocationChatResult == nil, filteredLocationResults.isEmpty, let currentLocation = locationProvider.currentLocation() {
+            locationResults.append(LocationResult(locationName: "Current Location", location: currentLocation))
+            selectedDestinationLocationChatResult = locationResults.first!.id
+        } else if selectedDestinationLocationChatResult == nil, filteredLocationResults.isEmpty, locationProvider.currentLocation() == nil {
+            throw ChatResultViewModelError.MissingSelectedDestinationLocationChatResult
         }
-        
         
         if let lastIntent = queryParametersHistory.last?.queryIntents.last {
             try await receiveMessage(caption: caption, parameters: parameters, isLocalParticipant: isLocalParticipant)

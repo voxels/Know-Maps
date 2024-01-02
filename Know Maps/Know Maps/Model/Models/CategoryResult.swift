@@ -14,25 +14,40 @@ public struct CategoryResult : Identifiable, Equatable, Hashable {
     
     public let id = UUID()
     let parentCategory:String
-    private(set) var categoricalChatResults:[ChatResult]
+    private(set) var categoricalChatResults:[ChatResult]?
+    public var children:[CategoryResult]?
     
-    public init(parentCategory: String, categoricalChatResults: [ChatResult]) {
+    public init(parentCategory: String, categoricalChatResults: [ChatResult]? = nil) {
         self.parentCategory = parentCategory
         self.categoricalChatResults = categoricalChatResults
+        self.children = children(with: self.categoricalChatResults)
     }
     
     mutating func replaceChatResults(with results:[ChatResult]) {
         categoricalChatResults = results
+        children = children(with: results)
+    }
+    
+    func children(with chatResults:[ChatResult]?)->[CategoryResult]? {
+        guard let chatResults = chatResults, chatResults.count > 1 else {
+            return nil
+        }
+        var retval = [CategoryResult]()
+        for chatResult in chatResults {
+            var newCategoryResult = CategoryResult(parentCategory: chatResult.title, categoricalChatResults: [chatResult])
+            retval.append(newCategoryResult)
+        }
+        return retval
     }
     
     func result(for id:ChatResult.ID)->ChatResult? {
-        return categoricalChatResults.filter { result in
+        return categoricalChatResults?.filter { result in
             result.id == id || result.parentId == id
         }.first
     }
     
     func result(title:String)->ChatResult? {
-        return categoricalChatResults.filter { result in
+        return categoricalChatResults?.filter { result in
             result.title.lowercased() == title.lowercased().trimmingCharacters(in: .whitespaces)
         }.first
     }
