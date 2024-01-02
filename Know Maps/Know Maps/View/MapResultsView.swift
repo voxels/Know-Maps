@@ -16,7 +16,7 @@ model:ChatResultViewModel
     @ObservedObject public var locationProvider:LocationProvider
     @Binding public var selectedMapItem: String?
     var body: some View {
-        Map(initialPosition:.automatic, bounds: MapCameraBounds(minimumDistance: 500, maximumDistance: 250000), interactionModes: .all, selection:$selectedMapItem, scope: nil) {
+        Map(initialPosition:model.filteredPlaceResults.isEmpty ? .userLocation(fallback: .automatic) : .automatic, bounds: MapCameraBounds(minimumDistance: 1500, maximumDistance: 250000), interactionModes: .all, selection:$selectedMapItem, scope: nil) {
                 ForEach(model.filteredPlaceResults) { result in
                     if let placeResponse = result.placeResponse {
                         Marker(result.title, coordinate: CLLocationCoordinate2D(latitude: placeResponse.latitude, longitude: placeResponse.longitude)).tag(placeResponse.fsqID)
