@@ -344,8 +344,11 @@ struct PlaceDirectionsView: View {
 
     let locationProvider = LocationProvider()
     let cache = CloudCache()
+    let settingsModel = SettingsModel(userId: "")
+
     let chatHost = AssistiveChatHost(cache:cache)
-    let chatModel = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cache)
+    let chatModel = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cache, settingsModel: settingsModel)
+
     chatModel.assistiveHostDelegate = chatHost
     chatHost.messagesDelegate = chatModel
     let model = PlaceDirectionsViewModel()

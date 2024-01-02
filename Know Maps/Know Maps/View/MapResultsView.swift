@@ -38,10 +38,12 @@ model:ChatResultViewModel
 
     let locationProvider = LocationProvider()
     let cache = CloudCache()
-    let chatHost = AssistiveChatHost(cache: cache)
-    let model = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cache)
-    model.assistiveHostDelegate = chatHost
-    chatHost.messagesDelegate = model
+    let settingsModel = SettingsModel(userId: "")
 
-    return MapResultsView(chatHost: chatHost, model:model, locationProvider: locationProvider, selectedMapItem: .constant(nil))
+    let chatHost = AssistiveChatHost(cache: cache)
+    let chatModel = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cache, settingsModel: settingsModel)
+    chatModel.assistiveHostDelegate = chatHost
+    chatHost.messagesDelegate = chatModel
+
+    return MapResultsView(chatHost: chatHost, model:chatModel, locationProvider: locationProvider, selectedMapItem: .constant(nil))
 }

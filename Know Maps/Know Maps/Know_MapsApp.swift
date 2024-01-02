@@ -23,22 +23,7 @@ struct Know_MapsApp: App {
     
     var body: some Scene {
         WindowGroup(id:"ContentView") {
-            ContentView(chatHost: AssistiveChatHost(cache: cloudCache), chatModel: ChatResultViewModel(locationProvider: locationProvider, cloudCache: cloudCache), locationProvider: locationProvider)
-        }
-        
-        WindowGroup(id:"SettingsView"){
-            SettingsView(model:settingsModel)
-                .tag("Settings")
-                .onChange(of: settingsModel.userId, { oldValue, newValue in
-#if os(visionOS) || os(iOS)
-                    if !newValue.isEmpty, let vendorId = UIDevice().identifierForVendor {
-                        analytics?.identify(userId: vendorId.uuidString)
-                    }
-#endif
-#if os(macOS)
-                    
-#endif
-                })
+            ContentView(chatHost: AssistiveChatHost(cache: cloudCache), chatModel: ChatResultViewModel(locationProvider: locationProvider, cloudCache: cloudCache, settingsModel:settingsModel), locationProvider: locationProvider)
                 .task {
                     let getquery: [String: Any] = [kSecClass as String: kSecClassKey,
                                                    kSecAttrApplicationTag as String: SettingsModel.tag,
@@ -57,6 +42,21 @@ struct Know_MapsApp: App {
                     
                     settingsModel.keychainId = String(data: keyData, encoding: .utf8) ?? ""
                 }
+        }
+        
+        WindowGroup(id:"SettingsView"){
+            SettingsView(model:settingsModel)
+                .tag("Settings")
+                .onChange(of: settingsModel.userId, { oldValue, newValue in
+#if os(visionOS) || os(iOS)
+                    if !newValue.isEmpty, let vendorId = UIDevice().identifierForVendor {
+                        analytics?.identify(userId: vendorId.uuidString)
+                    }
+#endif
+#if os(macOS)
+                    
+#endif
+                })
         }
         
 #if os(visionOS)

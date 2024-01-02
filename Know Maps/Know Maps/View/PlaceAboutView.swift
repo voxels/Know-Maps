@@ -194,10 +194,13 @@ struct PlaceAboutView: View {
     
     let locationProvider = LocationProvider()
     let cache = CloudCache()
+    let settingsModel = SettingsModel(userId: "")
+
     let chatHost = AssistiveChatHost(cache:cache)
-    let model = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cache)
-    model.assistiveHostDelegate = chatHost
-    chatHost.messagesDelegate = model
+    let chatModel = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cache, settingsModel: settingsModel)
+
+    chatModel.assistiveHostDelegate = chatHost
+    chatHost.messagesDelegate = chatModel
     
-    return PlaceAboutView(chatHost:chatHost,chatModel: model, locationProvider: locationProvider, resultId: .constant(nil), selectedTab: .constant("About"))
+    return PlaceAboutView(chatHost:chatHost,chatModel: chatModel, locationProvider: locationProvider, resultId: .constant(nil), selectedTab: .constant("About"))
 }

@@ -34,7 +34,7 @@ public struct CategoryResult : Identifiable, Equatable, Hashable {
         }
         var retval = [CategoryResult]()
         for chatResult in chatResults {
-            var newCategoryResult = CategoryResult(parentCategory: chatResult.title, categoricalChatResults: [chatResult])
+            let newCategoryResult = CategoryResult(parentCategory: chatResult.title, categoricalChatResults: [chatResult])
             retval.append(newCategoryResult)
         }
         return retval

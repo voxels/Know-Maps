@@ -20,8 +20,8 @@ struct PlaceDirectionsControlsView: View {
     }
     
     var body: some View {
-        VStack {
             HStack {
+                Spacer()
                 if !showLookAroundScene {
                     Picker("Route Start Location", selection:$model.rawLocationIdent) {
                         ForEach(chatModel.filteredLocationResults, id:\.self) { result in
@@ -39,7 +39,7 @@ struct PlaceDirectionsControlsView: View {
                     Button {
                         MKMapItem.openMaps(with: [source,destination], launchOptions: launchOptions)
                     } label: {
-                        Label("Open in Apple Maps", systemImage: "apple.logo")
+                        Label("Apple Maps", systemImage: "apple.logo")
                     }
                 }
 
@@ -54,17 +54,18 @@ struct PlaceDirectionsControlsView: View {
                     }
                     .padding(4)
                 }
+                Spacer()
             }
         }
-    }
 }
 
 #Preview {
     let model = PlaceDirectionsViewModel()
     let locationProvider = LocationProvider()
     let cache = CloudCache()
-    let chatHost = AssistiveChatHost(cache: cache)
-    let chatModel = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cache)
+    let settingsModel = SettingsModel(userId: "")
+
+    let chatModel = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cache, settingsModel: settingsModel)
 
     return PlaceDirectionsControlsView(chatModel: chatModel, model: model, showLookAroundScene: .constant(false))
 }

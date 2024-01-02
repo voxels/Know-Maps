@@ -110,7 +110,8 @@ struct ContentView: View {
 #Preview {
     let locationProvider = LocationProvider()
     let cache = CloudCache()
-    let chatModel = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cache)
+    let settingsModel = SettingsModel(userId: "")
+    let chatModel = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cache, settingsModel: settingsModel)
     let chatHost = AssistiveChatHost(cache:cache)
     return ContentView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider)
 }
