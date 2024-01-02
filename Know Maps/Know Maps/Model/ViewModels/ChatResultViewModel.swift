@@ -404,6 +404,9 @@ public class ChatResultViewModel : ObservableObject {
     }
     
     public func detailIntent( intent: AssistiveChatHostIntent) async throws {
+        if intent.selectedPlaceSearchDetails != nil {
+            return
+        }
         if intent.placeSearchResponses.count > 0, let placeSearchResponse = intent.selectedPlaceSearchResponse {
             intent.selectedPlaceSearchDetails = try await fetchDetails(for: [placeSearchResponse]).first
         }
@@ -517,11 +520,6 @@ public class ChatResultViewModel : ObservableObject {
     }
     
     public func model(intent:AssistiveChatHostIntent) async throws {
-        if intent.selectedPlaceSearchDetails != nil, let selectedPlaceChatResult = selectedPlaceChatResult, let placeChatResult = placeChatResult(for: selectedPlaceChatResult), placeChatResult.title == intent.caption {
-            await searchQueryModel(intent: intent)
-            return
-        }
-        
         switch intent.intent {
         case .Search:
             try await detailIntent(intent: intent)
@@ -548,7 +546,7 @@ public class ChatResultViewModel : ObservableObject {
             return result.placeResponse
         }
         
-        if existingPlaceResults == intent.placeSearchResponses, let selectedPlaceSearchDetails = intent.selectedPlaceSearchDetails, let selectedPlaceChatResult, let placeChatResult = placeChatResult(for: selectedPlaceChatResult) {
+        if existingPlaceResults == intent.placeSearchResponses, let selectedPlaceSearchDetails = intent.selectedPlaceSearchDetails, let selectedPlaceChatResult = selectedPlaceChatResult, let placeChatResult = placeChatResult(for: selectedPlaceChatResult) {
             var newResults = [ChatResult]()
             for index in 0..<placeResults.count {
                 var placeResult = placeResults[index]

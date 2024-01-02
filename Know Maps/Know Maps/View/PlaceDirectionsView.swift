@@ -34,9 +34,8 @@ struct PlaceDirectionsView: View {
     }
     
     var body: some View {
-        if let resultId = resultId, let result = chatModel.placeChatResult(for: resultId), let placeResponse = result.placeResponse, let currentLocationID = chatModel.selectedSourceLocationChatResult, let locationResult = chatModel.locationChatResult(for: currentLocationID), let currentLocation = locationResult.location {
+        if let resultId = resultId, let result = chatModel.placeChatResult(for: resultId), let placeResponse = result.placeResponse {
             let placeCoordinate = CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude)
-            let maxDistance = currentLocation.distance(from: placeCoordinate) + PlaceDirectionsView.mapFrameConstraint
             let title = placeResponse.name
             GeometryReader { geo in
                 ScrollView {
@@ -71,11 +70,8 @@ struct PlaceDirectionsView: View {
                                     }
                                     .frame(minWidth: geo.size.width, minHeight:geo.size.height * 2.0 / 3.0)
                             } else {
-                                Map(initialPosition: .automatic, bounds: MapCameraBounds(minimumDistance: currentLocation.distance(from: placeCoordinate) + PlaceDirectionsView.mapFrameMinimumPadding, maximumDistance:maxDistance)) {
+                                Map(initialPosition: .automatic, bounds: MapCameraBounds(minimumDistance: 1500, maximumDistance:250000)) {
                                     Marker(title, coordinate: placeCoordinate.coordinate)
-                                    if currentLocation.distance(from: placeCoordinate) < PlaceDirectionsView.mapFrameConstraint {
-                                        Marker("Origin Location", coordinate: currentLocation.coordinate)
-                                    }
                                     
                                     if let polyline = model.polyline {
                                         MapPolyline(polyline)
@@ -94,7 +90,7 @@ struct PlaceDirectionsView: View {
                             }
                         }
                         
-                        PlaceDirectionsControlsView(model: model, showLookAroundScene: $showLookAroundScene)
+                        PlaceDirectionsControlsView(chatModel:chatModel,model: model, showLookAroundScene: $showLookAroundScene)
                         
                         if let chatRouteResults = model.chatRouteResults, chatRouteResults.count > 0  {
                             ZStack() {
@@ -129,6 +125,23 @@ struct PlaceDirectionsView: View {
                     }
                 }
             }
+            .onChange(of: model.rawLocationIdent, { oldValue, newValue in
+                if let ident = UUID(uuidString: newValue) {
+                    guard let placeChatResult = chatModel.placeChatResult(for: resultId), let placeResponse = placeChatResult.placeResponse else {
+                        return
+                    }
+                    
+                    chatModel.selectedSourceLocationChatResult = ident
+                    let _ = Task{ @MainActor in
+                        do {
+                            try await refreshDirections(with: placeResponse)
+                        } catch {
+                            chatModel.analytics?.track(name: "error \(error)")
+                            print(error)
+                        }
+                    }
+                }
+            })
             .onChange(of: model.rawTransportType) { oldValue, newValue in
                 switch newValue {
                 case 0:
@@ -199,6 +212,10 @@ struct PlaceDirectionsView: View {
                     }
                 }
             }.onAppear(perform: {
+                if chatModel.selectedSourceLocationChatResult == nil {
+                    chatModel.selectedSourceLocationChatResult = chatModel.filteredLocationResults.first?
+                        .id
+                }
                 let _ = Task{ @MainActor in
                     do {
                         try await refreshDirections(with: placeResponse)

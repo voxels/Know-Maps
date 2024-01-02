@@ -30,11 +30,11 @@ struct PlaceAboutView: View {
         GeometryReader { geo in
             ScrollView {
                 VStack {
-                    if let resultId = resultId, let result = chatModel.placeChatResult(for: resultId), let placeResponse = result.placeResponse, let placeDetailsResponse = result.placeDetailsResponse, let sourceLocationID = chatModel.selectedSourceLocationChatResult, let locationResult = chatModel.locationChatResult(for: sourceLocationID), let currentLocation = locationResult.location {
+                    if let resultId = resultId, let result = chatModel.placeChatResult(for: resultId), let placeResponse = result.placeResponse, let placeDetailsResponse = result.placeDetailsResponse {
                         let placeCoordinate = CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude)
-                        let maxDistance = currentLocation.distance(from: placeCoordinate) + PlaceAboutView.mapFrameConstraint
+
                         let title = placeResponse.name
-                        Map(initialPosition: .automatic, bounds: MapCameraBounds(minimumDistance: currentLocation.distance(from: placeCoordinate) + 500, maximumDistance:maxDistance)) {
+                        Map(initialPosition: .automatic,bounds: MapCameraBounds(minimumDistance: 1500, maximumDistance:250000)) {
                             Marker(title, coordinate: placeCoordinate.coordinate)
                         }
                         .mapControls {
