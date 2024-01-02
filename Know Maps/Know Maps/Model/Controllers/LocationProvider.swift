@@ -73,9 +73,7 @@ extension LocationProvider : CLLocationManagerDelegate {
     }
     
     public func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        guard let lastLocation = locations.last else {
-            return
-        }
+        
     }
     
     public func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {

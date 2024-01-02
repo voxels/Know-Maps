@@ -13,37 +13,78 @@ struct PlaceTipsView: View {
     @ObservedObject public var locationProvider:LocationProvider
     @Binding public var resultId:ChatResult.ID?
     @State private var isPresentingShareSheet:Bool = false
-
+    
     
     var body: some View {
-        if isPresentingShareSheet, let resultId = resultId, let placeChatResult = chatModel.placeChatResult(for: resultId), let placeDetailsResponse = placeChatResult.placeDetailsResponse, let description = placeDetailsResponse.description, !description.isEmpty  {
-            let items:[Any] = [description]
-            #if os(visionOS) || os(iOS)
-            ActivityViewController(activityItems:items, applicationActivities:[UIActivity](), isPresentingShareSheet: $isPresentingShareSheet)
-            #endif
-
-        } else {
-            if let resultId = resultId, let placeChatResult = chatModel.placeChatResult(for: resultId), let placeDetailsResponse = placeChatResult.placeDetailsResponse{
-                ScrollView() {
-                    VStack() {
-                        if let tips = placeDetailsResponse.tipsResponses, tips.count > 0 , let description = placeDetailsResponse.description, description.isEmpty  {
-                            HStack() {
-                                Spacer()
-                                Button {
-                                    Task {
-                                        try await chatHost.placeDescription(chatResult: placeChatResult, delegate: chatModel)
-                                    }
-                                } label: {
-                                    if chatModel.isFetchingPlaceDescription, placeChatResult.id == chatModel.fetchingPlaceID {
-                                        ProgressView().progressViewStyle(.circular)
-                                    } else {
-                                        Text("Generate description for \(placeDetailsResponse.searchResponse.name)")
-                                    }
+        
+        if let resultId = resultId, let placeChatResult = chatModel.placeChatResult(for: resultId), let placeDetailsResponse = placeChatResult.placeDetailsResponse{
+            ScrollView() {
+                VStack() {
+                    if let tips = placeDetailsResponse.tipsResponses, tips.count > 0 , let description = placeDetailsResponse.description, description.isEmpty  {
+                        HStack() {
+                            Spacer()
+                            Button {
+                                Task {
+                                    try await chatHost.placeDescription(chatResult: placeChatResult, delegate: chatModel)
                                 }
-                                .buttonStyle(.bordered)
-                                .backgroundStyle(.primary)
-                                Spacer()
+                            } label: {
+                                if chatModel.isFetchingPlaceDescription, placeChatResult.id == chatModel.fetchingPlaceID {
+                                    ProgressView().progressViewStyle(.circular)
+                                } else {
+                                    Text("Generate description for \(placeDetailsResponse.searchResponse.name)")
+                                }
                             }
+                            .buttonStyle(.bordered)
+                            .backgroundStyle(.primary)
+                            Spacer()
+                        }
+                        let titles = tips.compactMap { response in
+                            return response.text
+                        }
+                        ForEach(titles, id:\.self) { response in
+                            ZStack() {
+                                Rectangle().foregroundStyle(.thickMaterial)
+                                Text(response).padding()
+                            }.padding()
+                        }
+                    } else if let tastes = placeDetailsResponse.tastes, tastes.count > 0, let description = placeDetailsResponse.description, description.isEmpty {
+                        HStack() {
+                            Spacer()
+                            Button {
+                                Task {
+                                    try await chatHost.placeDescription(chatResult: placeChatResult, delegate: chatModel)
+                                }
+                            } label: {
+                                Text("Generate description for \(placeDetailsResponse.searchResponse.name)")
+                            }
+                            .buttonStyle(.bordered)
+                            .backgroundStyle(.primary)
+                            Spacer()
+                        }
+                    } else if let description = placeDetailsResponse.description, !description.isEmpty {
+                        HStack() {
+                            ZStack() {
+                                Rectangle().foregroundStyle(.thickMaterial)
+                                Text(description).padding()
+                            }.padding()
+#if os(visionOS) || os(iOS)
+                            Spacer()
+                            
+                            ZStack {
+                                Capsule()
+                                    .frame(minWidth:60, maxWidth:60, minHeight:60, maxHeight:60)
+                                    .foregroundColor(Color(uiColor:.systemFill))
+                                Image(systemName: "square.and.arrow.up")
+                            }.padding()
+                                .onTapGesture {
+                                    self.isPresentingShareSheet.toggle()
+                                }
+#endif
+                            
+                        }
+                        
+                        if let tips = placeDetailsResponse.tipsResponses, tips.count > 0 {
+                            
                             let titles = tips.compactMap { response in
                                 return response.text
                             }
@@ -53,66 +94,26 @@ struct PlaceTipsView: View {
                                     Text(response).padding()
                                 }.padding()
                             }
-                        } else if let tastes = placeDetailsResponse.tastes, tastes.count > 0, let description = placeDetailsResponse.description, description.isEmpty {
-                            HStack() {
-                                Spacer()
-                                Button {
-                                    Task {
-                                        try await chatHost.placeDescription(chatResult: placeChatResult, delegate: chatModel)
-                                    }
-                                } label: {
-                                    Text("Generate description for \(placeDetailsResponse.searchResponse.name)")
-                                }
-                                .buttonStyle(.bordered)
-                                .backgroundStyle(.primary)
-                                Spacer()
-                            }
-                        } else if let description = placeDetailsResponse.description, !description.isEmpty {
-                            HStack() {
-                                ZStack() {
-                                    Rectangle().foregroundStyle(.thickMaterial)
-                                    Text(description).padding()
-                                }.padding()
-#if os(visionOS) || os(iOS)
-                                Spacer()
-
-                                ZStack {
-                                    Capsule()
-                                        .frame(minWidth:60, maxWidth:60, minHeight:60, maxHeight:60)
-                                        .foregroundColor(Color(uiColor:.systemFill))
-                                    Image(systemName: "square.and.arrow.up")
-                                }.padding()
-                                .onTapGesture {
-                                    self.isPresentingShareSheet.toggle()
-                                }
-#endif
-
-                            }
-                            
-                            if let tips = placeDetailsResponse.tipsResponses, tips.count > 0 {
-                                
-                                let titles = tips.compactMap { response in
-                                    return response.text
-                                }
-                                ForEach(titles, id:\.self) { response in
-                                    ZStack() {
-                                        Rectangle().foregroundStyle(.thickMaterial)
-                                        Text(response).padding()
-                                    }.padding()
-                                }
-                            }
                         }
                     }
                 }
-            } else {
-                ContentUnavailableView("No tips found for this location", systemImage: "x.circle.fill")
+            }                            
+            .popover(isPresented: $isPresentingShareSheet) {
+                if let result = chatModel.placeChatResult(for: resultId), let placeDetailsResponse = result.placeDetailsResponse  {
+                    let items:[Any] = [placeDetailsResponse.website ?? placeDetailsResponse.searchResponse.address]
+#if os(visionOS) || os(iOS)
+                    ActivityViewController(activityItems:items, applicationActivities:[UIActivity](), isPresentingShareSheet: $isPresentingShareSheet)
+#endif
+                }
             }
+        } else {
+            ContentUnavailableView("No tips found for this location", systemImage: "x.circle.fill")
         }
     }
 }
 
 #Preview {
-
+    
     let locationProvider = LocationProvider()
     let cache = CloudCache()
     let chatHost = AssistiveChatHost(cache: cache)

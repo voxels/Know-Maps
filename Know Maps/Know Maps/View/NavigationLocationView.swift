@@ -50,27 +50,12 @@ struct NavigationLocationView: View {
                 })
                 .onChange(of: chatModel.selectedDestinationLocationChatResult, { oldValue, newValue in
                     
-                    chatModel.selectedSourceLocationChatResult = chatModel.filteredLocationResults.first?.id
+//                    chatModel.selectedSourceLocationChatResult = chatModel.filteredLocationResults.first?.id
                     
                     if let newValue = newValue, let locationChatResult = chatModel.locationChatResult(for: newValue),  !chatModel.locationSearchText.lowercased().contains(locationChatResult.locationName.lowercased()) {
                         chatModel.locationSearchText = locationChatResult.locationName
                     }
                 })
-                .task {
-                    chatModel.selectedDestinationLocationChatResult = chatModel.filteredLocationResults.first?.id
-                    
-                    Task {
-                        do {
-                            if let name = try await chatModel.currentLocationName() {
-                                try await chatModel.didSearch(caption:name, selectedDestinationChatResultID:chatModel.selectedDestinationLocationChatResult)
-                            }
-                        } catch {
-                            chatModel.analytics?.track(name: "error \(error)")
-                            print(error)
-                        }
-                    }
-                    
-                }
                 
                 Section("Departing Location") {
                     List(chatModel.filteredSourceLocationResults, selection:$chatModel.selectedSourceLocationChatResult) { result in
@@ -80,8 +65,6 @@ struct NavigationLocationView: View {
                             Label(result.locationName, systemImage: "mappin").tint(.blue)
                         }
                     }
-                }.task {
-                    chatModel.selectedSourceLocationChatResult = chatModel.filteredLocationResults.first?.id
                 }
             }
         }

@@ -292,14 +292,14 @@ public class ChatResultViewModel : ObservableObject {
         
         let placemarks = try? await checkSearchTextForLocations(with: caption)
         
-        if let placemarks = placemarks, let firstPlacemark = placemarks.first, let location = firstPlacemark.location {
+        if let placemarks = placemarks, let firstPlacemark = placemarks.first, let _ = firstPlacemark.location {
             await MainActor.run {
                 queryParametersHistory.append(parameters)
                 let locations = placemarks.compactMap({ placemark in
                     return LocationResult(locationName: placemark.name ?? "Unknown Location", location: placemark.location)
                 })
                 var existingLocationNames = locationResults.map { $0.locationName }
-                var newLocations = locations.filter { result in
+                let newLocations = locations.filter { result in
                     !existingLocationNames.contains(result.locationName)
                 }
                 
@@ -442,7 +442,7 @@ public class ChatResultViewModel : ObservableObject {
                 return LocationResult(locationName: placemark.name ?? "Unknown Location", location: placemark.location)
             })
             let existingLocationNames = locationResults.map { $0.locationName }
-            var newLocations = locations.filter { result in
+            let newLocations = locations.filter { result in
                 !existingLocationNames.contains(result.locationName)
             }
             
@@ -826,10 +826,13 @@ extension ChatResultViewModel : AssistiveChatHostMessagesDelegate {
     
     
     public func didSearch(caption: String, selectedDestinationChatResultID:LocationResult.ID?) async throws {
-        guard selectedDestinationChatResultID != nil else {
-            resetPlaceModel()
-            return
+
+        var destinationChatResultID = selectedDestinationChatResultID
+
+        if destinationChatResultID == nil {
+            destinationChatResultID = filteredLocationResults.first?.id
         }
+        
         
         do {
             guard let chatHost = self.assistiveHostDelegate else {
@@ -927,6 +930,10 @@ extension ChatResultViewModel : AssistiveChatHostMessagesDelegate {
     }
     
     public func addReceivedMessage(caption: String, parameters: AssistiveChatHostQueryParameters, isLocalParticipant: Bool) async throws {
+        if selectedDestinationLocationChatResult == nil {
+            selectedDestinationLocationChatResult = filteredLocationResults.first?.id
+        }
+        
         
         if let lastIntent = queryParametersHistory.last?.queryIntents.last {
             try await receiveMessage(caption: caption, parameters: parameters, isLocalParticipant: isLocalParticipant)

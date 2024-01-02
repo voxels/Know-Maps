@@ -18,9 +18,9 @@ struct PlaceAboutView: View {
     @Binding public var resultId:ChatResult.ID?
     @Binding public var selectedTab:String
     
-    #if os(visionOS) || os(iOS)
+#if os(visionOS) || os(iOS)
     @State private var callController = CXCallController()
-    #endif
+#endif
     @State private var isPresentingShareSheet:Bool = false
     static let defaultPadding:CGFloat = 8
     static let mapFrameConstraint:Double = 50000
@@ -28,151 +28,149 @@ struct PlaceAboutView: View {
     
     var body: some View {
         GeometryReader { geo in
-            if !isPresentingShareSheet {
-                ScrollView {
-                    VStack {                        
-                        if let resultId = resultId, let result = chatModel.placeChatResult(for: resultId), let placeResponse = result.placeResponse, let placeDetailsResponse = result.placeDetailsResponse, let sourceLocationID = chatModel.selectedSourceLocationChatResult, let locationResult = chatModel.locationChatResult(for: sourceLocationID), let currentLocation = locationResult.location {
-                            let placeCoordinate = CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude)
-                            let maxDistance = currentLocation.distance(from: placeCoordinate) + PlaceAboutView.mapFrameConstraint
-                            let title = placeResponse.name
-                            Map(initialPosition: .automatic, bounds: MapCameraBounds(minimumDistance: currentLocation.distance(from: placeCoordinate) + 500, maximumDistance:maxDistance)) {
-                                Marker(title, coordinate: placeCoordinate.coordinate)
-                            }
-                            .mapControls {
-                                MapPitchToggle()
-                                MapUserLocationButton()
-                                MapCompass()
-                            }
-                            .mapStyle(.hybrid(elevation: .realistic,
-                                              pointsOfInterest: .including([.publicTransport]),
-                                              showsTraffic: true))
-                            .frame(minHeight: geo.size.height / 2.0)
-                            .padding(EdgeInsets(top: 0, leading: PlaceAboutView.defaultPadding * 2, bottom: PlaceAboutView.defaultPadding, trailing: PlaceAboutView.defaultPadding * 2))
-                            
-                            ZStack(alignment: .leading) {
-                                Rectangle().foregroundStyle(.thinMaterial)
-                                VStack(){
-                                    ZStack {
-                                        Rectangle().foregroundStyle(.thickMaterial)
-                                        VStack{
-                                            Text(placeResponse.name).bold()
-                                            
-                                            Text(placeResponse.categories.joined(separator: ", ")).italic()
-                                            
-                                        }
-                                        .padding(PlaceAboutView.defaultPadding)
+            ScrollView {
+                VStack {
+                    if let resultId = resultId, let result = chatModel.placeChatResult(for: resultId), let placeResponse = result.placeResponse, let placeDetailsResponse = result.placeDetailsResponse, let sourceLocationID = chatModel.selectedSourceLocationChatResult, let locationResult = chatModel.locationChatResult(for: sourceLocationID), let currentLocation = locationResult.location {
+                        let placeCoordinate = CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude)
+                        let maxDistance = currentLocation.distance(from: placeCoordinate) + PlaceAboutView.mapFrameConstraint
+                        let title = placeResponse.name
+                        Map(initialPosition: .automatic, bounds: MapCameraBounds(minimumDistance: currentLocation.distance(from: placeCoordinate) + 500, maximumDistance:maxDistance)) {
+                            Marker(title, coordinate: placeCoordinate.coordinate)
+                        }
+                        .mapControls {
+                            MapPitchToggle()
+                            MapUserLocationButton()
+                            MapCompass()
+                        }
+                        .mapStyle(.hybrid(elevation: .realistic,
+                                          pointsOfInterest: .including([.publicTransport]),
+                                          showsTraffic: true))
+                        .frame(minHeight: geo.size.height / 2.0)
+                        .padding(EdgeInsets(top: 0, leading: PlaceAboutView.defaultPadding * 2, bottom: PlaceAboutView.defaultPadding, trailing: PlaceAboutView.defaultPadding * 2))
+                        
+                        ZStack(alignment: .leading) {
+                            Rectangle().foregroundStyle(.thinMaterial)
+                            VStack(){
+                                ZStack {
+                                    Rectangle().foregroundStyle(.thickMaterial)
+                                    VStack{
+                                        Text(placeResponse.name).bold()
+                                        
+                                        Text(placeResponse.categories.joined(separator: ", ")).italic()
+                                        
                                     }
                                     .padding(PlaceAboutView.defaultPadding)
-                                    
-                                    Button {
-                                        selectedTab = "Directions"
-                                    } label: {
-                                        Text(placeResponse.formattedAddress)
-                                    }
-                                    .buttonStyle(.bordered)
-                                    .padding(PlaceAboutView.defaultPadding)
-                                    
-                                    HStack {
-                                        if let tel = placeDetailsResponse.tel {
-                                            Button {
-                                                #if os(visionOS) || os(iOS)
-                                                call(tel:tel)
-                                                #endif
-                                            } label: {
-                                                Text("Call \(tel)")
-                                            }.buttonStyle(.bordered)
-                                        }
-                                        
-                                        
-                                        
-                                        if let website = placeDetailsResponse.website, let url = URL(string: website) {
-                                            ZStack {
-                                                Capsule()
-                                                #if os(visionOS) || os(iOS)
-                                                    .foregroundColor(Color(uiColor:.systemFill))
-                                                #endif
-                                                #if os(macOS)
-                                                    .foregroundStyle(.background)
-                                                #endif
-                                                Link("Visit Website", destination: url).foregroundStyle(.primary)
-                                            }
-                                        }
+                                }
+                                .padding(PlaceAboutView.defaultPadding)
+                                
+                                Button {
+                                    selectedTab = "Directions"
+                                } label: {
+                                    Text(placeResponse.formattedAddress)
+                                }
+                                .buttonStyle(.bordered)
+                                .padding(PlaceAboutView.defaultPadding)
+                                
+                                HStack {
+                                    if let tel = placeDetailsResponse.tel {
+                                        Button {
 #if os(visionOS) || os(iOS)
-
+                                            call(tel:tel)
+#endif
+                                        } label: {
+                                            Text("Call \(tel)")
+                                        }.buttonStyle(.bordered)
+                                    }
+                                    
+                                    
+                                    
+                                    if let website = placeDetailsResponse.website, let url = URL(string: website) {
                                         ZStack {
                                             Capsule()
+#if os(visionOS) || os(iOS)
                                                 .foregroundColor(Color(uiColor:.systemFill))
-                                            Image(systemName: "square.and.arrow.up")
-                                        }
-                                        .onTapGesture {
-                                            self.isPresentingShareSheet.toggle()
-                                        }
 #endif
-
-                                        
-                                        if let price = placeDetailsResponse.price {
-                                            ZStack {
-                                                Capsule().frame(width: PlaceAboutView.buttonHeight, height: PlaceAboutView.buttonHeight, alignment: .center)
-                                                #if os(visionOS) || os(iOS)
-                                                    .foregroundColor(Color(uiColor:.systemFill))
-                                                #endif
-                                                #if os(macOS)
-                                                    .foregroundStyle(.background)
-                                                #endif
-                                                switch price {
-                                                case 1:
-                                                    Text("$")
-                                                case 2:
-                                                    Text("$$")
-                                                case 3:
-                                                    Text("$$$")
-                                                case 4:
-                                                    Text("$$$$")
-                                                default:
-                                                    Text("\(price)")
-                                                }
+#if os(macOS)
+                                                .foregroundStyle(.background)
+#endif
+                                            Link("Visit Website", destination: url).foregroundStyle(.primary)
+                                        }
+                                    }
+#if os(visionOS) || os(iOS)
+                                    
+                                    ZStack {
+                                        Capsule()
+                                            .foregroundColor(Color(uiColor:.systemFill))
+                                        Image(systemName: "square.and.arrow.up")
+                                    }
+                                    .onTapGesture {
+                                        self.isPresentingShareSheet.toggle()
+                                    }
+#endif
+                                    
+                                    
+                                    if let price = placeDetailsResponse.price {
+                                        ZStack {
+                                            Capsule().frame(width: PlaceAboutView.buttonHeight, height: PlaceAboutView.buttonHeight, alignment: .center)
+#if os(visionOS) || os(iOS)
+                                                .foregroundColor(Color(uiColor:.systemFill))
+#endif
+#if os(macOS)
+                                                .foregroundStyle(.background)
+#endif
+                                            switch price {
+                                            case 1:
+                                                Text("$")
+                                            case 2:
+                                                Text("$$")
+                                            case 3:
+                                                Text("$$$")
+                                            case 4:
+                                                Text("$$$$")
+                                            default:
+                                                Text("\(price)")
                                             }
                                         }
-                                        
-                                        let rating = placeDetailsResponse.rating
-                                        if rating > 0 {
-                                            ZStack {
-                                                Capsule().frame(width: PlaceAboutView.buttonHeight, height: PlaceAboutView.buttonHeight, alignment: .center)
-                                                #if os(visionOS) || os(iOS)
-                                                    .foregroundColor(Color(uiColor:.systemFill))
-                                                #endif
-                                                #if os(macOS)
-                                                    .foregroundStyle(.background)
-                                                #endif
-                                                Text(PlacesList.formatter.string(from: NSNumber(value: rating)) ?? "0")
-                                                
-                                            }.onTapGesture {
-                                                selectedTab = "Tips"
-                                            }
+                                    }
+                                    
+                                    let rating = placeDetailsResponse.rating
+                                    if rating > 0 {
+                                        ZStack {
+                                            Capsule().frame(width: PlaceAboutView.buttonHeight, height: PlaceAboutView.buttonHeight, alignment: .center)
+#if os(visionOS) || os(iOS)
+                                                .foregroundColor(Color(uiColor:.systemFill))
+#endif
+#if os(macOS)
+                                                .foregroundStyle(.background)
+#endif
+                                            Text(PlacesList.formatter.string(from: NSNumber(value: rating)) ?? "0")
+                                            
+                                        }.onTapGesture {
+                                            selectedTab = "Tips"
                                         }
-                                        Spacer()
-                                    }.padding(PlaceAboutView.defaultPadding)
+                                    }
+                                    Spacer()
+                                }.padding(PlaceAboutView.defaultPadding)
+                            }
+                        }.padding(EdgeInsets(top: 0, leading: PlaceAboutView.defaultPadding * 2, bottom: PlaceAboutView.defaultPadding, trailing: PlaceAboutView.defaultPadding * 2))
+                            .popover(isPresented: $isPresentingShareSheet) {
+                                if let result = chatModel.placeChatResult(for: resultId), let placeDetailsResponse = result.placeDetailsResponse  {
+                                    let items:[Any] = [placeDetailsResponse.website ?? placeDetailsResponse.searchResponse.address]
+#if os(visionOS) || os(iOS)
+                                    ActivityViewController(activityItems:items, applicationActivities:[UIActivity](), isPresentingShareSheet: $isPresentingShareSheet)
+#endif
                                 }
-                            }.padding(EdgeInsets(top: 0, leading: PlaceAboutView.defaultPadding * 2, bottom: PlaceAboutView.defaultPadding, trailing: PlaceAboutView.defaultPadding * 2))
-                        } else {
-                            ProgressView().frame(width: geo.size.width, height: geo.size.height, alignment: .center)
-                        }
+                            }
+                    } else {
+                        ProgressView().frame(width: geo.size.width, height: geo.size.height, alignment: .center)
                     }
-                }
-            }
-            else {
-                if let resultId = resultId, let result = chatModel.placeChatResult(for: resultId), let placeDetailsResponse = result.placeDetailsResponse  {
-                    let items:[Any] = [placeDetailsResponse.website ?? placeDetailsResponse.searchResponse.address]
-                    #if os(visionOS) || os(iOS)
-                    ActivityViewController(activityItems:items, applicationActivities:[UIActivity](), isPresentingShareSheet: $isPresentingShareSheet)
-                    #endif
                 }
             }
         }
     }
     
     
-    #if os(visionOS) || os(iOS)
+#if os(visionOS) || os(iOS)
     func call(tel:String) {
         let uuid = UUID()
         let digits = tel.replacingOccurrences(of: "-", with: "").replacingOccurrences(of: "(", with: "").replacingOccurrences(of: ")", with: "").replacingOccurrences(of: " ", with: "")
@@ -189,11 +187,11 @@ struct PlaceAboutView: View {
             }
         }
     }
-    #endif
+#endif
 }
 
 #Preview {
-
+    
     let locationProvider = LocationProvider()
     let cache = CloudCache()
     let chatHost = AssistiveChatHost(cache:cache)
