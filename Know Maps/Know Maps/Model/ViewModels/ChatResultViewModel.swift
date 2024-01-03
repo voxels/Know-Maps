@@ -31,7 +31,9 @@ public class ChatResultViewModel : ObservableObject {
 
     public var cloudCache:CloudCache?
     @Published public var cachedCategoryRecords:[UserCachedRecord]?
+    @Published public var cachedCategoryResults = [CategoryResult]()
     @Published public var selectedCategoryResult:CategoryResult.ID?
+    @Published public var selectedSavedCategoryResult:CategoryResult.ID?
     @Published public var selectedCategoryChatResult:ChatResult.ID?
     @Published public var selectedPlaceChatResult:ChatResult.ID?
     @Published public var selectedSourceLocationChatResult:LocationResult.ID?
@@ -140,6 +142,12 @@ public class ChatResultViewModel : ObservableObject {
     
     public func refreshCachedCategories(cloudCache:CloudCache) async throws {
         cachedCategoryRecords = try await cloudCache.fetchGroupedUserCachedRecords(for: "Category")
+        cachedCategoryResults = savedCategoricalResults()
+    }
+    
+    public func appendCachedCategory(with record:UserCachedRecord) {
+        cachedCategoryRecords?.append(record)
+        cachedCategoryResults = savedCategoricalResults()
     }
     
     public func cachedCategories(contains category:String)->Bool {
@@ -181,6 +189,33 @@ public class ChatResultViewModel : ObservableObject {
         })
         
         return selectedResult
+    }
+    
+    public func savedCategoricalResult(for selectedCategoryID:CategoryResult.ID)->ChatResult? {
+        let searchCategories = cachedCategoryResults
+        
+        
+        let parentCategory = searchCategories.first { result in
+            return result.id == selectedCategoryID
+        }
+
+        guard let parentCategory = parentCategory else {
+            return nil
+        }
+        
+        if parentCategory.id == selectedCategoryID {
+            return parentCategory.categoricalChatResults?.first
+        }
+        
+        if let children = parentCategory.children {
+            for child in children {
+                if child.id == selectedCategoryID {
+                    return child.categoricalChatResults?.first
+                }
+            }
+        }
+        
+        return nil
     }
     
     public func categoricalResult(for selectedCategoryID:CategoryResult.ID)->ChatResult? {
@@ -613,6 +648,29 @@ public class ChatResultViewModel : ObservableObject {
             categoryResults.removeAll()
             categoryResults = blendedResults
         }
+    }
+    
+    public func cachedCategoricalResults(for group:String, identity:String)->[UserCachedRecord]? {
+        return cachedCategoryRecords?.filter({ record in
+            record.group == group && record.identity == identity
+        })
+    }
+    
+    private func savedCategoricalResults()->[CategoryResult] {
+        var retval = [CategoryResult]()
+        
+        guard let savedRecords = cachedCategoryRecords else {
+            return retval
+        }
+        
+        for record in savedRecords {
+            let newChatResults = [ChatResult(title: record.title, placeResponse: nil)]
+
+            let newResult = CategoryResult(parentCategory: record.title, categoricalChatResults: newChatResults)
+            retval.append(newResult)
+        }
+        
+        return retval
     }
     
     private func categoricalResults()->[CategoryResult] {

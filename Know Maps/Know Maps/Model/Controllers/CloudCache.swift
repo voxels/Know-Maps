@@ -183,7 +183,7 @@ open class CloudCache : NSObject, ObservableObject {
                 }
                 
                 if !rawGroup.isEmpty && !rawIdentity.isEmpty && !rawTitle.isEmpty {
-                    let cachedRecord = UserCachedRecord(group: rawGroup, identity: rawIdentity, title: rawTitle, icons: rawIcons)
+                    let cachedRecord = UserCachedRecord(recordId: recordId.recordName, group: rawGroup, identity: rawIdentity, title: rawTitle, icons: rawIcons)
                     retval.append(cachedRecord)
                 }
                 
@@ -212,7 +212,7 @@ open class CloudCache : NSObject, ObservableObject {
 
     
     
-    public func storeUserCachedRecord(for group:String, identity:String, title:String, icons:String? = nil) {
+    public func storeUserCachedRecord(for group:String, identity:String, title:String, icons:String? = nil) async throws -> CKRecord {
         let record = CKRecord(recordType:"UserCachedRecord")
         record.setObject(group as NSString, forKey: "Group")
         record.setObject(identity as NSString, forKey: "Identity")
@@ -222,9 +222,11 @@ open class CloudCache : NSObject, ObservableObject {
         } else {
             record.setObject("" as NSString, forKey: "Icons")
         }
-        cacheContainer.privateCloudDatabase.save(record) { record, error in
-            
-        }
+        return try await cacheContainer.privateCloudDatabase.save(record)
+    }
+    
+    public func deleteUserCachedRecord(for cachedRecord:UserCachedRecord) async throws {
+        try await cacheContainer.privateCloudDatabase.deleteRecord(withID: CKRecord.ID(recordName: cachedRecord.recordId))
     }
 }
 
