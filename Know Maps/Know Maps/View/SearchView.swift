@@ -36,11 +36,8 @@ struct SearchView: View {
 #Preview {
 
     let locationProvider = LocationProvider()
-    let cache = CloudCache()
-    let chatHost = AssistiveChatHost(cache: cache)
-    let settingsModel = SettingsModel(userId: "")
-
-    let chatModel = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cache, settingsModel: settingsModel)
+    let chatHost = AssistiveChatHost()
+    let chatModel = ChatResultViewModel(locationProvider: locationProvider)
 
     chatModel.assistiveHostDelegate = chatHost
     chatHost.messagesDelegate = chatModel

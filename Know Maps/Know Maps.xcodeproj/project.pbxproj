@@ -164,6 +164,9 @@
 		1EE068942B100CE30016851A /* PlaceDirectionsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EE068932B100CE30016851A /* PlaceDirectionsViewModel.swift */; };
 		1EE068962B111E880016851A /* PlaceDirectionsControlsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EE068952B111E870016851A /* PlaceDirectionsControlsView.swift */; };
 		1EE068982B121F710016851A /* LocationResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EE068972B121F710016851A /* LocationResult.swift */; };
+		1EEC48192B45A4B300248D69 /* UserCachedRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EEC48182B45A4B300248D69 /* UserCachedRecord.swift */; };
+		1EEC481A2B45A4B300248D69 /* UserCachedRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EEC48182B45A4B300248D69 /* UserCachedRecord.swift */; };
+		1EEC481B2B45A4B300248D69 /* UserCachedRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EEC48182B45A4B300248D69 /* UserCachedRecord.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -280,6 +283,7 @@
 		1EE068932B100CE30016851A /* PlaceDirectionsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceDirectionsViewModel.swift; sourceTree = "<group>"; };
 		1EE068952B111E870016851A /* PlaceDirectionsControlsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceDirectionsControlsView.swift; sourceTree = "<group>"; };
 		1EE068972B121F710016851A /* LocationResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationResult.swift; sourceTree = "<group>"; };
+		1EEC48182B45A4B300248D69 /* UserCachedRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserCachedRecord.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -441,6 +445,7 @@
 				1EA7F7802B052D92002AE371 /* PlaceSearchRequest.swift */,
 				1EA7F77F2B052D92002AE371 /* PlaceSearchResponse.swift */,
 				1EA7F7792B052D92002AE371 /* PlaceTipsResponse.swift */,
+				1EEC48182B45A4B300248D69 /* UserCachedRecord.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -889,6 +894,7 @@
 				1E26C7A52B2C75A20050EC6A /* ContentView.swift in Sources */,
 				1E26C78D2B2C75830050EC6A /* LanguageGeneratorRequest.swift in Sources */,
 				1E26C7A82B2C75A20050EC6A /* PlacesList.swift in Sources */,
+				1EEC481B2B45A4B300248D69 /* UserCachedRecord.swift in Sources */,
 				1E26C77F2B2C757A0050EC6A /* PlaceSearchSession.swift in Sources */,
 				1E26C7812B2C757A0050EC6A /* PlaceResponseFormatter.swift in Sources */,
 				1E26C7842B2C757A0050EC6A /* AssistiveChatHost.swift in Sources */,
@@ -954,6 +960,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				1E6F4AE52B20F453001E701B /* AssistiveChatHostQueryParameters.swift in Sources */,
+				1EEC481A2B45A4B300248D69 /* UserCachedRecord.swift in Sources */,
 				1E6F4AD12B20F453001E701B /* SearchView.swift in Sources */,
 				1E6F4ACF2B20F453001E701B /* LocationResult.swift in Sources */,
 				1E6F4AE22B20F453001E701B /* AssistiveChatHostIntent.swift in Sources */,
@@ -1028,6 +1035,7 @@
 				1EA7F76D2B04FFD9002AE371 /* SearchView.swift in Sources */,
 				1EA588D32B09326E006B1F8F /* PlaceView.swift in Sources */,
 				1E98C7CF2B18DC2200283E92 /* ChatHostingViewControllerDelegate.swift in Sources */,
+				1EEC48192B45A4B300248D69 /* UserCachedRecord.swift in Sources */,
 				1EA7F7842B052D92002AE371 /* PlacePhotoResponse.swift in Sources */,
 				1EA7F7932B052D92002AE371 /* ChatResultViewModel.swift in Sources */,
 				1EA7F79B2B052E0C002AE371 /* LocalMapsQueryTagger.mlmodel in Sources */,

@@ -9,11 +9,13 @@ import Foundation
 import CloudKit
 
 open class CloudCache : NSObject, ObservableObject {
+    @Published var hasPrivateCloudAccess:Bool = false
     let cacheContainer = CKContainer(identifier:"iCloud.com.noisederived.No-Maps.Cache")
-    @Published var fsqid:String = ""
-    @Published var desc:String = ""
-    @Published var fsqUserId:String = ""
-    @Published var oauthToken:String = ""
+    private var fsqid:String = ""
+    private var desc:String = ""
+    private var fsqUserId:String = ""
+    private var oauthToken:String = ""
+    
     public func fetchGeneratedDescription(for fsqid:String) async throws -> String {
         
         let predicate = NSPredicate(format: "fsqid == %@", fsqid)
@@ -138,6 +140,76 @@ open class CloudCache : NSObject, ObservableObject {
         }
     }
 
+    public func fetchUserCachedRecord(for group:String) async throws -> [UserCachedRecord] {
+        var retval = [UserCachedRecord]()
+        let predicate = NSPredicate(format: "Group == %@", group)
+        let query = CKQuery(recordType: "UserCachedRecord", predicate: predicate)
+        let operation = CKQueryOperation(query: query)
+        operation.desiredKeys = ["Group", "Icons", "Identity", "Title"]
+        operation.recordMatchedBlock = { recordId, result in
+            do {
+                let record = try result.get()
+                var rawGroup = ""
+                var rawIdentity = ""
+                var rawTitle = ""
+                var rawIcons = ""
+                if let group = record["Group"] as? String {
+                    rawGroup = group
+                }
+                if let identity = record["Identity"] as? String {
+                    rawIdentity = identity
+                }
+                if let title = record["Title"] as? String {
+                    rawTitle = title
+                }
+                if let icons = record["Icons"] as? String {
+                    rawIcons = icons
+                }
+                
+                if !rawGroup.isEmpty && !rawIdentity.isEmpty && !rawTitle.isEmpty {
+                    let cachedRecord = UserCachedRecord(group: rawGroup, identity: rawIdentity, title: rawTitle, icons: rawIcons)
+                    retval.append(cachedRecord)
+                }
+                
+            } catch {
+                print(error)
+            }
+        }
+        
+        let _ = try await withCheckedThrowingContinuation { checkedContinuation in
+            operation.queryResultBlock = { result in
+                
+                switch result {
+                case .success(_):
+                    checkedContinuation.resume(with: .success(true))
+                case .failure(let error):
+                    print(error)
+                    checkedContinuation.resume(with: .success(false))
+                }
+            }
+            
+            cacheContainer.privateCloudDatabase.add(operation)
+        }
+        
+        return retval
+    }
+
+    
+    
+    public func storeUserCachedRecord(for group:String, identity:String, title:String, icons:String? = nil) {
+        let record = CKRecord(recordType:"UserCachedRecord")
+        record.setObject(group as NSString, forKey: "Group")
+        record.setObject(identity as NSString, forKey: "Identity")
+        record.setObject(title as NSString, forKey: "Title")
+        if let icons = icons {
+            record.setObject(icons as NSString, forKey: "Icons")
+        } else {
+            record.setObject("" as NSString, forKey: "Icons")
+        }
+        cacheContainer.privateCloudDatabase.save(record) { record, error in
+            
+        }
+    }
 }
 
 

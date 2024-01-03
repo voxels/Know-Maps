@@ -11,7 +11,7 @@ import Segment
 @main
 struct Know_MapsApp: App {
     private var locationProvider = LocationProvider()
-    @StateObject public var cloudCache:CloudCache = CloudCache()
+    @StateObject public var cloudCache:CloudCache  = CloudCache()
     @StateObject public var settingsModel = SettingsModel(userId: "")
     static let config = Configuration(writeKey: "igx8ZOr5NLbaBsab5j5juFECMzqulFla")
     // Automatically track Lifecycle events
@@ -23,7 +23,7 @@ struct Know_MapsApp: App {
     
     var body: some Scene {
         WindowGroup(id:"ContentView") {
-            ContentView(chatHost: AssistiveChatHost(cache: cloudCache), chatModel: ChatResultViewModel(locationProvider: locationProvider, cloudCache: cloudCache, settingsModel:settingsModel), locationProvider: locationProvider)
+            ContentView(chatHost: AssistiveChatHost(), chatModel: ChatResultViewModel(locationProvider: locationProvider), locationProvider: locationProvider)
                 .task {
                     let getquery: [String: Any] = [kSecClass as String: kSecClassKey,
                                                    kSecAttrApplicationTag as String: SettingsModel.tag,
@@ -41,11 +41,14 @@ struct Know_MapsApp: App {
                     }
                     
                     settingsModel.keychainId = String(data: keyData, encoding: .utf8) ?? ""
-                }
+                }.environmentObject(cloudCache)
+                .environmentObject(settingsModel)
         }
         
         WindowGroup(id:"SettingsView"){
-            SettingsView(model:settingsModel)
+            SettingsView()
+                .environmentObject(cloudCache)
+                .environmentObject(settingsModel)
                 .tag("Settings")
                 .onChange(of: settingsModel.userId, { oldValue, newValue in
 #if os(visionOS) || os(iOS)

@@ -54,11 +54,9 @@ struct PlacePhotosView: View {
 #Preview {
 
     let locationProvider = LocationProvider()
-    let cache = CloudCache()
-    let settingsModel = SettingsModel(userId: "")
 
-    let chatHost = AssistiveChatHost(cache: cache)
-    let chatModel = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cache, settingsModel: settingsModel)
+    let chatHost = AssistiveChatHost()
+    let chatModel = ChatResultViewModel(locationProvider: locationProvider)
 
     chatModel.assistiveHostDelegate = chatHost
     chatHost.messagesDelegate = chatModel

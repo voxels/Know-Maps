@@ -26,16 +26,15 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
     public var placeSearchSession = PlaceSearchSession()
     public var analytics:Analytics?
     @Published public var queryIntentParameters = AssistiveChatHostQueryParameters()
-    @ObservedObject public var cache:CloudCache
+    @EnvironmentObject public var cache:CloudCache
     public var categoryCodes:[[String:[[String:String]]]] = [[String:[[String:String]]]]()
     
     let geocoder = CLGeocoder()
     public var lastGeocodedPlacemarks:[CLPlacemark]?
     
-    required public init(messagesDelegate: AssistiveChatHostMessagesDelegate? = nil, analytics: Analytics? = nil, cache: CloudCache, lastGeocodedPlacemarks: [CLPlacemark]? = nil) {
+    required public init(messagesDelegate: AssistiveChatHostMessagesDelegate? = nil, analytics: Analytics? = nil, lastGeocodedPlacemarks: [CLPlacemark]? = nil) {
         self.messagesDelegate = messagesDelegate
         self.analytics = analytics
-        self.cache = cache
         self.lastGeocodedPlacemarks = lastGeocodedPlacemarks
         try? organizeCategoryCodeList()
     }

@@ -26,6 +26,8 @@ open class PlaceSearchSession : ObservableObject {
     static let placePhotosAPIUrl = "/photos"
     static let placeTipsAPIUrl = "/tips"
     static let autocompleteAPIUrl = "v3/autocomplete"
+    static let userManagementAPIUrl = "v2/usermanagement"
+    static let userManagementCreationPath = "/createuser"
     
     public enum PlaceSearchService : String {
         case foursquare
@@ -41,6 +43,24 @@ open class PlaceSearchSession : ObservableObject {
         if let containerIdentifier = keysContainer.containerIdentifier {
             print(containerIdentifier)
         }
+    }
+    
+    public func createManagedUser() async throws -> [String:Any] {
+        if searchSession == nil {
+            searchSession = try await session()
+        }
+        let components = URLComponents(string:"\(PlaceSearchSession.serverUrl)\(PlaceSearchSession.userManagementCreationPath)\(PlaceSearchSession.userManagementCreationPath)")
+        guard let url = components?.url else {
+            throw PlaceSearchSessionError.UnsupportedRequest
+        }
+        
+        let userCreationResponse = try await fetch(url: url, apiKey: self.foursquareApiKey)
+        
+        guard let response = userCreationResponse as? [String:Any] else {
+            return [String:Any]()
+        }
+                
+        return response
     }
     
     public func query(request:PlaceSearchRequest, location:CLLocation?) async throws ->[String:Any] {

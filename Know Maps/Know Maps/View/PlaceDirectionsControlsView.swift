@@ -49,7 +49,7 @@ struct PlaceDirectionsControlsView: View {
                     }
                     .padding(4)
                 } else {
-                    Button("", systemImage: "binoculars.fill") {
+                    Button("Look Around", systemImage: "binoculars.fill") {
                         showLookAroundScene.toggle()
                     }
                     .padding(4)
@@ -62,10 +62,8 @@ struct PlaceDirectionsControlsView: View {
 #Preview {
     let model = PlaceDirectionsViewModel()
     let locationProvider = LocationProvider()
-    let cache = CloudCache()
-    let settingsModel = SettingsModel(userId: "")
 
-    let chatModel = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cache, settingsModel: settingsModel)
+    let chatModel = ChatResultViewModel(locationProvider: locationProvider)
 
     return PlaceDirectionsControlsView(chatModel: chatModel, model: model, showLookAroundScene: .constant(false))
 }

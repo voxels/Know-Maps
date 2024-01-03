@@ -9,7 +9,7 @@ import SwiftUI
 import AuthenticationServices
 
 struct SettingsView: View {
-    @ObservedObject public var model:SettingsModel
+    @EnvironmentObject public var model:SettingsModel
     
     var body: some View {
         if model.userId.isEmpty {
@@ -55,6 +55,5 @@ struct SettingsView: View {
 }
 
 #Preview {
-    let model = SettingsModel(userId:"")
-    return SettingsView(model:model)
+    return SettingsView()
 }

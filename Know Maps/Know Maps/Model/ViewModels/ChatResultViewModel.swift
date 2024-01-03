@@ -29,8 +29,9 @@ public class ChatResultViewModel : ObservableObject {
     public var fetchingPlaceID:ChatResult.ID?
     public var analytics:Analytics?
 
-    @ObservedObject public var cloudCache:CloudCache
-    @ObservedObject public var settingsModel:SettingsModel
+    @EnvironmentObject public var cloudCache:CloudCache
+    @EnvironmentObject public var settingsModel:SettingsModel
+    @Published public var cachedRecords:[UserCachedRecord]?
     @Published public var selectedCategoryResult:CategoryResult.ID?
     @Published public var selectedCategoryChatResult:ChatResult.ID?
     @Published public var selectedPlaceChatResult:ChatResult.ID?
@@ -171,15 +172,13 @@ public class ChatResultViewModel : ObservableObject {
         }
     }
     
-    public init(delegate: ChatResultViewModelDelegate? = nil, assistiveHostDelegate: AssistiveChatHostDelegate? = nil, locationProvider: LocationProvider, queryParametersHistory: [AssistiveChatHostQueryParameters] = [AssistiveChatHostQueryParameters](), fetchingPlaceID: ChatResult.ID? = nil, analytics: Analytics? = nil, cloudCache: CloudCache, settingsModel:SettingsModel, selectedCategoryChatResult: ChatResult.ID? = nil, selectedPlaceChatResult: ChatResult.ID? = nil,  selectedSourceLocationChatResult: LocationResult.ID? = nil, selectedDestinationLocationChatResult: LocationResult.ID? = nil, isFetchingPlaceDescription: Bool = false, searchText: String = "", locationSearchText: String = "", categoryResults: [CategoryResult] = [CategoryResult](), searchCategoryResults: CategoryResult = CategoryResult(parentCategory: "Search Results", categoricalChatResults: [ChatResult]()), placeResults: [ChatResult] = [ChatResult](), locationResults: [LocationResult] = [LocationResult]()) {
+    public init(delegate: ChatResultViewModelDelegate? = nil, assistiveHostDelegate: AssistiveChatHostDelegate? = nil, locationProvider: LocationProvider, queryParametersHistory: [AssistiveChatHostQueryParameters] = [AssistiveChatHostQueryParameters](), fetchingPlaceID: ChatResult.ID? = nil, analytics: Analytics? = nil, selectedCategoryChatResult: ChatResult.ID? = nil, selectedPlaceChatResult: ChatResult.ID? = nil,  selectedSourceLocationChatResult: LocationResult.ID? = nil, selectedDestinationLocationChatResult: LocationResult.ID? = nil, isFetchingPlaceDescription: Bool = false, searchText: String = "", locationSearchText: String = "", categoryResults: [CategoryResult] = [CategoryResult](), searchCategoryResults: CategoryResult = CategoryResult(parentCategory: "Search Results", categoricalChatResults: [ChatResult]()), placeResults: [ChatResult] = [ChatResult](), locationResults: [LocationResult] = [LocationResult]()) {
         self.delegate = delegate
         self.assistiveHostDelegate = assistiveHostDelegate
         self.locationProvider = locationProvider
         self.queryParametersHistory = queryParametersHistory
         self.fetchingPlaceID = fetchingPlaceID
         self.analytics = analytics
-        self.cloudCache = cloudCache
-        self.settingsModel = settingsModel
         self.selectedCategoryChatResult = selectedCategoryChatResult
         self.selectedPlaceChatResult = selectedPlaceChatResult
         self.selectedSourceLocationChatResult = selectedSourceLocationChatResult

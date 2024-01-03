@@ -19,7 +19,7 @@ public protocol AssistiveChatHostDelegate:AnyObject {
     var lastGeocodedPlacemarks:[CLPlacemark]? { get }
     var cache:CloudCache { get }
     
-    init(messagesDelegate: AssistiveChatHostMessagesDelegate?, analytics: Analytics?, cache: CloudCache, lastGeocodedPlacemarks: [CLPlacemark]?)
+    init(messagesDelegate: AssistiveChatHostMessagesDelegate?, analytics: Analytics?, lastGeocodedPlacemarks: [CLPlacemark]?)
     func organizeCategoryCodeList() throws
     func didTap(chatResult: ChatResult) async
     func didTap(categoricalResult:CategoryResult, chatResult:ChatResult?) async
