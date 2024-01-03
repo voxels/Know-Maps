@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct SearchView: View {
+    @EnvironmentObject var cloudCache:CloudCache
     @ObservedObject public var chatHost:AssistiveChatHost
     @ObservedObject public var model:ChatResultViewModel
     @ObservedObject public var locationProvider:LocationProvider
@@ -15,7 +16,19 @@ struct SearchView: View {
     var body: some View { 
         Section("Categories") {
             List(model.filteredResults, children:\.children, selection:$model.selectedCategoryResult) { parent in
-                Text("\(parent.parentCategory)")
+                HStack {
+                    Text("\(parent.parentCategory)")
+                    Spacer()
+                    if let chatResults = parent.categoricalChatResults, chatResults.count == 1, cloudCache.hasPrivateCloudAccess {
+                        let isSaved = model.cachedCategories(contains: parent.parentCategory)
+                        Button("Save", systemImage:isSaved ? "star.fill" : "star", action: {
+                            cloudCache.storeUserCachedRecord(for: "Category", identity: parent.parentCategory, title: parent.parentCategory)
+                            Task { @MainActor in
+                                try await model.refreshCachedCategories(cloudCache: cloudCache)
+                            }
+                        }).labelStyle(.iconOnly)
+                    }
+                }
             }
             .onChange(of: model.selectedCategoryResult) { oldValue, newValue in
                 if newValue == nil {

@@ -29,9 +29,8 @@ public class ChatResultViewModel : ObservableObject {
     public var fetchingPlaceID:ChatResult.ID?
     public var analytics:Analytics?
 
-    @EnvironmentObject public var cloudCache:CloudCache
-    @EnvironmentObject public var settingsModel:SettingsModel
-    @Published public var cachedRecords:[UserCachedRecord]?
+    public var cloudCache:CloudCache?
+    @Published public var cachedCategoryRecords:[UserCachedRecord]?
     @Published public var selectedCategoryResult:CategoryResult.ID?
     @Published public var selectedCategoryChatResult:ChatResult.ID?
     @Published public var selectedPlaceChatResult:ChatResult.ID?
@@ -66,72 +65,9 @@ public class ChatResultViewModel : ObservableObject {
     
     public var filteredResults:[CategoryResult] {
         get {
-                    
-            var foundResults = [ChatResult]()
-            
-            var searchSection = CategoryResult(parentCategory: "Search Results", categoricalChatResults: foundResults)
-            
-            let chatResultsCollection = categoryResults.compactMap { categoryResult in
-                return categoryResult.categoricalChatResults
+            return categoryResults.filter { result in
+                result.categoricalChatResults != nil
             }
-            
-            for chatResults in chatResultsCollection {
-                for result in chatResults {
-                    let categoryResult = locationSearchText.components(separatedBy: "near").first?.lowercased().trimmingCharacters(in: .whitespaces) ?? locationSearchText
-                    if result.title.lowercased().contains(categoryResult) || result.title.lowercased().contains(categoryResult.dropLast()) || locationSearchText.lowercased().trimmingCharacters(in: .whitespaces).contains(result.title) {
-                        var searchResult = ChatResult(title: result.title, placeResponse: result.placeResponse, placeDetailsResponse: result.placeDetailsResponse)
-                        searchResult.attachParentId(uuid: result.id)
-                        foundResults.append(searchResult)
-                    }
-                }
-            }
-            
-            searchSection.replaceChatResults(with: foundResults)
-            var filteredResults = categoryResults
-            
-            guard let categoricalChatResults = searchCategoryResults.categoricalChatResults else {
-                return filteredResults
-            }
-            
-            if categoricalChatResults.isEmpty {
-                searchCategoryResults = searchSection
-            } else {
-                let searchCategoricalChatResultTitles = categoricalChatResults.compactMap { result in
-                    return result.title
-                }
-                
-                let searchSectionTitles = searchSection.categoricalChatResults?.compactMap { result in
-                    return result.title
-                }
-                
-                if searchCategoricalChatResultTitles != searchSectionTitles {
-                    searchCategoryResults = searchSection
-                }
-            }
-            
-            if !categoricalChatResults.isEmpty {
-                if let firstCategory = categoryResults.first, firstCategory.parentCategory == "Search Results" {
-                    let searchSectionTitles = searchSection.categoricalChatResults?.compactMap { result in
-                        result.title
-                    }
-                    
-                    let firstCategoryTitles = firstCategory.categoricalChatResults?.compactMap { result in
-                        result.title
-                    }
-                    
-                    if searchSectionTitles == firstCategoryTitles {
-                        //Do nothing
-                    } else {
-                        filteredResults.remove(at: 0)
-                        filteredResults.insert(searchCategoryResults, at: 0)
-                    }
-                } else {
-                    filteredResults.insert(searchCategoryResults, at: 0)
-                }
-            }
-            
-            return filteredResults
-             
         }
     }
     
@@ -202,7 +138,19 @@ public class ChatResultViewModel : ObservableObject {
         analytics?.track(name: "resetPlaceModel")
     }
     
+    public func refreshCachedCategories(cloudCache:CloudCache) async throws {
+        cachedCategoryRecords = try await cloudCache.fetchGroupedUserCachedRecords(for: "Category")
+    }
     
+    public func cachedCategories(contains category:String)->Bool {
+        guard let cachedRecords = cachedCategoryRecords, !cachedRecords.isEmpty else {
+            return false
+        }
+        
+        return cachedRecords.contains { record in
+            record.identity == category
+        }
+    }    
     
     public func locationChatResult(for selectedChatResultID:LocationResult.ID)->LocationResult?{
         let selectedResult = locationResults.first(where: { checkResult in

@@ -12,7 +12,8 @@ import MapKit
 
 struct ContentView: View {
     
-
+    @EnvironmentObject public var cloudCache:CloudCache
+    @EnvironmentObject public var settingsModel:SettingsModel
     @State private var showImmersiveSpace = false
     @State private var immersiveSpaceIsShown = false
     @State private var columnVisibility =
@@ -91,6 +92,14 @@ struct ContentView: View {
                 }
             })
             .task {
+                chatModel.cloudCache = cloudCache
+                do {
+                    try await chatModel.refreshCachedCategories(cloudCache: cloudCache)
+
+                } catch {
+                    chatModel.analytics?.track(name: "error \(error)")
+                    print(error)
+                }
                 if chatModel.categoryResults.isEmpty {
                     chatModel.assistiveHostDelegate = chatHost
                     chatHost.messagesDelegate = chatModel

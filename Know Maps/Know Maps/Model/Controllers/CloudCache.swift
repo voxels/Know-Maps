@@ -16,6 +16,22 @@ open class CloudCache : NSObject, ObservableObject {
     private var fsqUserId:String = ""
     private var oauthToken:String = ""
     
+    public func fetchCloudKitUserRecordID() async throws -> CKRecord.ID?{
+        
+        let userRecord:CKRecord.ID? = try await withCheckedThrowingContinuation { checkedContinuation in
+            cacheContainer.fetchUserRecordID { recordId, error in
+                if let e = error {
+                    checkedContinuation.resume(throwing: e)
+                } else if let record = recordId {
+                    checkedContinuation.resume(returning: record)
+                } else {
+                    checkedContinuation.resume(returning: nil)
+                }
+            }
+        }
+        return userRecord
+    }
+    
     public func fetchGeneratedDescription(for fsqid:String) async throws -> String {
         
         let predicate = NSPredicate(format: "fsqid == %@", fsqid)
@@ -140,7 +156,7 @@ open class CloudCache : NSObject, ObservableObject {
         }
     }
 
-    public func fetchUserCachedRecord(for group:String) async throws -> [UserCachedRecord] {
+    public func fetchGroupedUserCachedRecords(for group:String) async throws -> [UserCachedRecord] {
         var retval = [UserCachedRecord]()
         let predicate = NSPredicate(format: "Group == %@", group)
         let query = CKQuery(recordType: "UserCachedRecord", predicate: predicate)

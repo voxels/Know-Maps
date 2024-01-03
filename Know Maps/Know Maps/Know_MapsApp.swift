@@ -24,31 +24,23 @@ struct Know_MapsApp: App {
     var body: some Scene {
         WindowGroup(id:"ContentView") {
             ContentView(chatHost: AssistiveChatHost(), chatModel: ChatResultViewModel(locationProvider: locationProvider), locationProvider: locationProvider)
-                .task {
-                    let getquery: [String: Any] = [kSecClass as String: kSecClassKey,
-                                                   kSecAttrApplicationTag as String: SettingsModel.tag,
-                                                   kSecReturnData as String: true]
-                    
-                    var item: CFTypeRef?
-                    let status = SecItemCopyMatching(getquery as CFDictionary, &item)
-                    guard status == errSecSuccess else {
-                        settingsModel.userId = ""
-                        return
-                    }
-                    guard let keyData = item as? Data  else {
-                        settingsModel.userId = ""
-                        return
-                    }
-                    
-                    settingsModel.keychainId = String(data: keyData, encoding: .utf8) ?? ""
-                }.environmentObject(cloudCache)
+                .environmentObject(cloudCache)
                 .environmentObject(settingsModel)
+                .task {
+                    do {
+                        let userRecord = try await cloudCache.fetchCloudKitUserRecordID()
+                        settingsModel.keychainId = userRecord?.recordName
+                        if let keychainId = settingsModel.keychainId, !keychainId.isEmpty {
+                            cloudCache.hasPrivateCloudAccess = true
+                        }
+                    } catch {
+                        print(error)
+                    }
+                }
         }
         
         WindowGroup(id:"SettingsView"){
             SettingsView()
-                .environmentObject(cloudCache)
-                .environmentObject(settingsModel)
                 .tag("Settings")
                 .onChange(of: settingsModel.userId, { oldValue, newValue in
 #if os(visionOS) || os(iOS)
@@ -61,6 +53,8 @@ struct Know_MapsApp: App {
 #endif
                 })
         }
+        .environmentObject(cloudCache)
+        .environmentObject(settingsModel)
         
 #if os(visionOS)
         ImmersiveSpace(id: "ImmersiveSpace") {

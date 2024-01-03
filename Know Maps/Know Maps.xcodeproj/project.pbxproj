@@ -115,7 +115,6 @@
 		1E6F4AFB2B20F453001E701B /* PlaceAboutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EE068852B0CE74C0016851A /* PlaceAboutView.swift */; };
 		1E6F4AFC2B20F453001E701B /* CategoryResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EE0688F2B0E57AD0016851A /* CategoryResult.swift */; };
 		1E6F4AFD2B20F453001E701B /* PlaceTipsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EE0688D2B0D1EB40016851A /* PlaceTipsView.swift */; };
-		1E6F4B002B20F538001E701B /* Segment in Frameworks */ = {isa = PBXBuildFile; productRef = 1E6F4AFF2B20F538001E701B /* Segment */; };
 		1E98C7CD2B18B5F400283E92 /* Segment in Frameworks */ = {isa = PBXBuildFile; productRef = 1E98C7CC2B18B5F400283E92 /* Segment */; };
 		1E98C7CF2B18DC2200283E92 /* ChatHostingViewControllerDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E98C7CE2B18DC2200283E92 /* ChatHostingViewControllerDelegate.swift */; };
 		1E98C7D12B18DC4100283E92 /* AssistiveChatHostStreamResponseDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E98C7D02B18DC4100283E92 /* AssistiveChatHostStreamResponseDelegate.swift */; };
@@ -167,6 +166,7 @@
 		1EEC48192B45A4B300248D69 /* UserCachedRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EEC48182B45A4B300248D69 /* UserCachedRecord.swift */; };
 		1EEC481A2B45A4B300248D69 /* UserCachedRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EEC48182B45A4B300248D69 /* UserCachedRecord.swift */; };
 		1EEC481B2B45A4B300248D69 /* UserCachedRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EEC48182B45A4B300248D69 /* UserCachedRecord.swift */; };
+		1EEC481D2B45BDF600248D69 /* Segment in Frameworks */ = {isa = PBXBuildFile; productRef = 1EEC481C2B45BDF600248D69 /* Segment */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -313,7 +313,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				1E6F4B002B20F538001E701B /* Segment in Frameworks */,
+				1EEC481D2B45BDF600248D69 /* Segment in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -665,7 +665,7 @@
 			);
 			name = "Know Maps MacOS";
 			packageProductDependencies = (
-				1E6F4AFF2B20F538001E701B /* Segment */,
+				1EEC481C2B45BDF600248D69 /* Segment */,
 			);
 			productName = "Know Maps MacOS";
 			productReference = 1E6F4AA22B20F362001E701B /* Know Maps MacOS.app */;
@@ -1740,11 +1740,6 @@
 			package = 1E98C7CB2B18B5F400283E92 /* XCRemoteSwiftPackageReference "analytics-swift" */;
 			productName = Segment;
 		};
-		1E6F4AFF2B20F538001E701B /* Segment */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 1E98C7CB2B18B5F400283E92 /* XCRemoteSwiftPackageReference "analytics-swift" */;
-			productName = Segment;
-		};
 		1E98C7CC2B18B5F400283E92 /* Segment */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 1E98C7CB2B18B5F400283E92 /* XCRemoteSwiftPackageReference "analytics-swift" */;
@@ -1753,6 +1748,11 @@
 		1EA7F74A2B03FA71002AE371 /* RealityKitContent */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = RealityKitContent;
+		};
+		1EEC481C2B45BDF600248D69 /* Segment */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 1E98C7CB2B18B5F400283E92 /* XCRemoteSwiftPackageReference "analytics-swift" */;
+			productName = Segment;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
