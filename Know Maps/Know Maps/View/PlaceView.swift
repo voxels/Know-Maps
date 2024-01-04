@@ -62,7 +62,7 @@ struct PlaceView: View {
         } else {
             ContentUnavailableView("No place selected", systemImage: "return")
                 .onAppear(perform: {
-                chatModel.analytics?.screen(title: "ContentUnavailableView")
+                    chatModel.selectedPlaceChatResult = nil
             })
         }
     }

@@ -34,7 +34,8 @@ struct NavigationLocationView: View {
                         if let location = result.location, cloudCache.hasPrivateCloudAccess, result.locationName != "Current Location" {
                             let isSaved = chatModel.cachedLocation(contains: chatModel.cachedLocationIdentity(for: location))
                             if isSaved {
-                                Button("Save", systemImage: "star.fill") {
+                                Label("Save", systemImage: "star.fill")
+                                    .onTapGesture {
                                     if let cachedLocationResults = chatModel.cachedLocationResults(for: "Location", identity:chatModel.cachedLocationIdentity(for:location)) {
                                         for cachedLocationResult in cachedLocationResults {
                                             Task { @MainActor in
@@ -43,14 +44,17 @@ struct NavigationLocationView: View {
                                             }
                                         }
                                     }
-                                }.labelStyle(.iconOnly)
+                                }
+                                .labelStyle(.iconOnly)
                             } else {
-                                Button("Save", systemImage: "star") {
+                                Label("Save", systemImage: "star")
+                                    .onTapGesture {
                                     Task {
                                         let _ = try await cloudCache.storeUserCachedRecord(for: "Location", identity: chatModel.cachedLocationIdentity(for: location), title: result.locationName)
                                         try await chatModel.refreshCachedLocations(cloudCache: cloudCache)
                                     }
-                                }.labelStyle(.iconOnly)
+                                }
+                                    .labelStyle(.iconOnly)
                             }
                         }
 
@@ -66,7 +70,7 @@ struct NavigationLocationView: View {
                     } else {
                         Task {
                             do {
-                                try await chatModel.didSearch(caption:chatModel.locationSearchText, selectedDestinationChatResultID:chatModel.selectedDestinationLocationChatResult)
+                                try await chatModel.didSearch(caption:chatModel.locationSearchText, selectedDestinationChatResultID:chatModel.selectedDestinationLocationChatResult ?? chatModel.filteredDestinationLocationResults.first!.id)
                             } catch {
                                 chatModel.analytics?.track(name: "error \(error)")
                                 print(error)
@@ -79,23 +83,18 @@ struct NavigationLocationView: View {
                         chatModel.selectedCategoryChatResult = nil
                         chatModel.selectedSavedCategoryResult = nil
                     }
-                })
-                .onChange(of: chatModel.selectedDestinationLocationChatResult, { oldValue, newValue in
-                    
-                    if let newValue = newValue, let locationChatResult = chatModel.locationChatResult(for: newValue),  !chatModel.locationSearchText.lowercased().contains(locationChatResult.locationName.lowercased()) {
-                        chatModel.locationSearchText = locationChatResult.locationName
-                        chatModel.selectedCategoryResult = nil
-                        chatModel.selectedSavedCategoryResult = nil
-                        Task {
+                }).onChange(of: chatModel.selectedDestinationLocationChatResult) { oldValue, newValue in
+                    if let newValue = newValue, !chatModel.locationSearchText.isEmpty {
+                        Task { @MainActor in
                             do {
-                                try await chatModel.didSearch(caption:chatModel.locationSearchText, selectedDestinationChatResultID:chatModel.selectedDestinationLocationChatResult)
+                                try await chatModel.didSearch(caption:chatModel.locationSearchText, selectedDestinationChatResultID:chatModel.selectedDestinationLocationChatResult ?? chatModel.filteredDestinationLocationResults.first!.id)
                             } catch {
                                 chatModel.analytics?.track(name: "error \(error)")
                                 print(error)
                             }
                         }
                     }
-                })
+                }
             }
         }
     }

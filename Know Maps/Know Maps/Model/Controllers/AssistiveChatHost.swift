@@ -236,11 +236,11 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
     }
     
     @MainActor
-    public func updateLastIntent(caption:String) async throws {
+    public func updateLastIntent(caption:String, selectedDestinationLocationID:LocationResult.ID) async throws {
         if let lastIntent = queryIntentParameters.queryIntents.last {
             let queryParamters = try await defaultParameters(for: caption)
             let intent = determineIntent(for: caption)
-            let newIntent = AssistiveChatHostIntent(caption: caption, intent:intent, selectedPlaceSearchResponse: lastIntent.selectedPlaceSearchResponse, selectedPlaceSearchDetails: lastIntent.selectedPlaceSearchDetails, placeSearchResponses: lastIntent.placeSearchResponses, placeDetailsResponses: lastIntent.placeDetailsResponses, queryParameters: queryParamters)
+            let newIntent = AssistiveChatHostIntent(caption: caption, intent:intent, selectedPlaceSearchResponse: lastIntent.selectedPlaceSearchResponse, selectedPlaceSearchDetails: lastIntent.selectedPlaceSearchDetails, placeSearchResponses: lastIntent.placeSearchResponses, selectedDestinationLocationID: selectedDestinationLocationID, placeDetailsResponses: lastIntent.placeDetailsResponses, queryParameters: queryParamters)
             updateLastIntentParameters(intent: newIntent)
         }
     }

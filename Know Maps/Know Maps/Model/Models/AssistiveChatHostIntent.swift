@@ -14,16 +14,18 @@ public class AssistiveChatHostIntent : Equatable {
     public var selectedPlaceSearchResponse:PlaceSearchResponse?
     public var selectedPlaceSearchDetails:PlaceDetailsResponse?
     public var placeSearchResponses:[PlaceSearchResponse]
+    public var selectedDestinationLocationID:LocationResult.ID
     
     public var placeDetailsResponses:[PlaceDetailsResponse]?
     public let queryParameters:[String:Any]?
     
-    public init(caption: String, intent: AssistiveChatHost.Intent, selectedPlaceSearchResponse: PlaceSearchResponse?, selectedPlaceSearchDetails: PlaceDetailsResponse?, placeSearchResponses: [PlaceSearchResponse], placeDetailsResponses:[PlaceDetailsResponse]?, queryParameters: [String : Any]?) {
+    public init(caption: String, intent: AssistiveChatHost.Intent, selectedPlaceSearchResponse: PlaceSearchResponse?, selectedPlaceSearchDetails: PlaceDetailsResponse?, placeSearchResponses: [PlaceSearchResponse],selectedDestinationLocationID:LocationResult.ID, placeDetailsResponses:[PlaceDetailsResponse]?, queryParameters: [String : Any]?) {
         self.caption = caption
         self.intent = intent
         self.selectedPlaceSearchResponse = selectedPlaceSearchResponse
         self.selectedPlaceSearchDetails = selectedPlaceSearchDetails
         self.placeSearchResponses = placeSearchResponses
+        self.selectedDestinationLocationID = selectedDestinationLocationID
         self.placeDetailsResponses = placeDetailsResponses
         self.queryParameters = queryParameters
     }
