@@ -84,7 +84,7 @@ struct NavigationLocationView: View {
                         chatModel.selectedSavedCategoryResult = nil
                     }
                 }).onChange(of: chatModel.selectedDestinationLocationChatResult) { oldValue, newValue in
-                    if let newValue = newValue, !chatModel.locationSearchText.isEmpty {
+                    if let _ = newValue, !chatModel.locationSearchText.isEmpty {
                         Task { @MainActor in
                             do {
                                 try await chatModel.didSearch(caption:chatModel.locationSearchText, selectedDestinationChatResultID:chatModel.selectedDestinationLocationChatResult ?? chatModel.filteredDestinationLocationResults.first!.id)

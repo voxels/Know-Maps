@@ -904,7 +904,7 @@ extension ChatResultViewModel : AssistiveChatHostMessagesDelegate {
         
         let checkCaption = caption
 
-        var destinationChatResultID = selectedDestinationChatResultID
+        let destinationChatResultID = selectedDestinationChatResultID
 
         do {
             guard let chatHost = self.assistiveHostDelegate else {

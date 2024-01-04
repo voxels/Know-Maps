@@ -21,9 +21,9 @@ struct SearchView: View {
                 Section {
                     VStack {
                         Picker("", selection: $savedSectionSelection) {
-                            Text("Saved Places").tag(0)
-                            Text("Saved Categories").tag(1)
-                            Text("Saved Tastes").tag(2)
+                            Text("Places").tag(0)
+                            Text("Categories").tag(1)
+                            Text("Tastes").tag(2)
                         }
                         .pickerStyle(.segmented)
                         switch savedSectionSelection {
