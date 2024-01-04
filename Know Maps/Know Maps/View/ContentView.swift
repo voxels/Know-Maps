@@ -95,6 +95,7 @@ struct ContentView: View {
                 chatModel.cloudCache = cloudCache
                 do {
                     try await chatModel.refreshCachedCategories(cloudCache: cloudCache)
+                    try await chatModel.refreshCachedLocations(cloudCache: cloudCache)
 
                 } catch {
                     chatModel.analytics?.track(name: "error \(error)")
