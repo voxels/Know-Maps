@@ -63,7 +63,8 @@ struct PlaceDirectionsControlsView: View {
     let model = PlaceDirectionsViewModel()
     let locationProvider = LocationProvider()
 
-    let chatModel = ChatResultViewModel(locationProvider: locationProvider)
+    let cloudCache = CloudCache()
+    let chatModel = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cloudCache)
 
     return PlaceDirectionsControlsView(chatModel: chatModel, model: model, showLookAroundScene: .constant(false))
 }

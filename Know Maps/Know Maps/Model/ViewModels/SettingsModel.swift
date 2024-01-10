@@ -11,12 +11,12 @@ import AuthenticationServices
 open class SettingsModel : NSObject, ASAuthorizationControllerDelegate,  ObservableObject {
     public static let tag = "com.noisederived.Know-Maps.keys.appleuserid".data(using: .utf8)!
 
-    @Published public var userId:String
+    @Published public var appleUserId:String
     @Published public var keychainId:String?
     @Published public var fullName:String?
     
     public init(userId: String, keychainId: String? = nil, fullName: String? = nil) {
-        self.userId = userId
+        self.appleUserId = userId
         self.keychainId = keychainId
         self.fullName = fullName
     }
@@ -26,8 +26,8 @@ open class SettingsModel : NSObject, ASAuthorizationControllerDelegate,  Observa
         didCompleteWithAuthorization authorization: ASAuthorization
     ) {
         if let appleIDCredential = authorization.credential as? ASAuthorizationAppleIDCredential {
-            if userId.isEmpty {
-                userId = appleIDCredential.user
+            if appleUserId.isEmpty {
+                appleUserId = appleIDCredential.user
             }
             fullName = "\(appleIDCredential.fullName?.givenName ?? "") \(appleIDCredential.fullName?.familyName ?? "")"
             print("Authorization successful for \(String(describing: fullName)).")

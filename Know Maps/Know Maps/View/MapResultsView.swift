@@ -39,7 +39,8 @@ model:ChatResultViewModel
     let locationProvider = LocationProvider()
 
     let chatHost = AssistiveChatHost()
-    let chatModel = ChatResultViewModel(locationProvider: locationProvider)
+    let cloudCache = CloudCache()
+    let chatModel = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cloudCache)
     chatModel.assistiveHostDelegate = chatHost
     chatHost.messagesDelegate = chatModel
 

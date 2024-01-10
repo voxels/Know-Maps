@@ -23,7 +23,7 @@ struct Know_MapsApp: App {
     
     var body: some Scene {
         WindowGroup(id:"ContentView") {
-            ContentView(chatHost: AssistiveChatHost(), chatModel: ChatResultViewModel(locationProvider: locationProvider), locationProvider: locationProvider)
+            ContentView(chatHost: AssistiveChatHost(), chatModel: ChatResultViewModel(locationProvider: locationProvider, cloudCache: cloudCache), locationProvider: locationProvider)
                 .environmentObject(cloudCache)
                 .environmentObject(settingsModel)
                 .task {
@@ -42,10 +42,10 @@ struct Know_MapsApp: App {
         WindowGroup(id:"SettingsView"){
             SettingsView()
                 .tag("Settings")
-                .onChange(of: settingsModel.userId, { oldValue, newValue in
+                .onChange(of: settingsModel.appleUserId, { oldValue, newValue in
 #if os(visionOS) || os(iOS)
                     if !newValue.isEmpty, let vendorId = UIDevice().identifierForVendor {
-                        analytics?.identify(userId: vendorId.uuidString)
+                        analytics?.identify(appleUserId: vendorId.uuidString)
                     }
 #endif
 #if os(macOS)

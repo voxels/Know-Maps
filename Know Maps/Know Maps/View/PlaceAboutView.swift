@@ -17,6 +17,7 @@ struct PlaceAboutView: View {
     @ObservedObject public var locationProvider:LocationProvider
     @Binding public var resultId:ChatResult.ID?
     @Binding public var selectedTab:String
+    @State private var presentingPopover:Bool = false
     
 #if os(visionOS) || os(iOS)
     @State private var callController = CXCallController()
@@ -63,23 +64,57 @@ struct PlaceAboutView: View {
                                 }
                                 .padding(PlaceAboutView.defaultPadding)
                                 
-                                Button {
-                                    selectedTab = "Directions"
-                                } label: {
-                                    Text(placeResponse.formattedAddress)
+                                
+                                ZStack {
+                                    Capsule().frame(height: PlaceAboutView.buttonHeight, alignment: .center)
+#if os(visionOS) || os(iOS)
+                                        .foregroundColor(Color(uiColor:.systemFill))
+#endif
+#if os(macOS)
+                                        .foregroundStyle(.background)
+#endif
+                                    Label(placeResponse.formattedAddress, systemImage: "mappin")
+                                    
                                 }
-                                .buttonStyle(.bordered)
                                 .padding(PlaceAboutView.defaultPadding)
+                                .onTapGesture {
+                                    selectedTab = "Directions"
+                                }
                                 
                                 HStack {
+                                    ZStack {
+                                        Capsule().frame(height: PlaceAboutView.buttonHeight, alignment: .center)
+#if os(visionOS) || os(iOS)
+                                            .foregroundColor(Color(uiColor:.systemFill))
+#endif
+#if os(macOS)
+                                            .foregroundStyle(.background)
+#endif
+                                        Label("Add to List", systemImage: "star")
+                                    }.onTapGesture {
+                                        presentingPopover.toggle()
+                                    }.popover(isPresented: $presentingPopover) {
+                                        AddListItemView(chatModel: chatModel, resultId: $resultId)
+                                            .frame(width: 300, height: 300)
+                                            .presentationCompactAdaptation(.popover)
+                                    }
+                                    
                                     if let tel = placeDetailsResponse.tel {
-                                        Button {
+                                        ZStack {
+                                            Capsule().frame(height: PlaceAboutView.buttonHeight, alignment: .center)
+#if os(visionOS) || os(iOS)
+                                                .foregroundColor(Color(uiColor:.systemFill))
+#endif
+#if os(macOS)
+                                                .foregroundStyle(.background)
+#endif
+                                            Label("Call \(tel)", systemImage: "phone")
+                                            
+                                        }.onTapGesture {
 #if os(visionOS) || os(iOS)
                                             call(tel:tel)
 #endif
-                                        } label: {
-                                            Text("Call \(tel)")
-                                        }.buttonStyle(.bordered)
+                                        }
                                     }
                                     
                                     
@@ -93,7 +128,9 @@ struct PlaceAboutView: View {
 #if os(macOS)
                                                 .foregroundStyle(.background)
 #endif
-                                            Link("Visit Website", destination: url).foregroundStyle(.primary)
+                                            Link(destination: url) {
+                                                Label("Visit website", systemImage: "link")
+                                            }
                                         }
                                     }
 #if os(visionOS) || os(iOS)
@@ -136,14 +173,14 @@ struct PlaceAboutView: View {
                                     let rating = placeDetailsResponse.rating
                                     if rating > 0 {
                                         ZStack {
-                                            Capsule().frame(width: PlaceAboutView.buttonHeight, height: PlaceAboutView.buttonHeight, alignment: .center)
+                                            Capsule().frame(height: PlaceAboutView.buttonHeight, alignment: .center)
 #if os(visionOS) || os(iOS)
                                                 .foregroundColor(Color(uiColor:.systemFill))
 #endif
 #if os(macOS)
                                                 .foregroundStyle(.background)
 #endif
-                                            Text(PlacesList.formatter.string(from: NSNumber(value: rating)) ?? "0")
+                                            Label(PlacesList.formatter.string(from: NSNumber(value: rating)) ?? "0", systemImage: "quote.bubble")
                                             
                                         }.onTapGesture {
                                             selectedTab = "Tips"
@@ -195,7 +232,8 @@ struct PlaceAboutView: View {
     let locationProvider = LocationProvider()
 
     let chatHost = AssistiveChatHost()
-    let chatModel = ChatResultViewModel(locationProvider: locationProvider)
+    let cloudCache = CloudCache()
+    let chatModel = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cloudCache)
 
     chatModel.assistiveHostDelegate = chatHost
     chatHost.messagesDelegate = chatModel

@@ -94,6 +94,52 @@ open class CloudCache : NSObject, ObservableObject {
         }
     }
     
+    public func fetchFsqIdentity() async throws -> String {
+        let predicate = NSPredicate(format: "TRUEPREDICATE")
+        let query = CKQuery(recordType: "PersonalizedUser", predicate:predicate)
+        let operation = CKQueryOperation(query: query)
+        operation.desiredKeys = ["userId"]
+        operation.resultsLimit = 1
+        operation.recordMatchedBlock = { recordId, result in
+            Task { @MainActor in
+                
+                do {
+                    let record = try result.get()
+                    if let userId = record["userId"] as? String {
+                        self.fsqUserId = userId
+                    } else {
+                        self.fsqUserId = ""
+                        print("Did not find description")
+                    }
+                } catch {
+                    print(error)
+                }
+            }
+        }
+        
+        let success = try await withCheckedThrowingContinuation { checkedContinuation in
+            operation.queryResultBlock = { result in
+                
+                switch result {
+                case .success(_):
+                    checkedContinuation.resume(with: .success(true))
+                case .failure(let error):
+                    print(error)
+                    checkedContinuation.resume(with: .success(false))
+                }
+            }
+            
+            cacheContainer.privateCloudDatabase.add(operation)
+        }
+        
+        if success {
+            return fsqUserId
+        } else {
+            return ""
+        }
+
+    }
+    
     
     public func fetchToken(for fsqUserId:String) async throws -> String {
         
@@ -143,7 +189,7 @@ open class CloudCache : NSObject, ObservableObject {
         }
     }
     
-    public func storeToken(for fsqUserId:String, oauthToken:String) {
+    public func storeFoursquareIdentityAndToken(for fsqUserId:String, oauthToken:String) {
         let record = CKRecord(recordType:"PersonalizedUser")
         record.setObject(fsqUserId as NSString, forKey: "userId")
         record.setObject(oauthToken as NSString, forKey: "token")

@@ -139,7 +139,6 @@ open class LanguageGeneratorSession : NSObject, ObservableObject {
                     let record = try result.get()
                     if let apiKey = record["value"] as? String {
                         print("\(String(describing: record["service"]))")
-                        print("Found API Key \(apiKey)")
                         strongSelf.openaiApiKey = apiKey
                     } else {
                         print("Did not find API Key")

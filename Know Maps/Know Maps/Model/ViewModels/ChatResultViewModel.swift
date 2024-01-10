@@ -24,13 +24,16 @@ public class ChatResultViewModel : ObservableObject {
     public weak var delegate:ChatResultViewModelDelegate?
     public weak var assistiveHostDelegate:AssistiveChatHostDelegate?
     private let placeSearchSession:PlaceSearchSession = PlaceSearchSession()
+    private let personalizedSearchSession:PersonalizedSearchSession
     public var locationProvider:LocationProvider
     public var queryParametersHistory = [AssistiveChatHostQueryParameters]()
     public var fetchingPlaceID:ChatResult.ID?
     public var analytics:Analytics?
 
-    public var cloudCache:CloudCache?
+    public var cloudCache:CloudCache
     @Published public var cachedCategoryRecords:[UserCachedRecord]?
+    @Published public var cachedListRecords:[UserCachedRecord]?
+    @Published public var suggestedListRecords:[UserCachedRecord]?
     @Published public var cachedCategoryResults = [CategoryResult]()
     @Published public var cachedLocationRecords:[UserCachedRecord]?
     @Published public var cachedLocationResults = [LocationResult]()
@@ -40,6 +43,7 @@ public class ChatResultViewModel : ObservableObject {
     @Published public var selectedPlaceChatResult:ChatResult.ID?
     @Published public var selectedSourceLocationChatResult:LocationResult.ID?
     @Published public var selectedDestinationLocationChatResult:LocationResult.ID?
+    @Published public var selectedSuggestedListRecord:UserCachedRecord?
     @Published var isFetchingPlaceDescription:Bool = false
     @Published public var searchText: String = ""
     @Published public var locationSearchText: String = ""
@@ -53,6 +57,14 @@ public class ChatResultViewModel : ObservableObject {
             return try await assistiveHostDelegate?.languageDelegate.lookUpLocation(location: location)?.first?.name ?? "Current Location"
         }
         return nil
+    }
+    
+    public var filteredSuggestedListRecords:[UserCachedRecord] {
+        guard let suggestedListRecords = suggestedListRecords else {
+            return [UserCachedRecord]()
+        }
+        
+        return suggestedListRecords
     }
     
     public var filteredLocationResults:[LocationResult] {
@@ -103,48 +115,22 @@ public class ChatResultViewModel : ObservableObject {
     
     public var filteredPlaceResults:[ChatResult] {
         get {
-            var retval = placeResults
-            
-            let filteredCategories = retval.filter({ result in
-                if let categories = result.placeResponse?.categories {
-                    if !locationSearchText.isEmpty, let chatResult = chatResult(title: locationSearchText) {
-                        return categories.contains(chatResult.title.capitalized)
-                    } else if selectedCategoryChatResult == nil {
-                        return true
-                    } else {
-                        return false
-                    }
-                } else {
-                    return false
-                }
-            })
-            
-            if filteredCategories.isEmpty {
-                return placeResults
+            let retval = placeResults.sorted { result, checkResult in
+                return result.title <= checkResult.title
             }
-            
-            
-            for category in filteredCategories {
-                retval.removeAll { result in
-                    category.id == result.id
-                }
-            }
-            
-            for category in filteredCategories.reversed() {
-                retval.insert(category, at: 0)
-            }
-            
+                    
             return retval
         }
     }
     
-    public init(delegate: ChatResultViewModelDelegate? = nil, assistiveHostDelegate: AssistiveChatHostDelegate? = nil, locationProvider: LocationProvider, queryParametersHistory: [AssistiveChatHostQueryParameters] = [AssistiveChatHostQueryParameters](), fetchingPlaceID: ChatResult.ID? = nil, analytics: Analytics? = nil, selectedCategoryChatResult: ChatResult.ID? = nil, selectedPlaceChatResult: ChatResult.ID? = nil,  selectedSourceLocationChatResult: LocationResult.ID? = nil, selectedDestinationLocationChatResult: LocationResult.ID? = nil, isFetchingPlaceDescription: Bool = false, searchText: String = "", locationSearchText: String = "", categoryResults: [CategoryResult] = [CategoryResult](), searchCategoryResults: CategoryResult = CategoryResult(parentCategory: "Search Results", categoricalChatResults: [ChatResult]()), placeResults: [ChatResult] = [ChatResult](), locationResults: [LocationResult] = [LocationResult]()) {
+    public init(delegate: ChatResultViewModelDelegate? = nil, assistiveHostDelegate: AssistiveChatHostDelegate? = nil, locationProvider: LocationProvider, queryParametersHistory: [AssistiveChatHostQueryParameters] = [AssistiveChatHostQueryParameters](), fetchingPlaceID: ChatResult.ID? = nil, analytics: Analytics? = nil, cloudCache:CloudCache, selectedCategoryChatResult: ChatResult.ID? = nil, selectedPlaceChatResult: ChatResult.ID? = nil,  selectedSourceLocationChatResult: LocationResult.ID? = nil, selectedDestinationLocationChatResult: LocationResult.ID? = nil, isFetchingPlaceDescription: Bool = false, searchText: String = "", locationSearchText: String = "", categoryResults: [CategoryResult] = [CategoryResult](), searchCategoryResults: CategoryResult = CategoryResult(parentCategory: "Search Results", categoricalChatResults: [ChatResult]()), placeResults: [ChatResult] = [ChatResult](), locationResults: [LocationResult] = [LocationResult]()) {
         self.delegate = delegate
         self.assistiveHostDelegate = assistiveHostDelegate
         self.locationProvider = locationProvider
         self.queryParametersHistory = queryParametersHistory
         self.fetchingPlaceID = fetchingPlaceID
         self.analytics = analytics
+        self.cloudCache = cloudCache
         self.selectedCategoryChatResult = selectedCategoryChatResult
         self.selectedPlaceChatResult = selectedPlaceChatResult
         self.selectedSourceLocationChatResult = selectedSourceLocationChatResult
@@ -156,9 +142,20 @@ public class ChatResultViewModel : ObservableObject {
         self.searchCategoryResults = searchCategoryResults
         self.placeResults = placeResults
         self.locationResults = locationResults
+        self.personalizedSearchSession = PersonalizedSearchSession(cloudCache: cloudCache)
     }
     
-    
+    @discardableResult
+    public func retrieveFsqUser() async throws -> Bool {
+        if !cloudCache.hasPrivateCloudAccess {
+            return false
+        }
+        
+        personalizedSearchSession.fsqIdentity = try await personalizedSearchSession.fetchManagedUserIdentity()
+        personalizedSearchSession.fsqAccessToken = try await personalizedSearchSession.fetchManagedUserAccessToken()
+        
+        return personalizedSearchSession.fsqAccessToken != nil
+    }
     
     public func resetPlaceModel() {
         selectedPlaceChatResult = nil
@@ -176,6 +173,27 @@ public class ChatResultViewModel : ObservableObject {
     public func refreshCachedCategories(cloudCache:CloudCache) async throws {
         cachedCategoryRecords = try await cloudCache.fetchGroupedUserCachedRecords(for: "Category")
         cachedCategoryResults = savedCategoricalResults()
+    }
+    
+    public func refreshSuggestedLists(cloudCache:CloudCache, with chatResult:ChatResult) async throws {
+        var retval = [UserCachedRecord]()
+        cachedListRecords = try await cloudCache.fetchGroupedUserCachedRecords(for: "Place")
+        if let cachedListRecords = cachedListRecords {
+            retval.append(contentsOf: cachedListRecords)
+        }
+        if let categories = chatResult.placeResponse?.categories {
+            for category in categories {
+                let categoryRecord = UserCachedRecord(recordId: "", group: "Place", identity:chatResult.placeResponse!.fsqID, title: category, icons: "")
+                retval.append(categoryRecord)
+            }
+        }
+        if let tastes = chatResult.placeDetailsResponse?.tastes {
+            for taste in tastes {
+                let tasteRecord = UserCachedRecord(recordId: "", group: "Place", identity:chatResult.placeResponse!.fsqID, title: taste, icons: "")
+                retval.append(tasteRecord)
+            }
+        }
+        suggestedListRecords = retval
     }
     
     public func appendCachedCategory(with record:UserCachedRecord) {

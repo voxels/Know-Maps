@@ -14,6 +14,7 @@ struct PlacesList: View {
     @ObservedObject public var locationProvider:LocationProvider
 
     @Binding public var resultId:ChatResult.ID?
+    @State private var showingPopover:Bool = false
     
     static var formatter:NumberFormatter {
         let retval = NumberFormatter()
@@ -30,7 +31,6 @@ struct PlacesList: View {
                         .foregroundColor(Color(uiColor: UIColor.label))
                     #endif
                     Spacer()
-                    Text(distanceString(for:result.placeResponse))
                 }
             }
         }
@@ -65,7 +65,8 @@ struct PlacesList: View {
     let locationProvider = LocationProvider()
 
     let chatHost = AssistiveChatHost()
-    let chatModel = ChatResultViewModel(locationProvider: locationProvider)
+    let cloudCache = CloudCache()
+    let chatModel = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cloudCache)
 
     chatModel.assistiveHostDelegate = chatHost
     chatHost.messagesDelegate = chatModel

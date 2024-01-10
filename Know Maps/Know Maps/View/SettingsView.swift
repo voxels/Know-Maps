@@ -10,23 +10,24 @@ import AuthenticationServices
 
 struct SettingsView: View {
     @EnvironmentObject public var model:SettingsModel
-    
+    @EnvironmentObject public var cloudCache:CloudCache
     var body: some View {
-        if model.userId.isEmpty {
+        if model.appleUserId.isEmpty {
                 SignInWithAppleButton { request in
-                    if !model.userId.isEmpty {
-                        request.user = model.userId
+                    if !model.appleUserId.isEmpty {
+                        request.user = model.appleUserId
                     }
                     request.requestedScopes = [.fullName]
                 } onCompletion: { result in
                     switch result {
                     case .success(let authResults):
                         if let appleIDCredential = authResults.credential as? ASAuthorizationAppleIDCredential {
-                            model.userId = appleIDCredential.user
+                            model.appleUserId = appleIDCredential.user
                             model.fullName = "\(appleIDCredential.fullName?.givenName ?? "") \(appleIDCredential.fullName?.familyName ?? "")"
+                            cloudCache.hasPrivateCloudAccess = true
                             print("Authorization successful.")
                             Task {
-                                let key =  model.userId.data(using: .utf8)
+                                let key =  model.appleUserId.data(using: .utf8)
                                 let addquery: [String: Any] = [kSecClass as String: kSecClassKey,
                                                                kSecAttrApplicationTag as String: SettingsModel.tag,
                                                                kSecValueData as String: key as AnyObject]

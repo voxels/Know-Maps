@@ -7,7 +7,8 @@
 
 import Foundation
 
-public struct UserCachedRecord : Codable, Equatable {
+public struct UserCachedRecord : Identifiable, Hashable, Codable, Equatable {
+    public var id:UUID = UUID()
     var recordId:String
     let group:String
     let identity:String

@@ -62,6 +62,9 @@
 		1E26C7B42B2C79150050EC6A /* NavigationLocationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E26C7B32B2C79150050EC6A /* NavigationLocationView.swift */; };
 		1E26C7B52B2C79150050EC6A /* NavigationLocationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E26C7B32B2C79150050EC6A /* NavigationLocationView.swift */; };
 		1E26C7B62B2C79150050EC6A /* NavigationLocationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E26C7B32B2C79150050EC6A /* NavigationLocationView.swift */; };
+		1E4481DE2B499D3F00FD2EEF /* AddListItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E4481DD2B499D3F00FD2EEF /* AddListItemView.swift */; };
+		1E4481DF2B499D3F00FD2EEF /* AddListItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E4481DD2B499D3F00FD2EEF /* AddListItemView.swift */; };
+		1E4481E02B499D3F00FD2EEF /* AddListItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E4481DD2B499D3F00FD2EEF /* AddListItemView.swift */; };
 		1E583F7D2B1671F300B2EC26 /* SettingsModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E583F7C2B1671F300B2EC26 /* SettingsModel.swift */; };
 		1E630C842B1636E400A57CCB /* ActivityViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E630C832B1636E400A57CCB /* ActivityViewController.swift */; };
 		1E630C862B16440100A57CCB /* CloudCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E630C852B16440100A57CCB /* CloudCache.swift */; };
@@ -153,6 +156,9 @@
 		1EA7F7972B052DE4002AE371 /* AssistiveChatHost.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EA7F7952B052DE4002AE371 /* AssistiveChatHost.swift */; };
 		1EA7F79A2B052E0C002AE371 /* LocalMapsQueryClassifier.mlmodel in Sources */ = {isa = PBXBuildFile; fileRef = 1EA7F7982B052E0C002AE371 /* LocalMapsQueryClassifier.mlmodel */; };
 		1EA7F79B2B052E0C002AE371 /* LocalMapsQueryTagger.mlmodel in Sources */ = {isa = PBXBuildFile; fileRef = 1EA7F7992B052E0C002AE371 /* LocalMapsQueryTagger.mlmodel */; };
+		1EB4EE872B4EC072003AD112 /* PersonalizedSearchSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EB4EE862B4EC072003AD112 /* PersonalizedSearchSession.swift */; };
+		1EB4EE882B4EC072003AD112 /* PersonalizedSearchSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EB4EE862B4EC072003AD112 /* PersonalizedSearchSession.swift */; };
+		1EB4EE892B4EC072003AD112 /* PersonalizedSearchSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EB4EE862B4EC072003AD112 /* PersonalizedSearchSession.swift */; };
 		1EE068862B0CE74C0016851A /* PlaceAboutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EE068852B0CE74C0016851A /* PlaceAboutView.swift */; };
 		1EE068882B0D1ADB0016851A /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EE068872B0D1ADB0016851A /* SettingsView.swift */; };
 		1EE0688A2B0D1E2B0016851A /* PlaceDirectionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EE068892B0D1E2B0016851A /* PlaceDirectionsView.swift */; };
@@ -220,6 +226,7 @@
 		1E26C7722B2C75240050EC6A /* Know_Maps_iOSUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Know_Maps_iOSUITestsLaunchTests.swift; sourceTree = "<group>"; };
 		1E26C7AC2B2C76310050EC6A /* Know Maps iOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Know Maps iOS.entitlements"; sourceTree = "<group>"; };
 		1E26C7B32B2C79150050EC6A /* NavigationLocationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationLocationView.swift; sourceTree = "<group>"; };
+		1E4481DD2B499D3F00FD2EEF /* AddListItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddListItemView.swift; sourceTree = "<group>"; };
 		1E583F7C2B1671F300B2EC26 /* SettingsModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsModel.swift; sourceTree = "<group>"; };
 		1E630C832B1636E400A57CCB /* ActivityViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityViewController.swift; sourceTree = "<group>"; };
 		1E630C852B16440100A57CCB /* CloudCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudCache.swift; sourceTree = "<group>"; };
@@ -273,6 +280,7 @@
 		1EA7F7982B052E0C002AE371 /* LocalMapsQueryClassifier.mlmodel */ = {isa = PBXFileReference; lastKnownFileType = file.mlmodel; path = LocalMapsQueryClassifier.mlmodel; sourceTree = "<group>"; };
 		1EA7F7992B052E0C002AE371 /* LocalMapsQueryTagger.mlmodel */ = {isa = PBXFileReference; lastKnownFileType = file.mlmodel; path = LocalMapsQueryTagger.mlmodel; sourceTree = "<group>"; };
 		1EA7F79C2B053E62002AE371 /* Know Maps.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Know Maps.entitlements"; sourceTree = "<group>"; };
+		1EB4EE862B4EC072003AD112 /* PersonalizedSearchSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersonalizedSearchSession.swift; sourceTree = "<group>"; };
 		1EE068852B0CE74C0016851A /* PlaceAboutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceAboutView.swift; sourceTree = "<group>"; };
 		1EE068872B0D1ADB0016851A /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		1EE068892B0D1E2B0016851A /* PlaceDirectionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceDirectionsView.swift; sourceTree = "<group>"; };
@@ -474,6 +482,7 @@
 				1EA7F77A2B052D92002AE371 /* LocationProvider.swift */,
 				1EA7F77E2B052D92002AE371 /* PlaceResponseFormatter.swift */,
 				1EA7F7752B052D92002AE371 /* PlaceSearchSession.swift */,
+				1EB4EE862B4EC072003AD112 /* PersonalizedSearchSession.swift */,
 			);
 			path = Controllers;
 			sourceTree = "<group>";
@@ -570,6 +579,7 @@
 				1EA7F76C2B04FFD9002AE371 /* SearchView.swift */,
 				1E26C7B32B2C79150050EC6A /* NavigationLocationView.swift */,
 				1EA7F7702B051BDE002AE371 /* PlacesList.swift */,
+				1E4481DD2B499D3F00FD2EEF /* AddListItemView.swift */,
 				1EA588D22B09326E006B1F8F /* PlaceView.swift */,
 				1EE068852B0CE74C0016851A /* PlaceAboutView.swift */,
 				1EE068892B0D1E2B0016851A /* PlaceDirectionsView.swift */,
@@ -906,6 +916,7 @@
 				1E26C7932B2C75830050EC6A /* PlaceSearchRequest.swift in Sources */,
 				1E26C7A02B2C75A20050EC6A /* PlacePhotosView.swift in Sources */,
 				1E26C7942B2C75830050EC6A /* ChatResult.swift in Sources */,
+				1EB4EE892B4EC072003AD112 /* PersonalizedSearchSession.swift in Sources */,
 				1E26C79F2B2C75A20050EC6A /* PlaceDirectionsView.swift in Sources */,
 				1E26C7922B2C75830050EC6A /* AssistiveChatHostIntent.swift in Sources */,
 				1E26C77E2B2C757A0050EC6A /* LocationProvider.swift in Sources */,
@@ -919,6 +930,7 @@
 				1E26C7A22B2C75A20050EC6A /* MapResultsView.swift in Sources */,
 				1E26C7A72B2C75A20050EC6A /* ImmersiveView.swift in Sources */,
 				1E26C7A42B2C75A20050EC6A /* PlaceView.swift in Sources */,
+				1E4481E02B499D3F00FD2EEF /* AddListItemView.swift in Sources */,
 				1E26C7802B2C757A0050EC6A /* LocalMapsQueryClassifier.mlmodel in Sources */,
 				1E26C79A2B2C758C0050EC6A /* ChatHostingViewControllerDelegate.swift in Sources */,
 				1E26C78C2B2C75830050EC6A /* PlaceDetailsRequest.swift in Sources */,
@@ -979,12 +991,14 @@
 				1E6F4AFA2B20F453001E701B /* PlaceTipsResponse.swift in Sources */,
 				1E6F4AD22B20F453001E701B /* PlaceDirectionsControlsView.swift in Sources */,
 				1E6F4ADD2B20F453001E701B /* ContentView.swift in Sources */,
+				1EB4EE882B4EC072003AD112 /* PersonalizedSearchSession.swift in Sources */,
 				1E26C7B52B2C79150050EC6A /* NavigationLocationView.swift in Sources */,
 				1E6F4AF62B20F453001E701B /* SettingsModel.swift in Sources */,
 				1E6F4AE42B20F453001E701B /* ChatResult.swift in Sources */,
 				1E6F4AE82B20F453001E701B /* LocationProvider.swift in Sources */,
 				1E6F4AF22B20F453001E701B /* LocalMapsQueryTagger.mlmodel in Sources */,
 				1E6F4AEB2B20F453001E701B /* LanguageGeneratorSession.swift in Sources */,
+				1E4481DF2B499D3F00FD2EEF /* AddListItemView.swift in Sources */,
 				1E6F4ADC2B20F453001E701B /* PlaceDirectionsView.swift in Sources */,
 				1E6F4AD72B20F453001E701B /* PlaceDetailsResponse.swift in Sources */,
 				1E6F4AD42B20F453001E701B /* LocalMapsQueryClassifier.mlmodel in Sources */,
@@ -1047,6 +1061,7 @@
 				1EA7F78F2B052D92002AE371 /* PlaceResponseFormatter.swift in Sources */,
 				1EA7F7922B052D92002AE371 /* ChatResult.swift in Sources */,
 				1EA7F7712B051BDE002AE371 /* PlacesList.swift in Sources */,
+				1EB4EE872B4EC072003AD112 /* PersonalizedSearchSession.swift in Sources */,
 				1EE0688A2B0D1E2B0016851A /* PlaceDirectionsView.swift in Sources */,
 				1EA7F7902B052D92002AE371 /* PlaceSearchResponse.swift in Sources */,
 				1E583F7D2B1671F300B2EC26 /* SettingsModel.swift in Sources */,
@@ -1060,6 +1075,7 @@
 				1E98C7D12B18DC4100283E92 /* AssistiveChatHostStreamResponseDelegate.swift in Sources */,
 				1EE068882B0D1ADB0016851A /* SettingsView.swift in Sources */,
 				1EE0688C2B0D1E930016851A /* PlacePhotosView.swift in Sources */,
+				1E4481DE2B499D3F00FD2EEF /* AddListItemView.swift in Sources */,
 				1EE068922B0FBADE0016851A /* ChatRouteResult.swift in Sources */,
 				1EA7F7832B052D92002AE371 /* LanguageGeneratorRequest.swift in Sources */,
 				1EE0688E2B0D1EB40016851A /* PlaceTipsView.swift in Sources */,

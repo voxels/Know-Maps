@@ -96,7 +96,7 @@ struct ContentView: View {
                 do {
                     try await chatModel.refreshCachedCategories(cloudCache: cloudCache)
                     try await chatModel.refreshCachedLocations(cloudCache: cloudCache)
-
+                    try await chatModel.retrieveFsqUser()
                 } catch {
                     chatModel.analytics?.track(name: "error \(error)")
                     print(error)
@@ -106,6 +106,7 @@ struct ContentView: View {
                     chatHost.messagesDelegate = chatModel
                     await chatModel.categoricalSearchModel()
                 }
+                
             }
             .tag("Search")
 #if os(visionOS) || os(iOS)
@@ -119,7 +120,8 @@ struct ContentView: View {
 
 #Preview {
     let locationProvider = LocationProvider()
-    let chatModel = ChatResultViewModel(locationProvider: locationProvider)
+    let cloudCache = CloudCache()
+    let chatModel = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cloudCache)
     let chatHost = AssistiveChatHost()
     return ContentView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider)
 }
