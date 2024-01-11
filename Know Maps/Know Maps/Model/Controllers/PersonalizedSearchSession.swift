@@ -13,6 +13,7 @@ public enum PersonalizedSearchSessionError : Error {
     case ServerErrorMessage
     case NoUserFound
     case NoTokenFound
+    case NoTasteFound
 }
 
 open class PersonalizedSearchSession {
@@ -25,13 +26,16 @@ open class PersonalizedSearchSession {
     static let serverUrl = "https://api.foursquare.com/"
     static let userManagementAPIUrl = "v2/usermanagement"
     static let userManagementCreationPath = "/createuser"
+    static let tasteSuggestionsAPIUrl = "v2/tastes/suggestions"
     static let foursquareVersionDate = "20240101"
     
     public init(cloudCache: CloudCache, searchSession:URLSession? = nil) {
         self.cloudCache = cloudCache
         self.searchSession = searchSession
     }
-    
+}
+
+extension PersonalizedSearchSession {
     @discardableResult
     public func fetchManagedUserIdentity() async throws ->String? {
         var cloudFsqIdentity = try await cloudCache.fetchFsqIdentity()
@@ -85,10 +89,10 @@ open class PersonalizedSearchSession {
         
         let components = URLComponents(string:"\(PersonalizedSearchSession.serverUrl)\(PersonalizedSearchSession.userManagementAPIUrl)\(PersonalizedSearchSession.userManagementCreationPath)")
         guard let url = components?.url else {
-            throw PlaceSearchSessionError.UnsupportedRequest
+            throw PersonalizedSearchSessionError.UnsupportedRequest
         }
         
-        let userCreationResponse = try await postFetch(url: url, apiKey: apiKey)
+        let userCreationResponse = try await fetch(url: url, apiKey: apiKey, httpMethod: "POST")
         
         guard let response = userCreationResponse as? [String:Any] else {
             return false
@@ -116,9 +120,48 @@ open class PersonalizedSearchSession {
         
         return true
     }
-    
-    public func fetchTastes() async throws -> [String] {
-        return [String]()
+}
+
+extension PersonalizedSearchSession {
+    public func fetchTastes(page:Int) async throws -> [String] {
+        let apiKey = try await fetchManagedUserAccessToken()
+        
+        if searchSession == nil {
+            let sessionConfiguration = URLSessionConfiguration.default
+            let session = URLSession(configuration: sessionConfiguration)
+            searchSession = session
+        }
+        
+        guard !apiKey.isEmpty, searchSession != nil else {
+            throw PersonalizedSearchSessionError.UnsupportedRequest
+        }
+        
+        let components = URLComponents(string:"\(PersonalizedSearchSession.serverUrl)\(PersonalizedSearchSession.tasteSuggestionsAPIUrl)")
+        guard let url = components?.url else {
+            throw PersonalizedSearchSessionError.UnsupportedRequest
+        }
+        
+        let intentQueryItem = URLQueryItem(name: "intent", value: "profileadd")
+        let limitQueryItem = URLQueryItem(name: "limit", value: "50")
+        let offsetQueryItem = URLQueryItem(name: "offset", value:"\(page)")
+        let response = try await fetch(url: url, apiKey: apiKey, urlQueryItems: [intentQueryItem, limitQueryItem, offsetQueryItem])
+        
+        guard let response = response as? [String:Any] else {
+            throw PersonalizedSearchSessionError.NoTasteFound
+        }
+                        
+        var retval = [String]()
+        if let responseDict = response["response"] as? NSDictionary {
+            if let tastesArray = responseDict["tastes"] as? [NSDictionary] {
+                for taste in tastesArray {
+                    if let text = taste["text"] as? String {
+                        retval.append(text)
+                    }
+                }
+            }
+        }
+
+        return retval
     }
 }
 
@@ -171,13 +214,18 @@ extension PersonalizedSearchSession {
 
 
 extension PersonalizedSearchSession {
-    internal func postFetch(url:URL, apiKey:String) async throws -> Any {
+    internal func fetch(url:URL, apiKey:String, urlQueryItems:[URLQueryItem]? = nil, httpMethod:String = "GET") async throws -> Any {
         print("Requesting URL: \(url)")
         
         var urlComponents = URLComponents(url: url, resolvingAgainstBaseURL: false)
         
         let urlQueryItem = URLQueryItem(name: "v", value: PersonalizedSearchSession.foursquareVersionDate)
-        urlComponents?.queryItems = [urlQueryItem]
+        var allQueryItems = [urlQueryItem]
+        
+        if let urlQueryItems = urlQueryItems {
+            allQueryItems.append(contentsOf: urlQueryItems)
+        }
+        urlComponents?.queryItems = allQueryItems
         
         guard let queryUrl = urlComponents?.url else {
             throw PersonalizedSearchSessionError.UnsupportedRequest
@@ -185,7 +233,7 @@ extension PersonalizedSearchSession {
 
         var request = URLRequest(url:queryUrl)
         request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
-        request.httpMethod = "POST"
+        request.httpMethod = httpMethod
         
         let responseAny:Any = try await withCheckedThrowingContinuation({checkedContinuation in
             let dataTask = searchSession?.dataTask(with: request, completionHandler: { data, response, error in

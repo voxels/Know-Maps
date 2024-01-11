@@ -167,9 +167,9 @@ public class ChatResultViewModel : ObservableObject {
         analytics?.track(name: "resetPlaceModel")
     }
     
-    public func refreshTastes() async throws {
-        let tastes = try await personalizedSearchSession.fetchTastes()
-        tasteResults = tasteCategoryResults(with: tastes)
+    public func refreshTastes(page:Int) async throws {
+        let tastes = try await personalizedSearchSession.fetchTastes(page:page)
+        tasteResults = tasteCategoryResults(with: tastes, page:page)
     }
     
     public func refreshCachedLocations(cloudCache:CloudCache) async throws {
@@ -795,8 +795,14 @@ public class ChatResultViewModel : ObservableObject {
         return retval
     }
     
-    private func tasteCategoryResults(with tastes:[String])->[CategoryResult] {
+    private func tasteCategoryResults(with tastes:[String], page:Int)->[CategoryResult] {
         var retval  = [CategoryResult]()
+        if page > 0 {
+            retval.append(contentsOf: tasteResults)
+        } else {
+            tasteResults.removeAll()
+        }
+        
         for taste in tastes {
             let newChatResult = ChatResult(title: taste, placeResponse: nil)
             let newCategoryResult = CategoryResult(parentCategory: taste, categoricalChatResults: [newChatResult])

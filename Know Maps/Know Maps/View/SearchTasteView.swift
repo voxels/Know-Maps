@@ -26,7 +26,7 @@ struct SearchTasteView: View {
         }
         .task {
             do {
-                try await model.refreshTastes()
+                try await model.refreshTastes(page:0)
             } catch {
                     model.analytics?.track(name: "error \(error)")
                     print(error)
