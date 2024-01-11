@@ -39,8 +39,6 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
         try? organizeCategoryCodeList()
     }
     
-    
-    
     public func organizeCategoryCodeList() throws {
         if let path = Bundle.main.path(forResource: "integrated_category_taxonomy", ofType: "json")
         {
@@ -60,7 +58,9 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
                             }
                             
                             guard let candidate = candidate else {
-                                retval.insert(newCategoryDict)
+                                if parentCategory != "Foursquare Places" {
+                                    retval.insert(newCategoryDict)
+                                }
                                 continue
                             }
                             
@@ -77,7 +77,9 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
                                         allCategoryDicts.append(contentsOf: newCategoryDictValue)
                                     }
                                     
-                                    retval.insert([parentCategory : allCategoryDicts])
+                                    if !allCategoryDicts.isEmpty {
+                                        retval.insert([parentCategory : allCategoryDicts])
+                                    }
                                 }
                             }
                         }

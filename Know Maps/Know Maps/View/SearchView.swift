@@ -21,68 +21,21 @@ struct SearchView: View {
                 Section {
                     VStack {
                         Picker("", selection: $sectionSelection) {
-                            Text("Categories").tag(0)
-                            Text("Tastes").tag(1)
+                            Text("Category").tag(0)
+                            Text("Taste").tag(1)
                             if hasCachedResults {
                                 Text("Saved").tag(2)
                             }
                         }
-                        .padding(16)
+                        .padding(8)
                         .pickerStyle(.segmented)
                         switch sectionSelection {
                         case 0:
-                            List(model.filteredResults, children:\.children, selection:$model.selectedCategoryResult) { parent in
-                                HStack {
-                                    Text("\(parent.parentCategory)")
-                                    Spacer()
-                                    if let chatResults = parent.categoricalChatResults, chatResults.count == 1, cloudCache.hasPrivateCloudAccess {
-                                        let isSaved = model.cachedCategories(contains: parent.parentCategory)
-                                        Label("Save", systemImage:isSaved ? "star.fill" : "star").labelStyle(.iconOnly)
-                                            .onTapGesture {
-                                                if isSaved {
-                                                    if let cachedCategoricalResults = model.cachedCategoricalResults(for: "Category", identity: parent.parentCategory) {
-                                                        for cachedCategoricalResult in cachedCategoricalResults {
-                                                            Task {
-                                                                try await cloudCache.deleteUserCachedRecord(for: cachedCategoricalResult)
-                                                                try await model.refreshCachedCategories(cloudCache: cloudCache)
-                                                            }
-                                                        }
-                                                    }
-                                                } else {
-                                                    Task {
-                                                        var userRecord = UserCachedRecord(recordId: "", group: "Category", identity: parent.parentCategory, title: parent.parentCategory, icons: "")
-                                                        let record = try await cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title)
-                                                        userRecord.setRecordId(to: record.recordID.recordName)
-                                                        model.appendCachedCategory(with: userRecord)
-                                                    }
-                                                }
-                                            }
-                                    }
-                                }
-                            }
+                            SearchCategoryView(model: model)
                         case 1:
                             ContentUnavailableView("No Tastes", systemImage:"return")
                         case 2:
-                            List(model.cachedCategoryResults, children:\.children, selection: $model.selectedSavedCategoryResult) { parent in
-                                HStack {
-                                    Text("\(parent.parentCategory)")
-                                    Spacer()
-                                    if let chatResults = parent.categoricalChatResults, chatResults.count == 1, cloudCache.hasPrivateCloudAccess {
-                                        Label("Save", systemImage:"star.fill")
-                                            .labelStyle(.iconOnly)
-                                            .onTapGesture {
-                                                if let cachedCategoricalResults = model.cachedCategoricalResults(for: "Category", identity: parent.parentCategory) {
-                                                    for cachedCategoricalResult in cachedCategoricalResults {
-                                                        Task { @MainActor in
-                                                            try await cloudCache.deleteUserCachedRecord(for: cachedCategoricalResult)
-                                                            try await model.refreshCachedCategories(cloudCache: cloudCache)
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                    }
-                                }
-                            }
+                            SearchSavedView(model: model)
                         default:
                             ContentUnavailableView("No Tastes", systemImage:"return")
                         }
