@@ -116,6 +116,10 @@ open class PersonalizedSearchSession {
         
         return true
     }
+    
+    public func fetchTastes() async throws -> [String] {
+        return [String]()
+    }
 }
 
 extension PersonalizedSearchSession {

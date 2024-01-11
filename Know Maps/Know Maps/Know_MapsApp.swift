@@ -34,6 +34,7 @@ struct Know_MapsApp: App {
                             cloudCache.hasPrivateCloudAccess = true
                         }
                     } catch {
+                        analytics?.track(name: "error \(error)")
                         print(error)
                     }
                 }

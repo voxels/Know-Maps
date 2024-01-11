@@ -11,7 +11,27 @@ struct SearchTasteView: View {
     @ObservedObject public var model:ChatResultViewModel
     
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        List(model.tasteResults, selection: $model.selectedTasteCategoryResult) { parent in
+            HStack {
+                Text("\(parent.parentCategory)")
+                Spacer()
+                if let chatResults = parent.categoricalChatResults, chatResults.count == 1, model.cloudCache.hasPrivateCloudAccess {
+                    Label("Save", systemImage:"star.fill")
+                        .labelStyle(.iconOnly)
+                        .onTapGesture {
+                            
+                        }
+                }
+            }
+        }
+        .task {
+            do {
+                try await model.refreshTastes()
+            } catch {
+                    model.analytics?.track(name: "error \(error)")
+                    print(error)
+            }
+        }
     }
 }
 

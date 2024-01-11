@@ -30,13 +30,14 @@ struct SearchSavedView: View {
                         }
                 }
             }
-        }    }
+        }
+    }
 }
 
 #Preview {
     let locationProvider = LocationProvider()
     let cloudCache = CloudCache()
     let chatModel = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cloudCache)
-
+    
     return SearchSavedView(model: chatModel)
 }

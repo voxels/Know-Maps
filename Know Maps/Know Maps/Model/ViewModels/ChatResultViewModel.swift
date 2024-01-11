@@ -39,6 +39,7 @@ public class ChatResultViewModel : ObservableObject {
     @Published public var cachedLocationResults = [LocationResult]()
     @Published public var selectedCategoryResult:CategoryResult.ID?
     @Published public var selectedSavedCategoryResult:CategoryResult.ID?
+    @Published public var selectedTasteCategoryResult:CategoryResult.ID?
     @Published public var selectedCategoryChatResult:ChatResult.ID?
     @Published public var selectedPlaceChatResult:ChatResult.ID?
     @Published public var selectedSourceLocationChatResult:LocationResult.ID?
@@ -48,6 +49,7 @@ public class ChatResultViewModel : ObservableObject {
     @Published public var searchText: String = ""
     @Published public var locationSearchText: String = ""
     @Published public var categoryResults:[CategoryResult] = [CategoryResult]()
+    @Published public var tasteResults:[CategoryResult] = [CategoryResult]()
     public var searchCategoryResults:CategoryResult = CategoryResult(parentCategory: "Search Results", categoricalChatResults: [ChatResult]())
     @Published public var placeResults:[ChatResult] = [ChatResult]()
     @Published public var locationResults:[LocationResult] = [LocationResult]()
@@ -163,6 +165,11 @@ public class ChatResultViewModel : ObservableObject {
         searchText = locationSearchText
         placeResults.removeAll()
         analytics?.track(name: "resetPlaceModel")
+    }
+    
+    public func refreshTastes() async throws {
+        let tastes = try await personalizedSearchSession.fetchTastes()
+        tasteResults = tasteCategoryResults(with: tastes)
     }
     
     public func refreshCachedLocations(cloudCache:CloudCache) async throws {
@@ -783,6 +790,17 @@ public class ChatResultViewModel : ObservableObject {
                 }
             }
             
+        }
+        
+        return retval
+    }
+    
+    private func tasteCategoryResults(with tastes:[String])->[CategoryResult] {
+        var retval  = [CategoryResult]()
+        for taste in tastes {
+            let newChatResult = ChatResult(title: taste, placeResponse: nil)
+            let newCategoryResult = CategoryResult(parentCategory: taste, categoricalChatResults: [newChatResult])
+            retval.append(newCategoryResult)
         }
         
         return retval

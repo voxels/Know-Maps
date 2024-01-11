@@ -232,6 +232,7 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
                 return nil
             }
         } catch {
+            analytics?.track(name: "error \(error)")
             print(error)
             return nil
         }
