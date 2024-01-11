@@ -17,17 +17,52 @@ struct SearchView: View {
 
     var body: some View { 
         VStack {
-            if !model.cachedCategoryResults.isEmpty  {
+            let hasCachedResults = cloudCache.hasPrivateCloudAccess && !model.cachedCategoryResults.isEmpty
                 Section {
                     VStack {
-                        Picker("", selection: $savedSectionSelection) {
-                            Text("Places").tag(0)
-                            Text("Categories").tag(1)
-                            Text("Tastes").tag(2)
+                        Picker("", selection: $sectionSelection) {
+                            Text("Categories").tag(0)
+                            Text("Tastes").tag(1)
+                            if hasCachedResults {
+                                Text("Saved").tag(2)
+                            }
                         }
+                        .padding(16)
                         .pickerStyle(.segmented)
-                        switch savedSectionSelection {
-                        default:
+                        switch sectionSelection {
+                        case 0:
+                            List(model.filteredResults, children:\.children, selection:$model.selectedCategoryResult) { parent in
+                                HStack {
+                                    Text("\(parent.parentCategory)")
+                                    Spacer()
+                                    if let chatResults = parent.categoricalChatResults, chatResults.count == 1, cloudCache.hasPrivateCloudAccess {
+                                        let isSaved = model.cachedCategories(contains: parent.parentCategory)
+                                        Label("Save", systemImage:isSaved ? "star.fill" : "star").labelStyle(.iconOnly)
+                                            .onTapGesture {
+                                                if isSaved {
+                                                    if let cachedCategoricalResults = model.cachedCategoricalResults(for: "Category", identity: parent.parentCategory) {
+                                                        for cachedCategoricalResult in cachedCategoricalResults {
+                                                            Task {
+                                                                try await cloudCache.deleteUserCachedRecord(for: cachedCategoricalResult)
+                                                                try await model.refreshCachedCategories(cloudCache: cloudCache)
+                                                            }
+                                                        }
+                                                    }
+                                                } else {
+                                                    Task {
+                                                        var userRecord = UserCachedRecord(recordId: "", group: "Category", identity: parent.parentCategory, title: parent.parentCategory, icons: "")
+                                                        let record = try await cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title)
+                                                        userRecord.setRecordId(to: record.recordID.recordName)
+                                                        model.appendCachedCategory(with: userRecord)
+                                                    }
+                                                }
+                                            }
+                                    }
+                                }
+                            }
+                        case 1:
+                            ContentUnavailableView("No Tastes", systemImage:"return")
+                        case 2:
                             List(model.cachedCategoryResults, children:\.children, selection: $model.selectedSavedCategoryResult) { parent in
                                 HStack {
                                     Text("\(parent.parentCategory)")
@@ -45,86 +80,44 @@ struct SearchView: View {
                                                     }
                                                 }
                                             }
-
                                     }
                                 }
                             }
+                        default:
+                            ContentUnavailableView("No Tastes", systemImage:"return")
                         }
                     }
-                }
-            }
-            Section {
-                VStack {
-                    Picker("", selection: $sectionSelection) {
-                        Text("Categories").tag(0)
-                        Text("Tastes").tag(1)
-                        Text("Price").tag(2)
-                    }
-                    .pickerStyle(.segmented)
-                    switch sectionSelection {
-                    default:
-                        List(model.filteredResults, children:\.children, selection:$model.selectedCategoryResult) { parent in
-                            HStack {
-                                Text("\(parent.parentCategory)")
-                                Spacer()
-                                if let chatResults = parent.categoricalChatResults, chatResults.count == 1, cloudCache.hasPrivateCloudAccess {
-                                    let isSaved = model.cachedCategories(contains: parent.parentCategory)
-                                    Label("Save", systemImage:isSaved ? "star.fill" : "star").labelStyle(.iconOnly)
-                                        .onTapGesture {
-                                            if isSaved {
-                                                if let cachedCategoricalResults = model.cachedCategoricalResults(for: "Category", identity: parent.parentCategory) {
-                                                    for cachedCategoricalResult in cachedCategoricalResults {
-                                                        Task {
-                                                            try await cloudCache.deleteUserCachedRecord(for: cachedCategoricalResult)
-                                                            try await model.refreshCachedCategories(cloudCache: cloudCache)
-                                                        }
-                                                    }
-                                                }
-                                            } else {
-                                                Task {
-                                                    var userRecord = UserCachedRecord(recordId: "", group: "Category", identity: parent.parentCategory, title: parent.parentCategory, icons: "")
-                                                    let record = try await cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title)
-                                                    userRecord.setRecordId(to: record.recordID.recordName)
-                                                    model.appendCachedCategory(with: userRecord)
-                                                }
-                                            }
-                                        }
-                                }
+                    .onChange(of: model.selectedSavedCategoryResult) { oldValue, newValue in
+                        if newValue == nil {
+                            model.selectedPlaceChatResult = nil
+                            return
+                        }
+                        Task { @MainActor in
+                            if let newValue = newValue, let categoricalResult =
+                                model.savedCategoricalResult(for: newValue) {
+                                model.locationSearchText = model.chatResult(for: newValue)?.title ?? model.locationSearchText
+                                await chatHost.didTap(chatResult: categoricalResult)
                             }
                         }
                     }
-                }
-                .onChange(of: model.selectedSavedCategoryResult) { oldValue, newValue in
-                    if newValue == nil {
-                        model.selectedPlaceChatResult = nil
-                        return
-                    }
-                    Task { @MainActor in
-                        if let newValue = newValue, let categoricalResult =
-                            model.savedCategoricalResult(for: newValue) {
-                            model.locationSearchText = model.chatResult(for: newValue)?.title ?? model.locationSearchText
-                            await chatHost.didTap(chatResult: categoricalResult)
-                        }
-                    }
-                }
-                .onChange(of: model.selectedCategoryResult) { oldValue, newValue in
-                    if newValue == nil {
-                        model.selectedPlaceChatResult = nil
-                        return
-                    }
-                    Task { @MainActor in
-                        if let newValue = newValue, let categoricalResult =
-                            model.categoricalResult(for: newValue) {
+                    .onChange(of: model.selectedCategoryResult) { oldValue, newValue in
+                        if newValue == nil {
                             model.selectedPlaceChatResult = nil
-                            model.locationSearchText = model.chatResult(for: newValue)?.title ?? model.locationSearchText
-                            await chatHost.didTap(chatResult: categoricalResult)
+                            return
+                        }
+                        Task { @MainActor in
+                            if let newValue = newValue, let categoricalResult =
+                                model.categoricalResult(for: newValue) {
+                                model.selectedPlaceChatResult = nil
+                                model.locationSearchText = model.chatResult(for: newValue)?.title ?? model.locationSearchText
+                                await chatHost.didTap(chatResult: categoricalResult)
+                            }
                         }
                     }
                 }
             }
         }
     }
-}
 
 #Preview {
 

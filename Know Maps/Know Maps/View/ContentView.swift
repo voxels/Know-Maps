@@ -91,6 +91,11 @@ struct ContentView: View {
                     }
                 }
             })
+            .onChange(of: settingsModel.appleUserId, { oldValue, newValue in
+                if !newValue.isEmpty {
+                    cloudCache.hasPrivateCloudAccess = true
+                }
+            })
             .task {
                 chatModel.cloudCache = cloudCache
                 do {

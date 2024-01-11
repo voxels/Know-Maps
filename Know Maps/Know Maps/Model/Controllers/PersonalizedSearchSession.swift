@@ -79,7 +79,7 @@ open class PersonalizedSearchSession {
             searchSession = session
         }
         
-        guard let apiKey = apiKey, let searchSession = searchSession else {
+        guard let apiKey = apiKey, searchSession != nil else {
             return false
         }
         
@@ -160,7 +160,7 @@ extension PersonalizedSearchSession {
         }
         
         
-        let foundApiKey = try await task.value
+        let _ = try await task.value
         return fsqServiceAPIKey
     }
 }
