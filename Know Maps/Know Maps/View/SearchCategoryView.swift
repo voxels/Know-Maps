@@ -9,7 +9,7 @@ import SwiftUI
 
 struct SearchCategoryView: View {
     @ObservedObject public var model:ChatResultViewModel
-
+    
     var body: some View {
         List(model.filteredResults, children:\.children, selection:$model.selectedCategoryResult) { parent in
             HStack {
@@ -47,6 +47,6 @@ struct SearchCategoryView: View {
     let locationProvider = LocationProvider()
     let cloudCache = CloudCache()
     let chatModel = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cloudCache)
-
+    
     return SearchCategoryView(model: chatModel)
 }

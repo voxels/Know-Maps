@@ -17,7 +17,7 @@ struct SearchView: View {
 
     var body: some View { 
         VStack {
-            let hasCachedResults = cloudCache.hasPrivateCloudAccess && !model.cachedCategoryResults.isEmpty
+            let hasCachedResults = cloudCache.hasPrivateCloudAccess
                 Section {
                     VStack {
                         Picker("", selection: $sectionSelection) {
@@ -40,7 +40,7 @@ struct SearchView: View {
                             ContentUnavailableView("No Tastes", systemImage:"return")
                         }
                     }
-                    .onChange(of: model.selectedSavedCategoryResult) { oldValue, newValue in
+                    .onChange(of: model.selectedSavedResult) { oldValue, newValue in
                         if newValue == nil {
                             model.selectedPlaceChatResult = nil
                             return
@@ -65,6 +65,15 @@ struct SearchView: View {
                                 model.locationSearchText = model.chatResult(for: newValue)?.title ?? model.locationSearchText
                                 await chatHost.didTap(chatResult: categoricalResult)
                             }
+                        }
+                    }.task {
+                        do {
+                            try await model.refreshCachedLocations(cloudCache: cloudCache)
+                            try await model.refreshCachedCategories(cloudCache: cloudCache)
+                            try await model.refreshCachedTastes(cloudCache: cloudCache)
+                        } catch {
+                            model.analytics?.track(name: "error \(error)")
+                            print(error)
                         }
                     }
                 }

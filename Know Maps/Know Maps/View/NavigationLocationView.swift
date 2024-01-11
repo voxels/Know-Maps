@@ -66,7 +66,7 @@ struct NavigationLocationView: View {
                     if chatModel.locationSearchText.isEmpty, !chatModel.placeResults.isEmpty {
                         chatModel.resetPlaceModel()
                         chatModel.selectedCategoryChatResult = nil
-                        chatModel.selectedSavedCategoryResult = nil
+                        chatModel.selectedSavedResult = nil
                     } else {
                         Task {
                             do {
@@ -81,7 +81,7 @@ struct NavigationLocationView: View {
                     if newValue.isEmpty {
                         chatModel.resetPlaceModel()
                         chatModel.selectedCategoryChatResult = nil
-                        chatModel.selectedSavedCategoryResult = nil
+                        chatModel.selectedSavedResult = nil
                     }
                 }).onChange(of: chatModel.selectedDestinationLocationChatResult) { oldValue, newValue in
                     if let _ = newValue, !chatModel.locationSearchText.isEmpty {

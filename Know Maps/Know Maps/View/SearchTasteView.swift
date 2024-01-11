@@ -16,10 +16,26 @@ struct SearchTasteView: View {
                 Text("\(parent.parentCategory)")
                 Spacer()
                 if let chatResults = parent.categoricalChatResults, chatResults.count == 1, model.cloudCache.hasPrivateCloudAccess {
-                    Label("Save", systemImage:"star.fill")
-                        .labelStyle(.iconOnly)
+                    let isSaved = model.cachedTastes(contains: parent.parentCategory)
+                    Label("Save", systemImage:isSaved ? "star.fill" : "star").labelStyle(.iconOnly)
                         .onTapGesture {
-                            
+                            if isSaved {
+                                if let cachedTasteResults = model.cachedTasteResults(for: "Taste", identity: parent.parentCategory) {
+                                    for cachedTasteResult in cachedTasteResults {
+                                        Task {
+                                            try await model.cloudCache.deleteUserCachedRecord(for: cachedTasteResult)
+                                            try await model.refreshTastes(page:model.lastFetchedTastePage)
+                                        }
+                                    }
+                                }
+                            } else {
+                                Task {
+                                    var userRecord = UserCachedRecord(recordId: "", group: "Taste", identity: parent.parentCategory, title: parent.parentCategory, icons: "")
+                                    let record = try await model.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title)
+                                    userRecord.setRecordId(to: record.recordID.recordName)
+                                    model.appendCachedTaste(with: userRecord)
+                                }
+                            }
                         }
                 }
             }

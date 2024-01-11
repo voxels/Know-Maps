@@ -11,7 +11,7 @@ struct SearchSavedView: View {
     @ObservedObject public var model:ChatResultViewModel
     
     var body: some View {
-        List(model.cachedCategoryResults, children:\.children, selection: $model.selectedSavedCategoryResult) { parent in
+        List(model.allCachedResults, children:\.children, selection: $model.selectedSavedResult) { parent in
             HStack {
                 Text("\(parent.parentCategory)")
                 Spacer()
@@ -24,6 +24,15 @@ struct SearchSavedView: View {
                                     Task { @MainActor in
                                         try await model.cloudCache.deleteUserCachedRecord(for: cachedCategoricalResult)
                                         try await model.refreshCachedCategories(cloudCache: model.cloudCache)
+                                    }
+                                }
+                            }
+                            
+                            if let cachedTasteResults = model.cachedTasteResults(for: "Taste", identity: parent.parentCategory) {
+                                for cachedTasteResult in cachedTasteResults {
+                                    Task { @MainActor in
+                                        try await model.cloudCache.deleteUserCachedRecord(for: cachedTasteResult)
+                                        try await model.refreshCachedTastes(cloudCache: model.cloudCache)
                                     }
                                 }
                             }

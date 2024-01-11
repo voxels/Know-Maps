@@ -99,8 +99,6 @@ struct ContentView: View {
             .task {
                 chatModel.cloudCache = cloudCache
                 do {
-                    try await chatModel.refreshCachedCategories(cloudCache: cloudCache)
-                    try await chatModel.refreshCachedLocations(cloudCache: cloudCache)
                     try await chatModel.retrieveFsqUser()
                 } catch {
                     chatModel.analytics?.track(name: "error \(error)")
