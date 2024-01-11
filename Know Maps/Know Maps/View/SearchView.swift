@@ -33,7 +33,7 @@ struct SearchView: View {
                         case 0:
                             SearchCategoryView(model: model)
                         case 1:
-                            ContentUnavailableView("No Tastes", systemImage:"return")
+                            SearchTasteView(model: model)
                         case 2:
                             SearchSavedView(model: model)
                         default:
