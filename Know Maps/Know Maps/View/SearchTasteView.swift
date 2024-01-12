@@ -38,6 +38,17 @@ struct SearchTasteView: View {
                             }
                         }
                 }
+            }.onAppear {
+                if model.tasteResults.last == parent {
+                    Task {
+                        do {
+                            try await model.refreshTastes(page:model.lastFetchedTastePage + 1)
+                        } catch {
+                            model.analytics?.track(name: "error \(error)")
+                            print(error)
+                        }
+                    }
+                }
             }
         }
         .task {
