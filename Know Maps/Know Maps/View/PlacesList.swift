@@ -27,10 +27,10 @@ struct PlacesList: View {
             List(chatModel.filteredPlaceResults,selection: $resultId){ result in
                 HStack {
                     Text(result.title)
-                    #if os(visionOS) || os(iOS)
-                        .foregroundColor(Color(uiColor: UIColor.label))
-                    #endif
                     Spacer()
+                    if let placeResponse = result.placeResponse {
+                        Text(placeResponse.locality).italic()
+                    }
                 }
             }
         }
