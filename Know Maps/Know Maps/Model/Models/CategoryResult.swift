@@ -29,15 +29,17 @@ public struct CategoryResult : Identifiable, Equatable, Hashable {
     }
     
     func children(with chatResults:[ChatResult]?)->[CategoryResult]? {
-        guard let chatResults = chatResults, chatResults.count > 1 else {
+        guard let chatResults = chatResults else {
             return nil
         }
         var retval = [CategoryResult]()
         for chatResult in chatResults {
-            let newCategoryResult = CategoryResult(parentCategory: chatResult.title, categoricalChatResults: [chatResult])
-            retval.append(newCategoryResult)
+            if chatResult.title != parentCategory {
+                let newCategoryResult = CategoryResult(parentCategory: chatResult.title, categoricalChatResults: [chatResult])
+                retval.append(newCategoryResult)
+            }
         }
-        return retval
+        return retval.isEmpty ? nil : retval
     }
     
     func result(for id:ChatResult.ID)->ChatResult? {

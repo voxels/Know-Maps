@@ -29,8 +29,9 @@ struct SearchCategoryView: View {
                                     }
                                 }
                             } else {
+                          
                                 Task {
-                                    var userRecord = UserCachedRecord(recordId: "", group: "Category", identity: parent.parentCategory, title: parent.parentCategory, icons: "")
+                                    var userRecord = UserCachedRecord(recordId: "", group: "Category", identity: parent.parentCategory, title: parent.parentCategory, icons: "", list: nil)
                                     let record = try await model.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title)
                                     userRecord.setRecordId(to: record.recordID.recordName)
                                     model.appendCachedCategory(with: userRecord)

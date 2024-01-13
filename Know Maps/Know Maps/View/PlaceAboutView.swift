@@ -94,7 +94,7 @@ struct PlaceAboutView: View {
                                     }.onTapGesture {
                                         presentingPopover.toggle()
                                     }.popover(isPresented: $presentingPopover) {
-                                        AddListItemView(chatModel: chatModel, resultId: $resultId)
+                                        AddListItemView(chatModel: chatModel)
                                             .frame(width: 300, height: 300)
                                             .presentationCompactAdaptation(.popover)
                                     }

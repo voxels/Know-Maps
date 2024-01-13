@@ -68,9 +68,7 @@ struct SearchView: View {
                         }
                     }.task {
                         do {
-                            try await model.refreshCachedLocations(cloudCache: cloudCache)
-                            try await model.refreshCachedCategories(cloudCache: cloudCache)
-                            try await model.refreshCachedTastes(cloudCache: cloudCache)
+                            try await model.refreshCache(cloudCache: cloudCache)
                         } catch {
                             model.analytics?.track(name: "error \(error)")
                             print(error)

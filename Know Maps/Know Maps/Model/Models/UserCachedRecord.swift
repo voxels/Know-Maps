@@ -14,6 +14,7 @@ public struct UserCachedRecord : Identifiable, Hashable, Codable, Equatable {
     let identity:String
     let title:String
     let icons:String
+    let list:String?
     
     mutating public func setRecordId(to string:String) {
         recordId = string

@@ -10,11 +10,9 @@ import SwiftUI
 struct AddListItemView: View {
     @EnvironmentObject public var cloudCache:CloudCache
     @ObservedObject public var chatModel:ChatResultViewModel
-    @Binding public var resultId:ChatResult.ID?
 
     @State private var textFieldData:String = ""
     var body: some View {
-        if let resultId = resultId, let chatResult = chatModel.placeChatResult(for: resultId) {
             VStack {
                 Section {
                     List(chatModel.filteredSuggestedListRecords, selection:$chatModel.selectedSuggestedListRecord) { listRecord in
@@ -22,27 +20,41 @@ struct AddListItemView: View {
                             Text(listRecord.title)
                    
                             Spacer()
-                            Label("List to save", systemImage: "star")
+                            Label("List to save", systemImage: "plus")
                                 .labelStyle(.iconOnly)
                                 .onTapGesture {
-                                    print("Tap")
+                                    Task {
+                                        if let selectedPlaceChatResult = chatModel.selectedPlaceChatResult, let chatResult = chatModel.placeChatResult(for: selectedPlaceChatResult), let placeResponse = chatResult.placeResponse {
+                                            let userRecord = UserCachedRecord(recordId: "", group: "Place", identity:placeResponse.name, title: placeResponse.name, icons: "", list:listRecord.title)
+                                            try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, list:listRecord.title)
+                                            try await chatModel.refreshCachedLists(cloudCache: cloudCache)
+                                        }
+                                    }
                                 }
                         }
                     }.padding(10)
                 } header: {
-                    TextField("Add to list", text: $textFieldData)
-                        .textFieldStyle(.roundedBorder)
+                    HStack {
+                        TextField("Create new list", text: $textFieldData)
+                            .textFieldStyle(.roundedBorder)
+                        Spacer()
+                        Button("Create List", systemImage: "plus") {
+                            Task {
+                                let userRecord = UserCachedRecord(recordId: "", group: "List", identity: textFieldData, title: textFieldData, icons: "", list: textFieldData)
+                                try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title)
+                                try await chatModel.refreshCachedLists(cloudCache: cloudCache)
+                                try await chatModel.
+                            }
+                        }.labelStyle(.iconOnly)
+                    }
                 }
             }.padding(20)
                 .onAppear {
                     Task { @MainActor in
-                        try await chatModel.refreshSuggestedLists(cloudCache: cloudCache, with: chatResult)
+                        try await chatModel.refreshCachedLists(cloudCache: cloudCache)
                     }
                 }
-        } else {
-            ContentUnavailableView("No place selected", systemImage: "")
         }
-    }
 }
 
 #Preview {
@@ -50,5 +62,5 @@ struct AddListItemView: View {
     let cloudCache = CloudCache()
     let chatModel = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cloudCache)
 
-    return AddListItemView(chatModel: chatModel, resultId: .constant(nil))
+    return AddListItemView(chatModel: chatModel)
 }

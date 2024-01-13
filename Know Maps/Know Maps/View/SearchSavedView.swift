@@ -15,7 +15,7 @@ struct SearchSavedView: View {
             HStack {
                 Text("\(parent.parentCategory)")
                 Spacer()
-                if let chatResults = parent.categoricalChatResults, chatResults.count == 1, model.cloudCache.hasPrivateCloudAccess {
+                if let chatResults = parent.categoricalChatResults, model.cloudCache.hasPrivateCloudAccess {
                     Label("Save", systemImage:"star.fill")
                         .labelStyle(.iconOnly)
                         .onTapGesture {
@@ -33,6 +33,15 @@ struct SearchSavedView: View {
                                     Task { @MainActor in
                                         try await model.cloudCache.deleteUserCachedRecord(for: cachedTasteResult)
                                         try await model.refreshCachedTastes(cloudCache: model.cloudCache)
+                                    }
+                                }
+                            }
+                            
+                            if let cachedPlaceResults = model.cachedPlaceResults(for: "Place", identity:parent.parentCategory ) {
+                                for cachedPlaceResult in cachedPlaceResults {
+                                    Task { @MainActor in
+                                        try await model.cloudCache.deleteUserCachedRecord(for: cachedPlaceResult)
+                                        try await model.refreshCachedLists(cloudCache: model.cloudCache)
                                     }
                                 }
                             }

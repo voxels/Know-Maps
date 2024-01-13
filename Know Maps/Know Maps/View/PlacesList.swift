@@ -33,7 +33,7 @@ struct PlacesList: View {
                     }
                 }
             }
-        }
+        }.padding(EdgeInsets(top: 8, leading: 0, bottom: 0, trailing: 0))
     }
     
     func distanceString(for placeResponse:PlaceSearchResponse?)->String {

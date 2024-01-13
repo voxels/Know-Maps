@@ -29,16 +29,18 @@ public class ChatResultViewModel : ObservableObject {
     public var queryParametersHistory = [AssistiveChatHostQueryParameters]()
     public var fetchingPlaceID:ChatResult.ID?
     public var analytics:Analytics?
-
+    
     public var cloudCache:CloudCache
+    @Published public var cachedLocationRecords:[UserCachedRecord]?
     @Published public var cachedTasteRecords:[UserCachedRecord]?
     @Published public var cachedCategoryRecords:[UserCachedRecord]?
+    @Published public var cachedPlaceRecords:[UserCachedRecord]?
     @Published public var cachedListRecords:[UserCachedRecord]?
-    @Published public var suggestedListRecords:[UserCachedRecord]?
     @Published public var cachedCategoryResults = [CategoryResult]()
     @Published public var cachedTasteResults = [CategoryResult]()
+    @Published public var cachedPlaceResults = [CategoryResult]()
+    @Published public var cachedListResults = [CategoryResult]()
     @Published public var allCachedResults = [CategoryResult]()
-    @Published public var cachedLocationRecords:[UserCachedRecord]?
     @Published public var cachedLocationResults = [LocationResult]()
     @Published public var selectedCategoryResult:CategoryResult.ID?
     @Published public var selectedSavedResult:CategoryResult.ID?
@@ -58,7 +60,7 @@ public class ChatResultViewModel : ObservableObject {
     @Published public var locationResults:[LocationResult] = [LocationResult]()
     
     public var lastFetchedTastePage:Int = 0
-
+    
     public func currentLocationName() async throws -> String? {
         if let location = locationProvider.currentLocation() {
             return try await assistiveHostDelegate?.languageDelegate.lookUpLocation(location: location)?.first?.name ?? "Current Location"
@@ -67,11 +69,11 @@ public class ChatResultViewModel : ObservableObject {
     }
     
     public var filteredSuggestedListRecords:[UserCachedRecord] {
-        guard let suggestedListRecords = suggestedListRecords else {
+        guard let cachedListRecords = cachedListRecords else {
             return [UserCachedRecord]()
         }
         
-        return suggestedListRecords
+        return cachedListRecords
     }
     
     public var filteredLocationResults:[LocationResult] {
@@ -125,7 +127,7 @@ public class ChatResultViewModel : ObservableObject {
             let retval = placeResults.sorted { result, checkResult in
                 return result.title <= checkResult.title
             }
-                    
+            
             return retval
         }
     }
@@ -182,6 +184,14 @@ public class ChatResultViewModel : ObservableObject {
         lastFetchedTastePage = page
     }
     
+    public func refreshCache(cloudCache:CloudCache) async throws {
+        try await refreshCachedCategories(cloudCache: cloudCache)
+        try await refreshCachedTastes(cloudCache: cloudCache)
+        try await refreshCachedLists(cloudCache: cloudCache)
+        try await refreshCachedLocations(cloudCache: cloudCache)
+        refreshCachedResults()
+    }
+    
     public func refreshCachedLocations(cloudCache:CloudCache) async throws {
         cachedLocationRecords = try await cloudCache.fetchGroupedUserCachedRecords(for: "Location")
         cachedLocationResults = savedLocationResults()
@@ -190,38 +200,22 @@ public class ChatResultViewModel : ObservableObject {
     public func refreshCachedCategories(cloudCache:CloudCache) async throws {
         cachedCategoryRecords = try await cloudCache.fetchGroupedUserCachedRecords(for: "Category")
         cachedCategoryResults = savedCategoricalResults()
-        refreshCachedResults()
     }
     
     public func refreshCachedTastes(cloudCache:CloudCache) async throws {
         cachedTasteRecords = try await cloudCache.fetchGroupedUserCachedRecords(for: "Taste")
         cachedTasteResults = savedTasteResults()
-        refreshCachedResults()
+    }
+    
+    public func refreshCachedLists(cloudCache:CloudCache) async throws {
+        cachedPlaceRecords = try await cloudCache.fetchGroupedUserCachedRecords(for: "Place")
+        cachedPlaceResults = savedPlaceResults()
+        cachedListRecords = try await cloudCache.fetchGroupedUserCachedRecords(for: "List")
+        cachedListResults = savedListResults()
     }
     
     public func refreshCachedResults() {
         allCachedResults = allSavedResults()
-    }
-    
-    public func refreshSuggestedLists(cloudCache:CloudCache, with chatResult:ChatResult) async throws {
-        var retval = [UserCachedRecord]()
-        cachedListRecords = try await cloudCache.fetchGroupedUserCachedRecords(for: "Place")
-        if let cachedListRecords = cachedListRecords {
-            retval.append(contentsOf: cachedListRecords)
-        }
-        if let categories = chatResult.placeResponse?.categories {
-            for category in categories {
-                let categoryRecord = UserCachedRecord(recordId: "", group: "Place", identity:chatResult.placeResponse!.fsqID, title: category, icons: "")
-                retval.append(categoryRecord)
-            }
-        }
-        if let tastes = chatResult.placeDetailsResponse?.tastes {
-            for taste in tastes {
-                let tasteRecord = UserCachedRecord(recordId: "", group: "Place", identity:chatResult.placeResponse!.fsqID, title: taste, icons: "")
-                retval.append(tasteRecord)
-            }
-        }
-        suggestedListRecords = retval
     }
     
     public func appendCachedCategory(with record:UserCachedRecord) {
@@ -244,7 +238,7 @@ public class ChatResultViewModel : ObservableObject {
         return cachedRecords.contains { record in
             record.identity == category
         }
-    }    
+    }
     
     public func cachedTastes(contains taste:String)->Bool {
         guard let cachedRecords = cachedTasteRecords, !cachedRecords.isEmpty else {
@@ -315,7 +309,7 @@ public class ChatResultViewModel : ObservableObject {
         let parentCategory = searchCategories.first { result in
             return result.id == selectedCategoryID
         }
-
+        
         guard let parentCategory = parentCategory else {
             return nil
         }
@@ -358,7 +352,7 @@ public class ChatResultViewModel : ObservableObject {
             }
             return false
         }
-
+        
         guard let parentCategory = parentCategory else {
             return nil
         }
@@ -636,25 +630,25 @@ public class ChatResultViewModel : ObservableObject {
         var chatResults = [ChatResult]()
         
         let existingPlaceResults = placeResults.compactMap { result in
-                    return result.placeResponse
+            return result.placeResponse
+        }
+        
+        if existingPlaceResults == intent.placeSearchResponses, let selectedPlaceSearchDetails = intent.selectedPlaceSearchDetails, let selectedPlaceChatResult = selectedPlaceChatResult, let placeChatResult = placeChatResult(for: selectedPlaceChatResult) {
+            var newResults = [ChatResult]()
+            for index in 0..<placeResults.count {
+                var placeResult = placeResults[index]
+                if placeResult.placeResponse?.fsqID == placeChatResult.placeResponse?.fsqID, placeResult.placeDetailsResponse == nil {
+                    placeResult.replaceDetails(response: selectedPlaceSearchDetails)
+                    newResults.append(placeResult)
+                } else {
+                    newResults.append(placeResult)
                 }
-                
-                if existingPlaceResults == intent.placeSearchResponses, let selectedPlaceSearchDetails = intent.selectedPlaceSearchDetails, let selectedPlaceChatResult = selectedPlaceChatResult, let placeChatResult = placeChatResult(for: selectedPlaceChatResult) {
-                    var newResults = [ChatResult]()
-                    for index in 0..<placeResults.count {
-                        var placeResult = placeResults[index]
-                        if placeResult.placeResponse?.fsqID == placeChatResult.placeResponse?.fsqID, placeResult.placeDetailsResponse == nil {
-                            placeResult.replaceDetails(response: selectedPlaceSearchDetails)
-                            newResults.append(placeResult)
-                        } else {
-                            newResults.append(placeResult)
-                        }
-                    }
-                    
-                    locationSearchText = intent.caption
-                    placeResults = newResults
-                    return
-                }
+            }
+            
+            locationSearchText = intent.caption
+            placeResults = newResults
+            return
+        }
         
         if let detailsResponses = intent.placeDetailsResponses {
             var allDetailsResponses = detailsResponses
@@ -688,7 +682,7 @@ public class ChatResultViewModel : ObservableObject {
             chatResults.append(contentsOf:results)
         }
         
-        await MainActor.run {            
+        await MainActor.run {
             if selectedPlaceChatResult == nil {
                 if let _ = intent.selectedPlaceSearchResponse?.name {
                     if let selectedPlaceSearchResponse = intent.selectedPlaceSearchResponse, selectedPlaceSearchResponse.name == intent.caption {
@@ -750,6 +744,12 @@ public class ChatResultViewModel : ObservableObject {
         })
     }
     
+    public func cachedPlaceResults(for group:String, identity:String)->[UserCachedRecord]? {
+        return cachedLocationRecords?.filter({ record in
+            record.group == group && record.identity == identity
+        })
+    }
+    
     private func savedCategoricalResults()->[CategoryResult] {
         var retval = [CategoryResult]()
         
@@ -759,7 +759,7 @@ public class ChatResultViewModel : ObservableObject {
         
         for record in savedRecords {
             let newChatResults = [ChatResult(title: record.title, placeResponse: nil)]
-
+            
             let newResult = CategoryResult(parentCategory: record.title, categoricalChatResults: newChatResults)
             retval.append(newResult)
         }
@@ -778,6 +778,10 @@ public class ChatResultViewModel : ObservableObject {
             retval.append(contentsOf: cachedTasteResults)
         }
         
+        if !cachedListResults.isEmpty {
+            retval.append(contentsOf: cachedListResults)
+        }
+        
         retval.sort { result, checkResult in
             result.parentCategory < checkResult.parentCategory
         }
@@ -785,7 +789,7 @@ public class ChatResultViewModel : ObservableObject {
         return retval
     }
     
-    public func savedTasteResults()->[CategoryResult] {
+    private func savedTasteResults()->[CategoryResult] {
         var retval = [CategoryResult]()
         
         guard let savedRecords = cachedTasteRecords else {
@@ -794,12 +798,62 @@ public class ChatResultViewModel : ObservableObject {
         
         for record in savedRecords {
             let newChatResults = [ChatResult(title: record.title, placeResponse: nil)]
-
+            
             let newResult = CategoryResult(parentCategory: record.title, categoricalChatResults: newChatResults)
             retval.append(newResult)
         }
         
-        return retval        
+        return retval
+    }
+    
+    private func savedPlaceResults()->[CategoryResult] {
+        var retval = [CategoryResult]()
+        
+        guard let savedRecords = cachedPlaceRecords else {
+            return retval
+        }
+        
+        for record in savedRecords {
+            let newChatResults = [ChatResult(title: record.title, placeResponse: nil)]
+            let newResult = CategoryResult(parentCategory: record.title, categoricalChatResults: newChatResults)
+            retval.append(newResult)
+        }
+        
+        return retval
+    }
+    
+    private func savedListResults()->[CategoryResult] {
+        var retval = [CategoryResult]()
+        
+        guard let savedRecords = cachedListRecords, !cachedPlaceResults.isEmpty else {
+            return retval
+        }
+        
+        var temp = [String:[ChatResult]]()
+        
+        for record in savedRecords {
+            for placeResult in cachedPlaceResults {
+                if let chatResults = placeResult.categoricalChatResults {
+                    for chatResult in chatResults {
+                        if let existingArray = temp[record.title] {
+                            var newArray = existingArray
+                            newArray.append(chatResult)
+                            temp[record.title] = newArray
+                        } else {
+                            temp[record.title] = [chatResult]
+                        }
+                    }
+                }
+            }
+        }
+        
+        for key in temp.keys {
+            let values = temp[key]!
+            let newResult = CategoryResult(parentCategory: key, categoricalChatResults:values)
+            retval.append(newResult)
+        }
+
+        return retval
     }
     
     private func savedLocationResults()->[LocationResult] {
@@ -1024,9 +1078,9 @@ extension ChatResultViewModel : AssistiveChatHostMessagesDelegate {
     public func didSearch(caption: String, selectedDestinationChatResultID:LocationResult.ID) async throws {
         
         let checkCaption = caption
-
+        
         let destinationChatResultID = selectedDestinationChatResultID
-
+        
         do {
             guard let chatHost = self.assistiveHostDelegate else {
                 return

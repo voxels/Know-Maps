@@ -100,6 +100,7 @@ open class CloudCache : NSObject, ObservableObject {
         let operation = CKQueryOperation(query: query)
         operation.desiredKeys = ["userId"]
         operation.resultsLimit = 1
+        operation.qualityOfService = .userInitiated
         operation.recordMatchedBlock = { recordId, result in
             Task { @MainActor in
                 
@@ -148,6 +149,7 @@ open class CloudCache : NSObject, ObservableObject {
         let operation = CKQueryOperation(query: query)
         operation.desiredKeys = ["token"]
         operation.resultsLimit = 1
+        operation.qualityOfService = .userInitiated
         operation.recordMatchedBlock = { recordId, result in
             Task { @MainActor in
                 
@@ -207,7 +209,8 @@ open class CloudCache : NSObject, ObservableObject {
         let predicate = NSPredicate(format: "Group == %@", group)
         let query = CKQuery(recordType: "UserCachedRecord", predicate: predicate)
         let operation = CKQueryOperation(query: query)
-        operation.desiredKeys = ["Group", "Icons", "Identity", "Title"]
+        operation.desiredKeys = ["Group", "Icons", "Identity", "Title", "List"]
+        operation.qualityOfService = .userInitiated
         operation.recordMatchedBlock = { recordId, result in
             do {
                 let record = try result.get()
@@ -215,6 +218,7 @@ open class CloudCache : NSObject, ObservableObject {
                 var rawIdentity = ""
                 var rawTitle = ""
                 var rawIcons = ""
+                var rawList = ""
                 if let group = record["Group"] as? String {
                     rawGroup = group
                 }
@@ -228,8 +232,12 @@ open class CloudCache : NSObject, ObservableObject {
                     rawIcons = icons
                 }
                 
+                if let list = record["List"] as? String {
+                    rawList = list
+                }
+                
                 if !rawGroup.isEmpty && !rawIdentity.isEmpty && !rawTitle.isEmpty {
-                    let cachedRecord = UserCachedRecord(recordId: recordId.recordName, group: rawGroup, identity: rawIdentity, title: rawTitle, icons: rawIcons)
+                    let cachedRecord = UserCachedRecord(recordId: recordId.recordName, group: rawGroup, identity: rawIdentity, title: rawTitle, icons: rawIcons, list: rawList.isEmpty ? nil : rawList)
                     retval.append(cachedRecord)
                 }
                 
@@ -249,7 +257,7 @@ open class CloudCache : NSObject, ObservableObject {
                     checkedContinuation.resume(with: .success(false))
                 }
             }
-            
+                        
             cacheContainer.privateCloudDatabase.add(operation)
         }
         
@@ -257,8 +265,8 @@ open class CloudCache : NSObject, ObservableObject {
     }
 
     
-    
-    public func storeUserCachedRecord(for group:String, identity:String, title:String, icons:String? = nil) async throws -> CKRecord {
+    @discardableResult
+    public func storeUserCachedRecord(for group:String, identity:String, title:String, icons:String? = nil, list:String? = nil) async throws -> CKRecord {
         let record = CKRecord(recordType:"UserCachedRecord")
         record.setObject(group as NSString, forKey: "Group")
         record.setObject(identity as NSString, forKey: "Identity")
@@ -267,6 +275,11 @@ open class CloudCache : NSObject, ObservableObject {
             record.setObject(icons as NSString, forKey: "Icons")
         } else {
             record.setObject("" as NSString, forKey: "Icons")
+        }
+        if let list = list {
+            record.setObject(list as NSString, forKey:"List")
+        } else {
+            record.setObject("" as NSString, forKey:"List")
         }
         return try await cacheContainer.privateCloudDatabase.save(record)
     }
