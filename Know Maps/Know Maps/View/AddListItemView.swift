@@ -28,6 +28,7 @@ struct AddListItemView: View {
                                             let userRecord = UserCachedRecord(recordId: "", group: "Place", identity:placeResponse.name, title: placeResponse.name, icons: "", list:listRecord.title)
                                             try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, list:listRecord.title)
                                             try await chatModel.refreshCachedLists(cloudCache: cloudCache)
+                                            chatModel.refreshCachedResults()
                                         }
                                     }
                                 }
@@ -49,11 +50,6 @@ struct AddListItemView: View {
                     }
                 }
             }.padding(20)
-                .onAppear {
-                    Task { @MainActor in
-                        try await chatModel.refreshCachedLists(cloudCache: cloudCache)
-                    }
-                }
         }
 }
 

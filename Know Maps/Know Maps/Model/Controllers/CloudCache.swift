@@ -211,7 +211,7 @@ open class CloudCache : NSObject, ObservableObject {
         let query = CKQuery(recordType: "UserCachedRecord", predicate: predicate)
         let operation = CKQueryOperation(query: query)
         operation.desiredKeys = ["Group", "Icons", "Identity", "Title", "List"]
-        operation.qualityOfService = .userInitiated
+        operation.qualityOfService = .userInteractive
         operation.recordMatchedBlock = { recordId, result in
             do {
                 let record = try result.get()
