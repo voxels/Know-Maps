@@ -39,6 +39,7 @@ public struct CategoryResult : Identifiable, Equatable, Hashable {
                 retval.append(newCategoryResult)
             }
         }
+//        retval.append(CategoryResult(parentCategory: "All \(parentCategory)", categoricalChatResults: [ChatResult(title: parentCategory, placeResponse: nil)]))
         return retval.isEmpty ? nil : retval
     }
     

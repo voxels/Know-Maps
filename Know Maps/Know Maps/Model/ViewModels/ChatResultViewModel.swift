@@ -55,7 +55,7 @@ public class ChatResultViewModel : ObservableObject {
     @Published public var locationSearchText: String = ""
     @Published public var categoryResults:[CategoryResult] = [CategoryResult]()
     @Published public var tasteResults:[CategoryResult] = [CategoryResult]()
-    public var searchCategoryResults:CategoryResult = CategoryResult(parentCategory: "Search Results", categoricalChatResults: [ChatResult]())
+    @Published public var searchCategoryResults:[CategoryResult] = [CategoryResult]()
     @Published public var placeResults:[ChatResult] = [ChatResult]()
     @Published public var locationResults:[LocationResult] = [LocationResult]()
     @Published public var currentLocationResult = LocationResult(locationName: "Current Location", location: nil)
@@ -128,7 +128,7 @@ public class ChatResultViewModel : ObservableObject {
         }
     }
     
-    public init(delegate: ChatResultViewModelDelegate? = nil, assistiveHostDelegate: AssistiveChatHostDelegate? = nil, locationProvider: LocationProvider, queryParametersHistory: [AssistiveChatHostQueryParameters] = [AssistiveChatHostQueryParameters](), fetchingPlaceID: ChatResult.ID? = nil, analytics: Analytics? = nil, cloudCache:CloudCache, selectedCategoryChatResult: ChatResult.ID? = nil, selectedPlaceChatResult: ChatResult.ID? = nil,  selectedSourceLocationChatResult: LocationResult.ID? = nil, selectedDestinationLocationChatResult: LocationResult.ID? = nil, isFetchingPlaceDescription: Bool = false, searchText: String = "", locationSearchText: String = "", categoryResults: [CategoryResult] = [CategoryResult](), searchCategoryResults: CategoryResult = CategoryResult(parentCategory: "Search Results", categoricalChatResults: [ChatResult]()), placeResults: [ChatResult] = [ChatResult](), locationResults: [LocationResult] = [LocationResult]()) {
+    public init(delegate: ChatResultViewModelDelegate? = nil, assistiveHostDelegate: AssistiveChatHostDelegate? = nil, locationProvider: LocationProvider, queryParametersHistory: [AssistiveChatHostQueryParameters] = [AssistiveChatHostQueryParameters](), fetchingPlaceID: ChatResult.ID? = nil, analytics: Analytics? = nil, cloudCache:CloudCache, selectedCategoryChatResult: ChatResult.ID? = nil, selectedPlaceChatResult: ChatResult.ID? = nil,  selectedSourceLocationChatResult: LocationResult.ID? = nil, selectedDestinationLocationChatResult: LocationResult.ID? = nil, isFetchingPlaceDescription: Bool = false, searchText: String = "", locationSearchText: String = "", categoryResults: [CategoryResult] = [CategoryResult](), searchCategoryResults:[CategoryResult] = [CategoryResult](), locationResults: [LocationResult] = [LocationResult]()) {
         self.delegate = delegate
         self.assistiveHostDelegate = assistiveHostDelegate
         self.locationProvider = locationProvider
@@ -145,9 +145,9 @@ public class ChatResultViewModel : ObservableObject {
         self.locationSearchText = locationSearchText
         self.categoryResults = categoryResults
         self.searchCategoryResults = searchCategoryResults
-        self.placeResults = placeResults
         self.locationResults = locationResults
         self.personalizedSearchSession = PersonalizedSearchSession(cloudCache: cloudCache)
+        self.placeResults = placeResults
     }
     
     @discardableResult
@@ -304,19 +304,33 @@ public class ChatResultViewModel : ObservableObject {
         return selectedResult
     }
     
-    public func savedCategoricalResult(for selectedCategoryID:CategoryResult.ID)->ChatResult? {
-        let searchCategories = cachedCategoryResults
+    public func cachedChatResult(for selectedCategoryID:CategoryResult.ID)->ChatResult? {
+        let searchCategories = allCachedResults
         
-        
-        let parentCategory = searchCategories.first { result in
+        var parentCategory = searchCategories.first { result in
             return result.id == selectedCategoryID
+        }
+        
+        if parentCategory == nil {
+            var allChildrenCategories = [CategoryResult]()
+            for searchCategory in searchCategories {
+                if let children = searchCategory.children {
+                    for childCategory in children {
+                        allChildrenCategories.append(childCategory)
+                    }
+                }
+            }
+            
+            parentCategory = allChildrenCategories.first { result in
+                return result.id == selectedCategoryID
+            }
         }
         
         guard let parentCategory = parentCategory else {
             return nil
         }
         
-        if parentCategory.id == selectedCategoryID {
+        if parentCategory.id == selectedCategoryID, parentCategory.categoricalChatResults?.count == 1, let child = parentCategory.categoricalChatResults?.first, child.title == parentCategory.parentCategory {
             return parentCategory.categoricalChatResults?.first
         }
         
@@ -747,7 +761,7 @@ public class ChatResultViewModel : ObservableObject {
     }
     
     public func cachedPlaceResults(for group:String, identity:String)->[UserCachedRecord]? {
-        return cachedLocationRecords?.filter({ record in
+        return cachedPlaceRecords?.filter({ record in
             record.group == group && record.identity == identity
         })
     }

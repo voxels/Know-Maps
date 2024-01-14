@@ -41,15 +41,42 @@ struct SearchView: View {
                         }
                     }
                     .onChange(of: model.selectedSavedResult) { oldValue, newValue in
-                        if newValue == nil {
+                        guard let newValue = newValue else {
                             model.selectedPlaceChatResult = nil
                             return
                         }
                         Task { @MainActor in
-                            if let newValue = newValue, let categoricalResult =
-                                model.savedCategoricalResult(for: newValue) {
+                            if let categoricalResult =
+                                model.cachedChatResult(for: newValue) {
                                 model.locationSearchText = model.chatResult(for: newValue)?.title ?? model.locationSearchText
                                 await chatHost.didTap(chatResult: categoricalResult)
+                            } else {
+                                let parentCategories = model.allCachedResults.filter { result in
+                                    result.id == newValue
+                                }
+                                model.locationSearchText = parentCategories.first?.parentCategory ?? model.locationSearchText
+                                
+                                if let selectedDestinationLocationChatResult = model.selectedDestinationLocationChatResult {
+                                    do {
+                                        try await model.didSearch(caption: model.locationSearchText, selectedDestinationChatResultID: selectedDestinationLocationChatResult)
+                                    } catch {
+                                        model.analytics?.track(name: "error \(error)")
+                                        print(error)
+                                    }
+                                } else {
+                                    model.selectedDestinationLocationChatResult = model.filteredLocationResults.first?.id
+                                    
+                                    guard let selectedDestinationLocationChatResult = model.selectedDestinationLocationChatResult else {
+                                        return
+                                    }
+                                    
+                                    do {
+                                        try await model.didSearch(caption: model.locationSearchText, selectedDestinationChatResultID: selectedDestinationLocationChatResult)
+                                    } catch {
+                                        model.analytics?.track(name: "error \(error)")
+                                        print(error)
+                                    }
+                                }
                             }
                         }
                     }
