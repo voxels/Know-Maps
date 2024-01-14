@@ -23,8 +23,7 @@ struct SearchSavedView: View {
                                 for cachedCategoricalResult in cachedCategoricalResults {
                                     Task { @MainActor in
                                         try await model.cloudCache.deleteUserCachedRecord(for: cachedCategoricalResult)
-                                        try await model.refreshCachedCategories(cloudCache: model.cloudCache)
-                                        model.refreshCachedResults()
+                                        try await model.refreshCache(cloudCache: model.cloudCache)
                                     }
                                 }
                             }
@@ -33,8 +32,7 @@ struct SearchSavedView: View {
                                 for cachedTasteResult in cachedTasteResults {
                                     Task { @MainActor in
                                         try await model.cloudCache.deleteUserCachedRecord(for: cachedTasteResult)
-                                        try await model.refreshCachedTastes(cloudCache: model.cloudCache)
-                                        model.refreshCachedResults()
+                                        try await model.refreshCache(cloudCache: model.cloudCache)
                                     }
                                 }
                             }
@@ -43,12 +41,20 @@ struct SearchSavedView: View {
                                 for cachedPlaceResult in cachedPlaceResults {
                                     Task { @MainActor in
                                         try await model.cloudCache.deleteUserCachedRecord(for: cachedPlaceResult)
-                                        try await model.refreshCachedLists(cloudCache: model.cloudCache)
-                                        model.refreshCachedResults()
+                                        try await model.refreshCache(cloudCache: model.cloudCache)
                                     }
                                 }
                             }
                         }
+                }
+            }
+        }.task {
+            Task { @MainActor in
+                do{
+                    try await model.refreshCache(cloudCache: model.cloudCache)
+                } catch {
+                    model.analytics?.track(name: "error \(error)")
+                    print(error)
                 }
             }
         }

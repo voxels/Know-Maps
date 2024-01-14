@@ -15,16 +15,17 @@ struct SearchTasteView: View {
             HStack {
                 Text("\(parent.parentCategory)")
                 Spacer()
-                if let chatResults = parent.categoricalChatResults, chatResults.count == 1, model.cloudCache.hasPrivateCloudAccess {
+                if model.cloudCache.hasPrivateCloudAccess {
                     let isSaved = model.cachedTastes(contains: parent.parentCategory)
                     Label("Save", systemImage:isSaved ? "star.fill" : "star").labelStyle(.iconOnly)
                         .onTapGesture {
                             if isSaved {
                                 if let cachedTasteResults = model.cachedTasteResults(for: "Taste", identity: parent.parentCategory) {
                                     for cachedTasteResult in cachedTasteResults {
-                                        Task {
+                                        Task { @MainActor in
                                             try await model.cloudCache.deleteUserCachedRecord(for: cachedTasteResult)
                                             try await model.refreshTastes(page:model.lastFetchedTastePage)
+                                            try await model.refreshCache(cloudCache: model.cloudCache)
                                         }
                                     }
                                 }
@@ -34,13 +35,15 @@ struct SearchTasteView: View {
                                     let record = try await model.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title)
                                     userRecord.setRecordId(to: record.recordID.recordName)
                                     model.appendCachedTaste(with: userRecord)
+                                    try await model.refreshTastes(page:model.lastFetchedTastePage)
+                                    try await model.refreshCache(cloudCache: model.cloudCache)
                                 }
                             }
                         }
                 }
             }.onAppear {
                 if model.tasteResults.last == parent {
-                    Task {
+                    Task { @MainActor in
                         do {
                             try await model.refreshTastes(page:model.lastFetchedTastePage + 1)
                         } catch {
@@ -50,13 +53,14 @@ struct SearchTasteView: View {
                     }
                 }
             }
-        }
-        .task {
-            do {
-                try await model.refreshTastes(page:0)
-            } catch {
+        }.task {
+            Task { @MainActor in
+                do {
+                    try await model.refreshTastes(page:model.lastFetchedTastePage)
+                } catch {
                     model.analytics?.track(name: "error \(error)")
                     print(error)
+                }
             }
         }
     }

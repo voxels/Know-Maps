@@ -304,6 +304,8 @@ public class ChatResultViewModel : ObservableObject {
         return selectedResult
     }
     
+    
+    
     public func cachedChatResult(for selectedCategoryID:CategoryResult.ID)->ChatResult? {
         let searchCategories = allCachedResults
         
@@ -346,7 +348,7 @@ public class ChatResultViewModel : ObservableObject {
     }
     
     public func tasteResult(for selectedCategoryID:CategoryResult.ID)->ChatResult? {
-        var searchCategories = tasteResults
+        let searchCategories = tasteResults
         
         let parentCategory = searchCategories.first { result in            
             return result.id == selectedCategoryID
@@ -1235,6 +1237,9 @@ extension ChatResultViewModel : AssistiveChatHostMessagesDelegate {
         if let selectedDestinationLocationChatResult = selectedDestinationLocationChatResult, let selectedDestination = locationChatResult(for: selectedDestinationLocationChatResult), let location = selectedDestination.location {
             destinationLocation = location
             selectedDestinationChatResult = selectedDestinationLocationChatResult
+        } else if let selectedDestination = locationChatResult(for: selectedDestinationChatResult), let location = selectedDestination.location {
+            destinationLocation = location
+            selectedDestinationLocationChatResult = selectedDestination.id
         }
         
         guard let destinationLocation = destinationLocation else {

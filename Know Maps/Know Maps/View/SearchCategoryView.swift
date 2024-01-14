@@ -22,19 +22,20 @@ struct SearchCategoryView: View {
                             if isSaved {
                                 if let cachedCategoricalResults = model.cachedCategoricalResults(for: "Category", identity: parent.parentCategory) {
                                     for cachedCategoricalResult in cachedCategoricalResults {
-                                        Task {
+                                        Task { @MainActor in
                                             try await model.cloudCache.deleteUserCachedRecord(for: cachedCategoricalResult)
-                                            try await model.refreshCachedCategories(cloudCache: model.cloudCache)
+                                            try await model.refreshCache(cloudCache: model.cloudCache)
                                         }
                                     }
                                 }
                             } else {
                           
-                                Task {
+                                Task { @MainActor in
                                     var userRecord = UserCachedRecord(recordId: "", group: "Category", identity: parent.parentCategory, title: parent.parentCategory, icons: "", list: nil)
                                     let record = try await model.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title)
                                     userRecord.setRecordId(to: record.recordID.recordName)
                                     model.appendCachedCategory(with: userRecord)
+                                    try await model.refreshCache(cloudCache: model.cloudCache)
                                 }
                             }
                         }

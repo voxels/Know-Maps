@@ -23,12 +23,11 @@ struct AddListItemView: View {
                             Label("List to save", systemImage: "plus")
                                 .labelStyle(.iconOnly)
                                 .onTapGesture {
-                                    Task {
+                                    Task { @MainActor in
                                         if let selectedPlaceChatResult = chatModel.selectedPlaceChatResult, let chatResult = chatModel.placeChatResult(for: selectedPlaceChatResult), let placeResponse = chatResult.placeResponse {
                                             let userRecord = UserCachedRecord(recordId: "", group: "Place", identity:placeResponse.name, title: placeResponse.name, icons: "", list:listRecord.title)
                                             try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, list:listRecord.title)
-                                            try await chatModel.refreshCachedLists(cloudCache: cloudCache)
-                                            chatModel.refreshCachedResults()
+                                            try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
                                         }
                                     }
                                 }
@@ -40,10 +39,10 @@ struct AddListItemView: View {
                             .textFieldStyle(.roundedBorder)
                         Spacer()
                         Button("Create List", systemImage: "plus") {
-                            Task {
+                            Task { @MainActor in
                                 let userRecord = UserCachedRecord(recordId: "", group: "List", identity: textFieldData, title: textFieldData, icons: "", list: textFieldData)
                                 try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title)
-                                try await chatModel.refreshCachedLists(cloudCache: cloudCache)
+                                try await chatModel.refreshCache(cloudCache: cloudCache)
                                 chatModel.appendCachedList(with: userRecord)
                             }
                         }.labelStyle(.iconOnly)
