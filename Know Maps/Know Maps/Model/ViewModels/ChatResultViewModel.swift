@@ -345,6 +345,25 @@ public class ChatResultViewModel : ObservableObject {
         return nil
     }
     
+    public func tasteResult(for selectedCategoryID:CategoryResult.ID)->ChatResult? {
+        var searchCategories = tasteResults
+        
+        let parentCategory = searchCategories.first { result in            
+            return result.id == selectedCategoryID
+        }
+        
+        guard let parentCategory = parentCategory else {
+            return nil
+        }
+        
+        if parentCategory.id == selectedCategoryID {
+            return parentCategory.categoricalChatResults?.first
+        }
+
+        
+        return nil
+    }
+    
     public func categoricalResult(for selectedCategoryID:CategoryResult.ID)->ChatResult? {
         var searchCategories = [CategoryResult]()
         for result in filteredResults {

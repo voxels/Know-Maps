@@ -22,8 +22,8 @@ struct SearchView: View {
                     VStack {
                         Picker("", selection: $sectionSelection) {
                             Text("Category").tag(0)
-                            Text("Taste").tag(1)
                             if hasCachedResults {
+                                Text("Taste").tag(1)
                                 Text("Saved").tag(2)
                             }
                         }
@@ -93,7 +93,24 @@ struct SearchView: View {
                                 await chatHost.didTap(chatResult: categoricalResult)
                             }
                         }
-                    }.task {
+                    }.onChange(of: model.selectedTasteCategoryResult, { oldValue, newValue in
+                        if newValue == nil {
+                            model.selectedPlaceChatResult = nil
+                            return
+                        }
+                        
+                        Task { @MainActor in
+                            if let newValue = newValue, let tasteResult = model.tasteResult(for: newValue) {
+                                model.selectedPlaceChatResult = nil
+                                model.locationSearchText = model.chatResult(for: newValue)?.title ?? model.locationSearchText
+                                await chatHost.didTap(chatResult: tasteResult)
+
+                            }
+                        }
+                    })
+                    
+                    
+                    .task {
                         do {
                             try await model.refreshCache(cloudCache: cloudCache)
                         } catch {

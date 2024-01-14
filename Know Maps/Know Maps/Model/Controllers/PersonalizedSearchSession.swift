@@ -55,6 +55,10 @@ extension PersonalizedSearchSession {
     
     @discardableResult
     public func fetchManagedUserAccessToken() async throws ->String {
+        guard cloudCache.hasPrivateCloudAccess else {
+            return ""
+        }
+        
         if fsqIdentity == nil, cloudCache.hasPrivateCloudAccess {
             try await fetchManagedUserIdentity()
         }
