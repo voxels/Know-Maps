@@ -62,7 +62,7 @@ struct SearchTasteView: View {
                     print(error)
                 }
             }
-        }.onAppear(perform: {
+        }.task {
             Task { @MainActor in
                 do {
                     if model.tasteResults.isEmpty {
@@ -73,7 +73,7 @@ struct SearchTasteView: View {
                     print(error)
                 }
             }
-        })
+        }
         .onDisappear(perform: {
             Task { @MainActor in
                 do {
