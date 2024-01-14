@@ -58,6 +58,7 @@ public class ChatResultViewModel : ObservableObject {
     public var searchCategoryResults:CategoryResult = CategoryResult(parentCategory: "Search Results", categoricalChatResults: [ChatResult]())
     @Published public var placeResults:[ChatResult] = [ChatResult]()
     @Published public var locationResults:[LocationResult] = [LocationResult]()
+    @Published public var currentLocationResult = LocationResult(locationName: "Current Location", location: nil)
     
     public var lastFetchedTastePage:Int = 0
     
@@ -87,13 +88,16 @@ public class ChatResultViewModel : ObservableObject {
             var allLocationResults = Array(results).sorted { firstResult, secondResult in
                 return firstResult.locationName <= secondResult.locationName
             }
-            allLocationResults.insert(LocationResult(locationName: "Current Location", location: locationProvider.currentLocation()), at:0)
+                        
+            allLocationResults.insert(currentLocationResult, at:0)
             return allLocationResults
         } else {
+            
             var allLocationResults = locationResults.sorted { firstResult, secondResult in
                 return firstResult.locationName <= secondResult.locationName
             }
-            allLocationResults.insert(LocationResult(locationName: "Current Location", location: locationProvider.currentLocation()), at:0)
+            
+            allLocationResults.insert(currentLocationResult, at:0)
             return allLocationResults
         }
     }
@@ -264,7 +268,7 @@ public class ChatResultViewModel : ObservableObject {
             return selectedResult
         }
         
-        let savedResult = cachedLocationResults.first(where: {checkResult in
+        let savedResult = filteredLocationResults.first(where: {checkResult in
             return checkResult.id == selectedChatResultID
         })
         
@@ -1153,6 +1157,13 @@ extension ChatResultViewModel : AssistiveChatHostMessagesDelegate {
         
         guard let selectedDestinationLocationChatResult = selectedDestinationLocationChatResult else {
             throw ChatResultViewModelError.MissingSelectedDestinationLocationChatResult
+        }
+        
+        if selectedSourceLocationChatResult == nil {
+            if let location = locationProvider.currentLocation() {
+                currentLocationResult.replaceLocation(with: location, name: "Current Location")
+            }
+            selectedSourceLocationChatResult = selectedDestinationLocationChatResult
         }
         
         try await updateLastIntentParameter(for: placeChatResult, selectedDestinationChatResultID:selectedDestinationLocationChatResult)

@@ -125,12 +125,21 @@ struct PlaceDirectionsView: View {
                     }
                 }
             }
+            .onChange(of: chatModel.selectedSourceLocationChatResult, { oldValue, newValue in
+                if let newValue = newValue {
+                    model.rawLocationIdent = newValue.uuidString
+                }
+            })
             .onChange(of: model.rawLocationIdent, { oldValue, newValue in
+                guard newValue != oldValue else {
+                    return
+                }
+                
                 if let ident = UUID(uuidString: newValue) {
                     guard let placeChatResult = chatModel.placeChatResult(for: resultId), let placeResponse = placeChatResult.placeResponse else {
                         return
                     }
-                    
+                     
                     chatModel.selectedSourceLocationChatResult = ident
                     let _ = Task{ @MainActor in
                         do {
@@ -251,7 +260,7 @@ struct PlaceDirectionsView: View {
             }
         }
         else {
-            ContentUnavailableView("No route available", image: "x.circle.fill")
+            ContentUnavailableView("No route available", systemImage: "x.circle.fill")
         }
     }
     
