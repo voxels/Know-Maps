@@ -43,6 +43,15 @@ struct SearchCategoryView: View {
             Task { @MainActor in
                 try await model.refreshCache(cloudCache: model.cloudCache)
             }
+        }.task {
+            Task { @MainActor in
+                do{
+                    try await model.refreshCache(cloudCache: model.cloudCache)
+                } catch {
+                    model.analytics?.track(name: "error \(error)")
+                    print(error)
+                }
+            }
         }
     }
 }
