@@ -49,7 +49,7 @@ struct NavigationLocationView: View {
                             } else {
                                 Label("Save", systemImage: "star")
                                     .onTapGesture {
-                                    Task {
+                                    Task { @MainActor in
                                         let _ = try await cloudCache.storeUserCachedRecord(for: "Location", identity: chatModel.cachedLocationIdentity(for: location), title: result.locationName)
                                         try await chatModel.refreshCachedLocations(cloudCache: cloudCache)
                                     }
@@ -58,6 +58,15 @@ struct NavigationLocationView: View {
                             }
                         }
 
+                    }
+                }.task {
+                    Task {
+                        do {
+                            try await chatModel.refreshCachedLocations(cloudCache: cloudCache)
+                        } catch {
+                            chatModel.analytics?.track(name: "error \(error)")
+                            print(error)
+                        }
                     }
                 }
                 .autocorrectionDisabled(true)

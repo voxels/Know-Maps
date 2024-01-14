@@ -43,7 +43,6 @@ struct AddListItemView: View {
                                 let userRecord = UserCachedRecord(recordId: "", group: "List", identity: textFieldData, title: textFieldData, icons: "", list: textFieldData)
                                 try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title)
                                 try await chatModel.refreshCache(cloudCache: cloudCache)
-                                chatModel.appendCachedList(with: userRecord)
                             }
                         }.labelStyle(.iconOnly)
                     }

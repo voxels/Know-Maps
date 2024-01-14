@@ -48,6 +48,15 @@ struct SearchSavedView: View {
                         }
                 }
             }
+        }.refreshable {
+            Task { @MainActor in
+                do{
+                    try await model.refreshCache(cloudCache: model.cloudCache)
+                } catch {
+                    model.analytics?.track(name: "error \(error)")
+                    print(error)
+                }
+            }
         }.task {
             Task { @MainActor in
                 do{

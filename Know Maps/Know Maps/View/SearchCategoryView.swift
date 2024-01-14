@@ -11,7 +11,7 @@ struct SearchCategoryView: View {
     @ObservedObject public var model:ChatResultViewModel
     
     var body: some View {
-        List(model.filteredResults, children:\.children, selection:$model.selectedCategoryResult) { parent in
+        List(model.categoryResults, children:\.children, selection:$model.selectedCategoryResult) { parent in
             HStack {
                 Text("\(parent.parentCategory)")
                 Spacer()
@@ -29,17 +29,19 @@ struct SearchCategoryView: View {
                                     }
                                 }
                             } else {
-                          
                                 Task { @MainActor in
                                     var userRecord = UserCachedRecord(recordId: "", group: "Category", identity: parent.parentCategory, title: parent.parentCategory, icons: "", list: nil)
-                                    let record = try await model.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title)
-                                    userRecord.setRecordId(to: record.recordID.recordName)
-                                    model.appendCachedCategory(with: userRecord)
-                                    try await model.refreshCache(cloudCache: model.cloudCache)
+                                        let record = try await model.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title)
+                                        userRecord.setRecordId(to: record.recordID.recordName)
+                                        model.appendCachedCategory(with: userRecord)
                                 }
                             }
                         }
                 }
+            }
+        }.refreshable {
+            Task { @MainActor in
+                try await model.refreshCache(cloudCache: model.cloudCache)
             }
         }
     }

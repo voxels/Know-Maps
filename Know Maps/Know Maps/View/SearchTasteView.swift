@@ -24,7 +24,6 @@ struct SearchTasteView: View {
                                     for cachedTasteResult in cachedTasteResults {
                                         Task { @MainActor in
                                             try await model.cloudCache.deleteUserCachedRecord(for: cachedTasteResult)
-                                            try await model.refreshTastes(page:model.lastFetchedTastePage)
                                             try await model.refreshCache(cloudCache: model.cloudCache)
                                         }
                                     }
@@ -35,7 +34,6 @@ struct SearchTasteView: View {
                                     let record = try await model.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title)
                                     userRecord.setRecordId(to: record.recordID.recordName)
                                     model.appendCachedTaste(with: userRecord)
-                                    try await model.refreshTastes(page:model.lastFetchedTastePage)
                                     try await model.refreshCache(cloudCache: model.cloudCache)
                                 }
                             }
@@ -53,7 +51,17 @@ struct SearchTasteView: View {
                     }
                 }
             }
-        }.task {
+        }.refreshable {
+            Task { @MainActor in
+                do {
+                    try await model.refreshTastes(page:model.lastFetchedTastePage)
+                } catch {
+                    model.analytics?.track(name: "error \(error)")
+                    print(error)
+                }
+            }
+        }
+        .task {
             Task { @MainActor in
                 do {
                     try await model.refreshTastes(page:model.lastFetchedTastePage)

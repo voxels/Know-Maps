@@ -215,19 +215,19 @@ public class ChatResultViewModel : ObservableObject {
     }
     
     public func appendCachedCategory(with record:UserCachedRecord) {
-//        cachedCategoryRecords?.append(record)
+        cachedCategoryRecords?.append(record)
         cachedCategoryResults = savedCategoricalResults()
         refreshCachedResults()
     }
     
     public func appendCachedTaste(with record:UserCachedRecord) {
-//        cachedTasteRecords?.append(record)
+        cachedTasteRecords?.append(record)
         cachedTasteResults = savedTasteResults()
         refreshCachedResults()
     }
     
     public func appendCachedList(with record:UserCachedRecord) {
-//        cachedListRecords.append(record)
+        cachedListRecords.append(record)
         cachedListResults = savedListResults()
         refreshCachedResults()
     }
@@ -368,7 +368,7 @@ public class ChatResultViewModel : ObservableObject {
     
     public func categoricalResult(for selectedCategoryID:CategoryResult.ID)->ChatResult? {
         var searchCategories = [CategoryResult]()
-        for result in filteredResults {
+        for result in categoryResults {
             if let children = result.children {
                 for child in children {
                     searchCategories.append(child)
@@ -797,7 +797,7 @@ public class ChatResultViewModel : ObservableObject {
         for record in savedRecords {
             let newChatResults = [ChatResult(title: record.title, placeResponse: nil)]
             
-            let newResult = CategoryResult(parentCategory: record.title, categoricalChatResults: newChatResults)
+            let newResult = CategoryResult(parentCategory: record.title, list:record.list, categoricalChatResults: newChatResults)
             retval.append(newResult)
         }
         
@@ -862,7 +862,7 @@ public class ChatResultViewModel : ObservableObject {
         
         for record in savedRecords {
             for placeResult in cachedPlaceResults {
-                if let chatResults = placeResult.categoricalChatResults, let list = placeResult.list {
+                if let chatResults = placeResult.categoricalChatResults, let list = placeResult.list, record.list == list {
                     for chatResult in chatResults {
                         if let existingArray = temp[record.title] {
                             var newArray = existingArray.1
