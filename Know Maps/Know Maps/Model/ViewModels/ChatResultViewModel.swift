@@ -88,7 +88,7 @@ public class ChatResultViewModel : ObservableObject {
             var allLocationResults = Array(results).sorted { firstResult, secondResult in
                 return firstResult.locationName <= secondResult.locationName
             }
-                        
+            
             allLocationResults.insert(currentLocationResult, at:0)
             return allLocationResults
         } else {
@@ -215,19 +215,19 @@ public class ChatResultViewModel : ObservableObject {
     }
     
     public func appendCachedCategory(with record:UserCachedRecord) {
-        cachedCategoryRecords?.append(record)
+//        cachedCategoryRecords?.append(record)
         cachedCategoryResults = savedCategoricalResults()
         refreshCachedResults()
     }
     
     public func appendCachedTaste(with record:UserCachedRecord) {
-        cachedTasteRecords?.append(record)
+//        cachedTasteRecords?.append(record)
         cachedTasteResults = savedTasteResults()
         refreshCachedResults()
     }
     
     public func appendCachedList(with record:UserCachedRecord) {
-        cachedListRecords.append(record)
+//        cachedListRecords.append(record)
         cachedListResults = savedListResults()
         refreshCachedResults()
     }
@@ -350,7 +350,7 @@ public class ChatResultViewModel : ObservableObject {
     public func tasteResult(for selectedCategoryID:CategoryResult.ID)->ChatResult? {
         let searchCategories = tasteResults
         
-        let parentCategory = searchCategories.first { result in            
+        let parentCategory = searchCategories.first { result in
             return result.id == selectedCategoryID
         }
         
@@ -361,7 +361,7 @@ public class ChatResultViewModel : ObservableObject {
         if parentCategory.id == selectedCategoryID {
             return parentCategory.categoricalChatResults?.first
         }
-
+        
         
         return nil
     }
@@ -806,18 +806,9 @@ public class ChatResultViewModel : ObservableObject {
     
     private func allSavedResults()->[CategoryResult] {
         var retval = [CategoryResult]()
-        
-        if !cachedCategoryResults.isEmpty {
-            retval.append(contentsOf: cachedCategoryResults)
-        }
-        
-        if !cachedTasteResults.isEmpty {
-            retval.append(contentsOf: cachedTasteResults)
-        }
-        
-        if !cachedListResults.isEmpty {
-            retval.append(contentsOf: cachedListResults)
-        }
+        retval.append(contentsOf: cachedCategoryResults)
+        retval.append(contentsOf: cachedTasteResults)
+        retval.append(contentsOf: cachedListResults)
         
         retval.sort { result, checkResult in
             result.parentCategory < checkResult.parentCategory
@@ -852,7 +843,7 @@ public class ChatResultViewModel : ObservableObject {
         
         for record in savedRecords {
             let newChatResults = [ChatResult(title: record.title, placeResponse: nil)]
-            let newResult = CategoryResult(parentCategory: record.title, categoricalChatResults: newChatResults)
+            let newResult = CategoryResult(parentCategory: record.title, list:record.list, categoricalChatResults: newChatResults)
             retval.append(newResult)
         }
         
@@ -867,18 +858,18 @@ public class ChatResultViewModel : ObservableObject {
             return retval
         }
         
-        var temp = [String:[ChatResult]]()
+        var temp = [String:(String,[ChatResult])]()
         
         for record in savedRecords {
             for placeResult in cachedPlaceResults {
-                if let chatResults = placeResult.categoricalChatResults {
+                if let chatResults = placeResult.categoricalChatResults, let list = placeResult.list {
                     for chatResult in chatResults {
                         if let existingArray = temp[record.title] {
-                            var newArray = existingArray
+                            var newArray = existingArray.1
                             newArray.append(chatResult)
-                            temp[record.title] = newArray
+                            temp[record.title] = (list,newArray)
                         } else {
-                            temp[record.title] = [chatResult]
+                            temp[record.title] = (list,[chatResult])
                         }
                     }
                 }
@@ -887,10 +878,11 @@ public class ChatResultViewModel : ObservableObject {
         
         for key in temp.keys {
             let values = temp[key]!
-            let newResult = CategoryResult(parentCategory: key, categoricalChatResults:values)
+            let newResult = CategoryResult(parentCategory: key, list:values.0, categoricalChatResults:values.1)
             retval.append(newResult)
         }
 
+        
         return retval
     }
     

@@ -14,11 +14,13 @@ public struct CategoryResult : Identifiable, Equatable, Hashable {
     
     public let id = UUID()
     let parentCategory:String
+    let list:String?
     private(set) var categoricalChatResults:[ChatResult]?
     public var children:[CategoryResult]?
     
-    public init(parentCategory: String, categoricalChatResults: [ChatResult]? = nil) {
+    public init(parentCategory: String, list:String? = nil, categoricalChatResults: [ChatResult]? = nil ) {
         self.parentCategory = parentCategory
+        self.list = list
         self.categoricalChatResults = categoricalChatResults
         self.children = children(with: self.categoricalChatResults)
     }
@@ -39,7 +41,6 @@ public struct CategoryResult : Identifiable, Equatable, Hashable {
                 retval.append(newCategoryResult)
             }
         }
-//        retval.append(CategoryResult(parentCategory: "All \(parentCategory)", categoricalChatResults: [ChatResult(title: parentCategory, placeResponse: nil)]))
         return retval.isEmpty ? nil : retval
     }
     
