@@ -226,6 +226,12 @@ public class ChatResultViewModel : ObservableObject {
         refreshCachedResults()
     }
     
+    public func appendCachedList(with record:UserCachedRecord) {
+        cachedListRecords.append(record)
+        cachedListResults = savedListResults()
+        refreshCachedResults()
+    }
+    
     public func cachedCategories(contains category:String)->Bool {
         guard let cachedRecords = cachedCategoryRecords, !cachedRecords.isEmpty else {
             return false
