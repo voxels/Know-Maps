@@ -35,7 +35,7 @@ public class ChatResultViewModel : ObservableObject {
     @Published public var cachedTasteRecords:[UserCachedRecord]?
     @Published public var cachedCategoryRecords:[UserCachedRecord]?
     @Published public var cachedPlaceRecords:[UserCachedRecord]?
-    @Published public var cachedListRecords:[UserCachedRecord]?
+    @Published public var cachedListRecords:[UserCachedRecord] = [UserCachedRecord]()
     @Published public var cachedCategoryResults = [CategoryResult]()
     @Published public var cachedTasteResults = [CategoryResult]()
     @Published public var cachedPlaceResults = [CategoryResult]()
@@ -66,14 +66,6 @@ public class ChatResultViewModel : ObservableObject {
             return try await assistiveHostDelegate?.languageDelegate.lookUpLocation(location: location)?.first?.name ?? "Current Location"
         }
         return nil
-    }
-    
-    public var filteredSuggestedListRecords:[UserCachedRecord] {
-        guard let cachedListRecords = cachedListRecords else {
-            return [UserCachedRecord]()
-        }
-        
-        return cachedListRecords
     }
     
     public var filteredLocationResults:[LocationResult] {
@@ -825,7 +817,8 @@ public class ChatResultViewModel : ObservableObject {
     private func savedListResults()->[CategoryResult] {
         var retval = [CategoryResult]()
         
-        guard let savedRecords = cachedListRecords, !cachedPlaceResults.isEmpty else {
+        let savedRecords = cachedListRecords
+        guard !savedRecords.isEmpty else {
             return retval
         }
         
@@ -1150,8 +1143,16 @@ extension ChatResultViewModel : AssistiveChatHostMessagesDelegate {
     }
     
     public func didTap(placeChatResult: ChatResult) async throws {
-        guard let lastIntent = assistiveHostDelegate?.queryIntentParameters.queryIntents.last, lastIntent.placeSearchResponses.count > 0, let selectedDestinationLocationChatResult = selectedDestinationLocationChatResult else {
+        guard let lastIntent = assistiveHostDelegate?.queryIntentParameters.queryIntents.last, lastIntent.placeSearchResponses.count > 0 else {
             return
+        }
+        
+        if selectedDestinationLocationChatResult == nil, let firstResult = filteredLocationResults.first {
+            selectedDestinationLocationChatResult = firstResult.id
+        }
+        
+        guard let selectedDestinationLocationChatResult = selectedDestinationLocationChatResult else {
+            throw ChatResultViewModelError.MissingSelectedDestinationLocationChatResult
         }
         
         try await updateLastIntentParameter(for: placeChatResult, selectedDestinationChatResultID:selectedDestinationLocationChatResult)

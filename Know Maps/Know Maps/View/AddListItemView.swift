@@ -15,7 +15,7 @@ struct AddListItemView: View {
     var body: some View {
             VStack {
                 Section {
-                    List(chatModel.filteredSuggestedListRecords, selection:$chatModel.selectedSuggestedListRecord) { listRecord in
+                    List(chatModel.cachedListRecords, selection:$chatModel.selectedSuggestedListRecord) { listRecord in
                         HStack {
                             Text(listRecord.title)
                    
@@ -43,7 +43,7 @@ struct AddListItemView: View {
                                 let userRecord = UserCachedRecord(recordId: "", group: "List", identity: textFieldData, title: textFieldData, icons: "", list: textFieldData)
                                 try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title)
                                 try await chatModel.refreshCachedLists(cloudCache: cloudCache)
-                                try await chatModel.
+                                chatModel.refreshCachedResults()
                             }
                         }.labelStyle(.iconOnly)
                     }

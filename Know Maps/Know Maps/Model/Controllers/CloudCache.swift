@@ -39,6 +39,7 @@ open class CloudCache : NSObject, ObservableObject {
         let operation = CKQueryOperation(query: query)
         operation.desiredKeys = ["description"]
         operation.resultsLimit = 1
+        operation.qualityOfService = .userInteractive
         operation.recordMatchedBlock = { recordId, result in
             Task { @MainActor in
                 
