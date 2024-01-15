@@ -96,7 +96,7 @@ struct ContentView: View {
                     cloudCache.hasPrivateCloudAccess = true
                 }
             })
-            .task {
+            .task { @MainActor in
                 chatModel.cloudCache = cloudCache
                 do {
                     try await chatModel.retrieveFsqUser()

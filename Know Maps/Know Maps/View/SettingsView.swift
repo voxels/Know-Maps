@@ -21,22 +21,24 @@ struct SettingsView: View {
                 } onCompletion: { result in
                     switch result {
                     case .success(let authResults):
-                        if let appleIDCredential = authResults.credential as? ASAuthorizationAppleIDCredential {
-                            model.appleUserId = appleIDCredential.user
-                            model.fullName = "\(appleIDCredential.fullName?.givenName ?? "") \(appleIDCredential.fullName?.familyName ?? "")"
-                            cloudCache.hasPrivateCloudAccess = true
-                            print("Authorization successful.")
-                            Task {
-                                let key =  model.appleUserId.data(using: .utf8)
-                                let addquery: [String: Any] = [kSecClass as String: kSecClassKey,
-                                                               kSecAttrApplicationTag as String: SettingsModel.tag,
-                                                               kSecValueData as String: key as AnyObject]
-                                let status = SecItemAdd(addquery as CFDictionary, nil)
-                                guard status == errSecSuccess else {
-                                    print(status)
-                                    return
+                        Task { @MainActor in
+                            if let appleIDCredential = authResults.credential as? ASAuthorizationAppleIDCredential {
+                                model.appleUserId = appleIDCredential.user
+                                model.fullName = "\(appleIDCredential.fullName?.givenName ?? "") \(appleIDCredential.fullName?.familyName ?? "")"
+                                cloudCache.hasPrivateCloudAccess = true
+                                print("Authorization successful.")
+                                Task {
+                                    let key =  model.appleUserId.data(using: .utf8)
+                                    let addquery: [String: Any] = [kSecClass as String: kSecClassKey,
+                                                                   kSecAttrApplicationTag as String: SettingsModel.tag,
+                                                                   kSecValueData as String: key as AnyObject]
+                                    let status = SecItemAdd(addquery as CFDictionary, nil)
+                                    guard status == errSecSuccess else {
+                                        print(status)
+                                        return
+                                    }
+                                    print("Storing Apple ID successful.")
                                 }
-                                print("Storing Apple ID successful.")
                             }
                         }
                     case .failure(let error):

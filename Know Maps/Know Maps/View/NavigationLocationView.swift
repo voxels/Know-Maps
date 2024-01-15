@@ -38,7 +38,7 @@ struct NavigationLocationView: View {
                                     .onTapGesture {
                                     if let cachedLocationResults = chatModel.cachedLocationResults(for: "Location", identity:chatModel.cachedLocationIdentity(for:location)) {
                                         for cachedLocationResult in cachedLocationResults {
-                                            Task { @MainActor in
+                                            Task {
                                                 try await cloudCache.deleteUserCachedRecord(for: cachedLocationResult)
                                                 try await chatModel.refreshCachedLocations(cloudCache: cloudCache)
                                             }
@@ -49,7 +49,7 @@ struct NavigationLocationView: View {
                             } else {
                                 Label("Save", systemImage: "star")
                                     .onTapGesture {
-                                    Task { @MainActor in
+                                    Task {
                                         let _ = try await cloudCache.storeUserCachedRecord(for: "Location", identity: chatModel.cachedLocationIdentity(for: location), title: result.locationName)
                                         try await chatModel.refreshCachedLocations(cloudCache: cloudCache)
                                     }
@@ -75,6 +75,7 @@ struct NavigationLocationView: View {
                     if chatModel.locationSearchText.isEmpty, !chatModel.placeResults.isEmpty {
                         chatModel.resetPlaceModel()
                         chatModel.selectedCategoryChatResult = nil
+                        chatModel.selectedTasteCategoryResult = nil
                         chatModel.selectedSavedResult = nil
                     } else {
                         Task {
@@ -90,12 +91,13 @@ struct NavigationLocationView: View {
                     if newValue.isEmpty {
                         chatModel.resetPlaceModel()
                         chatModel.selectedCategoryChatResult = nil
+                        chatModel.selectedTasteCategoryResult = nil
                         chatModel.selectedSavedResult = nil
                     }
                 }).onChange(of: chatModel.selectedDestinationLocationChatResult) { oldValue, newValue in
                     if let _ = newValue, !chatModel.locationSearchText.isEmpty, chatModel.selectedPlaceChatResult == nil
                     {
-                        Task { @MainActor in
+                        Task {
                             do {
                                 try await chatModel.didSearch(caption:chatModel.locationSearchText, selectedDestinationChatResultID:chatModel.selectedDestinationLocationChatResult ?? chatModel.filteredDestinationLocationResults.first!.id)
                             } catch {

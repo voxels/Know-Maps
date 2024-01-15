@@ -14,7 +14,7 @@ public protocol AssistiveChatHostDelegate:AnyObject {
     var messagesDelegate:AssistiveChatHostMessagesDelegate? { get set}
     var languageDelegate:LanguageGeneratorDelegate { get }
     var placeSearchSession:PlaceSearchSession { get }
-    var queryIntentParameters:AssistiveChatHostQueryParameters { get }
+    var queryIntentParameters:AssistiveChatHostQueryParameters? { get }
     var categoryCodes:[[String:[[String:String]]]] { get }
     var lastGeocodedPlacemarks:[CLPlacemark]? { get }
     var cache:CloudCache { get }

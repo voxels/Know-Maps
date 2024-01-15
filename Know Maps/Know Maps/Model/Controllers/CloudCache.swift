@@ -209,6 +209,7 @@ open class CloudCache : NSObject, ObservableObject {
         var retval = [UserCachedRecord]()
         let predicate = NSPredicate(format: "Group == %@", group)
         let query = CKQuery(recordType: "UserCachedRecord", predicate: predicate)
+        query.sortDescriptors = [NSSortDescriptor(key: "modificationDate", ascending: false)]
         let operation = CKQueryOperation(query: query)
         operation.desiredKeys = ["Group", "Icons", "Identity", "Title", "List"]
         operation.qualityOfService = .userInteractive
@@ -267,7 +268,7 @@ open class CloudCache : NSObject, ObservableObject {
 
     
     @discardableResult
-    public func storeUserCachedRecord(for group:String, identity:String, title:String, icons:String? = nil, list:String? = nil) async throws -> CKRecord {
+    public func storeUserCachedRecord(for group:String, identity:String, title:String, icons:String? = nil, list:String? = nil) async throws -> (saveResults: [CKRecord.ID : Result<CKRecord, Error>], deleteResults: [CKRecord.ID : Result<Void, Error>]) {
         let record = CKRecord(recordType:"UserCachedRecord")
         record.setObject(group as NSString, forKey: "Group")
         record.setObject(identity as NSString, forKey: "Identity")
@@ -282,7 +283,7 @@ open class CloudCache : NSObject, ObservableObject {
         } else {
             record.setObject("" as NSString, forKey:"List")
         }
-        return try await cacheContainer.privateCloudDatabase.save(record)
+        return try await cacheContainer.privateCloudDatabase.modifyRecords(saving: [record], deleting: [])
     }
     
     public func deleteUserCachedRecord(for cachedRecord:UserCachedRecord) async throws {

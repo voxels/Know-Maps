@@ -35,7 +35,7 @@ struct PlaceAboutView: View {
                         let placeCoordinate = CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude)
 
                         let title = placeResponse.name
-                        Map(initialPosition: .automatic,bounds: MapCameraBounds(minimumDistance: 1500, maximumDistance:250000)) {
+                        Map(initialPosition: .automatic) {
                             Marker(title, coordinate: placeCoordinate.coordinate)
                         }
                         .mapControls {
@@ -43,9 +43,9 @@ struct PlaceAboutView: View {
                             MapUserLocationButton()
                             MapCompass()
                         }
-                        .mapStyle(.hybrid(elevation: .realistic,
+                        .mapStyle(.hybrid(elevation: .automatic,
                                           pointsOfInterest: .including([.publicTransport]),
-                                          showsTraffic: true))
+                                          showsTraffic: false))
                         .frame(minHeight: geo.size.height / 2.0)
                         .padding(EdgeInsets(top: 0, leading: PlaceAboutView.defaultPadding * 2, bottom: PlaceAboutView.defaultPadding, trailing: PlaceAboutView.defaultPadding * 2))
                         
@@ -94,8 +94,8 @@ struct PlaceAboutView: View {
                                     }.onTapGesture {
                                         presentingPopover.toggle()
                                     }.popover(isPresented: $presentingPopover) {
-                                        AddListItemView(chatModel: chatModel)
-                                            .frame(width: 300, height: 300)
+                                        AddListItemView(chatModel: chatModel, presentingPopover:$presentingPopover)
+                                            .frame(width:300, height:600)
                                             .presentationCompactAdaptation(.automatic)
                                     }
                                     
@@ -199,7 +199,7 @@ struct PlaceAboutView: View {
                                 }
                             }
                     } else {
-                        ProgressView().frame(width: geo.size.width, height: geo.size.height, alignment: .center)
+                        ProgressView()
                     }
                 }
             }

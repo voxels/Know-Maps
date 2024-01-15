@@ -26,7 +26,7 @@ struct Know_MapsApp: App {
             ContentView(chatHost: AssistiveChatHost(), chatModel: ChatResultViewModel(locationProvider: locationProvider, cloudCache: cloudCache), locationProvider: locationProvider)
                 .environmentObject(cloudCache)
                 .environmentObject(settingsModel)
-                .task {
+                .task { @MainActor in
                     do {
                         let userRecord = try await cloudCache.fetchCloudKitUserRecordID()
                         settingsModel.keychainId = userRecord?.recordName

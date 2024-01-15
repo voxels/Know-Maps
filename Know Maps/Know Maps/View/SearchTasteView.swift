@@ -22,7 +22,7 @@ struct SearchTasteView: View {
                             if isSaved {
                                 if let cachedTasteResults = model.cachedTasteResults(for: "Taste", identity: parent.parentCategory) {
                                     for cachedTasteResult in cachedTasteResults {
-                                        Task { @MainActor in
+                                        Task {
                                             try await model.cloudCache.deleteUserCachedRecord(for: cachedTasteResult)
                                             try await model.refreshCache(cloudCache: model.cloudCache)
                                         }
@@ -32,7 +32,9 @@ struct SearchTasteView: View {
                                 Task {
                                     var userRecord = UserCachedRecord(recordId: "", group: "Taste", identity: parent.parentCategory, title: parent.parentCategory, icons: "", list: nil)
                                     let record = try await model.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title)
-                                    userRecord.setRecordId(to: record.recordID.recordName)
+                                    if let resultName = record.saveResults.keys.first?.recordName {
+                                        userRecord.setRecordId(to:resultName)
+                                    }
                                     model.appendCachedTaste(with: userRecord)
                                     try await model.refreshTastes(page:model.lastFetchedTastePage)
                                     try await model.refreshCache(cloudCache: model.cloudCache)
@@ -43,7 +45,7 @@ struct SearchTasteView: View {
                 }
             }.onAppear {
                 if model.tasteResults.last == parent {
-                    Task { @MainActor in
+                    Task {
                         do {
                             try await model.refreshTastes(page:model.lastFetchedTastePage + 1)
                         } catch {
@@ -54,7 +56,7 @@ struct SearchTasteView: View {
                 }
             }
         }.refreshable {
-            Task { @MainActor in
+            Task {
                 do {
                     try await model.refreshTastes(page:model.lastFetchedTastePage)
                 } catch {
@@ -64,7 +66,7 @@ struct SearchTasteView: View {
             }
         }
         .onDisappear(perform: {
-            Task { @MainActor in
+            Task { 
                 do {
                     try await model.refreshTastes(page:model.lastFetchedTastePage)
                 } catch {

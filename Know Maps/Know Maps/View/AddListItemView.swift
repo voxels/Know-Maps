@@ -10,26 +10,38 @@ import SwiftUI
 struct AddListItemView: View {
     @EnvironmentObject public var cloudCache:CloudCache
     @ObservedObject public var chatModel:ChatResultViewModel
+    @Binding public var presentingPopover:Bool
 
     @State private var textFieldData:String = ""
     var body: some View {
             VStack {
                 Section {
-                    List(chatModel.cachedListRecords, selection:$chatModel.selectedSuggestedListRecord) { listRecord in
+                    List(chatModel.cachedListResults, selection:$chatModel.selectedListCategoryResult ) { parent in
                         HStack {
-                            Text(listRecord.title)
+                            Text("\(parent.parentCategory)")
                             Spacer()
                             Label("List to save", systemImage: "plus")
                                 .labelStyle(.iconOnly)
                                 .onTapGesture {
-                                    Task { @MainActor in
+                                    Task {
+                                        presentingPopover.toggle()
                                         if let selectedPlaceChatResult = chatModel.selectedPlaceChatResult, let chatResult = chatModel.placeChatResult(for: selectedPlaceChatResult), let placeResponse = chatResult.placeResponse {
-                                            let userRecord = UserCachedRecord(recordId: "", group: "Place", identity:placeResponse.name, title: placeResponse.name, icons: "", list:listRecord.title)
-                                            try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, list:listRecord.title)
-                                            chatModel.refreshCachedResults()
+                                            
+                                            let userRecord = UserCachedRecord(recordId: "", group: "Place", identity:placeResponse.fsqID, title: placeResponse.name, icons: "", list:parent.list)
+                                            try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, list:userRecord.list)
+                                            try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
                                         }
                                     }
                                 }
+                        }
+                    }.refreshable {
+                        Task {
+                            do {
+                                try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
+                            } catch {
+                                chatModel.analytics?.track(name: "error \(error)")
+                                print(error)
+                            }
                         }
                     }
                     .padding(10)
@@ -37,13 +49,29 @@ struct AddListItemView: View {
                     HStack {
                         TextField("Create new list", text: $textFieldData)
                             .textFieldStyle(.roundedBorder)
+                            .autocorrectionDisabled(true)
+                            .onSubmit {
+                                guard !textFieldData.isEmpty else {
+                                    return
+                                }
+                                
+                                Task {
+                                    let userRecord = UserCachedRecord(recordId: "", group: "List", identity: textFieldData, title: textFieldData, icons: "", list: textFieldData)
+                                    try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, list:userRecord.list)
+                                    try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
+                                }
+                            }
                         Spacer()
-                        Label("Create List", systemImage: "plus").onTapGesture {
-                            Task { @MainActor in
+                        Label("Create List", systemImage: "plus")
+                            .onTapGesture {
+                            guard !textFieldData.isEmpty else {
+                                return
+                            }
+                            
+                            Task { 
                                 let userRecord = UserCachedRecord(recordId: "", group: "List", identity: textFieldData, title: textFieldData, icons: "", list: textFieldData)
                                 try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, list:userRecord.list)
-                                chatModel.refreshCachedResults()
-                                try await chatModel.refreshCache(cloudCache: cloudCache)
+                                try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
                             }
                         }.labelStyle(.iconOnly)
                     }
@@ -58,5 +86,5 @@ struct AddListItemView: View {
     let cloudCache = CloudCache()
     let chatModel = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cloudCache)
 
-    return AddListItemView(chatModel: chatModel)
+    return AddListItemView(chatModel: chatModel, presentingPopover: .constant(true))
 }

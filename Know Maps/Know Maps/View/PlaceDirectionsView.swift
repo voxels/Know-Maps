@@ -113,7 +113,7 @@ struct PlaceDirectionsView: View {
                 }
                 
                 if oldValue != newValue, let currentLocationID = chatModel.selectedSourceLocationChatResult, let locationResult = chatModel.locationChatResult(for: currentLocationID), let currentLocation = locationResult.location, let sourceMapItem = mapItem(for: currentLocation, name:locationResult.locationName), let destinationMapItem = mapItem(for: CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude), name:placeResponse.name) {
-                    Task { @MainActor in
+                    Task {
                         do {
                             try await getDirections(source:sourceMapItem, destination:destinationMapItem, model:model)
                             self.resultId = resultId
@@ -141,7 +141,7 @@ struct PlaceDirectionsView: View {
                     }
                      
                     chatModel.selectedSourceLocationChatResult = ident
-                    let _ = Task{ @MainActor in
+                    let _ = Task{
                         do {
                             try await refreshDirections(with: placeResponse)
                         } catch {
@@ -172,7 +172,7 @@ struct PlaceDirectionsView: View {
                     return
                 }
                 
-                let _ = Task{ @MainActor in
+                let _ = Task{
                     do {
                         try await refreshDirections(with: placeResponse)
                     } catch {
@@ -191,7 +191,7 @@ struct PlaceDirectionsView: View {
                 }
                 
 
-                let _ = Task{ @MainActor in
+                let _ = Task{
                     do {
                         try await refreshDirections(with: placeResponse)
                     } catch {
@@ -212,7 +212,7 @@ struct PlaceDirectionsView: View {
                     }
                 }
                 
-                let _ = Task{ @MainActor in
+                let _ = Task{
                     do {
                         try await refreshDirections(with: placeResponse)
                     } catch {
@@ -220,43 +220,32 @@ struct PlaceDirectionsView: View {
                         print(error)
                     }
                 }
-            }.onAppear(perform: {
-                if chatModel.selectedSourceLocationChatResult == nil {
-                    chatModel.selectedSourceLocationChatResult = chatModel.filteredLocationResults.first?
-                        .id
-                }
-                let _ = Task{ @MainActor in
-                    do {
-                        try await refreshDirections(with: placeResponse)
-                    } catch {
-                        chatModel.analytics?.track(name: "error \(error)")
-                        print(error)
-                    }
-                }
-            })
+            }
             .task {
                 if let destination = model.destination  {
                     do {
                         try await getLookAroundScene(mapItem:destination)
+                        try await refreshDirections(with: placeResponse)
                     } catch {
                         chatModel.analytics?.track(name: "error \(error)")
                         print(error)
                     }
                 } else {
-                    if  let currentLocationID = chatModel.selectedSourceLocationChatResult, let locationResult = chatModel.locationChatResult(for: currentLocationID), let currentLocation = locationResult.location, let sourceMapItem = mapItem(for: currentLocation, name:locationResult.locationName), let destinationMapItem = mapItem(for: CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude), name:placeResponse.name) {
-                        Task { @MainActor in
-                            do {
-                                try await getDirections(source:sourceMapItem, destination:destinationMapItem, model:model)
-                                if let destination = model.destination {
-                                    try await getLookAroundScene(mapItem:destination)
-                                }
-                            } catch {
-                                chatModel.analytics?.track(name: "error \(error)")
-                                print(error)
-                            }
+                    if chatModel.selectedSourceLocationChatResult == nil {
+                        chatModel.selectedSourceLocationChatResult = chatModel.filteredLocationResults.first?
+                            .id
+                    }
+                    let _ = Task{
+                        do {
+                            try await refreshDirections(with: placeResponse)
+                        } catch {
+                            chatModel.analytics?.track(name: "error \(error)")
+                            print(error)
                         }
                     }
                 }
+                
+                
             }
         }
         else {
@@ -266,7 +255,7 @@ struct PlaceDirectionsView: View {
     
     func refreshDirections(with placeResponse:PlaceSearchResponse) async throws {
         if let currentLocationID = chatModel.selectedSourceLocationChatResult, let locationResult = chatModel.locationChatResult(for: currentLocationID), let currentLocation = locationResult.location, let sourceMapItem = mapItem(for: currentLocation, name:locationResult.locationName), let destinationMapItem = mapItem(for: CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude), name:placeResponse.name) {
-            Task { @MainActor in
+            Task {
                 do {
                     try await getDirections(source:sourceMapItem, destination:destinationMapItem, model:model)
                 } catch {
@@ -298,6 +287,7 @@ struct PlaceDirectionsView: View {
     
     @MainActor
     func getDirections(source:MKMapItem?, destination:MKMapItem?, model:PlaceDirectionsViewModel) async throws {
+        
         guard let source = source, let destination = destination else {
             return
         }

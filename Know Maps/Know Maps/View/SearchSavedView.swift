@@ -21,7 +21,7 @@ struct SearchSavedView: View {
                         .onTapGesture {
                             if let cachedCategoricalResults = model.cachedCategoricalResults(for: "Category", identity: parent.parentCategory) {
                                 for cachedCategoricalResult in cachedCategoricalResults {
-                                    Task { @MainActor in
+                                    Task {
                                         try await model.cloudCache.deleteUserCachedRecord(for: cachedCategoricalResult)
                                         try await model.refreshCache(cloudCache: model.cloudCache)
                                     }
@@ -30,16 +30,16 @@ struct SearchSavedView: View {
                             
                             if let cachedTasteResults = model.cachedTasteResults(for: "Taste", identity: parent.parentCategory) {
                                 for cachedTasteResult in cachedTasteResults {
-                                    Task { @MainActor in
+                                    Task {
                                         try await model.cloudCache.deleteUserCachedRecord(for: cachedTasteResult)
                                         try await model.refreshCache(cloudCache: model.cloudCache)
                                     }
                                 }
                             }
                             
-                            if let cachedPlaceResults = model.cachedPlaceResults(for: "Place", identity:parent.parentCategory ) {
+                            if let cachedPlaceResults = model.cachedPlaceResults(for: "Place", title:parent.parentCategory ) {
                                 for cachedPlaceResult in cachedPlaceResults {
-                                    Task { @MainActor in
+                                    Task {
                                         try await model.cloudCache.deleteUserCachedRecord(for: cachedPlaceResult)
                                         try await model.refreshCache(cloudCache: model.cloudCache)
                                     }
@@ -49,7 +49,7 @@ struct SearchSavedView: View {
                 }
             }
         }.refreshable {
-            Task { @MainActor in
+            Task {
                 do{
                     try await model.refreshCache(cloudCache: model.cloudCache)
                 } catch {
@@ -58,7 +58,7 @@ struct SearchSavedView: View {
                 }
             }
         }.task {
-            Task { @MainActor in
+            Task { 
                 do{
                     try await model.refreshCache(cloudCache: model.cloudCache)
                 } catch {

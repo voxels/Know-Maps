@@ -8,7 +8,6 @@
 import SwiftUI
 import MapKit
 
-@MainActor
 public class PlaceDirectionsViewModel : ObservableObject {
     @Published public var route:MKRoute?
     @Published public var source:MKMapItem?

@@ -25,7 +25,7 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
     public var languageDelegate:LanguageGeneratorDelegate = LanguageGenerator()
     public var placeSearchSession = PlaceSearchSession()
     public var analytics:Analytics?
-    @Published public var queryIntentParameters = AssistiveChatHostQueryParameters()
+    @Published public var queryIntentParameters:AssistiveChatHostQueryParameters?
     @EnvironmentObject public var cache:CloudCache
     public var categoryCodes:[[String:[[String:String]]]] = [[String:[[String:String]]]]()
     
@@ -36,9 +36,12 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
         self.messagesDelegate = messagesDelegate
         self.analytics = analytics
         self.lastGeocodedPlacemarks = lastGeocodedPlacemarks
+        self.queryIntentParameters = AssistiveChatHostQueryParameters()
         try? organizeCategoryCodeList()
+        
     }
     
+    @MainActor
     public func organizeCategoryCodeList() throws {
         if let path = Bundle.main.path(forResource: "integrated_category_taxonomy", ofType: "json")
         {
@@ -240,7 +243,7 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
     
     @MainActor
     public func updateLastIntent(caption:String, selectedDestinationLocationID:LocationResult.ID) async throws {
-        if let lastIntent = queryIntentParameters.queryIntents.last {
+        if let queryIntentParameters = queryIntentParameters, let lastIntent = queryIntentParameters.queryIntents.last {
             let queryParamters = try await defaultParameters(for: caption)
             let intent = determineIntent(for: caption)
             let newIntent = AssistiveChatHostIntent(caption: caption, intent:intent, selectedPlaceSearchResponse: lastIntent.selectedPlaceSearchResponse, selectedPlaceSearchDetails: lastIntent.selectedPlaceSearchDetails, placeSearchResponses: lastIntent.placeSearchResponses, selectedDestinationLocationID: selectedDestinationLocationID, placeDetailsResponses: lastIntent.placeDetailsResponses, queryParameters: queryParamters)
@@ -250,6 +253,10 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
     
     @MainActor
     public func updateLastIntentParameters(intent:AssistiveChatHostIntent) {
+        guard let queryIntentParameters = queryIntentParameters else {
+            return
+        }
+        
         if queryIntentParameters.queryIntents.count > 0 {
             queryIntentParameters.queryIntents.removeLast()
         }
@@ -259,22 +266,27 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
     
     @MainActor
     public func appendIntentParameters(intent:AssistiveChatHostIntent) {
-        if queryIntentParameters.queryIntents.isEmpty {
-            let newQueryParameters = AssistiveChatHostQueryParameters()
-            newQueryParameters.queryIntents = [intent]
-            queryIntentParameters = newQueryParameters
-        } else {
-            queryIntentParameters.queryIntents.append(intent)
+        guard let queryIntentParameters = queryIntentParameters else {
+            return
         }
+        
+        queryIntentParameters.queryIntents.append(intent)
+
         messagesDelegate?.updateQueryParametersHistory(with:queryIntentParameters)
     }
     
     @MainActor
     public func resetIntentParameters() {
+        guard let queryIntentParameters = queryIntentParameters else {
+            return
+        }
         queryIntentParameters.queryIntents = [AssistiveChatHostIntent]()
     }
     
     public func receiveMessage(caption:String, isLocalParticipant:Bool ) async throws {
+        guard let queryIntentParameters = queryIntentParameters else {
+            return
+        }
         try await messagesDelegate?.addReceivedMessage(caption: caption, parameters: queryIntentParameters, isLocalParticipant: isLocalParticipant)
     }
     
@@ -300,6 +312,7 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
         return nil
     }
     
+    @MainActor
     public func nearLocationCoordinate(for rawQuery:String, tags:AssistiveChatHostTaggedWord? = nil) async throws -> [CLPlacemark]? {
         
         if geocoder.isGeocoding {

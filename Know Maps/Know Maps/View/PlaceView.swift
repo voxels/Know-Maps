@@ -62,7 +62,10 @@ struct PlaceView: View {
         } else {
             ContentUnavailableView("No place selected", systemImage: "return")
                 .onAppear(perform: {
-                    chatModel.selectedPlaceChatResult = nil
+                    chatModel.resetPlaceModel()
+                    chatModel.selectedCategoryChatResult = nil
+                    chatModel.selectedSavedResult = nil
+                    chatModel.selectedTasteCategoryResult = nil
             })
         }
     }

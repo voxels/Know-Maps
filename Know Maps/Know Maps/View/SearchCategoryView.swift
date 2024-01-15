@@ -22,29 +22,36 @@ struct SearchCategoryView: View {
                             if isSaved {
                                 if let cachedCategoricalResults = model.cachedCategoricalResults(for: "Category", identity: parent.parentCategory) {
                                     for cachedCategoricalResult in cachedCategoricalResults {
-                                        Task { @MainActor in
+                                        Task {
                                             try await model.cloudCache.deleteUserCachedRecord(for: cachedCategoricalResult)
                                             try await model.refreshCache(cloudCache: model.cloudCache)
                                         }
                                     }
                                 }
                             } else {
-                                Task { @MainActor in
+                                Task {
                                     var userRecord = UserCachedRecord(recordId: "", group: "Category", identity: parent.parentCategory, title: parent.parentCategory, icons: "", list: nil)
-                                        let record = try await model.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title)
-                                        userRecord.setRecordId(to: record.recordID.recordName)
-                                        model.appendCachedCategory(with: userRecord)
+                                    let record = try await model.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title)
+                                    if let resultName = record.saveResults.keys.first?.recordName {
+                                        userRecord.setRecordId(to:resultName)
+                                    }
+                                    try await model.refreshCache(cloudCache: model.cloudCache)
                                 }
                             }
                         }
                 }
             }
         }.refreshable {
-            Task { @MainActor in
-                try await model.refreshCache(cloudCache: model.cloudCache)
+            Task {
+                do{
+                    try await model.refreshCache(cloudCache: model.cloudCache)
+                } catch {
+                    model.analytics?.track(name: "error \(error)")
+                    print(error)
+                }
             }
         }.task {
-            Task { @MainActor in
+            Task { 
                 do{
                     try await model.refreshCache(cloudCache: model.cloudCache)
                 } catch {
