@@ -806,9 +806,9 @@ public class ChatResultViewModel : ObservableObject {
     
     private func allSavedResults()->[CategoryResult] {
         var retval = [CategoryResult]()
-        retval.append(contentsOf: cachedCategoryResults)
-        retval.append(contentsOf: cachedTasteResults)
-        retval.append(contentsOf: cachedListResults)
+        retval.append(contentsOf: savedCategoricalResults())
+        retval.append(contentsOf: savedTasteResults())
+        retval.append(contentsOf: savedListResults())
         
         retval.sort { result, checkResult in
             result.parentCategory < checkResult.parentCategory

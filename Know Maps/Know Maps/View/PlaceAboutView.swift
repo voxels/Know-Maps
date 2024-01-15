@@ -96,7 +96,7 @@ struct PlaceAboutView: View {
                                     }.popover(isPresented: $presentingPopover) {
                                         AddListItemView(chatModel: chatModel)
                                             .frame(width: 300, height: 300)
-                                            .presentationCompactAdaptation(.popover)
+                                            .presentationCompactAdaptation(.automatic)
                                     }
                                     
                                     if let tel = placeDetailsResponse.tel {

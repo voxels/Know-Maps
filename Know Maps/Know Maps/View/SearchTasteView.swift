@@ -62,17 +62,6 @@ struct SearchTasteView: View {
                     print(error)
                 }
             }
-        }.task {
-            Task { @MainActor in
-                do {
-                    if model.tasteResults.isEmpty {
-                        try await model.refreshTastes(page:model.lastFetchedTastePage)
-                    }
-                } catch {
-                    model.analytics?.track(name: "error \(error)")
-                    print(error)
-                }
-            }
         }
         .onDisappear(perform: {
             Task { @MainActor in
