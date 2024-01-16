@@ -195,9 +195,6 @@ public class ChatResultViewModel : ObservableObject {
     
     @MainActor
     public func refreshCache(cloudCache:CloudCache) async throws {
-        guard !isRefreshingCache else {
-            return
-        }
         isRefreshingCache = true
         do {
             try await refreshCachedCategories(cloudCache: cloudCache)
@@ -252,7 +249,7 @@ public class ChatResultViewModel : ObservableObject {
     public func refreshCachedTastes(cloudCache:CloudCache) async throws {
         let storedTasteRecords = try await cloudCache.fetchGroupedUserCachedRecords(for: "Taste")
         
-        guard storedTasteRecords.isEmpty else {
+        guard !storedTasteRecords.isEmpty else {
             return
         }
         

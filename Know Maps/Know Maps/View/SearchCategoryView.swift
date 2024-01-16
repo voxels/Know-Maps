@@ -52,6 +52,15 @@ struct SearchCategoryView: View {
                     print(error)
                 }
             }
+        }.task {
+            Task {
+                do {
+                    try await model.refreshCache(cloudCache: model.cloudCache)
+                } catch {
+                    print(error)
+                    model.analytics?.track(name: "error \(error)")
+                }
+            }
         }
     }
 }

@@ -39,18 +39,8 @@ struct SearchView: View {
                     default:
                         ContentUnavailableView("No Tastes", systemImage:"return")
                     }
-                }.task {
-                    Task {
-                        do {
-                            try await model.refreshCache(cloudCache: model.cloudCache)
-                        } catch {
-                            print(error)
-                            model.analytics?.track(name: "error \(error)")
-                        }
-                    }
                 }
                 .onChange(of: model.selectedSavedResult) { oldValue, newValue in
-                    model.resetPlaceModel()
                     guard let newValue = newValue else {
                         return
                     }
@@ -90,7 +80,6 @@ struct SearchView: View {
                     }
                 }
                 .onChange(of: model.selectedCategoryResult) { oldValue, newValue in
-                    model.resetPlaceModel()
                 Task { @MainActor in
                         if let newValue = newValue, let categoricalResult =
                             model.categoricalResult(for: newValue) {
@@ -104,7 +93,6 @@ struct SearchView: View {
                         if let newValue = newValue, let tasteResult = model.tasteResult(for: newValue) {
                             model.locationSearchText = model.chatResult(for: newValue)?.title ?? model.locationSearchText
                             await chatHost.didTap(chatResult: tasteResult)
-                            
                         }
                     }
                 })

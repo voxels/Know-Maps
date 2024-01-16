@@ -59,7 +59,7 @@ struct SearchSavedView: View {
                         print(error)
                     }
                 }
-            }.onAppear {
+            }.task {
                 Task {
                     do{
                         try await model.refreshCache(cloudCache: model.cloudCache)

@@ -45,7 +45,7 @@ struct SearchTasteView: View {
                                         }
                                         model.appendCachedTaste(with: userRecord)
                                         try await model.refreshCachedTastes(cloudCache: model.cloudCache)
-                                            model.refreshTasteCategories(page: model.lastFetchedTastePage)
+                                        model.refreshTasteCategories(page: model.lastFetchedTastePage)
                                         model.refreshCachedResults()
                                         } catch {
                                             model.analytics?.track(name: "error \(error)")
@@ -92,14 +92,6 @@ struct SearchTasteView: View {
                     }
                 }
             }
-            .task {
-                do {
-                    try await model.refreshCachedTastes(cloudCache:model.cloudCache)
-                } catch {
-                    model.analytics?.track(name: "error \(error)")
-                    print(error)
-                }
-            }
             .refreshable {
                 Task {
                     do {
@@ -109,17 +101,13 @@ struct SearchTasteView: View {
                         print(error)
                     }
                 }
-            }
-            .onChange(of: model.tasteResults) { oldValue, newValue in
-                guard oldValue != newValue else {
-                    return
-                }
+            }.task {
                 Task {
                     do {
                         try await model.refreshCache(cloudCache: model.cloudCache)
                     } catch {
-                        model.analytics?.track(name: "error \(error)")
                         print(error)
+                        model.analytics?.track(name: "error \(error)")
                     }
                 }
             }
