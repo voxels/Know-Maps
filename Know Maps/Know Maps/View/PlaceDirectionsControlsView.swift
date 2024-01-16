@@ -93,6 +93,7 @@ struct PlaceDirectionsControlsView: View {
                 
             }
             Spacer()
+#if os(iOS) || os(visionOS)
             if showLookAroundScene {
                 Button("Directions", systemImage: "map.fill") {
                     showLookAroundScene.toggle()
@@ -106,6 +107,15 @@ struct PlaceDirectionsControlsView: View {
                 .padding(4)
                 .foregroundStyle(.primary)
             }
+            #endif
+            #if os(macOS)
+            Button("Directions", systemImage: "map.fill") {
+                showLookAroundScene.toggle()
+            }
+            .padding(4)
+            .foregroundStyle(.primary)
+            #endif
+            
             Spacer()
         }
 #endif

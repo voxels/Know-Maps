@@ -68,7 +68,7 @@ struct PlaceAboutView: View {
                                 ZStack {
                                     Capsule().frame(height: PlaceAboutView.buttonHeight, alignment: .center)
                                     #if os(macOS)
-                                        .foregroundStyle(.primary)
+                                        .foregroundStyle(.background)
                                     #else
                                         .foregroundColor(Color(uiColor:.systemFill))
                                     #endif
@@ -85,7 +85,7 @@ struct PlaceAboutView: View {
                                     ZStack {
                                         Capsule().frame(height: PlaceAboutView.buttonHeight, alignment: .center)                                    
 #if os(macOS)
-                                            .foregroundStyle(.primary)
+                                            .foregroundStyle(.background)
                                         #else
                                             .foregroundColor(Color(uiColor:.systemFill))
                                         #endif
@@ -106,12 +106,12 @@ struct PlaceAboutView: View {
                                         ZStack {
                                             Capsule()
 #if os(macOS)
-    .foregroundStyle(.primary)
+    .foregroundStyle(.background)
 #else
     .foregroundColor(Color(uiColor:.systemFill))
 #endif
                                                 .frame(height: PlaceAboutView.buttonHeight, alignment: .center)
-                                            Label("Call \(tel)", systemImage: "phone").foregroundStyle(.primary)
+                                            Label("\(tel)", systemImage: "phone").foregroundStyle(.primary)
 #if os(iOS) || os(visionOS)
                                                 .labelStyle(.iconOnly)
 #endif
@@ -129,41 +129,25 @@ struct PlaceAboutView: View {
                                         ZStack {
                                             Capsule()
 #if os(macOS)
-    .foregroundStyle(.primary)
+    .foregroundStyle(.background)
 #else
     .foregroundColor(Color(uiColor:.systemFill))
 #endif
                                             Link(destination: url) {
-                                                Label("Visit website", systemImage: "link").foregroundStyle(.primary)
+                                                Label("Visit website", systemImage: "link")
+                                                    .foregroundStyle(.primary)
 #if os(iOS) || os(visionOS)
                                                     .labelStyle(.iconOnly)
 #endif
-                                            }
+                                            }.tint(Color.primary)
                                         }
                                     }
-#if os(visionOS) || os(iOS)
-                                    
-                                    ZStack {
-                                        Capsule()
-#if os(macOS)
-    .foregroundStyle(.primary)
-#else
-    .foregroundColor(Color(uiColor:.systemFill))
-#endif
-
-                                        Image(systemName: "square.and.arrow.up").foregroundStyle(.primary)
-                                    }
-                                    .onTapGesture {
-                                        self.isPresentingShareSheet.toggle()
-                                    }
-#endif
-                                    
                                     
                                     if let price = placeDetailsResponse.price {
                                         ZStack {
                                             Capsule()
 #if os(macOS)
-    .foregroundStyle(.primary)
+    .foregroundStyle(.background)
 #else
     .foregroundColor(Color(uiColor:.systemFill))
 #endif
@@ -188,7 +172,7 @@ struct PlaceAboutView: View {
                                         ZStack {
                                             Capsule()
 #if os(macOS)
-    .foregroundStyle(.primary)
+    .foregroundStyle(.background)
 #else
     .foregroundColor(Color(uiColor:.systemFill))
 #endif
@@ -202,6 +186,19 @@ struct PlaceAboutView: View {
                                             selectedTab = "Tips"
                                         }
                                     }
+                                    
+#if os(iOS) || os(visionOS)
+                                    ZStack {
+                                        Capsule()
+                                            .foregroundColor(Color(uiColor:.systemFill))
+
+                                        Image(systemName: "square.and.arrow.up").foregroundStyle(.primary)
+                                    }
+                                    .onTapGesture {
+                                        self.isPresentingShareSheet.toggle()
+                                    }
+#endif
+                                    
                                     Spacer()
                                 }.padding(PlaceAboutView.defaultPadding)
                             }
@@ -215,7 +212,7 @@ struct PlaceAboutView: View {
                                 }
                             }
                     } else {
-                        ZStack {
+                        ZStack(alignment: .center) {
                             ProgressView().progressViewStyle(.circular)
                         }
                     }

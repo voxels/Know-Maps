@@ -41,6 +41,9 @@ struct SearchView: View {
                     }
                 }
                 .onChange(of: model.selectedSavedResult) { oldValue, newValue in
+                    
+                    model.resetPlaceModel()
+                    
                     guard let newValue = newValue else {
                         return
                     }
@@ -80,6 +83,7 @@ struct SearchView: View {
                     }
                 }
                 .onChange(of: model.selectedCategoryResult) { oldValue, newValue in
+                    model.resetPlaceModel()
                 Task { @MainActor in
                         if let newValue = newValue, let categoricalResult =
                             model.categoricalResult(for: newValue) {

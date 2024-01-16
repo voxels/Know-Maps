@@ -9,7 +9,7 @@ import SwiftUI
 
 struct NavigationLocationView: View {
     @Binding public var columnVisibility:NavigationSplitViewVisibility
-    @State private var searchIsPresented = false
+    @State private var searchIsPresented = true
     @EnvironmentObject public var cloudCache:CloudCache
     @ObservedObject public var chatHost:AssistiveChatHost
     @ObservedObject public var chatModel:ChatResultViewModel
@@ -86,9 +86,7 @@ struct NavigationLocationView: View {
                 .autocorrectionDisabled(true)
                 .searchable(text: $chatModel.locationSearchText, isPresented:$searchIsPresented)
                 .onSubmit(of: .search, {
-                    if chatModel.locationSearchText.isEmpty, !chatModel.placeResults.isEmpty {
-                        chatModel.resetPlaceModel()
-                    } else {
+
                         if let selectedDestinationLocationChatResult = chatModel.selectedDestinationLocationChatResult{
                             Task {
                                 do {
@@ -102,7 +100,7 @@ struct NavigationLocationView: View {
                         } else {
                             chatModel.selectedDestinationLocationChatResult = chatModel.filteredLocationResults.first?.id
                         }
-                    }
+                
                 }).onChange(of: chatModel.locationSearchText, { oldValue, newValue in
                     if newValue.isEmpty {
                         chatModel.resetPlaceModel()

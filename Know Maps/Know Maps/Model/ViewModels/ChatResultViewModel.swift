@@ -12,7 +12,7 @@ import Segment
 
 enum ChatResultViewModelError : Error {
     case MissingLastIntent
-    case MissingSelectedPlaceSeaquerchResponse
+    case MissingSelectedPlaceSearchResponse
     case MissingSelectedPlaceDetailsResponse
     case NoAutocompleteResultsFound
     case MissingCurrentLocation
@@ -1303,6 +1303,9 @@ extension ChatResultViewModel : AssistiveChatHostMessagesDelegate {
         } else if let selectedDestination = locationChatResult(for: selectedDestinationChatResult), let location = selectedDestination.location {
             destinationLocation = location
             selectedDestinationLocationChatResult = selectedDestination.id
+        } else if let location = locationProvider.currentLocation() {
+            destinationLocation = location
+            selectedDestinationChatResult = filteredDestinationLocationResults.first!.id
         }
         
         guard let destinationLocation = destinationLocation else {
