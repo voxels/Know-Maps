@@ -17,7 +17,7 @@ struct ContentView: View {
     @State private var showImmersiveSpace = false
     @State private var immersiveSpaceIsShown = false
     @State private var columnVisibility =
-    NavigationSplitViewVisibility.automatic
+    NavigationSplitViewVisibility.all
     @ObservedObject public var chatHost:AssistiveChatHost
     @StateObject public var chatModel:ChatResultViewModel
     @StateObject public var locationProvider:LocationProvider
@@ -35,7 +35,6 @@ struct ContentView: View {
     var body: some View {
         GeometryReader() { geo in
             NavigationSplitView(columnVisibility: $columnVisibility) {
-                ZStack {
                     VStack() {
                         NavigationLocationView(columnVisibility: $columnVisibility, chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, resultId: $chatModel.selectedPlaceChatResult)
                             .frame(maxHeight: geo.size.height / 4)
@@ -58,15 +57,9 @@ struct ContentView: View {
                         SettingsView()
                     }
 #endif
-                }
             } content: {
-                ZStack {
                     PlacesList(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, resultId: $chatModel.selectedPlaceChatResult)
-                }
-                
             } detail: {
-                ZStack {
-                    
                     if chatModel.filteredPlaceResults.count == 0 && chatModel.selectedPlaceChatResult == nil {
                         MapResultsView(chatHost: chatHost, model: chatModel, locationProvider: locationProvider, selectedMapItem: $selectedItem)
                             .onAppear(perform: {
@@ -84,9 +77,8 @@ struct ContentView: View {
                                 chatModel.analytics?.screen(title: "PlaceView")
                             })
                     }
-                }
             }
-            .navigationSplitViewStyle(.prominentDetail)
+            .navigationSplitViewStyle(.balanced)
             .onAppear(perform: {
                 chatModel.analytics?.screen(title: "NavigationSplitView")
             })
@@ -112,7 +104,9 @@ struct ContentView: View {
             })
             .onChange(of: settingsModel.appleUserId, { oldValue, newValue in
                 if !newValue.isEmpty {
-                    cloudCache.hasPrivateCloudAccess = true
+                    Task { @MainActor in
+                        cloudCache.hasPrivateCloudAccess = true
+                    }
                 }
             })
             .task { @MainActor in

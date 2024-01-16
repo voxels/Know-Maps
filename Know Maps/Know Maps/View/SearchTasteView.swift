@@ -37,9 +37,6 @@ struct SearchTasteView: View {
                                             userRecord.setRecordId(to:resultName)
                                         }
                                         model.appendCachedTaste(with: userRecord)
-                                        try await model.refreshTastes(page:model.lastFetchedTastePage)
-                                        try await model.refreshCache(cloudCache: model.cloudCache)
-                                        
                                     }
                                 }
                             }
@@ -57,7 +54,21 @@ struct SearchTasteView: View {
                     }
                 }
             }
-            .task {
+            .onAppear {
+                guard model.tasteResults.isEmpty else {
+                    return
+                }
+                
+                Task {
+                    do {
+                        try await model.refreshTastes(page:model.lastFetchedTastePage)
+                    } catch {
+                        model.analytics?.track(name: "error \(error)")
+                        print(error)
+                    }
+                }
+            }
+            .onDisappear {
                 Task {
                     do {
                         try await model.refreshTastes(page:model.lastFetchedTastePage)
@@ -77,16 +88,6 @@ struct SearchTasteView: View {
                     }
                 }
             }
-            .onDisappear(perform: {
-                Task {
-                    do {
-                        try await model.refreshTastes(page:model.lastFetchedTastePage)
-                    } catch {
-                        model.analytics?.track(name: "error \(error)")
-                        print(error)
-                    }
-                }
-            })
         } footer: {
             Button("Refresh", systemImage: "arrow.clockwise") {
                 Task { @MainActor in
@@ -99,7 +100,7 @@ struct SearchTasteView: View {
                         print(error)
                     }
                 }
-            }
+            }.labelStyle(.iconOnly).padding(16)
         }
     }
 }

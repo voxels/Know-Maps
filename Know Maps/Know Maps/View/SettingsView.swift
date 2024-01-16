@@ -23,9 +23,11 @@ struct SettingsView: View {
                     case .success(let authResults):
                         Task { @MainActor in
                             if let appleIDCredential = authResults.credential as? ASAuthorizationAppleIDCredential {
-                                model.appleUserId = appleIDCredential.user
-                                model.fullName = "\(appleIDCredential.fullName?.givenName ?? "") \(appleIDCredential.fullName?.familyName ?? "")"
-                                cloudCache.hasPrivateCloudAccess = true
+                                await MainActor.run {
+                                    model.appleUserId = appleIDCredential.user
+                                    model.fullName = "\(appleIDCredential.fullName?.givenName ?? "") \(appleIDCredential.fullName?.familyName ?? "")"
+                                    cloudCache.hasPrivateCloudAccess = true
+                                }
                                 print("Authorization successful.")
                                 Task {
                                     let key =  model.appleUserId.data(using: .utf8)

@@ -33,7 +33,9 @@ struct Know_MapsApp: App {
                         let userRecord = try await cloudCache.fetchCloudKitUserRecordID()
                         settingsModel.keychainId = userRecord?.recordName
                         if let keychainId = settingsModel.keychainId, !keychainId.isEmpty {
-                            cloudCache.hasPrivateCloudAccess = true
+                            await MainActor.run {
+                                cloudCache.hasPrivateCloudAccess = true
+                            }
                         }
                     } catch {
                         analytics?.track(name: "error \(error)")

@@ -79,7 +79,7 @@ struct PlaceAboutView: View {
                                     ZStack {
                                         Capsule().frame(height: PlaceAboutView.buttonHeight, alignment: .center).foregroundColor(Color(uiColor:.systemFill))
                                         Label("Add to List", systemImage: "star")
-#if os(iOS)
+#if os(iOS) || os(visionOS)
                                             .labelStyle(.iconOnly).foregroundStyle(.primary)
 #endif
                                     }.onTapGesture {
@@ -93,9 +93,9 @@ struct PlaceAboutView: View {
                                     if let tel = placeDetailsResponse.tel {
                                         ZStack {
                                             Capsule().foregroundColor(Color(uiColor:.systemFill)).frame(height: PlaceAboutView.buttonHeight, alignment: .center)
-                                            Label("Call \(tel)", systemImage: "phone")
-#if os(iOS)
-                                                .labelStyle(.iconOnly).foregroundStyle(.primary)
+                                            Label("Call \(tel)", systemImage: "phone").foregroundStyle(.primary)
+#if os(iOS) || os(visionOS)
+                                                .labelStyle(.iconOnly)
 #endif
                                             
                                         }.onTapGesture {
@@ -111,9 +111,9 @@ struct PlaceAboutView: View {
                                         ZStack {
                                             Capsule().foregroundColor(Color(uiColor:.systemFill))
                                             Link(destination: url) {
-                                                Label("Visit website", systemImage: "link")
-#if os(iOS)
-                                                    .labelStyle(.iconOnly).foregroundStyle(.primary)
+                                                Label("Visit website", systemImage: "link").foregroundStyle(.primary)
+#if os(iOS) || os(visionOS)
+                                                    .labelStyle(.iconOnly)
 #endif
                                             }
                                         }
@@ -174,7 +174,9 @@ struct PlaceAboutView: View {
                                 }
                             }
                     } else {
-                        ProgressView()
+                        ZStack {
+                            ProgressView().progressViewStyle(.circular)
+                        }
                     }
                 }
             }

@@ -8,13 +8,20 @@
 import Foundation
 import CloudKit
 
+public enum CloudCacheError : Error {
+    case ThrottleRequests
+}
+
 open class CloudCache : NSObject, ObservableObject {
     @Published var hasPrivateCloudAccess:Bool = false
+    @Published var isFetchingCachedRecords:Bool = false
+    @Published public var queuedGroups = Set<String>()
     let cacheContainer = CKContainer(identifier:"iCloud.com.noisederived.No-Maps.Cache")
     private var fsqid:String = ""
     private var desc:String = ""
     private var fsqUserId:String = ""
     private var oauthToken:String = ""
+
     
     public func fetchCloudKitUserRecordID() async throws -> CKRecord.ID?{
         
@@ -33,7 +40,6 @@ open class CloudCache : NSObject, ObservableObject {
     }
     
     public func fetchGeneratedDescription(for fsqid:String) async throws -> String {
-        
         let predicate = NSPredicate(format: "fsqid == %@", fsqid)
         let query = CKQuery(recordType: "GeneratedDescription", predicate: predicate)
         let operation = CKQueryOperation(query: query)
@@ -205,14 +211,18 @@ open class CloudCache : NSObject, ObservableObject {
         }
     }
 
+    
     public func fetchGroupedUserCachedRecords(for group:String) async throws -> [UserCachedRecord] {
+        await MainActor.run {
+            isFetchingCachedRecords = true
+        }
         var retval = [UserCachedRecord]()
         let predicate = NSPredicate(format: "Group == %@", group)
         let query = CKQuery(recordType: "UserCachedRecord", predicate: predicate)
         query.sortDescriptors = [NSSortDescriptor(key: "modificationDate", ascending: false)]
         let operation = CKQueryOperation(query: query)
         operation.desiredKeys = ["Group", "Icons", "Identity", "Title", "List"]
-        operation.qualityOfService = .userInteractive
+        operation.qualityOfService = .default
         operation.recordMatchedBlock = { recordId, result in
             do {
                 let record = try result.get()
@@ -261,6 +271,10 @@ open class CloudCache : NSObject, ObservableObject {
             }
                         
             cacheContainer.privateCloudDatabase.add(operation)
+        }
+        
+        await MainActor.run {
+            isFetchingCachedRecords = false
         }
         
         return retval

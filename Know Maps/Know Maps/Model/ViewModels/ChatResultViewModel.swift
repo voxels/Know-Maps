@@ -35,6 +35,7 @@ public class ChatResultViewModel : ObservableObject {
     public var cachedCategoryRecords:[UserCachedRecord]?
     public var cachedPlaceRecords:[UserCachedRecord]?
     public var cachedListRecords:[UserCachedRecord] = [UserCachedRecord]()
+    @Published public var isRefreshingCache:Bool = false
     @Published public var cachedCategoryResults = [CategoryResult]()
     @Published public var cachedTasteResults = [CategoryResult]()
     @Published public var cachedPlaceResults = [CategoryResult]()
@@ -180,37 +181,67 @@ public class ChatResultViewModel : ObservableObject {
     
     @MainActor
     public func refreshCache(cloudCache:CloudCache) async throws {
+        guard !isRefreshingCache else {
+            return
+        }
+        isRefreshingCache = true
         try await refreshCachedCategories(cloudCache: cloudCache)
         try await refreshCachedTastes(cloudCache: cloudCache)
         try await refreshCachedLists(cloudCache: cloudCache)
-        try await refreshCachedLocations(cloudCache: cloudCache)
         refreshCachedResults()
+        isRefreshingCache = false
     }
     
     @MainActor
     public func refreshCachedLocations(cloudCache:CloudCache) async throws {
         
-        cachedLocationRecords = try await cloudCache.fetchGroupedUserCachedRecords(for: "Location")
+        let storedLocationRecords = try await cloudCache.fetchGroupedUserCachedRecords(for: "Location")
+        
+        guard !storedLocationRecords.isEmpty else {
+            return
+        }
+        
+        cachedLocationRecords = storedLocationRecords
         cachedLocationResults = savedLocationResults()
     }
     
     @MainActor
     public func refreshCachedCategories(cloudCache:CloudCache) async throws {
-        cachedCategoryRecords = try await cloudCache.fetchGroupedUserCachedRecords(for: "Category")
+        
+        let storedCategoryRecords = try await cloudCache.fetchGroupedUserCachedRecords(for: "Category")
+        
+        guard !storedCategoryRecords.isEmpty else {
+            return
+        }
+        
+        cachedCategoryRecords = storedCategoryRecords
         cachedCategoryResults = savedCategoricalResults()
     }
     
     @MainActor
     public func refreshCachedTastes(cloudCache:CloudCache) async throws {
-        cachedTasteRecords = try await cloudCache.fetchGroupedUserCachedRecords(for: "Taste")
+        let storedTasteRecords = try await cloudCache.fetchGroupedUserCachedRecords(for: "Taste")
+        
+        guard storedTasteRecords.isEmpty else {
+            return
+        }
+        
+        cachedTasteRecords = storedTasteRecords
         cachedTasteResults = savedTasteResults()
     }
     
     @MainActor
     public func refreshCachedLists(cloudCache:CloudCache) async throws {
-        cachedPlaceRecords = try await cloudCache.fetchGroupedUserCachedRecords(for: "Place")
+        let storedPlaceRecords =  try await cloudCache.fetchGroupedUserCachedRecords(for: "Place")
+        let storedListRecords = try await cloudCache.fetchGroupedUserCachedRecords(for: "List")
+        
+        guard !storedListRecords.isEmpty else {
+            return
+        }
+        
+        cachedPlaceRecords = storedPlaceRecords
         cachedPlaceResults = savedPlaceResults()
-        cachedListRecords = try await cloudCache.fetchGroupedUserCachedRecords(for: "List")
+        cachedListRecords = storedListRecords
         cachedListResults = savedListResults()
     }
     
@@ -223,21 +254,18 @@ public class ChatResultViewModel : ObservableObject {
     public func appendCachedCategory(with record:UserCachedRecord) {
         cachedCategoryRecords?.append(record)
         cachedCategoryResults = savedCategoricalResults()
-        refreshCachedResults()
     }
     
     @MainActor
     public func appendCachedTaste(with record:UserCachedRecord) {
         cachedTasteRecords?.append(record)
         cachedTasteResults = savedTasteResults()
-        refreshCachedResults()
     }
     
     @MainActor
     public func appendCachedList(with record:UserCachedRecord) {
         cachedListRecords.append(record)
         cachedListResults = savedListResults()
-        refreshCachedResults()
     }
     
     public func cachedCategories(contains category:String)->Bool {
@@ -815,9 +843,9 @@ public class ChatResultViewModel : ObservableObject {
     
     private func allSavedResults()->[CategoryResult] {
         var retval = [CategoryResult]()
-        retval.append(contentsOf: savedCategoricalResults())
-        retval.append(contentsOf: savedTasteResults())
-        retval.append(contentsOf: savedListResults())
+        retval.append(contentsOf: cachedCategoryResults)
+        retval.append(contentsOf: cachedTasteResults)
+        retval.append(contentsOf: cachedListResults)
         
         retval.sort { result, checkResult in
             result.parentCategory < checkResult.parentCategory

@@ -29,7 +29,9 @@ struct PlaceTipsView: View {
                                 }
                             } label: {
                                 if chatModel.isFetchingPlaceDescription, placeChatResult.id == chatModel.fetchingPlaceID {
-                                    ProgressView().progressViewStyle(.circular)
+                                    ZStack {
+                                        ProgressView().progressViewStyle(.circular)
+                                    }
                                 } else {
                                     Text("Generate description for \(placeDetailsResponse.searchResponse.name)")
                                 }

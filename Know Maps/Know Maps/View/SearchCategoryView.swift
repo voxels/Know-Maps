@@ -42,16 +42,8 @@ struct SearchCategoryView: View {
                 }
             }
         }.refreshable {
+            model.isRefreshingCache = false
             Task {
-                do{
-                    try await model.refreshCache(cloudCache: model.cloudCache)
-                } catch {
-                    model.analytics?.track(name: "error \(error)")
-                    print(error)
-                }
-            }
-        }.task {
-            Task { 
                 do{
                     try await model.refreshCache(cloudCache: model.cloudCache)
                 } catch {

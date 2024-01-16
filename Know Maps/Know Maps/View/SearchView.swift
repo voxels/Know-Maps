@@ -39,6 +39,15 @@ struct SearchView: View {
                     default:
                         ContentUnavailableView("No Tastes", systemImage:"return")
                     }
+                }.task {
+                    Task {
+                        do {
+                            try await model.refreshCache(cloudCache: model.cloudCache)
+                        } catch {
+                            print(error)
+                            model.analytics?.track(name: "error \(error)")
+                        }
+                    }
                 }
                 .onChange(of: model.selectedSavedResult) { oldValue, newValue in
                     model.resetPlaceModel()
