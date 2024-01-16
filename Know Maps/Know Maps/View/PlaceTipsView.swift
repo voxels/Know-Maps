@@ -75,7 +75,11 @@ struct PlaceTipsView: View {
                             ZStack {
                                 Capsule()
                                     .frame(minWidth:60, maxWidth:60, minHeight:60, maxHeight:60)
-                                    .foregroundColor(Color(uiColor:.systemFill))
+#if os(macOS)
+    .foregroundStyle(.primary)
+#else
+    .foregroundColor(Color(uiColor:.systemFill))
+#endif
                                 Image(systemName: "square.and.arrow.up")
                             }.padding()
                                 .onTapGesture {
