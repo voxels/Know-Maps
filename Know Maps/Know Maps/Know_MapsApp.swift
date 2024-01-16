@@ -13,6 +13,7 @@ struct Know_MapsApp: App {
     private var locationProvider = LocationProvider()
     @StateObject public var cloudCache:CloudCache  = CloudCache()
     @StateObject public var settingsModel = SettingsModel(userId: "")
+    @StateObject public var chatHost:AssistiveChatHost = AssistiveChatHost()
     static let config = Configuration(writeKey: "igx8ZOr5NLbaBsab5j5juFECMzqulFla")
     // Automatically track Lifecycle events
         .trackApplicationLifecycleEvents(true)
@@ -23,11 +24,12 @@ struct Know_MapsApp: App {
     
     var body: some Scene {
         WindowGroup(id:"ContentView") {
-            ContentView(chatHost: AssistiveChatHost(), chatModel: ChatResultViewModel(locationProvider: locationProvider, cloudCache: cloudCache), locationProvider: locationProvider)
+            ContentView(chatHost: chatHost, chatModel: ChatResultViewModel(locationProvider: locationProvider, cloudCache: cloudCache), locationProvider: locationProvider)
                 .environmentObject(cloudCache)
                 .environmentObject(settingsModel)
                 .task { @MainActor in
                     do {
+                        try? chatHost.organizeCategoryCodeList()
                         let userRecord = try await cloudCache.fetchCloudKitUserRecordID()
                         settingsModel.keychainId = userRecord?.recordName
                         if let keychainId = settingsModel.keychainId, !keychainId.isEmpty {

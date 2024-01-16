@@ -94,12 +94,11 @@ struct PlaceDirectionsView: View {
                         
                         if let chatRouteResults = model.chatRouteResults, chatRouteResults.count > 0  {
                             ZStack() {
-                                Rectangle().foregroundStyle(.thickMaterial)
+                                Rectangle().foregroundStyle(.thickMaterial).padding(4)
                                 VStack(alignment: .leading) {
                                     ForEach(chatRouteResults) { chatRouteResult in
-                                        Label(chatRouteResult.instructions, systemImage: "arrowtriangle.right.fill")
-                                            .frame(minWidth:geo.size.width - 16, alignment: .leading)
-                                            .padding(4)
+                                        Label(chatRouteResult.instructions, systemImage: "arrowtriangle.right.fill").foregroundStyle(.primary)
+                                            .frame(minWidth:geo.size.width - 16, alignment: .leading).padding(4)
                                     }
                                 }
                             }

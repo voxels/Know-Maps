@@ -26,7 +26,7 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
     public var placeSearchSession = PlaceSearchSession()
     public var analytics:Analytics?
     @Published public var queryIntentParameters:AssistiveChatHostQueryParameters?
-    @EnvironmentObject public var cache:CloudCache
+    public var cloudCache:CloudCache = CloudCache()
     public var categoryCodes:[[String:[[String:String]]]] = [[String:[[String:String]]]]()
     
     let geocoder = CLGeocoder()
@@ -37,8 +37,6 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
         self.analytics = analytics
         self.lastGeocodedPlacemarks = lastGeocodedPlacemarks
         self.queryIntentParameters = AssistiveChatHostQueryParameters()
-        try? organizeCategoryCodeList()
-        
     }
     
     @MainActor
@@ -439,7 +437,7 @@ extension AssistiveChatHost {
     
     public func placeDescription(chatResult:ChatResult, delegate:AssistiveChatHostStreamResponseDelegate) async throws {
         if let fsqid = chatResult.placeResponse?.fsqID {
-            let desc = try await cache.fetchGeneratedDescription(for: fsqid)
+            let desc = try await cloudCache.fetchGeneratedDescription(for: fsqid)
             if desc.isEmpty {
                 try await languageDelegate.placeDescription(chatResult: chatResult, delegate: delegate)
             } else {

@@ -20,43 +20,59 @@ struct PlaceDirectionsControlsView: View {
     }
     
     var body: some View {
+        VStack {
             HStack {
-                Spacer()
                 if !showLookAroundScene {
+                    Spacer()
                     Picker("Route Start Location", selection:$model.rawLocationIdent) {
                         ForEach(chatModel.filteredLocationResults, id:\.self) { result in
                             Text(result.locationName).tag(result.id.uuidString)
                         }
-                    }
+                    }.foregroundStyle(.primary)
+                    Spacer()
                     Picker("Transport Type", selection: $model.rawTransportType) {
                         Text(RawTransportType.Walking.rawValue).tag(0)
                         Text(RawTransportType.Automobile.rawValue).tag(2)
-                    }
-                    .padding(4)
+                    }.foregroundStyle(.primary)
+                    Spacer()
                 }
+            }
+            HStack {
                 if let source = model.source, let destination = model.destination {
                     let launchOptions = model.appleMapsLaunchOptions()
-                    Button {
-                        MKMapItem.openMaps(with: [source,destination], launchOptions: launchOptions)
-                    } label: {
-                        Label("Apple Maps", systemImage: "apple.logo")
+                    ZStack {
+                        Capsule().foregroundColor(Color(uiColor:.systemFill))
+                        Button {
+                            MKMapItem.openMaps(with: [source,destination], launchOptions: launchOptions)
+                        } label: {
+                            Label("Apple Maps", systemImage: "apple.logo")
+                                .foregroundStyle(.primary)
+                        }.foregroundStyle(.primary)
+                        .padding(4)
                     }
                 }
-
                 if showLookAroundScene {
-                    Button("Directions", systemImage: "map.fill") {
-                        showLookAroundScene.toggle()
+                    ZStack {
+                        Capsule().foregroundColor(Color(uiColor:.systemFill))
+                        Button("Directions", systemImage: "map.fill") {
+                            showLookAroundScene.toggle()
+                        }
+                        .padding(4)
+                        .foregroundStyle(.primary)
                     }
-                    .padding(4)
                 } else {
-                    Button("Look Around", systemImage: "binoculars.fill") {
-                        showLookAroundScene.toggle()
+                    ZStack {
+                        Capsule().foregroundColor(Color(uiColor:.systemFill))
+                        Button("Look Around", systemImage: "binoculars.fill") {
+                            showLookAroundScene.toggle()
+                        }
+                        .padding(4)
+                        .foregroundStyle(.primary)
                     }
-                    .padding(4)
                 }
-                Spacer()
             }
         }
+    }
 }
 
 #Preview {

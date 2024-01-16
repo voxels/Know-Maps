@@ -145,7 +145,7 @@ extension PersonalizedSearchSession {
             throw PersonalizedSearchSessionError.UnsupportedRequest
         }
         
-        let intentQueryItem = URLQueryItem(name: "intent", value: "profileadd")
+        let intentQueryItem = URLQueryItem(name: "intent", value: "tipstream")
         let limitQueryItem = URLQueryItem(name: "limit", value: "50")
         let offsetQueryItem = URLQueryItem(name: "offset", value:"\(page)")
         let response = try await fetch(url: url, apiKey: apiKey, urlQueryItems: [intentQueryItem, limitQueryItem, offsetQueryItem])

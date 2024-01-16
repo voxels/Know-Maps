@@ -17,7 +17,7 @@ public protocol AssistiveChatHostDelegate:AnyObject {
     var queryIntentParameters:AssistiveChatHostQueryParameters? { get }
     var categoryCodes:[[String:[[String:String]]]] { get }
     var lastGeocodedPlacemarks:[CLPlacemark]? { get }
-    var cache:CloudCache { get }
+    var cloudCache:CloudCache { get }
     
     init(messagesDelegate: AssistiveChatHostMessagesDelegate?, analytics: Analytics?, lastGeocodedPlacemarks: [CLPlacemark]?)
     func organizeCategoryCodeList() throws

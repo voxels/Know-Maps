@@ -17,8 +17,8 @@ struct ContentView: View {
     @State private var showImmersiveSpace = false
     @State private var immersiveSpaceIsShown = false
     @State private var columnVisibility =
-    NavigationSplitViewVisibility.all
-    @StateObject public var chatHost:AssistiveChatHost
+    NavigationSplitViewVisibility.automatic
+    @ObservedObject public var chatHost:AssistiveChatHost
     @StateObject public var chatModel:ChatResultViewModel
     @StateObject public var locationProvider:LocationProvider
     @StateObject public var placeDirectionsChatViewModel = PlaceDirectionsViewModel()
@@ -30,45 +30,64 @@ struct ContentView: View {
 #endif
     
     @State private var selectedTab = "Search"
+    @State private var popoverPresented:Bool = false
     
     var body: some View {
         GeometryReader() { geo in
             NavigationSplitView(columnVisibility: $columnVisibility) {
-                VStack() {
-                    NavigationLocationView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, resultId: $chatModel.selectedPlaceChatResult)
-                        .frame(maxHeight: geo.size.height / 4)
-                    SearchView(chatHost: chatHost, model: chatModel, locationProvider: locationProvider)
-                }.toolbar {
-                    ToolbarItem(placement: .automatic) {
-                        Button {
-                            openWindow(id: "SettingsView")
-                        } label: {
-                            Image(systemName: "gear")
+                ZStack {
+                    VStack() {
+                        NavigationLocationView(columnVisibility: $columnVisibility, chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, resultId: $chatModel.selectedPlaceChatResult)
+                            .frame(maxHeight: geo.size.height / 4)
+                        SearchView(chatHost: chatHost, model: chatModel, locationProvider: locationProvider)
+                    }.toolbar {
+                        ToolbarItem(placement: .automatic) {
+                            Button {
+#if os(iOS)
+                                popoverPresented.toggle()
+#else
+                                openWindow(id: "SettingsView")
+#endif
+                            } label: {
+                                Image(systemName: "gear")
+                            }
                         }
                     }
+#if os(iOS)
+                    .popover(isPresented: $popoverPresented) {
+                        SettingsView()
+                    }
+#endif
                 }
             } content: {
-                PlacesList(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, resultId: $chatModel.selectedPlaceChatResult)
-
-            } detail: {
-                if chatModel.filteredPlaceResults.count == 0 && chatModel.selectedPlaceChatResult == nil {
-                    MapResultsView(chatHost: chatHost, model: chatModel, locationProvider: locationProvider, selectedMapItem: $selectedItem)
-                        .onAppear(perform: {
-                            chatModel.analytics?.screen(title: "MapResultsView")
-                        })
-                    
-                } else if chatModel.selectedPlaceChatResult == nil {
-                    MapResultsView(chatHost: chatHost, model: chatModel, locationProvider: locationProvider, selectedMapItem: $selectedItem)
-                        .onAppear(perform: {
-                            chatModel.analytics?.screen(title: "MapResultsView")
-                        })
-                } else {
-                    PlaceView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, placeDirectionsViewModel: placeDirectionsChatViewModel, resultId: $chatModel.selectedPlaceChatResult)
-                        .onAppear(perform: {
-                            chatModel.analytics?.screen(title: "PlaceView")
-                        })
+                ZStack {
+                    PlacesList(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, resultId: $chatModel.selectedPlaceChatResult)
                 }
-            }.onAppear(perform: {
+                
+            } detail: {
+                ZStack {
+                    
+                    if chatModel.filteredPlaceResults.count == 0 && chatModel.selectedPlaceChatResult == nil {
+                        MapResultsView(chatHost: chatHost, model: chatModel, locationProvider: locationProvider, selectedMapItem: $selectedItem)
+                            .onAppear(perform: {
+                                chatModel.analytics?.screen(title: "MapResultsView")
+                            })
+                        
+                    } else if chatModel.selectedPlaceChatResult == nil {
+                        MapResultsView(chatHost: chatHost, model: chatModel, locationProvider: locationProvider, selectedMapItem: $selectedItem)
+                            .onAppear(perform: {
+                                chatModel.analytics?.screen(title: "MapResultsView")
+                            })
+                    } else {
+                        PlaceView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, placeDirectionsViewModel: placeDirectionsChatViewModel, resultId: $chatModel.selectedPlaceChatResult)
+                            .onAppear(perform: {
+                                chatModel.analytics?.screen(title: "PlaceView")
+                            })
+                    }
+                }
+            }
+            .navigationSplitViewStyle(.prominentDetail)
+            .onAppear(perform: {
                 chatModel.analytics?.screen(title: "NavigationSplitView")
             })
             .onChange(of: selectedItem, { oldValue, newValue in
@@ -113,8 +132,8 @@ struct ContentView: View {
             }
             .tag("Search")
 #if os(visionOS) || os(iOS)
-                    .toolbarColorScheme(
-                        .dark, for: .navigationBar, .tabBar)
+            .toolbarColorScheme(
+                .dark, for: .navigationBar, .tabBar)
 #endif
         }
     }

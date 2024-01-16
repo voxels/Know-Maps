@@ -1309,7 +1309,7 @@ extension ChatResultViewModel : AssistiveChatHostStreamResponseDelegate {
     @MainActor
     public func didFinishStreamingResult() async {
         if let fetchingPlaceID = selectedPlaceChatResult, let placeChatResult = placeChatResult(for: fetchingPlaceID), let fsqid = placeChatResult.placeDetailsResponse?.fsqID, let description = placeChatResult.placeDetailsResponse?.description {
-            assistiveHostDelegate?.cache.storeGeneratedDescription(for: fsqid, description:description)
+            assistiveHostDelegate?.cloudCache.storeGeneratedDescription(for: fsqid, description:description)
         }
         
         fetchingPlaceID = nil

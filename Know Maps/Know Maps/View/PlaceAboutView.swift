@@ -33,7 +33,7 @@ struct PlaceAboutView: View {
                 VStack {
                     if let resultId = resultId, let result = chatModel.placeChatResult(for: resultId), let placeResponse = result.placeResponse, let placeDetailsResponse = result.placeDetailsResponse {
                         let placeCoordinate = CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude)
-
+                        
                         let title = placeResponse.name
                         Map(initialPosition: .automatic) {
                             Marker(title, coordinate: placeCoordinate.coordinate)
@@ -66,14 +66,8 @@ struct PlaceAboutView: View {
                                 
                                 
                                 ZStack {
-                                    Capsule().frame(height: PlaceAboutView.buttonHeight, alignment: .center)
-#if os(visionOS) || os(iOS)
-                                        .foregroundColor(Color(uiColor:.systemFill))
-#endif
-#if os(macOS)
-                                        .foregroundStyle(.background)
-#endif
-                                    Label(placeResponse.formattedAddress, systemImage: "mappin")
+                                    Capsule().frame(height: PlaceAboutView.buttonHeight, alignment: .center).foregroundColor(Color(uiColor:.systemFill))
+                                    Label(placeResponse.formattedAddress, systemImage: "mappin").foregroundStyle(.primary)
                                     
                                 }
                                 .padding(PlaceAboutView.defaultPadding)
@@ -83,14 +77,11 @@ struct PlaceAboutView: View {
                                 
                                 HStack {
                                     ZStack {
-                                        Capsule().frame(height: PlaceAboutView.buttonHeight, alignment: .center)
-#if os(visionOS) || os(iOS)
-                                            .foregroundColor(Color(uiColor:.systemFill))
-#endif
-#if os(macOS)
-                                            .foregroundStyle(.background)
-#endif
+                                        Capsule().frame(height: PlaceAboutView.buttonHeight, alignment: .center).foregroundColor(Color(uiColor:.systemFill))
                                         Label("Add to List", systemImage: "star")
+#if os(iOS)
+                                            .labelStyle(.iconOnly).foregroundStyle(.primary)
+#endif
                                     }.onTapGesture {
                                         presentingPopover.toggle()
                                     }.popover(isPresented: $presentingPopover) {
@@ -101,14 +92,11 @@ struct PlaceAboutView: View {
                                     
                                     if let tel = placeDetailsResponse.tel {
                                         ZStack {
-                                            Capsule().frame(height: PlaceAboutView.buttonHeight, alignment: .center)
-#if os(visionOS) || os(iOS)
-                                                .foregroundColor(Color(uiColor:.systemFill))
-#endif
-#if os(macOS)
-                                                .foregroundStyle(.background)
-#endif
+                                            Capsule().foregroundColor(Color(uiColor:.systemFill)).frame(height: PlaceAboutView.buttonHeight, alignment: .center)
                                             Label("Call \(tel)", systemImage: "phone")
+#if os(iOS)
+                                                .labelStyle(.iconOnly).foregroundStyle(.primary)
+#endif
                                             
                                         }.onTapGesture {
 #if os(visionOS) || os(iOS)
@@ -121,24 +109,20 @@ struct PlaceAboutView: View {
                                     
                                     if let website = placeDetailsResponse.website, let url = URL(string: website) {
                                         ZStack {
-                                            Capsule()
-#if os(visionOS) || os(iOS)
-                                                .foregroundColor(Color(uiColor:.systemFill))
-#endif
-#if os(macOS)
-                                                .foregroundStyle(.background)
-#endif
+                                            Capsule().foregroundColor(Color(uiColor:.systemFill))
                                             Link(destination: url) {
                                                 Label("Visit website", systemImage: "link")
+#if os(iOS)
+                                                    .labelStyle(.iconOnly).foregroundStyle(.primary)
+#endif
                                             }
                                         }
                                     }
 #if os(visionOS) || os(iOS)
                                     
                                     ZStack {
-                                        Capsule()
-                                            .foregroundColor(Color(uiColor:.systemFill))
-                                        Image(systemName: "square.and.arrow.up")
+                                        Capsule().foregroundColor(Color(uiColor:.systemFill))
+                                        Image(systemName: "square.and.arrow.up").foregroundStyle(.primary)
                                     }
                                     .onTapGesture {
                                         self.isPresentingShareSheet.toggle()
@@ -148,24 +132,18 @@ struct PlaceAboutView: View {
                                     
                                     if let price = placeDetailsResponse.price {
                                         ZStack {
-                                            Capsule().frame(width: PlaceAboutView.buttonHeight, height: PlaceAboutView.buttonHeight, alignment: .center)
-#if os(visionOS) || os(iOS)
-                                                .foregroundColor(Color(uiColor:.systemFill))
-#endif
-#if os(macOS)
-                                                .foregroundStyle(.background)
-#endif
+                                            Capsule().foregroundColor(Color(uiColor:.systemFill)).frame(width: PlaceAboutView.buttonHeight, height: PlaceAboutView.buttonHeight, alignment: .center)
                                             switch price {
                                             case 1:
-                                                Text("$")
+                                                Text("$").foregroundStyle(.primary)
                                             case 2:
-                                                Text("$$")
+                                                Text("$$").foregroundStyle(.primary)
                                             case 3:
-                                                Text("$$$")
+                                                Text("$$$").foregroundStyle(.primary)
                                             case 4:
-                                                Text("$$$$")
+                                                Text("$$$$").foregroundStyle(.primary)
                                             default:
-                                                Text("\(price)")
+                                                Text("\(price)").foregroundStyle(.primary)
                                             }
                                         }
                                     }
@@ -173,14 +151,11 @@ struct PlaceAboutView: View {
                                     let rating = placeDetailsResponse.rating
                                     if rating > 0 {
                                         ZStack {
-                                            Capsule().frame(height: PlaceAboutView.buttonHeight, alignment: .center)
-#if os(visionOS) || os(iOS)
-                                                .foregroundColor(Color(uiColor:.systemFill))
+                                            Capsule().foregroundColor(Color(uiColor:.systemFill)).frame(height: PlaceAboutView.buttonHeight, alignment: .center)
+                                            Label(PlacesList.formatter.string(from: NSNumber(value: rating)) ?? "0", systemImage: "quote.bubble").foregroundStyle(.primary)
+#if os(iOS)
+                                                .labelStyle(.titleOnly)
 #endif
-#if os(macOS)
-                                                .foregroundStyle(.background)
-#endif
-                                            Label(PlacesList.formatter.string(from: NSNumber(value: rating)) ?? "0", systemImage: "quote.bubble")
                                             
                                         }.onTapGesture {
                                             selectedTab = "Tips"
@@ -230,11 +205,11 @@ struct PlaceAboutView: View {
 #Preview {
     
     let locationProvider = LocationProvider()
-
+    
     let chatHost = AssistiveChatHost()
     let cloudCache = CloudCache()
     let chatModel = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cloudCache)
-
+    
     chatModel.assistiveHostDelegate = chatHost
     chatHost.messagesDelegate = chatModel
     

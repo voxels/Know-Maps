@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct NavigationLocationView: View {
+    @Binding public var columnVisibility:NavigationSplitViewVisibility
     @State private var searchIsPresented = false
     @EnvironmentObject public var cloudCache:CloudCache
     @ObservedObject public var chatHost:AssistiveChatHost
@@ -57,9 +58,9 @@ struct NavigationLocationView: View {
                                     .labelStyle(.iconOnly)
                             }
                         }
-
                     }
-                }.task {
+                }
+                .task {
                     Task {
                         do {
                             try await chatModel.refreshCachedLocations(cloudCache: cloudCache)
@@ -78,13 +79,18 @@ struct NavigationLocationView: View {
                         chatModel.selectedTasteCategoryResult = nil
                         chatModel.selectedSavedResult = nil
                     } else {
-                        Task {
-                            do {
-                                try await chatModel.didSearch(caption:chatModel.locationSearchText, selectedDestinationChatResultID:chatModel.selectedDestinationLocationChatResult ?? chatModel.filteredDestinationLocationResults.first!.id)
-                            } catch {
-                                chatModel.analytics?.track(name: "error \(error)")
-                                print(error)
+                        if let selectedDestinationLocationChatResult = chatModel.selectedDestinationLocationChatResult{
+                            Task {
+                                do {
+                                    try await chatModel.didSearch(caption:chatModel.locationSearchText, selectedDestinationChatResultID:selectedDestinationLocationChatResult)
+                                
+                                } catch {
+                                    chatModel.analytics?.track(name: "error \(error)")
+                                    print(error)
+                                }
                             }
+                        } else {
+                            chatModel.selectedDestinationLocationChatResult = chatModel.filteredLocationResults.first?.id
                         }
                     }
                 }).onChange(of: chatModel.locationSearchText, { oldValue, newValue in
@@ -95,11 +101,11 @@ struct NavigationLocationView: View {
                         chatModel.selectedSavedResult = nil
                     }
                 }).onChange(of: chatModel.selectedDestinationLocationChatResult) { oldValue, newValue in
-                    if let _ = newValue, !chatModel.locationSearchText.isEmpty, chatModel.selectedPlaceChatResult == nil
+                    if let newValue = newValue
                     {
                         Task {
                             do {
-                                try await chatModel.didSearch(caption:chatModel.locationSearchText, selectedDestinationChatResultID:chatModel.selectedDestinationLocationChatResult ?? chatModel.filteredDestinationLocationResults.first!.id)
+                                try await chatModel.didSearch(caption:chatModel.locationSearchText, selectedDestinationChatResultID:newValue)
                             } catch {
                                 chatModel.analytics?.track(name: "error \(error)")
                                 print(error)
@@ -122,5 +128,5 @@ struct NavigationLocationView: View {
     chatModel.assistiveHostDelegate = chatHost
     chatHost.messagesDelegate = chatModel
 
-    return NavigationLocationView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, resultId: .constant(nil))
+    return NavigationLocationView(columnVisibility: .constant(NavigationSplitViewVisibility.all), chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, resultId: .constant(nil))
 }
