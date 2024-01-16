@@ -29,6 +29,7 @@ struct Know_MapsApp: App {
                 .environmentObject(settingsModel)
                 .task { @MainActor in
                     do {
+                        cloudCache.analytics = analytics
                         try? chatHost.organizeCategoryCodeList()
                         let userRecord = try await cloudCache.fetchCloudKitUserRecordID()
                         settingsModel.keychainId = userRecord?.recordName

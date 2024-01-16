@@ -59,6 +59,15 @@ struct SearchSavedView: View {
                         print(error)
                     }
                 }
+            }.onAppear {
+                Task {
+                    do{
+                        try await model.refreshCache(cloudCache: model.cloudCache)
+                    } catch {
+                        model.analytics?.track(name: "error \(error)")
+                        print(error)
+                    }
+                }
             }
         } footer: {
             Button("Refresh", systemImage: "arrow.clockwise") {

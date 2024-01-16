@@ -24,19 +24,33 @@ struct SearchTasteView: View {
                                     if let cachedTasteResults = model.cachedTasteResults(for: "Taste", identity: parent.parentCategory) {
                                         for cachedTasteResult in cachedTasteResults {
                                             Task {
+                                                do {
                                                 try await model.cloudCache.deleteUserCachedRecord(for: cachedTasteResult)
                                                 try await model.refreshCache(cloudCache: model.cloudCache)
+                                                } catch {
+                                                    model.analytics?.track(name: "error \(error)")
+                                                    print(error)
+                                                }
+
                                             }
                                         }
                                     }
                                 } else {
                                     Task {
+                                        do {
                                         var userRecord = UserCachedRecord(recordId: "", group: "Taste", identity: parent.parentCategory, title: parent.parentCategory, icons: "", list: nil)
                                         let record = try await model.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title)
                                         if let resultName = record.saveResults.keys.first?.recordName {
                                             userRecord.setRecordId(to:resultName)
                                         }
                                         model.appendCachedTaste(with: userRecord)
+                                        try await model.refreshCachedTastes(cloudCache: model.cloudCache)
+                                            model.refreshTasteCategories(page: model.lastFetchedTastePage)
+                                        model.refreshCachedResults()
+                                        } catch {
+                                            model.analytics?.track(name: "error \(error)")
+                                            print(error)
+                                        }
                                     }
                                 }
                             }
@@ -78,10 +92,31 @@ struct SearchTasteView: View {
                     }
                 }
             }
+            .task {
+                do {
+                    try await model.refreshCachedTastes(cloudCache:model.cloudCache)
+                } catch {
+                    model.analytics?.track(name: "error \(error)")
+                    print(error)
+                }
+            }
             .refreshable {
                 Task {
                     do {
                         try await model.refreshTastes(page:model.lastFetchedTastePage)
+                    } catch {
+                        model.analytics?.track(name: "error \(error)")
+                        print(error)
+                    }
+                }
+            }
+            .onChange(of: model.tasteResults) { oldValue, newValue in
+                guard oldValue != newValue else {
+                    return
+                }
+                Task {
+                    do {
+                        try await model.refreshCache(cloudCache: model.cloudCache)
                     } catch {
                         model.analytics?.track(name: "error \(error)")
                         print(error)

@@ -58,7 +58,9 @@ struct AddListItemView: View {
                                 Task {
                                     let userRecord = UserCachedRecord(recordId: "", group: "List", identity: textFieldData, title: textFieldData, icons: "", list: textFieldData)
                                     try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, list:userRecord.list)
-                                    try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
+                                    chatModel.appendCachedList(with: userRecord)
+                                    chatModel.refreshCachedResults()
+
                                 }
                             }
                         Spacer()
@@ -71,7 +73,8 @@ struct AddListItemView: View {
                             Task { 
                                 let userRecord = UserCachedRecord(recordId: "", group: "List", identity: textFieldData, title: textFieldData, icons: "", list: textFieldData)
                                 try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, list:userRecord.list)
-                                try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
+                                chatModel.appendCachedList(with: userRecord)
+                                chatModel.refreshCachedResults()
                             }
                         }.labelStyle(.iconOnly)
                     }

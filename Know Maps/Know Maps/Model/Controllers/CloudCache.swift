@@ -7,12 +7,14 @@
 
 import Foundation
 import CloudKit
+import Segment
 
 public enum CloudCacheError : Error {
     case ThrottleRequests
 }
 
 open class CloudCache : NSObject, ObservableObject {
+    public var analytics:Analytics?
     @Published var hasPrivateCloudAccess:Bool = false
     @Published var isFetchingCachedRecords:Bool = false
     @Published public var queuedGroups = Set<String>()
@@ -61,6 +63,7 @@ open class CloudCache : NSObject, ObservableObject {
                     }
                 } catch {
                     print(error)
+                    self.analytics?.track(name: "error \(error)")
                 }
                 
             }
@@ -121,6 +124,7 @@ open class CloudCache : NSObject, ObservableObject {
                     }
                 } catch {
                     print(error)
+                    self.analytics?.track(name: "error \(error)")
                 }
             }
         }
@@ -171,6 +175,7 @@ open class CloudCache : NSObject, ObservableObject {
                     }
                 } catch {
                     print(error)
+                    self.analytics?.track(name: "error \(error)")
                 }
                 
             }
@@ -255,6 +260,7 @@ open class CloudCache : NSObject, ObservableObject {
                 
             } catch {
                 print(error)
+                self.analytics?.track(name: "error \(error)")
             }
         }
         
@@ -297,7 +303,7 @@ open class CloudCache : NSObject, ObservableObject {
         } else {
             record.setObject("" as NSString, forKey:"List")
         }
-        return try await cacheContainer.privateCloudDatabase.modifyRecords(saving: [record], deleting: [])
+        return try await cacheContainer.privateCloudDatabase.modifyRecords(saving: [record], deleting: [], atomically: true)
     }
     
     public func deleteUserCachedRecord(for cachedRecord:UserCachedRecord) async throws {

@@ -63,9 +63,6 @@ struct PlaceView: View {
             ContentUnavailableView("No place selected", systemImage: "return")
                 .onAppear(perform: {
                     chatModel.resetPlaceModel()
-                    chatModel.selectedCategoryChatResult = nil
-                    chatModel.selectedSavedResult = nil
-                    chatModel.selectedTasteCategoryResult = nil
             })
         }
     }

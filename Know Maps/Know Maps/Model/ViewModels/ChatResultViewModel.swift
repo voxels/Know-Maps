@@ -174,7 +174,21 @@ public class ChatResultViewModel : ObservableObject {
             return
         }
         
-        let tastes = try await personalizedSearchSession.fetchTastes(page:page)
+        if page > lastFetchedTastePage || tasteResults.isEmpty {
+            let tastes = try await personalizedSearchSession.fetchTastes(page:page)
+            tasteResults = tasteCategoryResults(with: tastes, page:page)
+            lastFetchedTastePage = page
+        } else {
+            refreshTasteCategories(page: page)
+        }
+    }
+    
+    @MainActor
+    public func refreshTasteCategories(page:Int) {
+        let tastes = tasteResults.map { result in
+            result.parentCategory
+        }
+        
         tasteResults = tasteCategoryResults(with: tastes, page:page)
         lastFetchedTastePage = page
     }
@@ -185,9 +199,25 @@ public class ChatResultViewModel : ObservableObject {
             return
         }
         isRefreshingCache = true
-        try await refreshCachedCategories(cloudCache: cloudCache)
-        try await refreshCachedTastes(cloudCache: cloudCache)
-        try await refreshCachedLists(cloudCache: cloudCache)
+        do {
+            try await refreshCachedCategories(cloudCache: cloudCache)
+        } catch {
+            print(error)
+            analytics?.track(name: "error \(error)")
+        }
+        do {
+            try await refreshCachedTastes(cloudCache: cloudCache)
+        } catch {
+            print(error)
+            analytics?.track(name: "error \(error)")
+        }
+        
+        do {
+            try await refreshCachedLists(cloudCache: cloudCache)
+        } catch {
+            print(error)
+            analytics?.track(name: "error \(error)")
+        }
         refreshCachedResults()
         isRefreshingCache = false
     }
@@ -1004,8 +1034,6 @@ public class ChatResultViewModel : ObservableObject {
         var retval  = [CategoryResult]()
         if page > 0 {
             retval.append(contentsOf: tasteResults)
-        } else {
-            tasteResults.removeAll()
         }
         
         for taste in tastes {

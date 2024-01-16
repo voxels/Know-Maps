@@ -35,7 +35,8 @@ struct SearchCategoryView: View {
                                     if let resultName = record.saveResults.keys.first?.recordName {
                                         userRecord.setRecordId(to:resultName)
                                     }
-                                    try await model.refreshCache(cloudCache: model.cloudCache)
+                                    model.appendCachedCategory(with: userRecord)
+                                    model.refreshCachedResults()
                                 }
                             }
                         }

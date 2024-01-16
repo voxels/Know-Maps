@@ -51,8 +51,6 @@ struct SearchView: View {
                 }
                 .onChange(of: model.selectedSavedResult) { oldValue, newValue in
                     model.resetPlaceModel()
-                    model.selectedCategoryResult = nil
-                    model.selectedTasteCategoryResult = nil
                     guard let newValue = newValue else {
                         return
                     }
@@ -93,8 +91,6 @@ struct SearchView: View {
                 }
                 .onChange(of: model.selectedCategoryResult) { oldValue, newValue in
                     model.resetPlaceModel()
-                    model.selectedTasteCategoryResult = nil
-                    model.selectedSavedResult = nil
                 Task { @MainActor in
                         if let newValue = newValue, let categoricalResult =
                             model.categoricalResult(for: newValue) {
@@ -104,8 +100,6 @@ struct SearchView: View {
                     }
                 }.onChange(of: model.selectedTasteCategoryResult, { oldValue, newValue in
                         model.resetPlaceModel()
-                    model.selectedCategoryResult = nil
-                    model.selectedSavedResult = nil
                     Task { @MainActor in
                         if let newValue = newValue, let tasteResult = model.tasteResult(for: newValue) {
                             model.locationSearchText = model.chatResult(for: newValue)?.title ?? model.locationSearchText
