@@ -18,6 +18,7 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
     
     public enum Intent : String {
         case Search
+        case Place
         case Autocomplete
     }
     
@@ -132,8 +133,12 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
     }
     
     public func didTap(chatResult: ChatResult) async {
-        print("Did tap result:\(chatResult.title) for place:")
-        await messagesDelegate?.didTap(chatResult: chatResult, selectedPlaceSearchResponse: chatResult.placeResponse, selectedPlaceSearchDetails:chatResult.placeDetailsResponse)
+        print("Did tap result:\(chatResult.title) for place:\(chatResult.placeResponse?.fsqID ?? "")")
+        var intent = AssistiveChatHost.Intent.Search
+        if let placeResponse = chatResult.placeResponse, !placeResponse.fsqID.isEmpty, placeResponse.name.isEmpty, chatResult.placeDetailsResponse == nil {
+            intent = .Place
+        }
+        await messagesDelegate?.didTap(chatResult: chatResult, selectedPlaceSearchResponse: chatResult.placeResponse, selectedPlaceSearchDetails:chatResult.placeDetailsResponse, intent:intent )
     }
     
     

@@ -261,7 +261,15 @@ open class PlaceResponseFormatter {
             throw PlaceResponseFormatterError.InvalidRawResponseType
         }
         
-        let searchResponse = placeSearchResponse
+        var searchResponse = placeSearchResponse
+        
+        if searchResponse.name.isEmpty {
+            let embeddedSearchResponseDict = ["results":[response]]
+            let embeddedSearchResponse = try placeSearchResponses(with: embeddedSearchResponseDict).first
+            if let embeddedSearchResponse = embeddedSearchResponse {
+                searchResponse = embeddedSearchResponse
+            }
+        }
         
         var description:String? = try await cloudCache?.fetchGeneratedDescription(for: searchResponse.fsqID)
         

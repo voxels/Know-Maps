@@ -58,31 +58,6 @@ struct NavigationLocationView: View {
                         }
                     }
                 }
-                .onAppear {
-                    if let cachedLocationRecords = chatModel.cachedLocationRecords, cachedLocationRecords.isEmpty {
-                        Task {
-                            do {
-                                try await chatModel.refreshCachedLocations(cloudCache: cloudCache)
-                            } catch {
-                                chatModel.analytics?.track(name: "error \(error)")
-                                print(error)
-                            }
-                        }
-                    } else if chatModel.cachedLocationRecords == nil {
-                        Task {
-                            do {
-                                try await chatModel.refreshCachedLocations(cloudCache: cloudCache)
-                            } catch {
-                                if error as? CloudCacheError == CloudCacheError.ThrottleRequests {
-                                    print("Throttled Request")
-                                } else {
-                                    chatModel.analytics?.track(name: "error \(error)")
-                                    print(error)
-                                }
-                            }
-                        }
-                    }
-                }
                 .autocorrectionDisabled(true)
                 .searchable(text: $chatModel.locationSearchText, isPresented:$searchIsPresented)
                 .onSubmit(of: .search, {
@@ -107,7 +82,7 @@ struct NavigationLocationView: View {
                     }
                 }).onChange(of: chatModel.selectedDestinationLocationChatResult) { oldValue, newValue in
 
-                    if let newValue = newValue
+                    if let newValue = newValue, !chatModel.locationSearchText.isEmpty
                     {
                         Task {
                             do {

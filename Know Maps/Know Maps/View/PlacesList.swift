@@ -23,22 +23,48 @@ struct PlacesList: View {
     }
 
     var body: some View {
-        Section("Places") {
+        Section() {
             List(chatModel.filteredPlaceResults,selection: $resultId){ result in
-                HStack {
-                    Text(result.title)
-                    Spacer()
-                    if let placeResponse = result.placeResponse {
-                        Text(placeResponse.locality).italic()
+                VStack {
+                    HStack {
+                        Text(result.title)
+                        Spacer()
+                    }
+                    HStack {
+                        if let placeResponse = result.placeResponse {
+                            Text(placeResponse.locality).italic()
+                            Spacer()
+                            Text(distanceString(for:placeResponse))
+                        }
                     }
                 }
             }
-        }.padding(EdgeInsets(top: 8, leading: 0, bottom: 0, trailing: 0))
+        } header:{
+            Text("Places")
+        } footer: {
+            Text("\(chatModel.filteredPlaceResults.count) places found")
+        }
+        .padding(EdgeInsets(top: 8, leading: 0, bottom: 0, trailing: 0))
     }
     
     func distanceString(for placeResponse:PlaceSearchResponse?)->String {
         var retval = ""
-        guard let placeResponse = placeResponse, let queryLocationID = chatModel.selectedSourceLocationChatResult, let queryLocation = chatModel.locationChatResult(for: queryLocationID), let queryLocation = queryLocation.location else {
+        guard let placeResponse = placeResponse else {
+            return retval
+            
+        }
+        
+        var queryLocation = locationProvider.currentLocation()
+        
+        if let queryLocationID = chatModel.selectedSourceLocationChatResult, let queryLocationChatResult = chatModel.locationChatResult(for: queryLocationID) {
+            queryLocation = queryLocationChatResult.location
+        }
+        
+        if queryLocation == nil, !chatModel.filteredLocationResults.isEmpty, let firstResult = chatModel.filteredLocationResults.first {
+            queryLocation = firstResult.location
+        }
+        
+        guard let queryLocation = queryLocation else {
             return retval
         }
         

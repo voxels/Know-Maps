@@ -38,6 +38,16 @@ struct ContentView: View {
                     VStack() {
                         NavigationLocationView(columnVisibility: $columnVisibility, chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, resultId: $chatModel.selectedPlaceChatResult)
                             .frame(maxHeight: geo.size.height / 4)
+                            .task {
+                                Task {
+                                    do {
+                                        try await chatModel.refreshCachedLocations(cloudCache: cloudCache)
+                                    } catch {
+                                        chatModel.analytics?.track(name: "error \(error)")
+                                        print(error)
+                                    }
+                                }
+                            }
                         SearchView(chatHost: chatHost, model: chatModel, locationProvider: locationProvider)
                     }.toolbar {
                         ToolbarItem(placement: .automatic) {

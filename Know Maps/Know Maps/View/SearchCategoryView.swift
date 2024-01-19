@@ -15,7 +15,7 @@ struct SearchCategoryView: View {
             HStack {
                 Text("\(parent.parentCategory)")
                 Spacer()
-                if let chatResults = parent.categoricalChatResults, chatResults.count == 1, model.cloudCache.hasPrivateCloudAccess {
+                if model.cloudCache.hasPrivateCloudAccess {
                     let isSaved = model.cachedCategories(contains: parent.parentCategory)
                     Label("Save", systemImage:isSaved ? "star.fill" : "star").labelStyle(.iconOnly)
                         .onTapGesture {
