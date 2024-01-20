@@ -20,6 +20,7 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
         case Search
         case Place
         case Autocomplete
+        case Location
     }
     
     weak public var messagesDelegate:AssistiveChatHostMessagesDelegate?
@@ -292,7 +293,13 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
         }
         try await messagesDelegate?.addReceivedMessage(caption: caption, parameters: queryIntentParameters, isLocalParticipant: isLocalParticipant)
     }
+
     
+    public func lastLocationIntent() -> AssistiveChatHostIntent? {
+        return queryIntentParameters?.queryIntents.last(where: { intent in
+            intent.intent == .Location
+        })
+    }
     public func nearLocation(for rawQuery:String, tags:AssistiveChatHostTaggedWord? = nil) -> String? {
         guard rawQuery.contains("near") else {
             return nil

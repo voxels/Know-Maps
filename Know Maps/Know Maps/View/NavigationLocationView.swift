@@ -58,40 +58,68 @@ struct NavigationLocationView: View {
                         }
                     }
                 }
-                .autocorrectionDisabled(true)
-                .searchable(text: $chatModel.locationSearchText, isPresented:$searchIsPresented)
-                .onSubmit(of: .search, {
-
-                        if let selectedDestinationLocationChatResult = chatModel.selectedDestinationLocationChatResult{
-                            Task {
-                                do {
-                                    try await chatModel.didSearch(caption:chatModel.locationSearchText, selectedDestinationChatResultID:selectedDestinationLocationChatResult)
-                                    
-                                } catch {
-                                    chatModel.analytics?.track(name: "error \(error)")
-                                    print(error)
-                                }
-                            }
-                        } else {
-                            chatModel.selectedDestinationLocationChatResult = chatModel.filteredLocationResults.first?.id
-                        }
-                
-                }).onChange(of: chatModel.locationSearchText, { oldValue, newValue in
-                    if newValue.isEmpty {
-                        chatModel.resetPlaceModel()
+            }
+            .autocorrectionDisabled(true)
+            .searchable(text: $chatModel.locationSearchText, isPresented:$searchIsPresented)
+            .refreshable {
+                Task {
+                    do {
+                        try await chatModel.refreshCachedLocations(cloudCache: cloudCache)
+                    } catch {
+                        chatModel.analytics?.track(name: "error \(error)")
+                        print(error)
                     }
-                }).onChange(of: chatModel.selectedDestinationLocationChatResult) { oldValue, newValue in
-
-                    if let newValue = newValue, !chatModel.locationSearchText.isEmpty
-                    {
+                }
+            }
+            .onSubmit(of: .search, {
+                if let selectedDestinationLocationChatResult = chatModel.selectedDestinationLocationChatResult, !chatModel.locationSearchText.isEmpty {
                         Task {
                             do {
-                                try await chatModel.didSearch(caption:chatModel.locationSearchText, selectedDestinationChatResultID:newValue)
+                                try await chatModel.didSearch(caption:chatModel.locationSearchText, selectedDestinationChatResultID:selectedDestinationLocationChatResult)
                             } catch {
                                 chatModel.analytics?.track(name: "error \(error)")
                                 print(error)
                             }
                         }
+                    }
+            })
+            .onChange(of: chatModel.selectedDestinationLocationChatResult) { oldValue, newValue in
+                if let newValue = newValue, newValue != oldValue {
+                    if let locationChatResult = chatModel.locationChatResult(for:newValue), chatHost.lastLocationIntent() == nil {
+                        Task {
+                            do {
+                                try await chatModel.didTap(locationChatResult: locationChatResult)
+                            } catch {
+                                chatModel.analytics?.track(name: "error \(error)")
+                                print(error)
+                            }
+                        }
+                    } else if let locationChatResult = chatModel.locationChatResult(for: newValue), let lastLocationIntent = chatHost.lastLocationIntent(), lastLocationIntent.selectedDestinationLocationID != newValue {
+                        Task {
+                            do {
+                                try await chatModel.didTap(locationChatResult: locationChatResult)
+                            } catch {
+                                chatModel.analytics?.track(name: "error \(error)")
+                                print(error)
+                            }
+                        }
+                    }
+                }
+            }.onAppear {
+                Task { @MainActor in
+                    do {
+                        let name = try await chatModel.currentLocationName()
+                        if let location = locationProvider.currentLocation(), let name = name {
+                            chatModel.currentLocationResult.replaceLocation(with: location, name:name )
+                        }
+                        if chatModel.cachedLocationRecords == nil {
+                            try await chatModel.refreshCachedLocations(cloudCache: chatModel.cloudCache)
+                        } else if let cachedLocationRecords = chatModel.cachedLocationRecords, cachedLocationRecords.isEmpty {
+                            try await chatModel.refreshCachedLocations(cloudCache: chatModel.cloudCache)
+                        }
+                    } catch {
+                        chatModel.analytics?.track(name: "error \(error)")
+                        print(error)
                     }
                 }
             }
@@ -109,5 +137,5 @@ struct NavigationLocationView: View {
     chatModel.assistiveHostDelegate = chatHost
     chatHost.messagesDelegate = chatModel
     
-    return NavigationLocationView(columnVisibility: .constant(NavigationSplitViewVisibility.all), chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, resultId: .constant(nil))
+    return NavigationLocationView(columnVisibility: .constant(NavigationSplitViewVisibility.automatic), chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, resultId: .constant(nil))
 }

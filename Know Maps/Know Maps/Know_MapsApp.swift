@@ -20,6 +20,7 @@ struct Know_MapsApp: App {
         .flushAt(3)
         .flushInterval(10)
     
+    
     public var analytics:Analytics? = Analytics(configuration: Know_MapsApp.config)
     
     var body: some Scene {

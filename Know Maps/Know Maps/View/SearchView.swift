@@ -47,10 +47,10 @@ struct SearchView: View {
                     guard let newValue = newValue else {
                         return
                     }
-
+                    
                     Task { @MainActor in
                         if let cachedResult = model.cachedChatResult(for: newValue) {
-                            model.locationSearchText = model.chatResult(for: newValue)?.title ?? model.locationSearchText
+                            model.locationSearchText = cachedResult.title
                             await chatHost.didTap(chatResult: cachedResult)
                         } else {
                             let parentCategories = model.allCachedResults.filter { result in
@@ -87,7 +87,7 @@ struct SearchView: View {
                 Task { @MainActor in
                         if let newValue = newValue, let categoricalResult =
                             model.categoricalResult(for: newValue) {
-                            model.locationSearchText = model.chatResult(for: newValue)?.title ?? model.locationSearchText
+                            model.locationSearchText = model.categoricalResult(for: newValue)?.title ?? model.locationSearchText
                             await chatHost.didTap(chatResult: categoricalResult)
                         }
                     }
@@ -95,7 +95,7 @@ struct SearchView: View {
                         model.resetPlaceModel()
                     Task { @MainActor in
                         if let newValue = newValue, let tasteResult = model.tasteResult(for: newValue) {
-                            model.locationSearchText = model.chatResult(for: newValue)?.title ?? model.locationSearchText
+                            model.locationSearchText = tasteResult.title
                             await chatHost.didTap(chatResult: tasteResult)
                         }
                     }
