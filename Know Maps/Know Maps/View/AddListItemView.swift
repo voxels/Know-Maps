@@ -72,7 +72,6 @@ struct AddListItemView: View {
                                     try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, list:userRecord.list)
                                     chatModel.appendCachedList(with: userRecord)
                                     chatModel.refreshCachedResults()
-
                                 }
                             }
                         Spacer()

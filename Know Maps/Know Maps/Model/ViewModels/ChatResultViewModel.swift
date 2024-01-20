@@ -613,7 +613,7 @@ public class ChatResultViewModel : ObservableObject {
         switch intent.intent {
             
         case .Place:
-            if let selectedPlaceSearchResponse = intent.selectedPlaceSearchResponse {
+            if let _ = intent.selectedPlaceSearchResponse {
                 try await detailIntent(intent: intent)
                 intent.selectedPlaceSearchResponse = intent.selectedPlaceSearchDetails?.searchResponse
                 analytics?.track(name: "searchIntentWithSelectedPlace")
