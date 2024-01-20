@@ -14,17 +14,18 @@ public class PlaceDirectionsViewModel : ObservableObject {
     @Published public var destination:MKMapItem?
     @Published public var polyline:MKPolyline?
     @Published public var transportType:MKDirectionsTransportType = .automobile
-    @Published public var rawTransportType:Int = 0
+    @Published public var rawTransportType:Int = 2
     @Published public var rawLocationIdent:String = ""
     @Published public var chatRouteResults:[ChatRouteResult]?
 
-    public init(route: MKRoute? = nil, source: MKMapItem? = nil, destination: MKMapItem? = nil, polyline: MKPolyline? = nil, transportType: MKDirectionsTransportType = .walking, rawTransportType: Int = 0, chatRouteResults: [ChatRouteResult]? = nil) {
+    public init(route: MKRoute? = nil, source: MKMapItem? = nil, destination: MKMapItem? = nil, polyline: MKPolyline? = nil, transportType: MKDirectionsTransportType = .walking, rawTransportType: Int = 0, chatRouteResults: [ChatRouteResult]? = nil, rawLocationIdent:String) {
         self.route = route
         self.source = source
         self.destination = destination
         self.polyline = polyline
         self.transportType = transportType
         self.chatRouteResults = chatRouteResults
+        self.rawLocationIdent = rawLocationIdent
     }
     
     public func appleMapsLaunchOptions()->[String:Any] {

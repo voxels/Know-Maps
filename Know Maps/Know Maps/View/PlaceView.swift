@@ -101,6 +101,6 @@ struct PlaceView: View {
 
     chatModel.assistiveHostDelegate = chatHost
     chatHost.messagesDelegate = chatModel
-    let placeDirectionViewModel = PlaceDirectionsViewModel()
+    let placeDirectionViewModel = PlaceDirectionsViewModel(rawLocationIdent: "")
     return PlaceView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, placeDirectionsViewModel: placeDirectionViewModel, resultId: .constant(nil))
 }

@@ -221,9 +221,17 @@ struct PlaceDirectionsView: View {
                 }
             }
             .task {
+                model.rawLocationIdent = chatModel.filteredLocationResults.first?.id.uuidString ?? ""
+
                 if let destination = model.destination  {
                     do {
                         try await getLookAroundScene(mapItem:destination)
+                        if chatModel.selectedSourceLocationChatResult == nil {
+                            chatModel.selectedSourceLocationChatResult = chatHost.lastLocationIntent()?.selectedDestinationLocationID
+                            if let selectedSourceLocationChatResult = chatModel.selectedSourceLocationChatResult {
+                                model.rawLocationIdent = selectedSourceLocationChatResult.uuidString
+                            }
+                        }
                         try await refreshDirections(with: placeResponse)
                     } catch {
                         chatModel.analytics?.track(name: "error \(error)")
@@ -231,8 +239,10 @@ struct PlaceDirectionsView: View {
                     }
                 } else {
                     if chatModel.selectedSourceLocationChatResult == nil {
-                        chatModel.selectedSourceLocationChatResult = chatModel.filteredLocationResults.first?
-                            .id
+                        chatModel.selectedSourceLocationChatResult = chatHost.lastLocationIntent()?.selectedDestinationLocationID
+                        if let selectedSourceLocationChatResult = chatModel.selectedSourceLocationChatResult {
+                            model.rawLocationIdent = selectedSourceLocationChatResult.uuidString
+                        }                        
                     }
                     let _ = Task{
                         do {
@@ -348,7 +358,7 @@ struct PlaceDirectionsView: View {
 
     chatModel.assistiveHostDelegate = chatHost
     chatHost.messagesDelegate = chatModel
-    let model = PlaceDirectionsViewModel()
+    let model = PlaceDirectionsViewModel(rawLocationIdent: "")
     
     return PlaceDirectionsView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, model: model, resultId: .constant(nil))
 }

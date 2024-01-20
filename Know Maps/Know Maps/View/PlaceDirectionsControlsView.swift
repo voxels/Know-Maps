@@ -96,13 +96,6 @@ struct PlaceDirectionsControlsView: View {
                 .foregroundStyle(.primary)
             }
             #endif
-            #if os(macOS)
-            Button("Directions", systemImage: "map.fill") {
-                showLookAroundScene.toggle()
-            }
-            .padding(4)
-            .foregroundStyle(.primary)
-            #endif
             if let source = model.source, let destination = model.destination {
                 let launchOptions = model.appleMapsLaunchOptions()
                 Button("Apple Maps", systemImage: "apple.logo") {
@@ -117,7 +110,7 @@ struct PlaceDirectionsControlsView: View {
 }
 
 #Preview {
-    let model = PlaceDirectionsViewModel()
+    let model = PlaceDirectionsViewModel( rawLocationIdent: "")
     let locationProvider = LocationProvider()
     
     let cloudCache = CloudCache()

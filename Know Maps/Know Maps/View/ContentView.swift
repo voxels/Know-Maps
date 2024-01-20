@@ -21,7 +21,7 @@ struct ContentView: View {
     @ObservedObject public var chatHost:AssistiveChatHost
     @StateObject public var chatModel:ChatResultViewModel
     @StateObject public var locationProvider:LocationProvider
-    @StateObject public var placeDirectionsChatViewModel = PlaceDirectionsViewModel()
+    @StateObject public var placeDirectionsChatViewModel = PlaceDirectionsViewModel(rawLocationIdent: "")
     @State private var selectedItem: String?
     @Environment(\.openWindow) private var openWindow
 #if os(visionOS)
@@ -122,7 +122,6 @@ struct ContentView: View {
                     chatHost.messagesDelegate = chatModel
                     await chatModel.categoricalSearchModel()
                 }
-                
             }
             .tag("Search")
 #if os(visionOS) || os(iOS)
