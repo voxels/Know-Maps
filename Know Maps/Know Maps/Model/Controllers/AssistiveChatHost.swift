@@ -341,42 +341,8 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
         }
         
         let placemarks = try? await geocoder.geocodeAddressString(addressString)
-        let filteredPlacemarks = placemarks?.filter { placemark in
-            if let name = placemark.name {
-                
-                let categoryParents = self.categoryCodes.compactMap { categoryParent in
-                    return categoryParent.keys
-                }
-                
-                let categoryParentValues = self.categoryCodes.compactMap { categoryParent in
-                    return categoryParent.values
-                }
-                
-                var foundCategoryName = false
-                for parent in categoryParents {
-                    if parent.contains(where: { category in
-                        category.lowercased() == name.lowercased()
-                    }) {
-                        foundCategoryName = true
-                    }
-                }
-                
-                for values in categoryParentValues {
-                    for value in values {
-                        for categoryDict in value {
-                            if let category = categoryDict["category"], category.lowercased() == name.lowercased() {
-                                foundCategoryName = true
-                            }
-                        }
-                    }
-                }
-                
-                
-                return rawQuery.lowercased().contains(name.lowercased()) && !foundCategoryName
-            }
-            return false
-        }
-        lastGeocodedPlacemarks  = filteredPlacemarks
+
+        lastGeocodedPlacemarks  = placemarks
         return lastGeocodedPlacemarks
     }
     

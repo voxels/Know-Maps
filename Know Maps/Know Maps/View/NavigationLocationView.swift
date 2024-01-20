@@ -81,7 +81,32 @@ struct NavigationLocationView: View {
                                 print(error)
                             }
                         }
+                } else if !chatModel.locationSearchText.isEmpty {
+                    if let firstLocationResultID = chatModel.filteredDestinationLocationResults.first?.id {
+                        Task {
+                            do {
+                                try await chatModel.didSearch(caption:chatModel.locationSearchText, selectedDestinationChatResultID:firstLocationResultID)
+                            } catch {
+                                chatModel.analytics?.track(name: "error \(error)")
+                                print(error)
+                            }
+                        }
+                    } else {
+                        if let location = locationProvider.currentLocation() {
+                            Task {
+                                do {
+                                    if let name = try await chatModel.currentLocationName() {
+                                        chatModel.currentLocationResult.replaceLocation(with: location, name: name)
+                                        try await chatModel.didSearch(caption:chatModel.locationSearchText, selectedDestinationChatResultID:chatModel.currentLocationResult.id)
+                                    }
+                                } catch {
+                                    chatModel.analytics?.track(name: "error \(error)")
+                                    print(error)
+                                }
+                            }
+                        }
                     }
+                }
             })
             .onChange(of: chatModel.selectedDestinationLocationChatResult) { oldValue, newValue in
                 if let newValue = newValue, newValue != oldValue {
