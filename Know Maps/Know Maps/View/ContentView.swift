@@ -17,7 +17,7 @@ struct ContentView: View {
     @State private var showImmersiveSpace = false
     @State private var immersiveSpaceIsShown = false
     @State private var columnVisibility =
-    NavigationSplitViewVisibility.automatic
+    NavigationSplitViewVisibility.all
     @ObservedObject public var chatHost:AssistiveChatHost
     @StateObject public var chatModel:ChatResultViewModel
     @StateObject public var locationProvider:LocationProvider

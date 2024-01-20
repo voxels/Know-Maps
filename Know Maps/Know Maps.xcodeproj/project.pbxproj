@@ -224,8 +224,6 @@
 
 /* Begin PBXFileReference section */
 		1E26C7512B2C75230050EC6A /* Know Maps iOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Know Maps iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		1E26C7552B2C75230050EC6A /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
-		1E26C7572B2C75230050EC6A /* Item.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Item.swift; sourceTree = "<group>"; };
 		1E26C7592B2C75240050EC6A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		1E26C75C2B2C75240050EC6A /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		1E26C7622B2C75240050EC6A /* Know Maps iOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Know Maps iOSTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -374,8 +372,6 @@
 			isa = PBXGroup;
 			children = (
 				1E26C7AC2B2C76310050EC6A /* Know Maps iOS.entitlements */,
-				1E26C7552B2C75230050EC6A /* ContentView.swift */,
-				1E26C7572B2C75230050EC6A /* Item.swift */,
 				1E26C7592B2C75240050EC6A /* Assets.xcassets */,
 				1E26C75B2B2C75240050EC6A /* Preview Content */,
 			);

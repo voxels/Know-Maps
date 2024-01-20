@@ -14,49 +14,72 @@ struct PlaceView: View {
     @ObservedObject public var locationProvider:LocationProvider
     @ObservedObject public var placeDirectionsViewModel:PlaceDirectionsViewModel
     @Binding public var resultId:ChatResult.ID?
-    
-    @State private var selectedTab = "About"
+    @State private var sectionSelection = 0
     
     var body: some View {
         if let resultId = resultId, let placeChatResult = chatModel.placeChatResult(for: resultId) {
-        TabView(selection: $selectedTab) {
-            PlaceAboutView(chatHost:chatHost,chatModel: chatModel, locationProvider: locationProvider, resultId: $resultId, selectedTab: $selectedTab)
-                    .tabItem {
-                        Label("About", systemImage: "target")
+            VStack {
+                Picker("", selection: $sectionSelection) {
+                    Text("About").tag(0)
+                    Text("Directions").tag(1)
+                    if let detailsResponses = placeChatResult.placeDetailsResponse, let photoResponses = detailsResponses.photoResponses, photoResponses.count > 0 {
+                        Text("Photos").tag(2)
                     }
-                    .tag("About")
-                    .onAppear(perform: {
-                        chatModel.analytics?.screen(title: "PlaceAboutView")
-                    })
-            PlaceDirectionsView(chatHost:chatHost, chatModel: chatModel, locationProvider: locationProvider, model: placeDirectionsViewModel, resultId: $resultId)
-                    .tabItem {
-                        Label("Directions", systemImage: "map")
+                    if let detailsResponses = placeChatResult.placeDetailsResponse, let tipsResponses = detailsResponses.tipsResponses, tipsResponses.count > 0 {
+                        Text("Tips").tag(3)
                     }
-                    .tag("Directions")
-                    .onAppear(perform: {
-                        chatModel.analytics?.screen(title: "PlaceDirectionsView")
-                    })
-                if let detailsResponses = placeChatResult.placeDetailsResponse {
-                    if let photoResponses = detailsResponses.photoResponses, photoResponses.count > 0 {
-                        PlacePhotosView(chatHost:chatHost,chatModel: chatModel, locationProvider: locationProvider, resultId: $resultId)
+                }
+                .padding(8)
+                .pickerStyle(.segmented)
+                switch sectionSelection {
+                case 0:
+                    PlaceAboutView(chatHost:chatHost,chatModel: chatModel, locationProvider: locationProvider, resultId: $resultId, sectionSelection: $sectionSelection)
                             .tabItem {
-                                Label("Photos", systemImage: "photo.stack")
+                                Label("About", systemImage: "target")
                             }
-                            .tag("Photos")
+                            .tag("About")
                             .onAppear(perform: {
-                                chatModel.analytics?.screen(title: "PlacePhotosView")
+                                chatModel.analytics?.screen(title: "PlaceAboutView")
                             })
-                    }
-                    if let tipsResponses = detailsResponses.tipsResponses, tipsResponses.count > 0 {
-                        PlaceTipsView(chatHost:chatHost, chatModel: chatModel, locationProvider: locationProvider, resultId: $resultId)
+                        .compositingGroup()
+                case 1:
+                    PlaceDirectionsView(chatHost:chatHost, chatModel: chatModel, locationProvider: locationProvider, model: placeDirectionsViewModel, resultId: $resultId)
                             .tabItem {
-                                Label("Tips", systemImage: "quote.bubble")
+                                Label("Directions", systemImage: "map")
                             }
-                            .tag("Tips")
+                            .tag("Directions")
                             .onAppear(perform: {
-                                chatModel.analytics?.screen(title: "PlaceTipsView")
+                                chatModel.analytics?.screen(title: "PlaceDirectionsView")
                             })
+                        .compositingGroup()
+                case 2:
+                    if let detailsResponses = placeChatResult.placeDetailsResponse {
+                        if let photoResponses = detailsResponses.photoResponses, photoResponses.count > 0 {
+                            PlacePhotosView(chatHost:chatHost,chatModel: chatModel, locationProvider: locationProvider, resultId: $resultId)
+                                .tabItem {
+                                    Label("Photos", systemImage: "photo.stack")
+                                }
+                                .tag("Photos")
+                                .onAppear(perform: {
+                                    chatModel.analytics?.screen(title: "PlacePhotosView")
+                                })
+                        }
                     }
+                case 3:
+                    if let detailsResponses = placeChatResult.placeDetailsResponse {
+                        if let tipsResponses = detailsResponses.tipsResponses, tipsResponses.count > 0 {
+                            PlaceTipsView(chatHost:chatHost, chatModel: chatModel, locationProvider: locationProvider, resultId: $resultId)
+                                .tabItem {
+                                    Label("Tips", systemImage: "quote.bubble")
+                                }
+                                .tag("Tips")
+                                .onAppear(perform: {
+                                    chatModel.analytics?.screen(title: "PlaceTipsView")
+                                })
+                        }
+                    }
+                default:
+                    ContentUnavailableView("No Place Selected", systemImage:"return")
                 }
             }
         } else {

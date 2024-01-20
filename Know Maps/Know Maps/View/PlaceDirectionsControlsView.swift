@@ -12,6 +12,7 @@ struct PlaceDirectionsControlsView: View {
     @ObservedObject public var chatModel:ChatResultViewModel
     @ObservedObject public var model:PlaceDirectionsViewModel
     @Binding public var showLookAroundScene:Bool
+    @Binding public var lookAroundScene:MKLookAroundScene?
     
     public enum RawTransportType : String {
         case Walking
@@ -40,6 +41,20 @@ struct PlaceDirectionsControlsView: View {
             }
             HStack {
                 Spacer()
+                if showLookAroundScene {
+                    Button("Directions", systemImage: "map.fill") {
+                        showLookAroundScene.toggle()
+                    }
+                    .padding(4)
+                    .foregroundStyle(.primary)
+                } else if lookAroundScene != nil {
+                    Button("Look Around", systemImage: "binoculars.fill") {
+                        showLookAroundScene.toggle()
+                    }
+                    .padding(4)
+                    .foregroundStyle(.primary)
+                }
+                Spacer()
                 if let source = model.source, let destination = model.destination {
                     let launchOptions = model.appleMapsLaunchOptions()
                     Button("Apple Maps", systemImage: "apple.logo") {
@@ -50,47 +65,20 @@ struct PlaceDirectionsControlsView: View {
                     
                 }
                 Spacer()
-                if showLookAroundScene {
-                    Button("Directions", systemImage: "map.fill") {
-                        showLookAroundScene.toggle()
-                    }
-                    .padding(4)
-                    .foregroundStyle(.primary)
-                } else {
-                    Button("Look Around", systemImage: "binoculars.fill") {
-                        showLookAroundScene.toggle()
-                    }
-                    .padding(4)
-                    .foregroundStyle(.primary)
-                }
-                Spacer()
             }
         }
 #else
         HStack {
             if !showLookAroundScene {
-                Spacer()
                 Picker("Route Start Location", selection:$model.rawLocationIdent) {
                     ForEach(chatModel.filteredLocationResults, id:\.self) { result in
                         Text(result.locationName).tag(result.id.uuidString)
                     }
                 }.foregroundStyle(.primary)
-                Spacer()
                 Picker("Transport Type", selection: $model.rawTransportType) {
                     Text(RawTransportType.Walking.rawValue).tag(0)
                     Text(RawTransportType.Automobile.rawValue).tag(2)
                 }.foregroundStyle(.primary)
-                Spacer()
-            }
-            Spacer()
-            if let source = model.source, let destination = model.destination {
-                let launchOptions = model.appleMapsLaunchOptions()
-                Button("Apple Maps", systemImage: "apple.logo") {
-                    MKMapItem.openMaps(with: [source,destination], launchOptions: launchOptions)
-                }
-                .padding(4)
-                .foregroundStyle(.primary)
-                
             }
             Spacer()
 #if os(iOS) || os(visionOS)
@@ -100,7 +88,7 @@ struct PlaceDirectionsControlsView: View {
                 }
                 .padding(4)
                 .foregroundStyle(.primary)
-            } else {
+            } else if lookAroundScene != nil{
                 Button("Look Around", systemImage: "binoculars.fill") {
                     showLookAroundScene.toggle()
                 }
@@ -115,8 +103,14 @@ struct PlaceDirectionsControlsView: View {
             .padding(4)
             .foregroundStyle(.primary)
             #endif
-            
-            Spacer()
+            if let source = model.source, let destination = model.destination {
+                let launchOptions = model.appleMapsLaunchOptions()
+                Button("Apple Maps", systemImage: "apple.logo") {
+                    MKMapItem.openMaps(with: [source,destination], launchOptions: launchOptions)
+                }
+                .padding(4)
+                .foregroundStyle(.primary)
+            }
         }
 #endif
     }
@@ -129,5 +123,5 @@ struct PlaceDirectionsControlsView: View {
     let cloudCache = CloudCache()
     let chatModel = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cloudCache)
     
-    return PlaceDirectionsControlsView(chatModel: chatModel, model: model, showLookAroundScene: .constant(false))
+    return PlaceDirectionsControlsView(chatModel: chatModel, model: model, showLookAroundScene: .constant(false), lookAroundScene: .constant(nil))
 }

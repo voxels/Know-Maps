@@ -90,7 +90,7 @@ struct PlaceDirectionsView: View {
                             }
                         }
                         
-                        PlaceDirectionsControlsView(chatModel:chatModel,model: model, showLookAroundScene: $showLookAroundScene)
+                        PlaceDirectionsControlsView(chatModel:chatModel,model: model, showLookAroundScene: $showLookAroundScene, lookAroundScene:$lookAroundScene)
                         
                         if let chatRouteResults = model.chatRouteResults, chatRouteResults.count > 0  {
                             ZStack() {

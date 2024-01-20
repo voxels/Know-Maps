@@ -11,12 +11,12 @@ import MapKit
 import CallKit
 
 struct PlaceAboutView: View {
-    
+    @Environment(\.openURL) private var openURL
     @ObservedObject public var chatHost:AssistiveChatHost
     @ObservedObject public var chatModel:ChatResultViewModel
     @ObservedObject public var locationProvider:LocationProvider
     @Binding public var resultId:ChatResult.ID?
-    @Binding public var selectedTab:String
+    @Binding public var sectionSelection:Int
     @State private var presentingPopover:Bool = false
     
 #if os(visionOS) || os(iOS)
@@ -78,7 +78,7 @@ struct PlaceAboutView: View {
                                 }
                                 .padding(PlaceAboutView.defaultPadding)
                                 .onTapGesture {
-                                    selectedTab = "Directions"
+                                    sectionSelection = 1
                                 }
                                 
                                 HStack {
@@ -113,12 +113,14 @@ struct PlaceAboutView: View {
                                                 .frame(height: PlaceAboutView.buttonHeight, alignment: .center)
                                             Label("\(tel)", systemImage: "phone").foregroundStyle(.primary)
 #if os(iOS) || os(visionOS)
-                                                .labelStyle(.iconOnly)
+                                                .labelStyle(.titleAndIcon)
 #endif
                                             
                                         }.onTapGesture {
 #if os(visionOS) || os(iOS)
-                                            call(tel:tel)
+                                            if let url = URL(string: "tel://\(tel)") {
+                                                openURL(url)
+                                            }
 #endif
                                         }
                                     }
@@ -128,6 +130,9 @@ struct PlaceAboutView: View {
                                     if let website = placeDetailsResponse.website, let url = URL(string: website) {
                                         ZStack {
                                             Capsule()
+                                                .onTapGesture {
+                                                    openURL(url)
+                                                }
 #if os(macOS)
     .foregroundStyle(.background)
 #else
@@ -138,8 +143,9 @@ struct PlaceAboutView: View {
                                                     .foregroundStyle(.primary)
 #if os(iOS) || os(visionOS)
                                                     .labelStyle(.iconOnly)
+                                                    .tint(Color.primary)
 #endif
-                                            }.tint(Color.primary)
+                                            }.foregroundColor(Color.primary)
                                         }
                                     }
                                     
@@ -183,7 +189,7 @@ struct PlaceAboutView: View {
 #endif
                                             
                                         }.onTapGesture {
-                                            selectedTab = "Tips"
+                                            sectionSelection = 3
                                         }
                                     }
                                     
@@ -253,5 +259,5 @@ struct PlaceAboutView: View {
     chatModel.assistiveHostDelegate = chatHost
     chatHost.messagesDelegate = chatModel
     
-    return PlaceAboutView(chatHost:chatHost,chatModel: chatModel, locationProvider: locationProvider, resultId: .constant(nil), selectedTab: .constant("About"))
+    return PlaceAboutView(chatHost:chatHost,chatModel: chatModel, locationProvider: locationProvider, resultId: .constant(nil), sectionSelection:.constant(0))
 }

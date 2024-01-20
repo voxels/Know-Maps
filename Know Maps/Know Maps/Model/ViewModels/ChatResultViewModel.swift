@@ -1314,6 +1314,7 @@ extension ChatResultViewModel : AssistiveChatHostMessagesDelegate {
         }
     }
     
+    @MainActor
     public func didTapMarker(with fsqId:String?) async throws {
         guard let fsqId = fsqId else {
             return

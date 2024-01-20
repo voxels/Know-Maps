@@ -85,7 +85,7 @@ struct NavigationLocationView: View {
             })
             .onChange(of: chatModel.selectedDestinationLocationChatResult) { oldValue, newValue in
                 if let newValue = newValue, newValue != oldValue {
-                    if let locationChatResult = chatModel.locationChatResult(for:newValue), chatHost.lastLocationIntent() == nil {
+                    if let locationChatResult = chatModel.locationChatResult(for:newValue), chatHost.lastLocationIntent() == nil, chatModel.locationSearchText.isEmpty {
                         Task {
                             do {
                                 try await chatModel.didTap(locationChatResult: locationChatResult)
@@ -137,5 +137,5 @@ struct NavigationLocationView: View {
     chatModel.assistiveHostDelegate = chatHost
     chatHost.messagesDelegate = chatModel
     
-    return NavigationLocationView(columnVisibility: .constant(NavigationSplitViewVisibility.automatic), chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, resultId: .constant(nil))
+    return NavigationLocationView(columnVisibility: .constant(NavigationSplitViewVisibility.all), chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, resultId: .constant(nil))
 }
