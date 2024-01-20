@@ -12,6 +12,7 @@ import CallKit
 
 struct PlaceAboutView: View {
     @Environment(\.openURL) private var openURL
+    @Environment(\.horizontalSizeClass) var sizeClass
     @ObservedObject public var chatHost:AssistiveChatHost
     @ObservedObject public var chatModel:ChatResultViewModel
     @ObservedObject public var locationProvider:LocationProvider
@@ -111,11 +112,13 @@ struct PlaceAboutView: View {
     .foregroundColor(Color(uiColor:.systemFill))
 #endif
                                                 .frame(height: PlaceAboutView.buttonHeight, alignment: .center)
-                                            Label("\(tel)", systemImage: "phone").foregroundStyle(.primary)
-#if os(iOS) || os(visionOS)
-                                                .labelStyle(.titleAndIcon)
-#endif
-                                            
+                                            if sizeClass == .compact {
+                                                Label("\(tel)", systemImage: "phone").foregroundStyle(.primary)
+                                                    .labelStyle( .iconOnly )
+                                            } else {
+                                                Label("\(tel)", systemImage: "phone").foregroundStyle(.primary)
+                                                    .labelStyle( .titleAndIcon)
+                                            }
                                         }.onTapGesture {
 #if os(visionOS) || os(iOS)
                                             if let url = URL(string: "tel://\(tel)") {

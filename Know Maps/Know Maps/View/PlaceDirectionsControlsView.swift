@@ -25,7 +25,6 @@ struct PlaceDirectionsControlsView: View {
         VStack {
             HStack {
                 if !showLookAroundScene {
-                    Spacer()
                     Picker("Route Start Location", selection:$model.rawLocationIdent) {
                         ForEach(chatModel.filteredLocationResults, id:\.self) { result in
                             Text(result.locationName).tag(result.id.uuidString)
@@ -36,22 +35,20 @@ struct PlaceDirectionsControlsView: View {
                         Text(RawTransportType.Walking.rawValue).tag(0)
                         Text(RawTransportType.Automobile.rawValue).tag(2)
                     }.foregroundStyle(.primary)
-                    Spacer()
                 }
             }
             HStack {
-                Spacer()
                 if showLookAroundScene {
                     Button("Directions", systemImage: "map.fill") {
                         showLookAroundScene.toggle()
                     }
-                    .padding(4)
+                    .padding(8)
                     .foregroundStyle(.primary)
                 } else if lookAroundScene != nil {
                     Button("Look Around", systemImage: "binoculars.fill") {
                         showLookAroundScene.toggle()
                     }
-                    .padding(4)
+                    .padding(8)
                     .foregroundStyle(.primary)
                 }
                 Spacer()
@@ -60,11 +57,10 @@ struct PlaceDirectionsControlsView: View {
                     Button("Apple Maps", systemImage: "apple.logo") {
                         MKMapItem.openMaps(with: [source,destination], launchOptions: launchOptions)
                     }
-                    .padding(4)
+                    .padding(8)
                     .foregroundStyle(.primary)
                     
                 }
-                Spacer()
             }
         }
 #else
