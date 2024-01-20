@@ -29,6 +29,7 @@ struct AddListItemView: View {
                                             
                                             let userRecord = UserCachedRecord(recordId: "", group: "Place", identity:placeResponse.fsqID, title: placeResponse.name, icons: "", list:parent.list)
                                             try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, list:userRecord.list)
+                                            chatModel.appendCachedPlace(with: userRecord)
                                             try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
                                         }
                                     }
@@ -43,7 +44,18 @@ struct AddListItemView: View {
                                 print(error)
                             }
                         }
-                    }
+                    }.onChange(of: chatModel.selectedListCategoryResult, { oldValue, newValue in
+                        Task {
+                            presentingPopover.toggle()
+                            if let newValue = newValue, let selectedPlaceChatResult = chatModel.selectedPlaceChatResult, let chatResult = chatModel.placeChatResult(for: selectedPlaceChatResult), let placeResponse = chatResult.placeResponse, let cachedListResult = chatModel.cachedListResult(for: newValue) {
+                                
+                                let userRecord = UserCachedRecord(recordId: "", group: "Place", identity:placeResponse.fsqID, title: placeResponse.name, icons: "", list:cachedListResult.list)
+                                try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, list:userRecord.list)
+                                chatModel.appendCachedPlace(with: userRecord)
+                                try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
+                            }
+                        }
+                    })
                     .padding(10)
                 } header: {
                     HStack {

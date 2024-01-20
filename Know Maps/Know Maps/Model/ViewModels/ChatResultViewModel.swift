@@ -298,6 +298,12 @@ public class ChatResultViewModel : ObservableObject {
         cachedListRecords.append(record)
         cachedListResults = savedListResults()
     }
+
+    @MainActor
+    public func appendCachedPlace(with record:UserCachedRecord) {
+        cachedPlaceRecords?.append(record)
+        cachedPlaceResults = savedListResults()
+    }
     
     public func cachedCategories(contains category:String)->Bool {
         guard let cachedRecords = cachedCategoryRecords, !cachedRecords.isEmpty else {
@@ -441,6 +447,15 @@ public class ChatResultViewModel : ObservableObject {
         
         
         return nil
+    }
+    
+    public func cachedListResult(for selectedCategoryID:CategoryResult.ID)->CategoryResult? {
+        let searchCategories = cachedListResults
+        let parentCategory = searchCategories.first { result in
+            return result.id == selectedCategoryID
+        }
+        
+        return parentCategory
     }
     
     public func categoricalResult(for selectedCategoryID:CategoryResult.ID)->ChatResult? {
