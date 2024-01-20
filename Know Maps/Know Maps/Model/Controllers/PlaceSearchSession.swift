@@ -197,6 +197,10 @@ open class PlaceSearchSession : ObservableObject {
             //detailsString.append("store_id")
         }
         
+        if request.core {
+            detailsString.append("fsq_id,name,geocodes,location,categories,chains,related_places,timezone,distance,link,")
+        }
+        
         if detailsString.hasSuffix(",") {
             detailsString.removeLast()
         }

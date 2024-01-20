@@ -113,11 +113,15 @@ struct PlaceAboutView: View {
 #endif
                                                 .frame(height: PlaceAboutView.buttonHeight, alignment: .center)
                                             if sizeClass == .compact {
-                                                Label("\(tel)", systemImage: "phone").foregroundStyle(.primary)
+                                                Label("\(tel)", systemImage: "phone")
+                                                    .multilineTextAlignment(.center)
+                                                    .foregroundStyle(.primary)
                                                     .labelStyle( .iconOnly )
                                             } else {
-                                                Label("\(tel)", systemImage: "phone").foregroundStyle(.primary)
-                                                    .labelStyle( .titleAndIcon)
+                                                Label("\(tel)", systemImage: "phone")
+                                                    .multilineTextAlignment(.center)
+                                                    .foregroundStyle(.primary)
+                                                    .labelStyle( .titleOnly)
                                             }
                                         }.onTapGesture {
 #if os(visionOS) || os(iOS)

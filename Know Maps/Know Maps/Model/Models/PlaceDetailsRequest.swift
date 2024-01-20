@@ -10,6 +10,7 @@ import Foundation
 
 public struct PlaceDetailsRequest {
     let fsqID:String
+    let core:Bool
     let description:Bool
     let tel:Bool
     let fax:Bool
