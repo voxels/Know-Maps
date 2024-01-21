@@ -145,6 +145,7 @@ struct PlaceAboutView: View {
 #else
     .foregroundColor(Color(uiColor:.systemFill))
 #endif
+    .frame(height: PlaceAboutView.buttonHeight, alignment: .center)
                                             Link(destination: url) {
                                                 Label("Visit website", systemImage: "link")
                                                     .foregroundStyle(.primary)
@@ -204,7 +205,12 @@ struct PlaceAboutView: View {
                                     
                                     ZStack {
                                         Capsule()
-                                            .foregroundColor(Color(uiColor:.systemFill))
+#if os(macOS)
+    .foregroundStyle(.background)
+#else
+    .foregroundColor(Color(uiColor:.systemFill))
+#endif
+    .frame(height: PlaceAboutView.buttonHeight, alignment: .center)
 
                                         Image(systemName: "square.and.arrow.up").foregroundStyle(.primary)
                                     }

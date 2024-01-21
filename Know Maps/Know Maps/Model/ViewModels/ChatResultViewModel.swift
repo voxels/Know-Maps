@@ -123,10 +123,21 @@ public class ChatResultViewModel : ObservableObject {
     
     public var filteredPlaceResults:[ChatResult] {
         get {
-            let retval = placeResults.sorted { result, checkResult in
+            var retval = placeResults.sorted { result, checkResult in
                 return result.title <= checkResult.title
             }
-            
+
+            if let selectedSourceLocationChatResult = selectedSourceLocationChatResult, let locationChatResult = locationChatResult(for: selectedSourceLocationChatResult), let location = locationChatResult.location {
+                retval.sort { result, checkResult in
+                    guard let placeResponse = result.placeResponse, let checkPlaceResponse = checkResult.placeResponse else {
+                        return false
+                    }
+                    let resultLocation = CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude)
+                    let checkResultLocation = CLLocation(latitude: checkPlaceResponse.latitude, longitude: checkPlaceResponse.longitude)
+                    return resultLocation.distance(from: location) < checkResultLocation.distance(from: location)
+                }
+            }
+        
             return retval
         }
     }
