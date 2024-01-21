@@ -170,7 +170,15 @@ struct NavigationLocationView: View {
                         if let location = locationProvider.currentLocation(), let name = name {
                             chatModel.currentLocationResult.replaceLocation(with: location, name:name )
                         }
+                        
+                        if chatModel.locationResults.isEmpty {
+                            chatModel.locationResults = chatModel.filteredLocationResults
+                        }
+                        
                         if chatModel.selectedSourceLocationChatResult == nil {
+                            chatModel.selectedSourceLocationChatResult = chatModel.currentLocationResult.id
+                        }
+                        if chatModel.selectedDestinationLocationChatResult == nil {
                             chatModel.selectedSourceLocationChatResult = chatModel.currentLocationResult.id
                         }
                         if chatModel.cachedLocationRecords == nil {
@@ -178,6 +186,7 @@ struct NavigationLocationView: View {
                         } else if let cachedLocationRecords = chatModel.cachedLocationRecords, cachedLocationRecords.isEmpty {
                             try await chatModel.refreshCachedLocations(cloudCache: chatModel.cloudCache)
                         }
+                        
                     } catch {
                         chatModel.analytics?.track(name: "error \(error)")
                         print(error)

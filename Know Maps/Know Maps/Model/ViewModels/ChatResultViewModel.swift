@@ -88,7 +88,7 @@ public class ChatResultViewModel : ObservableObject {
                 return firstResult.locationName <= secondResult.locationName
             }
                         
-            if currentLocationResult.location != nil {
+            if currentLocationResult.location != nil,!allLocationResults.contains(currentLocationResult) {
                 allLocationResults.insert(currentLocationResult, at:0)
             }
             return allLocationResults
@@ -98,7 +98,7 @@ public class ChatResultViewModel : ObservableObject {
                 return firstResult.locationName <= secondResult.locationName
             }
                         
-            if currentLocationResult.location != nil {
+            if currentLocationResult.location != nil, !allLocationResults.contains(currentLocationResult) {
                 allLocationResults.insert(currentLocationResult, at:0)
             }
             return allLocationResults
