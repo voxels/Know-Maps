@@ -152,11 +152,11 @@ struct PlaceDirectionsView: View {
             })
             .onChange(of: model.rawTransportType) { oldValue, newValue in
                 switch newValue {
-                case 0:
+                case .Walking:
                     model.transportType = .walking
-                case 1:
+                case .Transit:
                     model.transportType = .transit
-                case 2:
+                case .Automobile:
                     model.transportType = .automobile
                 default:
                     model.transportType = .any

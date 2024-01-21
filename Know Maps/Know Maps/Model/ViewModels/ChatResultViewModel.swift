@@ -199,6 +199,13 @@ public class ChatResultViewModel : ObservableObject {
     
     @MainActor
     public func refreshCache(cloudCache:CloudCache) async throws {
+        if isRefreshingCache {
+            Task(priority: .userInitiated) {
+                try await refreshCache(cloudCache:cloudCache)
+            }
+            return
+        }
+        
         isRefreshingCache = true
         do {
             try await refreshCachedCategories(cloudCache: cloudCache)
@@ -279,6 +286,12 @@ public class ChatResultViewModel : ObservableObject {
     @MainActor
     public func refreshCachedResults() {
         allCachedResults = allSavedResults()
+    }
+    
+    @MainActor
+    public func appendCachedLocation(with record:UserCachedRecord) {
+        cachedLocationRecords?.append(record)
+        cachedLocationResults = savedLocationResults()
     }
     
     @MainActor
@@ -937,6 +950,12 @@ public class ChatResultViewModel : ObservableObject {
     
     public func cachedPlaceResults(for group:String, title:String)->[UserCachedRecord]? {
         return cachedPlaceRecords?.filter({ record in
+            record.group == group && record.title == title
+        })
+    }
+    
+    public func cachedListResults(for group:String, title:String)->[UserCachedRecord]? {
+        return cachedListRecords.filter({ record in
             record.group == group && record.title == title
         })
     }

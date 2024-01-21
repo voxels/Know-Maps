@@ -14,11 +14,17 @@ public class PlaceDirectionsViewModel : ObservableObject {
     @Published public var destination:MKMapItem?
     @Published public var polyline:MKPolyline?
     @Published public var transportType:MKDirectionsTransportType = .automobile
-    @Published public var rawTransportType:Int = 2
+    @Published public var rawTransportType:RawTransportType = .Automobile
     @Published public var rawLocationIdent:String = ""
     @Published public var chatRouteResults:[ChatRouteResult]?
 
-    public init(route: MKRoute? = nil, source: MKMapItem? = nil, destination: MKMapItem? = nil, polyline: MKPolyline? = nil, transportType: MKDirectionsTransportType = .walking, rawTransportType: Int = 0, chatRouteResults: [ChatRouteResult]? = nil, rawLocationIdent:String) {
+    public enum RawTransportType : String {
+        case Walking
+        case Transit
+        case Automobile
+    }
+    
+    public init(route: MKRoute? = nil, source: MKMapItem? = nil, destination: MKMapItem? = nil, polyline: MKPolyline? = nil, transportType: MKDirectionsTransportType = .automobile, rawTransportType: RawTransportType = .Automobile, chatRouteResults: [ChatRouteResult]? = nil, rawLocationIdent:String) {
         self.route = route
         self.source = source
         self.destination = destination
@@ -33,7 +39,7 @@ public class PlaceDirectionsViewModel : ObservableObject {
         var directionsModeValue = MKLaunchOptionsDirectionsModeDefault
         
         switch transportType {
-        case.walking:
+        case .walking:
             directionsModeValue = MKLaunchOptionsDirectionsModeWalking
         case .transit:
             directionsModeValue = MKLaunchOptionsDirectionsModeTransit

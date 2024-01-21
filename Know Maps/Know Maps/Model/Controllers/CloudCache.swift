@@ -289,6 +289,15 @@ open class CloudCache : NSObject, ObservableObject {
     
     @discardableResult
     public func storeUserCachedRecord(for group:String, identity:String, title:String, icons:String? = nil, list:String? = nil) async throws -> (saveResults: [CKRecord.ID : Result<CKRecord, Error>], deleteResults: [CKRecord.ID : Result<Void, Error>]) {
+        
+        let existingGroups = try await fetchGroupedUserCachedRecords(for: group)
+        var existingRecordsToDelete = [CKRecord.ID]()
+        for group in existingGroups {
+            if group.identity == identity {
+                existingRecordsToDelete.append(CKRecord.ID(recordName: group.recordId))
+            }
+        }
+        
         let record = CKRecord(recordType:"UserCachedRecord")
         record.setObject(group as NSString, forKey: "Group")
         record.setObject(identity as NSString, forKey: "Identity")
@@ -303,7 +312,7 @@ open class CloudCache : NSObject, ObservableObject {
         } else {
             record.setObject("" as NSString, forKey:"List")
         }
-        return try await cacheContainer.privateCloudDatabase.modifyRecords(saving: [record], deleting: [], atomically: true)
+        return try await cacheContainer.privateCloudDatabase.modifyRecords(saving: [record], deleting: existingRecordsToDelete, atomically: true)
     }
     
     public func deleteUserCachedRecord(for cachedRecord:UserCachedRecord) async throws {

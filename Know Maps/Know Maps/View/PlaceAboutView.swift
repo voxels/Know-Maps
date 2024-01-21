@@ -156,29 +156,6 @@ struct PlaceAboutView: View {
                                         }
                                     }
                                     
-                                    if let price = placeDetailsResponse.price {
-                                        ZStack {
-                                            Capsule()
-#if os(macOS)
-    .foregroundStyle(.background)
-#else
-    .foregroundColor(Color(uiColor:.systemFill))
-#endif
-                                                .frame(width: PlaceAboutView.buttonHeight, height: PlaceAboutView.buttonHeight, alignment: .center)
-                                            switch price {
-                                            case 1:
-                                                Text("$").foregroundStyle(.primary)
-                                            case 2:
-                                                Text("$$").foregroundStyle(.primary)
-                                            case 3:
-                                                Text("$$$").foregroundStyle(.primary)
-                                            case 4:
-                                                Text("$$$$").foregroundStyle(.primary)
-                                            default:
-                                                Text("\(price)").foregroundStyle(.primary)
-                                            }
-                                        }
-                                    }
                                     
                                     let rating = placeDetailsResponse.rating
                                     if rating > 0 {
@@ -201,6 +178,30 @@ struct PlaceAboutView: View {
                                     }
                                     
 #if os(iOS) || os(visionOS)
+                                    if let price = placeDetailsResponse.price {
+                                        ZStack {
+                                            Capsule()
+#if os(macOS)
+    .foregroundStyle(.background)
+#else
+    .foregroundColor(Color(uiColor:.systemFill))
+#endif
+    .frame(height: PlaceAboutView.buttonHeight, alignment: .center)
+                                            switch price {
+                                            case 1:
+                                                Text("$").foregroundStyle(.primary)
+                                            case 2:
+                                                Text("$$").foregroundStyle(.primary)
+                                            case 3:
+                                                Text("$$$").foregroundStyle(.primary)
+                                            case 4:
+                                                Text("$$$$").foregroundStyle(.primary)
+                                            default:
+                                                Text("\(price)").foregroundStyle(.primary)
+                                            }
+                                        }
+                                    }
+                                    
                                     ZStack {
                                         Capsule()
                                             .foregroundColor(Color(uiColor:.systemFill))

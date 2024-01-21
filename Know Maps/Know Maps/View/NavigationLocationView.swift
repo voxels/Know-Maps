@@ -20,6 +20,12 @@ struct NavigationLocationView: View {
         GeometryReader { geo in
             List(chatModel.filteredDestinationLocationResults, selection:$chatModel.selectedDestinationLocationChatResult) { result in
                 HStack {
+                    if let location = result.location, chatModel.cloudCache.hasPrivateCloudAccess {
+                        let isSaved = chatModel.cachedLocation(contains: chatModel.cachedLocationIdentity(for: location))
+                        Label("Is Saved", systemImage:isSaved ? "star.fill" : "star").labelStyle(.iconOnly)
+                    }
+                    
+                    
                     if result.id == chatModel.selectedDestinationLocationChatResult {
                         Label(result.locationName, systemImage: "mappin")
                             .tint(.red)
@@ -31,30 +37,54 @@ struct NavigationLocationView: View {
                             .tint(.blue)
                     }
                     Spacer()
+                    
+                    Spacer()
                     if let location = result.location, cloudCache.hasPrivateCloudAccess, result.locationName != "Current Location" {
                         let isSaved = chatModel.cachedLocation(contains: chatModel.cachedLocationIdentity(for: location))
                         if isSaved {
-                            Label("Save", systemImage: "star.fill")
-                                .onTapGesture {
-                                    if let cachedLocationResults = chatModel.cachedLocationResults(for: "Location", identity:chatModel.cachedLocationIdentity(for:location)) {
-                                        for cachedLocationResult in cachedLocationResults {
-                                            Task {
-                                                try await cloudCache.deleteUserCachedRecord(for: cachedLocationResult)
-                                                try await chatModel.refreshCachedLocations(cloudCache: cloudCache)
-                                            }
+                            ZStack {
+                                Capsule()
+#if os(macOS)
+                                .foregroundStyle(.background)
+                                .frame(width: 44, height:44)
+#else
+                                .foregroundColor(Color(uiColor:.systemFill))
+                                .frame(minWidth: 44, maxWidth: 60, minHeight:44, maxHeight:60)
+#endif
+                                Label("Save", systemImage: "minus")
+                                    
+                                    .labelStyle(.iconOnly)
+                            }
+                            .onTapGesture {
+                                if let cachedLocationResults = chatModel.cachedLocationResults(for: "Location", identity:chatModel.cachedLocationIdentity(for:location)) {
+                                    for cachedLocationResult in cachedLocationResults {
+                                        Task {
+                                            try await cloudCache.deleteUserCachedRecord(for: cachedLocationResult)
+                                            try await chatModel.refreshCachedLocations(cloudCache: cloudCache)
                                         }
                                     }
                                 }
-                                .labelStyle(.iconOnly)
+                            }
                         } else {
-                            Label("Save", systemImage: "star")
-                                .onTapGesture {
-                                    Task {
-                                        let _ = try await cloudCache.storeUserCachedRecord(for: "Location", identity: chatModel.cachedLocationIdentity(for: location), title: result.locationName)
-                                        try await chatModel.refreshCachedLocations(cloudCache: cloudCache)
-                                    }
+                            ZStack {
+                                Capsule()
+#if os(macOS)
+                                    .foregroundStyle(.background)
+                                    .frame(width: 44, height:44)
+#else
+                                    .foregroundColor(Color(uiColor:.systemFill))
+                                    .frame(minWidth: 44, maxWidth: 60, minHeight:44, maxHeight:60)
+#endif
+                                Label("Save", systemImage: "plus")
+                                    
+                                    .labelStyle(.iconOnly)
+                            }.onTapGesture {
+                                Task {
+                                    let userRecord = UserCachedRecord(recordId: "", group: "Location", identity: chatModel.cachedLocationIdentity(for: location), title: result.locationName, icons: "", list: nil)
+                                    let _ = try await cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title)
+                                    chatModel.appendCachedLocation(with: userRecord)
                                 }
-                                .labelStyle(.iconOnly)
+                            }
                         }
                     }
                 }
@@ -73,14 +103,14 @@ struct NavigationLocationView: View {
             }
             .onSubmit(of: .search, {
                 if let selectedDestinationLocationChatResult = chatModel.selectedDestinationLocationChatResult, !chatModel.locationSearchText.isEmpty {
-                        Task {
-                            do {
-                                try await chatModel.didSearch(caption:chatModel.locationSearchText, selectedDestinationChatResultID:selectedDestinationLocationChatResult)
-                            } catch {
-                                chatModel.analytics?.track(name: "error \(error)")
-                                print(error)
-                            }
+                    Task {
+                        do {
+                            try await chatModel.didSearch(caption:chatModel.locationSearchText, selectedDestinationChatResultID:selectedDestinationLocationChatResult)
+                        } catch {
+                            chatModel.analytics?.track(name: "error \(error)")
+                            print(error)
                         }
+                    }
                 } else if !chatModel.locationSearchText.isEmpty {
                     if let firstLocationResultID = chatModel.filteredDestinationLocationResults.first?.id {
                         Task {

@@ -14,12 +14,6 @@ struct PlaceDirectionsControlsView: View {
     @Binding public var showLookAroundScene:Bool
     @Binding public var lookAroundScene:MKLookAroundScene?
     
-    public enum RawTransportType : String {
-        case Walking
-        case Transit
-        case Automobile
-    }
-    
     var body: some View {
 #if os(iOS)
         VStack {
@@ -32,8 +26,8 @@ struct PlaceDirectionsControlsView: View {
                     }.foregroundStyle(.primary)
                     Spacer()
                     Picker("Transport Type", selection: $model.rawTransportType) {
-                        Text(RawTransportType.Walking.rawValue).tag(0)
-                        Text(RawTransportType.Automobile.rawValue).tag(2)
+                        Text(PlaceDirectionsViewModel.RawTransportType.Automobile.rawValue).tag(PlaceDirectionsViewModel.RawTransportType.Automobile)
+                        Text(PlaceDirectionsViewModel.RawTransportType.Walking.rawValue).tag(PlaceDirectionsViewModel.RawTransportType.Walking)
                     }.foregroundStyle(.primary)
                 }
             }
@@ -72,8 +66,8 @@ struct PlaceDirectionsControlsView: View {
                     }
                 }.foregroundStyle(.primary)
                 Picker("Transport Type", selection: $model.rawTransportType) {
-                    Text(RawTransportType.Walking.rawValue).tag(0)
-                    Text(RawTransportType.Automobile.rawValue).tag(2)
+                    Text(PlaceDirectionsViewModel.RawTransportType.Automobile.rawValue).tag(PlaceDirectionsViewModel.RawTransportType.Automobile)
+                    Text(PlaceDirectionsViewModel.RawTransportType.Walking.rawValue).tag(PlaceDirectionsViewModel.RawTransportType.Walking)
                 }.foregroundStyle(.primary)
             }
             Spacer()
