@@ -83,6 +83,7 @@ struct NavigationLocationView: View {
                                     let userRecord = UserCachedRecord(recordId: "", group: "Location", identity: chatModel.cachedLocationIdentity(for: location), title: result.locationName, icons: "", list: nil)
                                     let _ = try await cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title)
                                     chatModel.appendCachedLocation(with: userRecord)
+                                    try await chatModel.refreshCachedLocations(cloudCache: cloudCache)
                                 }
                             }
                         }
@@ -91,16 +92,6 @@ struct NavigationLocationView: View {
             }
             .autocorrectionDisabled(true)
             .searchable(text: $chatModel.locationSearchText, isPresented:$searchIsPresented)
-            .refreshable {
-                Task {
-                    do {
-                        try await chatModel.refreshCachedLocations(cloudCache: cloudCache)
-                    } catch {
-                        chatModel.analytics?.track(name: "error \(error)")
-                        print(error)
-                    }
-                }
-            }
             .onSubmit(of: .search, {
                 if let selectedDestinationLocationChatResult = chatModel.selectedDestinationLocationChatResult, !chatModel.locationSearchText.isEmpty {
                     Task {
