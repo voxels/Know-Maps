@@ -31,6 +31,7 @@ struct PlaceView: View {
                 }
                 .padding(8)
                 .pickerStyle(.segmented)
+                Spacer()
                 switch sectionSelection {
                 case 0:
                     PlaceAboutView(chatHost:chatHost,chatModel: chatModel, locationProvider: locationProvider, resultId: $resultId, sectionSelection: $sectionSelection)
@@ -63,6 +64,7 @@ struct PlaceView: View {
                                 .onAppear(perform: {
                                     chatModel.analytics?.screen(title: "PlacePhotosView")
                                 })
+                                .compositingGroup()
                         }
                     }
                 case 3:
@@ -76,6 +78,7 @@ struct PlaceView: View {
                                 .onAppear(perform: {
                                     chatModel.analytics?.screen(title: "PlaceTipsView")
                                 })
+                                .compositingGroup()
                         }
                     }
                 default:

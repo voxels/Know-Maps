@@ -234,7 +234,7 @@ struct PlaceAboutView: View {
                     } else {
                         ZStack(alignment: .center) {
                             ProgressView().progressViewStyle(.circular)
-                        }
+                        }.frame(width: geo.size.width, height:geo.size.height)
                     }
                 }
             }

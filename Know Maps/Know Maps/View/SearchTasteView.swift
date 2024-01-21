@@ -60,6 +60,7 @@ struct SearchTasteView: View {
                                         userRecord.setRecordId(to:resultName)
                                     }
                                     model.appendCachedTaste(with: userRecord)
+                                        try await model.refreshTastes(page:model.lastFetchedTastePage)
                                     } catch {
                                         model.analytics?.track(name: "error \(error)")
                                         print(error)

@@ -17,10 +17,10 @@ struct PlacePhotosView: View {
     var body: some View {
         GeometryReader { geo in
             ZStack {
-                if let resultId = resultId, let placeChatResult = chatModel.placeChatResult(for: resultId), let placeDetailsResponse = placeChatResult.placeDetailsResponse {
+                if let resultId = resultId, let placeChatResult = chatModel.placeChatResult(for: resultId), let placeDetailsResponse = placeChatResult.placeDetailsResponse, let photoResponses = placeDetailsResponse.photoResponses {
                     Rectangle().foregroundStyle(.thickMaterial)
                     VStack(alignment: .leading) {
-                        if let photoResponses = placeDetailsResponse.photoResponses {
+                        if photoResponses.count > 0 {
                             ScrollView(.horizontal) {
                                 Grid(alignment: .center) {
                                     GridRow(alignment: .center) {
@@ -44,7 +44,7 @@ struct PlacePhotosView: View {
                         }
                     }
                 } else {
-                    Text("No details found")
+                    ContentUnavailableView("No photos found for this location", systemImage: "x.circle.fill")
                 }
             }
         }

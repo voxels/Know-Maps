@@ -17,10 +17,12 @@ struct PlaceTipsView: View {
     
     var body: some View {
         
-        if let resultId = resultId, let placeChatResult = chatModel.placeChatResult(for: resultId), let placeDetailsResponse = placeChatResult.placeDetailsResponse{
+        if let resultId = resultId, let placeChatResult = chatModel.placeChatResult(for: resultId), let placeDetailsResponse = placeChatResult.placeDetailsResponse, let tips = placeDetailsResponse.tipsResponses {
             ScrollView() {
                 VStack() {
-                    if let tips = placeDetailsResponse.tipsResponses, tips.count > 0 , let description = placeDetailsResponse.description, description.isEmpty  {
+                    if  tips.count > 0 , let description = placeDetailsResponse.description, description.isEmpty  {
+                        if tips.count >= 5 {
+                            
                         HStack() {
                             Spacer()
                             Button {
@@ -40,6 +42,8 @@ struct PlaceTipsView: View {
                             .backgroundStyle(.primary)
                             Spacer()
                         }
+                        }
+
                         let titles = tips.compactMap { response in
                             return response.text
                         }
@@ -49,7 +53,7 @@ struct PlaceTipsView: View {
                                 Text(response).padding()
                             }.padding()
                         }
-                    } else if let tastes = placeDetailsResponse.tastes, tastes.count > 0, let description = placeDetailsResponse.description, description.isEmpty {
+                    } else if let tastes = placeDetailsResponse.tastes, tastes.count > 5 , let description = placeDetailsResponse.description, description.isEmpty {
                         HStack() {
                             Spacer()
                             Button {
