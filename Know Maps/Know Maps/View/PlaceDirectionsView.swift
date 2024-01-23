@@ -83,9 +83,7 @@ struct PlaceDirectionsView: View {
                                     MapUserLocationButton()
                                     MapCompass()
                                 }
-                                .mapStyle(.hybrid(elevation: .realistic,
-                                                  pointsOfInterest: .including([.publicTransport]),
-                                                  showsTraffic: true))
+                                .mapStyle(.standard)
                                 .frame(minWidth: geo.size.width, minHeight:geo.size.height * 2.0 / 3.0)
                             }
                         }

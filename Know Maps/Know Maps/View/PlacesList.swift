@@ -9,10 +9,12 @@ import SwiftUI
 import CoreLocation
 
 struct PlacesList: View {
+    @Environment(\.horizontalSizeClass) var sizeClass
     @ObservedObject public var chatHost:AssistiveChatHost
     @ObservedObject public var chatModel:ChatResultViewModel
     @ObservedObject public var locationProvider:LocationProvider
-
+    @State private var selectedItem: String?
+    
     @Binding public var resultId:ChatResult.ID?
     @State private var showingPopover:Bool = false
     
@@ -21,30 +23,38 @@ struct PlacesList: View {
         retval.maximumFractionDigits = 1
         return retval
     }
-
+    
     var body: some View {
-        Section() {
-            List(chatModel.filteredPlaceResults,selection: $resultId){ result in
-                VStack {
-                    HStack {
-                        Text(result.title)
-                        Spacer()
-                    }
-                    HStack {
-                        if let placeResponse = result.placeResponse {
-                            Text(placeResponse.locality).italic()
+        GeometryReader { geo in
+        VStack{
+            #if os(iOS)
+            if sizeClass == .compact, UIDevice.current.userInterfaceIdiom == .phone {
+                MapResultsView(chatHost: chatHost, model: chatModel, locationProvider: locationProvider, selectedMapItem: $selectedItem).frame(width: geo.size.width, height: geo.size.width)
+            }
+            #endif
+            Section() {
+                List(chatModel.filteredPlaceResults,selection: $resultId){ result in
+                    VStack {
+                        HStack {
+                            Text(result.title)
                             Spacer()
-                            Text(distanceString(for:placeResponse))
+                        }
+                        HStack {
+                            if let placeResponse = result.placeResponse {
+                                Text(placeResponse.locality).italic()
+                                Spacer()
+                                Text(distanceString(for:placeResponse))
+                            }
                         }
                     }
                 }
+            } footer: {
+                Text("\(chatModel.filteredPlaceResults.count) places found").padding(16)
             }
-        } header:{
-            Text("Places")
-        } footer: {
-            Text("\(chatModel.filteredPlaceResults.count) places found")
+            .padding(EdgeInsets(top: 8, leading: 0, bottom: 0, trailing: 0))
         }
-        .padding(EdgeInsets(top: 8, leading: 0, bottom: 0, trailing: 0))
+        }
+        
     }
     
     func distanceString(for placeResponse:PlaceSearchResponse?)->String {
@@ -87,15 +97,15 @@ struct PlacesList: View {
 }
 
 #Preview {
-
+    
     let locationProvider = LocationProvider()
-
+    
     let chatHost = AssistiveChatHost()
     let cloudCache = CloudCache()
     let chatModel = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cloudCache)
-
+    
     chatModel.assistiveHostDelegate = chatHost
     chatHost.messagesDelegate = chatModel
-
+    
     return PlacesList(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, resultId: .constant(nil))
 }

@@ -20,9 +20,11 @@ struct SearchView: View {
             Section {
                 VStack {
                     Picker("", selection: $sectionSelection) {
-                        Text("Category").tag(0)
-                        Text("Taste").tag(1)
-                        Text("Saved").tag(2)
+                        Text("Type").tag(0)
+                        if cloudCache.hasPrivateCloudAccess {
+                            Text("Feature").tag(1)
+                            Text("Saved").tag(2)
+                        }
                     }
                     .padding(8)
                     .pickerStyle(.segmented)
@@ -59,19 +61,6 @@ struct SearchView: View {
                             model.locationSearchText = parentCategories.first?.parentCategory ?? model.locationSearchText
                             
                             if let selectedDestinationLocationChatResult = model.selectedDestinationLocationChatResult {
-                                do {
-                                    try await model.didSearch(caption: model.locationSearchText, selectedDestinationChatResultID: selectedDestinationLocationChatResult)
-                                } catch {
-                                    model.analytics?.track(name: "error \(error)")
-                                    print(error)
-                                }
-                            } else {
-                                model.selectedDestinationLocationChatResult = model.filteredLocationResults.first?.id
-                                
-                                guard let selectedDestinationLocationChatResult = model.selectedDestinationLocationChatResult else {
-                                    return
-                                }
-                                
                                 do {
                                     try await model.didSearch(caption: model.locationSearchText, selectedDestinationChatResultID: selectedDestinationLocationChatResult)
                                 } catch {

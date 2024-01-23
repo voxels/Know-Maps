@@ -42,6 +42,7 @@ open class CloudCache : NSObject, ObservableObject {
     }
     
     public func fetchGeneratedDescription(for fsqid:String) async throws -> String {
+        desc = ""
         let predicate = NSPredicate(format: "fsqid == %@", fsqid)
         let query = CKQuery(recordType: "GeneratedDescription", predicate: predicate)
         let operation = CKQueryOperation(query: query)

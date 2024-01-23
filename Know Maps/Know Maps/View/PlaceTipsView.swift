@@ -14,108 +14,16 @@ struct PlaceTipsView: View {
     @Binding public var resultId:ChatResult.ID?
     @State private var isPresentingShareSheet:Bool = false
     
-    
     var body: some View {
         
         if let resultId = resultId, let placeChatResult = chatModel.placeChatResult(for: resultId), let placeDetailsResponse = placeChatResult.placeDetailsResponse, let tips = placeDetailsResponse.tipsResponses {
-            ScrollView() {
-                VStack() {
-                    if  tips.count > 0 , let description = placeDetailsResponse.description, description.isEmpty  {
-                        if tips.count >= 5 {
-                            
-                        HStack() {
-                            Spacer()
-                            Button {
-                                Task {
-                                    try await chatHost.placeDescription(chatResult: placeChatResult, delegate: chatModel)
-                                }
-                            } label: {
-                                if chatModel.isFetchingPlaceDescription, placeChatResult.id == chatModel.fetchingPlaceID {
-                                    ZStack {
-                                        ProgressView().progressViewStyle(.circular)
-                                    }
-                                } else {
-                                    Text("Generate description for \(placeDetailsResponse.searchResponse.name)")
-                                }
-                            }
-                            .buttonStyle(.bordered)
-                            .backgroundStyle(.primary)
-                            Spacer()
-                        }
-                        }
-
-                        let titles = tips.compactMap { response in
-                            return response.text
-                        }
-                        ForEach(titles, id:\.self) { response in
-                            ZStack() {
-                                Rectangle().foregroundStyle(.thickMaterial)
-                                Text(response).padding()
-                            }.padding()
-                        }
-                    } else if let tastes = placeDetailsResponse.tastes, tastes.count > 5 , let description = placeDetailsResponse.description, description.isEmpty {
-                        HStack() {
-                            Spacer()
-                            Button {
-                                Task {
-                                    try await chatHost.placeDescription(chatResult: placeChatResult, delegate: chatModel)
-                                }
-                            } label: {
-                                Text("Generate description for \(placeDetailsResponse.searchResponse.name)")
-                            }
-                            .buttonStyle(.bordered)
-                            .backgroundStyle(.primary)
-                            Spacer()
-                        }
-                    } else if let description = placeDetailsResponse.description, !description.isEmpty {
-                        HStack() {
-                            ZStack() {
-                                Rectangle().foregroundStyle(.thickMaterial)
-                                Text(description).padding()
-                            }.padding()
-#if os(visionOS) || os(iOS)
-                            Spacer()
-                            
-                            ZStack {
-                                Capsule()
-                                    .frame(minWidth:60, maxWidth:60, minHeight:60, maxHeight:60)
-#if os(macOS)
-    .foregroundStyle(.primary)
-#else
-    .foregroundColor(Color(uiColor:.systemFill))
-#endif
-                                Image(systemName: "square.and.arrow.up")
-                            }.padding()
-                                .onTapGesture {
-                                    self.isPresentingShareSheet.toggle()
-                                }
-#endif
-                            
-                        }
-                        
-                        if let tips = placeDetailsResponse.tipsResponses, tips.count > 0 {
-                            
-                            let titles = tips.compactMap { response in
-                                return response.text
-                            }
-                            ForEach(titles, id:\.self) { response in
-                                ZStack() {
-                                    Rectangle().foregroundStyle(.thickMaterial)
-                                    Text(response).padding()
-                                }.padding()
-                            }
-                        }
-                    }
-                }
-            }                            
-            .popover(isPresented: $isPresentingShareSheet) {
-                if let result = chatModel.placeChatResult(for: resultId), let placeDetailsResponse = result.placeDetailsResponse  {
-                    let items:[Any] = [placeDetailsResponse.website ?? placeDetailsResponse.searchResponse.address]
-#if os(visionOS) || os(iOS)
-                    ActivityViewController(activityItems:items, applicationActivities:[UIActivity](), isPresentingShareSheet: $isPresentingShareSheet)
-#endif
-                }
+            List(tips){ tip in
+                ZStack() {
+                    Rectangle().foregroundStyle(.thickMaterial)
+                    Text(tip.text).padding()
+                }.padding()
             }
+            
         } else {
             ContentUnavailableView("No tips found for this location", systemImage: "x.circle.fill")
         }
@@ -125,11 +33,11 @@ struct PlaceTipsView: View {
 #Preview {
     
     let locationProvider = LocationProvider()
-
+    
     let chatHost = AssistiveChatHost()
     let cloudCache = CloudCache()
     let chatModel = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cloudCache)
-
+    
     chatModel.assistiveHostDelegate = chatHost
     chatHost.messagesDelegate = chatModel
     

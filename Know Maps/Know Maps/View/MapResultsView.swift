@@ -16,7 +16,8 @@ model:ChatResultViewModel
     @ObservedObject public var locationProvider:LocationProvider
     @Binding public var selectedMapItem: String?
     var body: some View {
-        Map(initialPosition:model.filteredPlaceResults.isEmpty ? .userLocation(fallback: .automatic) : .automatic, bounds: MapCameraBounds(minimumDistance: 1500, maximumDistance: 250000), interactionModes: .all, selection:$selectedMapItem, scope: nil) {
+        let initialPosition:MapCameraPosition = model.selectedDestinationLocationChatResult != nil && model.placeResults.isEmpty ? .camera(MapCamera(centerCoordinate: model.locationChatResult(for: model.selectedDestinationLocationChatResult!)!.location!.coordinate, distance: 250000))   : .automatic
+        Map(initialPosition: initialPosition, bounds: MapCameraBounds(minimumDistance: 5000, maximumDistance: 250000), interactionModes: .all, selection:$selectedMapItem, scope: nil) {
                 ForEach(model.filteredPlaceResults) { result in
                     if let placeResponse = result.placeResponse {
                         Marker(result.title, coordinate: CLLocationCoordinate2D(latitude: placeResponse.latitude, longitude: placeResponse.longitude)).tag(placeResponse.fsqID)
@@ -28,9 +29,7 @@ model:ChatResultViewModel
                 MapUserLocationButton()
                 MapCompass()
               }
-            .mapStyle(.hybrid(elevation: .automatic,
-                               pointsOfInterest: .including([.publicTransport]),
-                               showsTraffic: false))
+            .mapStyle(.imagery)
     }
 }
 

@@ -88,7 +88,12 @@ public class ChatResultViewModel : ObservableObject {
                 return firstResult.locationName <= secondResult.locationName
             }
                         
-            if currentLocationResult.location != nil,!allLocationResults.contains(currentLocationResult) {
+            if currentLocationResult.location != nil, !allLocationResults.contains(currentLocationResult) {
+                allLocationResults.insert(currentLocationResult, at:0)
+            } else if currentLocationResult.location != nil {
+                allLocationResults.removeAll { result in
+                    result.id == currentLocationResult.id
+                }
                 allLocationResults.insert(currentLocationResult, at:0)
             }
             return allLocationResults
@@ -99,6 +104,11 @@ public class ChatResultViewModel : ObservableObject {
             }
                         
             if currentLocationResult.location != nil, !allLocationResults.contains(currentLocationResult) {
+                allLocationResults.insert(currentLocationResult, at:0)
+            } else if currentLocationResult.location != nil {
+                allLocationResults.removeAll { result in
+                    result.id == currentLocationResult.id
+                }
                 allLocationResults.insert(currentLocationResult, at:0)
             }
             return allLocationResults
@@ -1486,9 +1496,12 @@ extension ChatResultViewModel : AssistiveChatHostMessagesDelegate {
                 locationTitle = filteredLocationResult.locationName
                 selectedDestinationLocationChatResult = filteredLocationResult.id
             }
-        } else if let selectedDestinationChatResult = selectedDestinationChatResult {
-            let locationChatResult = locationChatResult(for: selectedDestinationChatResult)
-            if let locationChatResult = locationChatResult {
+        } else if let destinationChatResult = selectedDestinationChatResult {
+            if  let locationChatResult = locationChatResult(for: destinationChatResult) {
+                locationTitle = locationChatResult.locationName
+            } else if let lastIntent = assistiveHostDelegate?.lastLocationIntent(), let locationChatResult = locationChatResult(with:lastIntent.caption)  {
+                selectedDestinationChatResult = locationChatResult.id
+                selectedDestinationLocationChatResult = locationChatResult.id
                 locationTitle = locationChatResult.locationName
             } else {
                 throw ChatResultViewModelError.MissingSelectedDestinationLocationChatResult
@@ -1499,7 +1512,7 @@ extension ChatResultViewModel : AssistiveChatHostMessagesDelegate {
             throw ChatResultViewModelError.MissingSelectedDestinationLocationChatResult
         }
         
-        guard let locationChatResult = locationChatResult(with:locationTitle), let location = locationChatResult.location else {
+        guard let locationChatResult = locationChatResult(for: selectedDestinationChatResult), let location = locationChatResult.location else {
             throw ChatResultViewModelError.MissingSelectedDestinationLocationChatResult
         }
         

@@ -424,7 +424,7 @@ open class PlaceResponseFormatter {
     
     public class func placeTipsResponses( with response:Any, for placeID:String) throws ->[PlaceTipsResponse] {
         var retVal = [PlaceTipsResponse]()
-        
+        var containsID = Set<String>()
         if let response = response as? NSDictionary, response.allKeys.count == 0 {
             return retVal
         }
@@ -450,8 +450,11 @@ open class PlaceResponseFormatter {
                 text = textString
             }
             
-            let response = PlaceTipsResponse(id:ObjectIdentifier(NSString(string:placeID)), placeIdent:placeID, ident: ident, createdAt: createdAt, text: text)
-            retVal.append(response)
+            let response = PlaceTipsResponse(id:UUID(), placeIdent:placeID, ident: ident, createdAt: createdAt, text: text)
+            if !containsID.contains(response.id.uuidString){
+                containsID.insert(response.id.uuidString)
+                retVal.append(response)                
+            }
         }
         return retVal
     }

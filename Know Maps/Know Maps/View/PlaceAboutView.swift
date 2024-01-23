@@ -36,7 +36,7 @@ struct PlaceAboutView: View {
                         let placeCoordinate = CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude)
                         
                         let title = placeResponse.name
-                        Map(initialPosition: .automatic) {
+                        Map(initialPosition: .automatic, bounds: MapCameraBounds(minimumDistance: 5000, maximumDistance: 250000)) {
                             Marker(title, coordinate: placeCoordinate.coordinate)
                         }
                         .mapControls {
@@ -44,9 +44,7 @@ struct PlaceAboutView: View {
                             MapUserLocationButton()
                             MapCompass()
                         }
-                        .mapStyle(.hybrid(elevation: .automatic,
-                                          pointsOfInterest: .including([.publicTransport]),
-                                          showsTraffic: false))
+                        .mapStyle(.hybrid)
                         .frame(minHeight: geo.size.height / 2.0)
                         .padding(EdgeInsets(top: 0, leading: PlaceAboutView.defaultPadding * 2, bottom: PlaceAboutView.defaultPadding, trailing: PlaceAboutView.defaultPadding * 2))
                         
@@ -56,10 +54,7 @@ struct PlaceAboutView: View {
                                 ZStack {
                                     Rectangle().foregroundStyle(.thickMaterial)
                                     VStack{
-                                        Text(placeResponse.name).bold()
-                                        
                                         Text(placeResponse.categories.joined(separator: ", ")).italic()
-                                        
                                     }
                                     .padding(PlaceAboutView.defaultPadding)
                                 }
@@ -68,12 +63,12 @@ struct PlaceAboutView: View {
                                 
                                 ZStack {
                                     Capsule().frame(height: PlaceAboutView.buttonHeight, alignment: .center)
-                                    #if os(macOS)
+#if os(macOS)
                                         .foregroundStyle(.background)
-                                    #else
+#else
                                         .foregroundColor(Color(uiColor:.systemFill))
-                                    #endif
-                                        
+#endif
+                                    
                                     Label(placeResponse.formattedAddress, systemImage: "mappin").foregroundStyle(.primary)
                                     
                                 }
@@ -84,13 +79,13 @@ struct PlaceAboutView: View {
                                 
                                 HStack {
                                     ZStack {
-                                        Capsule().frame(height: PlaceAboutView.buttonHeight, alignment: .center)                                    
+                                        Capsule().frame(height: PlaceAboutView.buttonHeight, alignment: .center)
 #if os(macOS)
                                             .foregroundStyle(.background)
-                                        #else
+#else
                                             .foregroundColor(Color(uiColor:.systemFill))
-                                        #endif
-
+#endif
+                                        
                                         Label("Add to List", systemImage: "star")
 #if os(iOS) || os(visionOS)
                                             .labelStyle(.iconOnly).foregroundStyle(.primary)
@@ -107,9 +102,9 @@ struct PlaceAboutView: View {
                                         ZStack {
                                             Capsule()
 #if os(macOS)
-    .foregroundStyle(.background)
+                                                .foregroundStyle(.background)
 #else
-    .foregroundColor(Color(uiColor:.systemFill))
+                                                .foregroundColor(Color(uiColor:.systemFill))
 #endif
                                                 .frame(height: PlaceAboutView.buttonHeight, alignment: .center)
                                             if sizeClass == .compact {
@@ -141,11 +136,11 @@ struct PlaceAboutView: View {
                                                     openURL(url)
                                                 }
 #if os(macOS)
-    .foregroundStyle(.background)
+                                                .foregroundStyle(.background)
 #else
-    .foregroundColor(Color(uiColor:.systemFill))
+                                                .foregroundColor(Color(uiColor:.systemFill))
 #endif
-    .frame(height: PlaceAboutView.buttonHeight, alignment: .center)
+                                                .frame(height: PlaceAboutView.buttonHeight, alignment: .center)
                                             Link(destination: url) {
                                                 Label("Visit website", systemImage: "link")
                                                     .foregroundStyle(.primary)
@@ -163,9 +158,9 @@ struct PlaceAboutView: View {
                                         ZStack {
                                             Capsule()
 #if os(macOS)
-    .foregroundStyle(.background)
+                                                .foregroundStyle(.background)
 #else
-    .foregroundColor(Color(uiColor:.systemFill))
+                                                .foregroundColor(Color(uiColor:.systemFill))
 #endif
                                                 .frame(height: PlaceAboutView.buttonHeight, alignment: .center)
                                             Label(PlacesList.formatter.string(from: NSNumber(value: rating)) ?? "0", systemImage: "quote.bubble").foregroundStyle(.primary)
@@ -183,11 +178,11 @@ struct PlaceAboutView: View {
                                         ZStack {
                                             Capsule()
 #if os(macOS)
-    .foregroundStyle(.background)
+                                                .foregroundStyle(.background)
 #else
-    .foregroundColor(Color(uiColor:.systemFill))
+                                                .foregroundColor(Color(uiColor:.systemFill))
 #endif
-    .frame(height: PlaceAboutView.buttonHeight, alignment: .center)
+                                                .frame(height: PlaceAboutView.buttonHeight, alignment: .center)
                                             switch price {
                                             case 1:
                                                 Text("$").foregroundStyle(.primary)
@@ -206,12 +201,12 @@ struct PlaceAboutView: View {
                                     ZStack {
                                         Capsule()
 #if os(macOS)
-    .foregroundStyle(.background)
+                                            .foregroundStyle(.background)
 #else
-    .foregroundColor(Color(uiColor:.systemFill))
+                                            .foregroundColor(Color(uiColor:.systemFill))
 #endif
-    .frame(height: PlaceAboutView.buttonHeight, alignment: .center)
-
+                                            .frame(height: PlaceAboutView.buttonHeight, alignment: .center)
+                                        
                                         Image(systemName: "square.and.arrow.up").foregroundStyle(.primary)
                                     }
                                     .onTapGesture {
@@ -222,7 +217,7 @@ struct PlaceAboutView: View {
                                     Spacer()
                                 }.padding(PlaceAboutView.defaultPadding)
                             }
-                        }.padding(EdgeInsets(top: 0, leading: PlaceAboutView.defaultPadding * 2, bottom: PlaceAboutView.defaultPadding, trailing: PlaceAboutView.defaultPadding * 2))
+                        }.padding(EdgeInsets(top: 0, leading: PlaceAboutView.defaultPadding * 2, bottom: 0, trailing: PlaceAboutView.defaultPadding * 2))
                             .popover(isPresented: $isPresentingShareSheet) {
                                 if let result = chatModel.placeChatResult(for: resultId), let placeDetailsResponse = result.placeDetailsResponse  {
                                     let items:[Any] = [placeDetailsResponse.website ?? placeDetailsResponse.searchResponse.address]
@@ -231,6 +226,68 @@ struct PlaceAboutView: View {
 #endif
                                 }
                             }
+                        
+                        PlaceDescriptionView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, resultId: $resultId).padding(PlaceAboutView.defaultPadding * 2)
+                        
+                        if let tastes = placeDetailsResponse.tastes, tastes.count > 0 {
+                            let gridItems = Array(repeating: GridItem(), count: sizeClass == .compact ? 2 : 4)
+                            LazyVGrid(columns:gridItems){
+                                ForEach(tastes, id: \.self) { taste in
+                                    ZStack {
+                                        Capsule()
+#if os(macOS)
+                                            .foregroundStyle(.background)
+                                            .frame(minWidth: 44, minHeight:44)
+#else
+                                            .foregroundColor(Color(uiColor:.systemFill))
+                                            .frame(minWidth: 60, minHeight:60 )
+#endif
+                                        
+                                        HStack {
+                                            let isSaved = chatModel.cachedTastes(contains: taste)
+                                            Label("Is Saved", systemImage:isSaved ? "star.fill" : "star").labelStyle(.iconOnly)
+                                            Text(taste)
+                                            Spacer()
+                                            Label("Save", systemImage:isSaved ? "minus" : "plus").labelStyle(.iconOnly)
+                                        }.padding(8)
+                                    }.onTapGesture {
+                                        let isSaved = chatModel.cachedTastes(contains: taste)
+                                        if isSaved {
+                                            if let cachedTasteResults = chatModel.cachedTasteResults(for: "Taste", identity: taste) {
+                                                for cachedTasteResult in cachedTasteResults {
+                                                    Task {
+                                                        do {
+                                                            try await chatModel.cloudCache.deleteUserCachedRecord(for: cachedTasteResult)
+                                                            try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
+                                                        } catch {
+                                                            chatModel.analytics?.track(name: "error \(error)")
+                                                            print(error)
+                                                        }
+                                                        
+                                                    }
+                                                }
+                                            }
+                                        } else {
+                                            Task {
+                                                do {
+                                                    var userRecord = UserCachedRecord(recordId: "", group: "Taste", identity: taste, title: taste, icons: "", list: nil)
+                                                    let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title)
+                                                    if let resultName = record.saveResults.keys.first?.recordName {
+                                                        userRecord.setRecordId(to:resultName)
+                                                    }
+                                                    chatModel.appendCachedTaste(with: userRecord)
+                                                    try await chatModel.refreshTastes(page:chatModel.lastFetchedTastePage)
+                                                } catch {
+                                                    chatModel.analytics?.track(name: "error \(error)")
+                                                    print(error)
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }.frame(maxWidth: geo.size.width - PlaceAboutView.defaultPadding * 2 ).padding(PlaceAboutView.defaultPadding * 2)
+                        }
+                        
                     } else {
                         ZStack(alignment: .center) {
                             ProgressView().progressViewStyle(.circular)

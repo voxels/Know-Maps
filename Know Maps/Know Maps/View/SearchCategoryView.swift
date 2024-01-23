@@ -33,6 +33,7 @@ struct SearchCategoryView: View {
                         let isSaved = model.cachedCategories(contains: parent.parentCategory)
                         Label("Save", systemImage:isSaved ? "minus" : "plus").labelStyle(.iconOnly)
                     }
+                    .padding(8)
                     .onTapGesture {
                         let isSaved = model.cachedCategories(contains: parent.parentCategory)
                         if isSaved {
@@ -57,7 +58,9 @@ struct SearchCategoryView: View {
                     }
                 }
             }
-        }.refreshable {
+        }
+        .listStyle(.inset)
+        .refreshable {
             model.isRefreshingCache = false
             Task {
                 do{

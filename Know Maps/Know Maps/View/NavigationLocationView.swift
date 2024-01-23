@@ -83,7 +83,6 @@ struct NavigationLocationView: View {
                                     let userRecord = UserCachedRecord(recordId: "", group: "Location", identity: chatModel.cachedLocationIdentity(for: location), title: result.locationName, icons: "", list: nil)
                                     let _ = try await cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title)
                                     chatModel.appendCachedLocation(with: userRecord)
-                                    try await chatModel.refreshCachedLocations(cloudCache: cloudCache)
                                 }
                             }
                         }
@@ -143,7 +142,7 @@ struct NavigationLocationView: View {
                                 print(error)
                             }
                         }
-                    } else if let locationChatResult = chatModel.locationChatResult(for: newValue), let lastLocationIntent = chatHost.lastLocationIntent(), lastLocationIntent.selectedDestinationLocationID != newValue {
+                    } else if let locationChatResult = chatModel.locationChatResult(for:newValue), let lastLocationIntent = chatHost.lastLocationIntent(), lastLocationIntent.caption != locationChatResult.locationName {
                         Task {
                             do {
                                 try await chatModel.didTap(locationChatResult: locationChatResult)
@@ -152,9 +151,10 @@ struct NavigationLocationView: View {
                                 print(error)
                             }
                         }
+                        
                     }
                 }
-            }.onAppear {
+            }.onDisappear {
                 Task { @MainActor in
                     do {
                         let name = try await chatModel.currentLocationName()
@@ -162,21 +162,10 @@ struct NavigationLocationView: View {
                             chatModel.currentLocationResult.replaceLocation(with: location, name:name )
                         }
                         
-                        if chatModel.locationResults.isEmpty {
-                            chatModel.locationResults = chatModel.filteredLocationResults
-                        }
-                        
                         if chatModel.selectedSourceLocationChatResult == nil {
                             chatModel.selectedSourceLocationChatResult = chatModel.currentLocationResult.id
                         }
-                        if chatModel.selectedDestinationLocationChatResult == nil {
-                            chatModel.selectedSourceLocationChatResult = chatModel.currentLocationResult.id
-                        }
-                        if chatModel.cachedLocationRecords == nil {
-                            try await chatModel.refreshCachedLocations(cloudCache: chatModel.cloudCache)
-                        } else if let cachedLocationRecords = chatModel.cachedLocationRecords, cachedLocationRecords.isEmpty {
-                            try await chatModel.refreshCachedLocations(cloudCache: chatModel.cloudCache)
-                        }
+                        
                         
                     } catch {
                         chatModel.analytics?.track(name: "error \(error)")
