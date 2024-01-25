@@ -101,8 +101,8 @@ open class PlaceResponseFormatter {
                     
                     if let photoDict = result["photo"] as? NSDictionary, let prefix
                         = photoDict["prefix"] as? String, let suffix
-                        = photoDict["suffix"] as? String  {
-                        photo = "\(prefix)\(suffix)"
+                        = photoDict["suffix"] as? String, let width = photoDict["width"] as? Double, let height = photoDict["height"] as? Double{
+                        photo = "\(prefix)\(Int(floor(width)))x\(Int(floor(height)))\(suffix)"
                     }
                     
                     if let photosDict = result["photos"] as? NSDictionary,  let groups = photosDict["groups"] as? [NSDictionary] {
@@ -112,8 +112,8 @@ open class PlaceResponseFormatter {
                                 for item in items {
                                     if let prefix
                                         = item["prefix"] as? String, let suffix
-                                        = item["suffix"] as? String {
-                                        photos.append("\(prefix)\(suffix)")
+                                        = item["suffix"] as? String, let width = item["width"] as? Double, let height = item["height"] as? Double{
+                                        photos.append("\(prefix)\(Int(floor(width)))x\(Int(floor(height)))\(suffix)")
                                     }
                                 }
                             }
@@ -219,8 +219,8 @@ open class PlaceResponseFormatter {
                     
                     if let photoDict = result["photo"] as? NSDictionary, let prefix
                         = photoDict["prefix"] as? String, let suffix
-                        = photoDict["suffix"] as? String  {
-                        photo = "\(prefix)\(suffix)"
+                        = photoDict["suffix"] as? String, let width = photoDict["width"] as? Double, let height = photoDict["height"] as? Double{
+                        photo = "\(prefix)\(Int(floor(width)))x\(Int(floor(height)))\(suffix)"
                     }
                     
                     if let photosDict = result["photos"] as? NSDictionary,  let groups = photosDict["groups"] as? [NSDictionary] {
@@ -230,14 +230,16 @@ open class PlaceResponseFormatter {
                                 for item in items {
                                     if let prefix
                                         = item["prefix"] as? String, let suffix
-                                        = item["suffix"] as? String {
-                                        photos.append("\(prefix)\(suffix)")
+                                        = item["suffix"] as? String, let width = item["width"] as? Double, let height = item["height"] as? Double{
+                                        photos.append("\(prefix)\(Int(floor(width)))x\(Int(floor(height)))\(suffix)")
                                     }
                                 }
                             }
                         }
                         
                     }
+                    
+
                     
                     
                     let response = RecommendedPlaceSearchResponse(fsqID: fsqID, name: name, categories: categories, latitude: latitude, longitude: longitude, neighborhood: neighborhood, address:address, country: country, city: city, state: state, postCode: postCode, formattedAddress: formattedAddress, photo: photo, photos: photos, tastes: tastes)

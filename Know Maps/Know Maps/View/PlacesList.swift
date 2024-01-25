@@ -38,33 +38,54 @@ struct PlacesList: View {
                         
                         Section(content: {
                             List(chatModel.filteredRecommendedPlaceResults,selection: $resultId){ result in
-                                VStack {
-                                    HStack {
-                                        Text(result.title)
+                                ZStack(alignment: .bottom, content: {
+                                    if let photo = result.recommendedPlaceResponse?.photo, !photo.isEmpty, let url = URL(string: photo) {
+                                        AsyncImage(url: url) { phase in
+                                                        switch phase {
+                                                        case .empty:
+                                                            ProgressView()
+                                                        case .success(let image):
+                                                            image.resizable()
+                                                                 .aspectRatio(contentMode: .fill)
+                                                                 .frame(width: geo.size.width, height: geo.size.width)
+                                                        case .failure:
+                                                            Image(systemName: "photo")
+                                                        @unknown default:
+                                                            // Since the AsyncImagePhase enum isn't frozen,
+                                                            // we need to add this currently unused fallback
+                                                            // to handle any new cases that might be added
+                                                            // in the future:
+                                                            EmptyView()
+                                                        }
+                                                    }
+
+                                    }
+                                    Rectangle().frame(width: geo.size.width, height: (geo.size.width - 48) / 4).foregroundStyle(.thinMaterial)
+                                    VStack {
                                         Spacer()
-                                    }
-                                    if let neighborhood = result.recommendedPlaceResponse?.neighborhood, !neighborhood.isEmpty {
-                                        HStack {
+                                        Text(result.title)
+                                        if let neighborhood = result.recommendedPlaceResponse?.neighborhood, !neighborhood.isEmpty {
+                                            
                                             Text(neighborhood).italic()
-                                            Spacer()
                                         }
-                                    }
-                                    HStack {
-                                        if let placeResponse = result.recommendedPlaceResponse {
-                                            Text(!placeResponse.address.isEmpty ?
-                                                 placeResponse.address : placeResponse.formattedAddress ).italic()
-                                            Spacer()
-                                            Text(distanceString(latitude: placeResponse.latitude, longitude: placeResponse.longitude))
+                                        HStack {
+                                            if let placeResponse = result.recommendedPlaceResponse {
+                                                Text(!placeResponse.address.isEmpty ?
+                                                     placeResponse.address : placeResponse.formattedAddress ).italic().padding(EdgeInsets(top: 0, leading: 8, bottom: 0, trailing: 0))
+                                                Spacer()
+                                                Text(distanceString(latitude: placeResponse.latitude, longitude: placeResponse.longitude)).padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 8))
+                                            }
                                         }
-                                    }
-                                }
+                                    }.padding(EdgeInsets(top: 0, leading: 0, bottom: 16, trailing: 0))
+                                })
+                                .clipShape(RoundedRectangle(cornerSize: CGSize(width: 16, height: 16)))
                             }
-                            .listStyle(.sidebar)
+                            .listStyle(.automatic)
                         }, header: {
-                            Text("Recommended Places").padding(8)
+                            Text("Recommended Places")
                         }, footer: {
                             let totalResultsFound = chatModel.filteredRecommendedPlaceResults.count
-                            Text("\(totalResultsFound) places found").padding(8)
+                            Text("\(totalResultsFound) places found")
                         })
                     }
                     

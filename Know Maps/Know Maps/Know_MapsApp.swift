@@ -41,8 +41,16 @@ struct Know_MapsApp: App {
                             try await chatModel.retrieveFsqUser()
                         }
                     } catch {
-                        analytics?.track(name: "error \(error)")
-                        print(error)
+                        switch error {
+                        case PersonalizedSearchSessionError.NoTokenFound:
+                            analytics?.track(name: "error \(error)")
+                            print(error)
+                        default:
+                            settingsModel.keychainId = nil
+                            cloudCache.hasPrivateCloudAccess =  false
+                            analytics?.track(name: "error \(error)")
+                            print(error)
+                        }
                     }
                 }
                 .onAppear {

@@ -122,7 +122,7 @@ extension PersonalizedSearchSession {
         guard let identity = identity, let token = token else {
             throw PersonalizedSearchSessionError.NoUserFound
         }
-        
+                
         cloudCache.storeFoursquareIdentityAndToken(for: identity, oauthToken: token)
         
         return true

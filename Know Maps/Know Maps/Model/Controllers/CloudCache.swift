@@ -23,6 +23,12 @@ open class CloudCache : NSObject, ObservableObject {
     private var desc:String = ""
     private var fsqUserId:String = ""
     private var oauthToken:String = ""
+    
+    
+    public func clearCache() {
+        
+        
+    }
 
     
     public func fetchCloudKitUserRecordID() async throws -> CKRecord.ID?{
@@ -215,6 +221,9 @@ open class CloudCache : NSObject, ObservableObject {
                 strongSelf.oauthToken = oauthToken
             }
         }
+        
+        self.fsqUserId = fsqUserId
+        self.oauthToken = oauthToken
     }
 
     
