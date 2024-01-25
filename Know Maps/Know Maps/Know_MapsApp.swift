@@ -37,8 +37,10 @@ struct Know_MapsApp: App {
                         let userRecord = try await cloudCache.fetchCloudKitUserRecordID()
                         settingsModel.keychainId = userRecord?.recordName
                         if let keychainId = settingsModel.keychainId, !keychainId.isEmpty {
-                            cloudCache.hasPrivateCloudAccess =  true
-                            try await chatModel.retrieveFsqUser()
+                            cloudCache.hasPrivateCloudAccess =  try await chatModel.retrieveFsqUser()
+                            if !cloudCache.hasPrivateCloudAccess {
+                                
+                            }
                         }
                     } catch {
                         switch error {
@@ -63,6 +65,7 @@ struct Know_MapsApp: App {
             SettingsView()
                 .tag("Settings")
                 .onChange(of: settingsModel.appleUserId, { oldValue, newValue in
+                    
 #if os(visionOS) || os(iOS)
                     if !newValue.isEmpty, let vendorId = UIDevice().identifierForVendor {
                         analytics?.identify(userId: vendorId.uuidString)

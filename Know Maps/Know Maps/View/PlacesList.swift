@@ -29,7 +29,7 @@ struct PlacesList: View {
             VStack{
 #if os(iOS)
                 if sizeClass == .compact, UIDevice.current.userInterfaceIdiom == .phone {
-                    MapResultsView(chatHost: chatHost, model: chatModel, locationProvider: locationProvider, selectedMapItem: $selectedItem).frame(width: geo.size.width, height: geo.size.width)
+                    MapResultsView(chatHost: chatHost, model: chatModel, locationProvider: locationProvider, selectedMapItem: $selectedItem).frame(width: geo.size.width, height: geo.size.width / 3)
                 }
 #endif
                 if chatModel.featureFlags.owns(flag: .hasPremiumSubscription) {
@@ -47,7 +47,7 @@ struct PlacesList: View {
                                                         case .success(let image):
                                                             image.resizable()
                                                                  .aspectRatio(contentMode: .fill)
-                                                                 .frame(width: geo.size.width, height: geo.size.width)
+                                                                 .frame(width: geo.size.width-48, height: geo.size.width-48)
                                                         case .failure:
                                                             Image(systemName: "photo")
                                                         @unknown default:
@@ -59,8 +59,14 @@ struct PlacesList: View {
                                                         }
                                                     }
 
+                                    } else {
+                                        VStack{
+                                            Spacer()
+                                            Image(systemName: "photo")
+                                            Spacer()
+                                        }
                                     }
-                                    Rectangle().frame(width: geo.size.width, height: (geo.size.width - 48) / 4).foregroundStyle(.thinMaterial)
+                                    Rectangle().frame(width: geo.size.width-48, height: (geo.size.width) / 4).foregroundStyle(.thinMaterial)
                                     VStack {
                                         Spacer()
                                         Text(result.title)
@@ -71,14 +77,23 @@ struct PlacesList: View {
                                         HStack {
                                             if let placeResponse = result.recommendedPlaceResponse {
                                                 Text(!placeResponse.address.isEmpty ?
-                                                     placeResponse.address : placeResponse.formattedAddress ).italic().padding(EdgeInsets(top: 0, leading: 8, bottom: 0, trailing: 0))
+                                                     placeResponse.address : placeResponse.formattedAddress )
+                                                .lineLimit(1)
+                                                .italic()
+                                                    .padding(EdgeInsets(top: 0, leading: 8, bottom: 0, trailing: 0))
                                                 Spacer()
                                                 Text(distanceString(latitude: placeResponse.latitude, longitude: placeResponse.longitude)).padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 8))
                                             }
                                         }
                                     }.padding(EdgeInsets(top: 0, leading: 0, bottom: 16, trailing: 0))
                                 })
+                                .frame(width: geo.size.width-48, height: geo.size.width - 48)
                                 .clipShape(RoundedRectangle(cornerSize: CGSize(width: 16, height: 16)))
+                                .cornerRadius(16)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 16)
+                                        .stroke(.gray, lineWidth: 1)
+                                )
                             }
                             .listStyle(.automatic)
                         }, header: {

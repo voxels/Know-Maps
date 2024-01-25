@@ -15,7 +15,7 @@ public class PlaceDirectionsViewModel : ObservableObject {
     @Published public var polyline:MKPolyline?
     @Published public var transportType:MKDirectionsTransportType = .automobile
     @Published public var rawTransportType:RawTransportType = .Automobile
-    @Published public var rawLocationIdent:String = ""
+    @Published public var rawLocationIdent:String = "Current Location"
     @Published public var chatRouteResults:[ChatRouteResult]?
 
     public enum RawTransportType : String {

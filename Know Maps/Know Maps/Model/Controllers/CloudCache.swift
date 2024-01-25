@@ -119,8 +119,6 @@ open class CloudCache : NSObject, ObservableObject {
         operation.resultsLimit = 1
         operation.qualityOfService = .userInitiated
         operation.recordMatchedBlock = { recordId, result in
-            Task { @MainActor in
-                
                 do {
                     let record = try result.get()
                     if let userId = record["userId"] as? String {
@@ -133,7 +131,6 @@ open class CloudCache : NSObject, ObservableObject {
                     print(error)
                     self.analytics?.track(name: "error \(error)")
                 }
-            }
         }
         
         let success = try await withCheckedThrowingContinuation { checkedContinuation in
@@ -169,7 +166,6 @@ open class CloudCache : NSObject, ObservableObject {
         operation.resultsLimit = 1
         operation.qualityOfService = .userInteractive
         operation.recordMatchedBlock = { recordId, result in
-            Task { @MainActor in
                 
                 do {
                     let record = try result.get()
@@ -184,8 +180,7 @@ open class CloudCache : NSObject, ObservableObject {
                     print(error)
                     self.analytics?.track(name: "error \(error)")
                 }
-                
-            }
+
         }
         
         let success = try await withCheckedThrowingContinuation { checkedContinuation in

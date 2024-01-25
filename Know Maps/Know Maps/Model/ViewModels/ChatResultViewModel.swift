@@ -198,14 +198,14 @@ public class ChatResultViewModel : ObservableObject {
     
     @discardableResult
     public func retrieveFsqUser() async throws -> Bool {
-        if !cloudCache.hasPrivateCloudAccess {
-            return false
-        }
-        
         personalizedSearchSession.fsqIdentity = try await personalizedSearchSession.fetchManagedUserIdentity()
         personalizedSearchSession.fsqAccessToken = try await personalizedSearchSession.fetchManagedUserAccessToken()
         
-        return personalizedSearchSession.fsqAccessToken != nil
+        if personalizedSearchSession.fsqIdentity == nil {
+            return try await personalizedSearchSession.addFoursquareManagedUserIdentity()
+        }
+
+        return true
     }
     
     @MainActor

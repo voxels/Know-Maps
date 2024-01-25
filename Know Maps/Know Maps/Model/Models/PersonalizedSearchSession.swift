@@ -41,11 +41,7 @@ open class PersonalizedSearchSession {
 extension PersonalizedSearchSession {
     @discardableResult
     public func fetchManagedUserIdentity() async throws ->String? {
-        var cloudFsqIdentity = try await cloudCache.fetchFsqIdentity()
-        if cloudFsqIdentity.isEmpty, cloudCache.hasPrivateCloudAccess {
-            try await addFoursquareManagedUserIdentity()
-            cloudFsqIdentity = try await cloudCache.fetchFsqIdentity()
-        }
+        let cloudFsqIdentity = try await cloudCache.fetchFsqIdentity()
         
         guard !cloudFsqIdentity.isEmpty else {
             return nil
@@ -81,7 +77,7 @@ extension PersonalizedSearchSession {
     }
     
     @discardableResult
-    private func addFoursquareManagedUserIdentity() async throws -> Bool {
+    public func addFoursquareManagedUserIdentity() async throws -> Bool {
         let apiKey = try await fetchFoursquareServiceAPIKey()
         
         if searchSession == nil {
@@ -104,8 +100,6 @@ extension PersonalizedSearchSession {
         guard let response = userCreationResponse as? [String:Any] else {
             return false
         }
-                        
-        print(response)
         
         var identity:String? = nil
         var token:String? = nil
