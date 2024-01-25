@@ -27,6 +27,7 @@ open class PersonalizedSearchSession {
     static let userManagementAPIUrl = "v2/usermanagement"
     static let userManagementCreationPath = "/createuser"
     static let tasteSuggestionsAPIUrl = "v2/tastes/suggestions"
+    static let venueRecommendationsAPIUrl = "v2/search/recommendations"
     static let foursquareVersionDate = "20240101"
     
     public init(cloudCache: CloudCache, searchSession:URLSession? = nil) {
@@ -127,6 +128,96 @@ extension PersonalizedSearchSession {
 }
 
 extension PersonalizedSearchSession {
+    
+    public func fetchRecommendedVenues(with request:RecommendedPlaceSearchRequest, location:CLLocation?) async throws -> [String:Any]{
+        let apiKey = try await fetchManagedUserAccessToken()
+        
+        if searchSession == nil {
+            let sessionConfiguration = URLSessionConfiguration.default
+            let session = URLSession(configuration: sessionConfiguration)
+            searchSession = session
+        }
+        
+        guard !apiKey.isEmpty, searchSession != nil else {
+            throw PersonalizedSearchSessionError.UnsupportedRequest
+        }
+        
+        var components = URLComponents(string:"\(PersonalizedSearchSession.serverUrl)\(PersonalizedSearchSession.venueRecommendationsAPIUrl)")
+        
+        components?.queryItems = [URLQueryItem]()
+        if request.query.count > 0 {
+            let queryItem = URLQueryItem(name: "query", value: request.query)
+            components?.queryItems?.append(queryItem)
+        }
+        
+        if let location = location, request.nearLocation == nil {
+            let rawLocation = "\(location.coordinate.latitude),\(location.coordinate.longitude)"
+            let radius = request.radius
+            let radiusQueryItem = URLQueryItem(name: "radius", value: "\(radius)")
+            components?.queryItems?.append(radiusQueryItem)
+            
+            let locationQueryItem = URLQueryItem(name: "ll", value: rawLocation)
+            components?.queryItems?.append(locationQueryItem)
+        } else {
+            var value = request.radius
+            if let nearLocation = request.nearLocation, !nearLocation.isEmpty {
+                value = 15000
+            }
+            let radiusQueryItem = URLQueryItem(name: "radius", value: "\(value)")
+            components?.queryItems?.append(radiusQueryItem)
+
+            if let rawLocation = request.ll {
+                let locationQueryItem = URLQueryItem(name: "ll", value: rawLocation)
+                components?.queryItems?.append(locationQueryItem)
+            }
+        }
+        
+        if let categories = request.categories {
+            let categoriesQueryItem = URLQueryItem(name:"categories", value:categories)
+            components?.queryItems?.append(categoriesQueryItem)
+        }
+        
+        if request.minPrice > 1 {
+            let minPriceQueryItem = URLQueryItem(name: "price", value: "\(request.minPrice)")
+            components?.queryItems?.append(minPriceQueryItem)
+        }
+
+        if request.maxPrice < 4 {
+            let maxPriceQueryItem = URLQueryItem(name: "price", value: "\(request.maxPrice)")
+            components?.queryItems?.append(maxPriceQueryItem)
+
+        }
+        
+        if request.openNow == true {
+            let openNowQueryItem = URLQueryItem(name: "open_now", value: "true")
+            components?.queryItems?.append(openNowQueryItem)
+        }
+        
+        let limitQueryItem = URLQueryItem(name: "limit", value: "\(request.limit)")
+        components?.queryItems?.append(limitQueryItem)
+        
+        let offsetQueryItem = URLQueryItem(name: "offset", value: "\(request.offset)")
+        components?.queryItems?.append(offsetQueryItem)
+        
+        guard let url = components?.url else {
+            throw PersonalizedSearchSessionError.UnsupportedRequest
+        }
+        
+        let response = try await fetch(url: url, apiKey: apiKey, urlQueryItems: components?.queryItems)
+        
+        guard let response = response as? [String:Any] else {
+            throw PersonalizedSearchSessionError.NoTasteFound
+        }
+                        
+        var retval = [String:Any]()
+        if let responseDict = response["response"] as? [String:Any] {
+            print(responseDict)
+            retval = responseDict
+        }
+
+        return retval
+    }
+    
     public func fetchTastes(page:Int) async throws -> [String] {
         let apiKey = try await fetchManagedUserAccessToken()
         

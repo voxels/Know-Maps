@@ -89,6 +89,7 @@ struct NavigationLocationView: View {
                     }
                 }
             }
+            .listStyle(.sidebar)
             .autocorrectionDisabled(true)
             .searchable(text: $chatModel.locationSearchText, isPresented:$searchIsPresented)
             .onSubmit(of: .search, {
@@ -182,7 +183,9 @@ struct NavigationLocationView: View {
     
     let chatHost = AssistiveChatHost()
     let cloudCache = CloudCache()
-    let chatModel = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cloudCache)
+    let featureFlags = FeatureFlags(cloudCache: cloudCache)
+
+    let chatModel = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cloudCache, featureFlags:featureFlags)
     
     chatModel.assistiveHostDelegate = chatHost
     chatHost.messagesDelegate = chatModel

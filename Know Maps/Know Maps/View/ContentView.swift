@@ -21,6 +21,7 @@ struct ContentView: View {
     @ObservedObject public var chatHost:AssistiveChatHost
     @StateObject public var chatModel:ChatResultViewModel
     @StateObject public var locationProvider:LocationProvider
+    @StateObject public var featureFlags:FeatureFlags
     @StateObject public var placeDirectionsChatViewModel = PlaceDirectionsViewModel(rawLocationIdent: "")
     @State private var selectedItem: String?
     @State private var detailNavigationTitle:String = ""
@@ -159,7 +160,8 @@ struct ContentView: View {
 #Preview {
     let locationProvider = LocationProvider()
     let cloudCache = CloudCache()
-    let chatModel = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cloudCache)
+    let featureFlags = FeatureFlags(cloudCache: cloudCache)
+    let chatModel = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cloudCache, featureFlags: featureFlags)
     let chatHost = AssistiveChatHost()
-    return ContentView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider)
+    return ContentView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, featureFlags: featureFlags)
 }

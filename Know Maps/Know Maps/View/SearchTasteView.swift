@@ -82,6 +82,7 @@ struct SearchTasteView: View {
                     }
                 }
             }
+            .listStyle(.sidebar)
             .onAppear {
                 guard model.tasteResults.isEmpty else {
                     return
@@ -145,7 +146,9 @@ struct SearchTasteView: View {
 #Preview {
     let locationProvider = LocationProvider()
     let cloudCache = CloudCache()
-    let chatModel = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cloudCache)
+    let featureFlags = FeatureFlags(cloudCache: cloudCache)
+
+    let chatModel = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cloudCache, featureFlags: featureFlags)
     
     return SearchTasteView(model: chatModel)
 }

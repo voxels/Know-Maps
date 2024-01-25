@@ -130,6 +130,15 @@
 		1E7121352B60136200758259 /* PlaceDescriptionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E7121342B60136200758259 /* PlaceDescriptionView.swift */; };
 		1E7121362B60136200758259 /* PlaceDescriptionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E7121342B60136200758259 /* PlaceDescriptionView.swift */; };
 		1E7121372B60136200758259 /* PlaceDescriptionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E7121342B60136200758259 /* PlaceDescriptionView.swift */; };
+		1E7121392B61472900758259 /* FeatureFlags.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E7121382B61472800758259 /* FeatureFlags.swift */; };
+		1E71213A2B61472900758259 /* FeatureFlags.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E7121382B61472800758259 /* FeatureFlags.swift */; };
+		1E71213B2B61472900758259 /* FeatureFlags.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E7121382B61472800758259 /* FeatureFlags.swift */; };
+		1E71213D2B6160A500758259 /* RecommendedPlaceSearchRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E71213C2B6160A500758259 /* RecommendedPlaceSearchRequest.swift */; };
+		1E71213E2B6160A500758259 /* RecommendedPlaceSearchRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E71213C2B6160A500758259 /* RecommendedPlaceSearchRequest.swift */; };
+		1E71213F2B6160A500758259 /* RecommendedPlaceSearchRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E71213C2B6160A500758259 /* RecommendedPlaceSearchRequest.swift */; };
+		1E7121412B616C6400758259 /* RecommendedPlaceSearchResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E7121402B616C6400758259 /* RecommendedPlaceSearchResponse.swift */; };
+		1E7121422B616C6400758259 /* RecommendedPlaceSearchResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E7121402B616C6400758259 /* RecommendedPlaceSearchResponse.swift */; };
+		1E7121432B616C6400758259 /* RecommendedPlaceSearchResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E7121402B616C6400758259 /* RecommendedPlaceSearchResponse.swift */; };
 		1E98C7CD2B18B5F400283E92 /* Segment in Frameworks */ = {isa = PBXBuildFile; productRef = 1E98C7CC2B18B5F400283E92 /* Segment */; };
 		1E98C7CF2B18DC2200283E92 /* ChatHostingViewControllerDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E98C7CE2B18DC2200283E92 /* ChatHostingViewControllerDelegate.swift */; };
 		1E98C7D12B18DC4100283E92 /* AssistiveChatHostStreamResponseDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E98C7D02B18DC4100283E92 /* AssistiveChatHostStreamResponseDelegate.swift */; };
@@ -253,6 +262,9 @@
 		1E70B4C82B50113200F1F9F5 /* SearchSavedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchSavedView.swift; sourceTree = "<group>"; };
 		1E70B4D02B50120500F1F9F5 /* SearchTasteView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchTasteView.swift; sourceTree = "<group>"; };
 		1E7121342B60136200758259 /* PlaceDescriptionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceDescriptionView.swift; sourceTree = "<group>"; };
+		1E7121382B61472800758259 /* FeatureFlags.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeatureFlags.swift; sourceTree = "<group>"; };
+		1E71213C2B6160A500758259 /* RecommendedPlaceSearchRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecommendedPlaceSearchRequest.swift; sourceTree = "<group>"; };
+		1E7121402B616C6400758259 /* RecommendedPlaceSearchResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecommendedPlaceSearchResponse.swift; sourceTree = "<group>"; };
 		1E98C7CE2B18DC2200283E92 /* ChatHostingViewControllerDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatHostingViewControllerDelegate.swift; sourceTree = "<group>"; };
 		1E98C7D02B18DC4100283E92 /* AssistiveChatHostStreamResponseDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistiveChatHostStreamResponseDelegate.swift; sourceTree = "<group>"; };
 		1E98C7D22B18DC7400283E92 /* AssistiveChatHostIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistiveChatHostIntent.swift; sourceTree = "<group>"; };
@@ -468,6 +480,9 @@
 				1EA7F77E2B052D92002AE371 /* PlaceResponseFormatter.swift */,
 				1EA7F7752B052D92002AE371 /* PlaceSearchSession.swift */,
 				1EEC48182B45A4B300248D69 /* UserCachedRecord.swift */,
+				1EB4EE862B4EC072003AD112 /* PersonalizedSearchSession.swift */,
+				1E71213C2B6160A500758259 /* RecommendedPlaceSearchRequest.swift */,
+				1E7121402B616C6400758259 /* RecommendedPlaceSearchResponse.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -494,7 +509,7 @@
 				1EA7F7762B052D92002AE371 /* LanguageGenerator.swift */,
 				1EA7F7742B052D92002AE371 /* LanguageGeneratorSession.swift */,
 				1EA7F77A2B052D92002AE371 /* LocationProvider.swift */,
-				1EB4EE862B4EC072003AD112 /* PersonalizedSearchSession.swift */,
+				1E7121382B61472800758259 /* FeatureFlags.swift */,
 			);
 			path = Controllers;
 			sourceTree = "<group>";
@@ -944,14 +959,17 @@
 				1E26C7852B2C757A0050EC6A /* LanguageGeneratorSession.swift in Sources */,
 				1E26C79C2B2C758C0050EC6A /* AssistiveChatHostDelegate.swift in Sources */,
 				1E26C78E2B2C75830050EC6A /* PlaceTipsResponse.swift in Sources */,
+				1E71213B2B61472900758259 /* FeatureFlags.swift in Sources */,
 				1E26C78A2B2C757E0050EC6A /* SearchQueryResponseViewModel.swift in Sources */,
 				1E26C7A22B2C75A20050EC6A /* MapResultsView.swift in Sources */,
 				1E26C7A72B2C75A20050EC6A /* ImmersiveView.swift in Sources */,
 				1E26C7A42B2C75A20050EC6A /* PlaceView.swift in Sources */,
 				1E4481E02B499D3F00FD2EEF /* AddListItemView.swift in Sources */,
 				1E26C7802B2C757A0050EC6A /* LocalMapsQueryClassifier.mlmodel in Sources */,
+				1E71213F2B6160A500758259 /* RecommendedPlaceSearchRequest.swift in Sources */,
 				1E26C79A2B2C758C0050EC6A /* ChatHostingViewControllerDelegate.swift in Sources */,
 				1E26C78C2B2C75830050EC6A /* PlaceDetailsRequest.swift in Sources */,
+				1E7121432B616C6400758259 /* RecommendedPlaceSearchResponse.swift in Sources */,
 				1E26C77D2B2C755F0050EC6A /* Know_MapsApp.swift in Sources */,
 				1E26C78F2B2C75830050EC6A /* CategoryResult.swift in Sources */,
 				1E26C7962B2C75830050EC6A /* PlaceSearchResponse.swift in Sources */,
@@ -997,6 +1015,7 @@
 				1E6F4ACF2B20F453001E701B /* LocationResult.swift in Sources */,
 				1E6F4AE22B20F453001E701B /* AssistiveChatHostIntent.swift in Sources */,
 				1E6F4AE62B20F453001E701B /* ChatResultViewModel.swift in Sources */,
+				1E7121422B616C6400758259 /* RecommendedPlaceSearchResponse.swift in Sources */,
 				1E6F4AE92B20F453001E701B /* PlaceResponseFormatter.swift in Sources */,
 				1E70B4D22B50120500F1F9F5 /* SearchTasteView.swift in Sources */,
 				1E6F4AD62B20F453001E701B /* Know_MapsApp.swift in Sources */,
@@ -1004,6 +1023,7 @@
 				1E70B4C62B50103C00F1F9F5 /* SearchCategoryView.swift in Sources */,
 				1E6F4AEA2B20F453001E701B /* MapResultsView.swift in Sources */,
 				1E6F4AFB2B20F453001E701B /* PlaceAboutView.swift in Sources */,
+				1E71213A2B61472900758259 /* FeatureFlags.swift in Sources */,
 				1E6F4AD82B20F453001E701B /* ChatHostingViewControllerDelegate.swift in Sources */,
 				1E6F4AFD2B20F453001E701B /* PlaceTipsView.swift in Sources */,
 				1E6F4AFC2B20F453001E701B /* CategoryResult.swift in Sources */,
@@ -1021,6 +1041,7 @@
 				1E6F4AF22B20F453001E701B /* LocalMapsQueryTagger.mlmodel in Sources */,
 				1E6F4AEB2B20F453001E701B /* LanguageGeneratorSession.swift in Sources */,
 				1E70B4CA2B50113200F1F9F5 /* SearchSavedView.swift in Sources */,
+				1E71213E2B6160A500758259 /* RecommendedPlaceSearchRequest.swift in Sources */,
 				1E4481DF2B499D3F00FD2EEF /* AddListItemView.swift in Sources */,
 				1E6F4ADC2B20F453001E701B /* PlaceDirectionsView.swift in Sources */,
 				1E6F4AD72B20F453001E701B /* PlaceDetailsResponse.swift in Sources */,
@@ -1097,14 +1118,17 @@
 				1E98C7D32B18DC7400283E92 /* AssistiveChatHostIntent.swift in Sources */,
 				1EA7F76B2B04FF4D002AE371 /* MapResultsView.swift in Sources */,
 				1EA7F78C2B052D92002AE371 /* SearchQueryResponseViewModel.swift in Sources */,
+				1E7121392B61472900758259 /* FeatureFlags.swift in Sources */,
 				1E98C7D72B18DCF900283E92 /* ChatResultViewModelDelegate.swift in Sources */,
 				1E98C7D12B18DC4100283E92 /* AssistiveChatHostStreamResponseDelegate.swift in Sources */,
 				1EE068882B0D1ADB0016851A /* SettingsView.swift in Sources */,
 				1EE0688C2B0D1E930016851A /* PlacePhotosView.swift in Sources */,
 				1E4481DE2B499D3F00FD2EEF /* AddListItemView.swift in Sources */,
 				1EE068922B0FBADE0016851A /* ChatRouteResult.swift in Sources */,
+				1E71213D2B6160A500758259 /* RecommendedPlaceSearchRequest.swift in Sources */,
 				1EA7F7832B052D92002AE371 /* LanguageGeneratorRequest.swift in Sources */,
 				1EE0688E2B0D1EB40016851A /* PlaceTipsView.swift in Sources */,
+				1E7121412B616C6400758259 /* RecommendedPlaceSearchResponse.swift in Sources */,
 				1EA7F7512B03FA71002AE371 /* ImmersiveView.swift in Sources */,
 				1EA7F7872B052D92002AE371 /* LanguageGenerator.swift in Sources */,
 				1EA7F79A2B052E0C002AE371 /* LocalMapsQueryClassifier.mlmodel in Sources */,

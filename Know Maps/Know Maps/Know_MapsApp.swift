@@ -25,7 +25,9 @@ struct Know_MapsApp: App {
     
     var body: some Scene {
         WindowGroup(id:"ContentView") {
-            ContentView(chatHost: chatHost, chatModel: ChatResultViewModel(locationProvider: locationProvider, cloudCache: cloudCache), locationProvider: locationProvider)
+            let featureFlags = FeatureFlags(cloudCache: cloudCache)
+            let chatModel = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cloudCache, featureFlags: featureFlags)
+            ContentView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, featureFlags: featureFlags)
                 .environmentObject(cloudCache)
                 .environmentObject(settingsModel)
                 .task { @MainActor in
@@ -35,9 +37,8 @@ struct Know_MapsApp: App {
                         let userRecord = try await cloudCache.fetchCloudKitUserRecordID()
                         settingsModel.keychainId = userRecord?.recordName
                         if let keychainId = settingsModel.keychainId, !keychainId.isEmpty {
-                            await MainActor.run {
-                                cloudCache.hasPrivateCloudAccess = true
-                            }
+                            cloudCache.hasPrivateCloudAccess =  true
+                            try await chatModel.retrieveFsqUser()
                         }
                     } catch {
                         analytics?.track(name: "error \(error)")

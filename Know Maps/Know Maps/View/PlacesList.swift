@@ -26,43 +26,108 @@ struct PlacesList: View {
     
     var body: some View {
         GeometryReader { geo in
-        VStack{
-            #if os(iOS)
-            if sizeClass == .compact, UIDevice.current.userInterfaceIdiom == .phone {
-                MapResultsView(chatHost: chatHost, model: chatModel, locationProvider: locationProvider, selectedMapItem: $selectedItem).frame(width: geo.size.width, height: geo.size.width)
-            }
-            #endif
-            Section() {
-                List(chatModel.filteredPlaceResults,selection: $resultId){ result in
-                    VStack {
-                        HStack {
-                            Text(result.title)
-                            Spacer()
-                        }
-                        HStack {
-                            if let placeResponse = result.placeResponse {
-                                Text(placeResponse.locality).italic()
-                                Spacer()
-                                Text(distanceString(for:placeResponse))
+            VStack{
+#if os(iOS)
+                if sizeClass == .compact, UIDevice.current.userInterfaceIdiom == .phone {
+                    MapResultsView(chatHost: chatHost, model: chatModel, locationProvider: locationProvider, selectedMapItem: $selectedItem).frame(width: geo.size.width, height: geo.size.width)
+                }
+#endif
+                if chatModel.featureFlags.owns(flag: .hasPremiumSubscription) {
+                    
+                    if chatModel.recommendedPlaceResults.count > 0 {
+                        
+                        Section(content: {
+                            List(chatModel.recommendedPlaceResults,selection: $resultId){ result in
+                                VStack {
+                                    HStack {
+                                        Text(result.title)
+                                        Spacer()
+                                    }
+                                    if let neighborhood = result.recommendedPlaceResponse?.neighborhood, !neighborhood.isEmpty {
+                                        HStack {
+                                            Text(neighborhood).italic()
+                                            Spacer()
+                                        }
+                                    }
+                                    HStack {
+                                        if let placeResponse = result.recommendedPlaceResponse {
+                                            Text(placeResponse.formattedAddress).italic()
+                                            Spacer()
+                                            Text(distanceString(latitude: placeResponse.latitude, longitude: placeResponse.longitude))
+                                        }
+                                    }
+                                }
+                            }
+                            .listStyle(.sidebar)
+                        }, header: {
+                            Text("Recommended Places")
+                        }, footer: {
+                            
+                        })
+                    }
+                    
+                    if chatModel.relatedPlaceResults.count > 0 {
+                        
+                        Section(content: {
+                            List(chatModel.filteredPlaceResults,selection: $resultId){ result in
+                                VStack {
+                                    HStack {
+                                        Text(result.title)
+                                        Spacer()
+                                    }
+                                    HStack {
+                                        if let placeResponse = result.placeResponse {
+                                            
+                                            Text(placeResponse.formattedAddress).italic()
+                                            Spacer()
+                                            Text(distanceString(latitude: placeResponse.latitude, longitude: placeResponse.longitude))
+                                        }
+                                    }
+                                }
+                            }
+                            .listStyle(.sidebar)
+                        }, header: {
+                            Text("Related Places")
+                        }, footer: {
+                            
+                        })
+                    }
+                    
+                } else {
+                    Section(content: {
+                        List(chatModel.filteredPlaceResults,selection: $resultId){ result in
+                            VStack {
+                                HStack {
+                                    Text(result.title)
+                                    Spacer()
+                                }
+                                HStack {
+                                    if let placeResponse = result.placeResponse {
+                                        Text(placeResponse.formattedAddress).italic()
+                                        Spacer()
+                                        Text(distanceString(latitude: placeResponse.latitude, longitude: placeResponse.longitude))
+                                    }
+                                }
                             }
                         }
-                    }
+                        .listStyle(.sidebar)
+                    }, header: {
+                        if chatModel.featureFlags.owns(flag: .hasPremiumSubscription){
+                            Text("Matching Places")
+                        }
+                    }, footer: {
+                        let totalResultsFound = chatModel.filteredPlaceResults.count + chatModel.recommendedPlaceResults.count + chatModel.relatedPlaceResults.count
+                        Text("\(totalResultsFound) places found")
+                    })
                 }
-            } footer: {
-                Text("\(chatModel.filteredPlaceResults.count) places found").padding(16)
             }
-            .padding(EdgeInsets(top: 8, leading: 0, bottom: 0, trailing: 0))
-        }
         }
         
     }
     
-    func distanceString(for placeResponse:PlaceSearchResponse?)->String {
+    func distanceString(latitude:Double, longitude:Double)->String {
         var retval = ""
-        guard let placeResponse = placeResponse else {
-            return retval
-            
-        }
+
         
         var queryLocation = locationProvider.currentLocation()
         
@@ -78,7 +143,7 @@ struct PlacesList: View {
             return retval
         }
         
-        let placeResponseLocation = CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude)
+        let placeResponseLocation = CLLocation(latitude: latitude, longitude: longitude)
         
         let distance = queryLocation.distance(from: placeResponseLocation)
         
@@ -102,7 +167,9 @@ struct PlacesList: View {
     
     let chatHost = AssistiveChatHost()
     let cloudCache = CloudCache()
-    let chatModel = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cloudCache)
+    let featureFlags = FeatureFlags(cloudCache: cloudCache)
+    
+    let chatModel = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cloudCache, featureFlags: featureFlags)
     
     chatModel.assistiveHostDelegate = chatHost
     chatHost.messagesDelegate = chatModel

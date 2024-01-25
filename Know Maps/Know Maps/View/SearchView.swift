@@ -99,7 +99,9 @@ struct SearchView: View {
     let locationProvider = LocationProvider()
     let chatHost = AssistiveChatHost()
     let cloudCache = CloudCache()
-    let chatModel = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cloudCache)
+    let featureFlags = FeatureFlags(cloudCache: cloudCache)
+
+    let chatModel = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cloudCache, featureFlags: featureFlags)
     
     chatModel.assistiveHostDelegate = chatHost
     chatHost.messagesDelegate = chatModel

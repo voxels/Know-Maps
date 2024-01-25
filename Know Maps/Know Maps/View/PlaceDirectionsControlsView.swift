@@ -104,7 +104,9 @@ struct PlaceDirectionsControlsView: View {
     let locationProvider = LocationProvider()
     
     let cloudCache = CloudCache()
-    let chatModel = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cloudCache)
+    let featureFlags = FeatureFlags(cloudCache: cloudCache)
+
+    let chatModel = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cloudCache, featureFlags: featureFlags)
     
     return PlaceDirectionsControlsView(chatModel: chatModel, model: model, showLookAroundScene: .constant(false), lookAroundScene: .constant(nil))
 }
