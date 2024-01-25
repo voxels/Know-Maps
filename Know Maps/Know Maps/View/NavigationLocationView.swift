@@ -118,7 +118,7 @@ struct NavigationLocationView: View {
                                 do {
                                     if let name = try await chatModel.currentLocationName() {
                                         chatModel.currentLocationResult.replaceLocation(with: location, name: name)
-                                        if chatModel.selectedSourceLocationChatResult == nil {
+                                        if chatModel.selectedSourceLocationChatResult == nil, chatModel.currentLocationResult.location != nil {
                                             chatModel.selectedSourceLocationChatResult = chatModel.currentLocationResult.id
                                         }
                                         try await chatModel.didSearch(caption:chatModel.locationSearchText, selectedDestinationChatResultID:chatModel.currentLocationResult.id)
@@ -163,7 +163,7 @@ struct NavigationLocationView: View {
                             chatModel.currentLocationResult.replaceLocation(with: location, name:name )
                         }
                         
-                        if chatModel.selectedSourceLocationChatResult == nil {
+                        if chatModel.selectedSourceLocationChatResult == nil, chatModel.currentLocationResult.location != nil {
                             chatModel.selectedSourceLocationChatResult = chatModel.currentLocationResult.id
                         }
                         

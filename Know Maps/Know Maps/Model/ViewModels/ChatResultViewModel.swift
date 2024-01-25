@@ -72,7 +72,22 @@ public class ChatResultViewModel : ObservableObject {
     }
     
     public var filteredRecommendedPlaceResults:[ChatResult] {
-        return recommendedPlaceResults
+        get {
+            var retval = recommendedPlaceResults
+
+            if let selectedSourceLocationChatResult = selectedSourceLocationChatResult, let locationChatResult = locationChatResult(for: selectedSourceLocationChatResult), let location = locationChatResult.location {
+                retval.sort { result, checkResult in
+                    guard let placeResponse = result.placeResponse, let checkPlaceResponse = checkResult.placeResponse else {
+                        return false
+                    }
+                    let resultLocation = CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude)
+                    let checkResultLocation = CLLocation(latitude: checkPlaceResponse.latitude, longitude: checkPlaceResponse.longitude)
+                    return resultLocation.distance(from: location) < checkResultLocation.distance(from: location)
+                }
+            }
+        
+            return retval
+        }
     }
     
     public var filteredLocationResults:[LocationResult] {
@@ -755,9 +770,9 @@ public class ChatResultViewModel : ObservableObject {
         if intent.caption == caption, !intent.placeSearchResponses.isEmpty {
             // Do nothing
         } else {
-            let autocompleteResponse = try await placeSearchSession.autocomplete(caption: caption, parameters: intent.queryParameters, location: location)
-            let placeSearchResponses = try PlaceResponseFormatter.autocompletePlaceSearchResponses(with: autocompleteResponse)
-            intent.placeSearchResponses = placeSearchResponses
+                let autocompleteResponse = try await placeSearchSession.autocomplete(caption: caption, parameters: intent.queryParameters, location: location)
+                let placeSearchResponses = try PlaceResponseFormatter.autocompletePlaceSearchResponses(with: autocompleteResponse)
+                intent.placeSearchResponses = placeSearchResponses
         }
         
             
@@ -887,6 +902,9 @@ public class ChatResultViewModel : ObservableObject {
         if let response = intent.selectedPlaceSearchResponse, let details = intent.selectedPlaceSearchDetails {
             let results = PlaceResponseFormatter.placeChatResults(for: intent, place: response, details: details, recommendedPlaceResponse: intent.selectedRecommendedPlaceSearchResponse)
             chatResults.append(contentsOf: results)
+            if let selectedChatResult = results.first {
+                selectedPlaceChatResult = selectedChatResult.id
+            }
         }
         
         if !intent.placeSearchResponses.isEmpty {
@@ -897,7 +915,7 @@ public class ChatResultViewModel : ObservableObject {
                 }
             }
         }
-
+        
         locationSearchText = intent.caption
         placeResults = chatResults
         recommendedPlaceQueryModel(intent: intent)
@@ -930,7 +948,11 @@ public class ChatResultViewModel : ObservableObject {
                     }
                 }
             }
-            
+        } else if intent.recommendedPlaceSearchResponses == nil {
+            for response in intent.placeSearchResponses {
+                let results = PlaceResponseFormatter.placeChatResults(for: intent, place: response, details: nil, recommendedPlaceResponse: RecommendedPlaceSearchResponse(fsqID: response.fsqID, name: response.name, categories: response.categories, latitude: response.latitude, longitude: response.longitude, neighborhood: response.dma, address: response.address, country: response.country, city: "", state: response.region, postCode: response.postCode, formattedAddress: response.formattedAddress, photo: nil, photos: [], tastes: []))
+                recommendedChatResults.append(contentsOf: results)
+            }
         }
         
         recommendedPlaceResults = recommendedChatResults

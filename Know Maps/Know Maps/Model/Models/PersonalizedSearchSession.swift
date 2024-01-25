@@ -7,6 +7,7 @@
 
 import Foundation
 import CloudKit
+import NaturalLanguage
 
 public enum PersonalizedSearchSessionError : Error {
     case UnsupportedRequest
@@ -28,6 +29,7 @@ open class PersonalizedSearchSession {
     static let userManagementCreationPath = "/createuser"
     static let tasteSuggestionsAPIUrl = "v2/tastes/suggestions"
     static let venueRecommendationsAPIUrl = "v2/search/recommendations"
+    static let autocompleteAPIUrl = "v2/search/autocomplete"
     static let foursquareVersionDate = "20240101"
     
     public init(cloudCache: CloudCache, searchSession:URLSession? = nil) {
@@ -128,6 +130,98 @@ extension PersonalizedSearchSession {
 }
 
 extension PersonalizedSearchSession {
+    
+    public func autocomplete(caption:String, parameters:[String:Any]?, location:CLLocation) async throws -> [String:Any] {
+        
+        
+        let apiKey = try await fetchManagedUserAccessToken()
+        
+        if searchSession == nil {
+            let sessionConfiguration = URLSessionConfiguration.default
+            let session = URLSession(configuration: sessionConfiguration)
+            searchSession = session
+        }
+        
+        let ll = "\(location.coordinate.latitude),\(location.coordinate.longitude)"
+        var limit = 50
+        var nameString:String = ""
+        
+        if let parameters = parameters, let rawQuery = parameters["query"] as? String {
+            nameString = rawQuery
+        } else {
+            let tagger = NLTagger(tagSchemes: [.nameTypeOrLexicalClass])
+            tagger.string = caption
+
+            let options: NLTagger.Options = [.omitPunctuation, .omitWhitespace, .joinNames]
+            let tags: [NLTag] = [.personalName, .placeName, .organizationName, .noun, .adjective]
+
+
+            tagger.enumerateTags(in: caption.startIndex..<caption.endIndex, unit: .word, scheme: .nameTypeOrLexicalClass, options: options) { tag, tokenRange in
+                // Get the most likely tag, and print it if it's a named entity.
+                if let tag = tag, tags.contains(tag) {
+                    print("\(caption[tokenRange]): \(tag.rawValue)")
+                    nameString.append("\(caption[tokenRange]) ")
+                }
+                    
+                // Get multiple possible tags with their associated confidence scores.
+                let (hypotheses, _) = tagger.tagHypotheses(at: tokenRange.lowerBound, unit: .word, scheme: .nameTypeOrLexicalClass, maximumCount: 1)
+                print(hypotheses)
+                    
+               return true
+            }
+        }
+        
+        if let parameters = parameters, let rawParameters = parameters["parameters"] as? NSDictionary {
+            
+            if let rawLimit = rawParameters["limit"] as? Int {
+                limit = rawLimit
+            }
+        }
+        
+        var queryComponents = URLComponents(string:"\(PersonalizedSearchSession.serverUrl)\(PersonalizedSearchSession.autocompleteAPIUrl)")
+        queryComponents?.queryItems = [URLQueryItem]()
+
+        if nameString.count > 0 {
+            let queryUrlItem = URLQueryItem(name: "query", value: nameString.trimmingCharacters(in: .whitespacesAndNewlines))
+            queryComponents?.queryItems?.append(queryUrlItem)
+        } else {
+            let queryUrlItem = URLQueryItem(name: "query", value: caption)
+            queryComponents?.queryItems?.append(queryUrlItem)
+        }
+        
+        if ll.count > 0 {
+            let locationQueryItem = URLQueryItem(name: "ll", value: ll)
+            queryComponents?.queryItems?.append(locationQueryItem)
+            
+            var value = 2000
+            if caption.contains("near") {
+                value = 100000
+            }
+            let radiusQueryItem = URLQueryItem(name: "radius", value:"\(value)")
+            queryComponents?.queryItems?.append(radiusQueryItem)
+        }
+        
+        let limitQueryItem = URLQueryItem(name: "limit", value: "\(limit)")
+        queryComponents?.queryItems?.append(limitQueryItem)
+
+        guard let url = queryComponents?.url else {
+            throw PlaceSearchSessionError.UnsupportedRequest
+        }
+        
+        let placeSearchResponse = try await fetch(url: url, apiKey: apiKey, urlQueryItems: queryComponents?.queryItems)
+        
+        guard let response = placeSearchResponse as? [String:Any] else {
+            return [String:Any]()
+        }
+                
+        var retval = [String:Any]()
+        if let responseDict = response["response"] as? [String:Any] {
+            print(responseDict)
+            retval = responseDict
+        }
+
+        return retval
+    }
     
     public func fetchRecommendedVenues(with request:RecommendedPlaceSearchRequest, location:CLLocation?) async throws -> [String:Any]{
         let apiKey = try await fetchManagedUserAccessToken()

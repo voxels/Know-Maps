@@ -136,7 +136,7 @@ struct ContentView: View {
                     
                     try await chatModel.refreshCachedLocations(cloudCache: chatModel.cloudCache)
                     
-                    if chatModel.selectedSourceLocationChatResult == nil {
+                    if chatModel.selectedSourceLocationChatResult == nil, chatModel.currentLocationResult.location != nil {
                         chatModel.selectedSourceLocationChatResult = chatModel.currentLocationResult.id
                     }
                     

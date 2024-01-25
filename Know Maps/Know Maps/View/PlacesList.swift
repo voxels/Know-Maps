@@ -37,7 +37,7 @@ struct PlacesList: View {
                     if chatModel.recommendedPlaceResults.count > 0 {
                         
                         Section(content: {
-                            List(chatModel.recommendedPlaceResults,selection: $resultId){ result in
+                            List(chatModel.filteredRecommendedPlaceResults,selection: $resultId){ result in
                                 VStack {
                                     HStack {
                                         Text(result.title)
@@ -51,7 +51,8 @@ struct PlacesList: View {
                                     }
                                     HStack {
                                         if let placeResponse = result.recommendedPlaceResponse {
-                                            Text(placeResponse.formattedAddress).italic()
+                                            Text(!placeResponse.address.isEmpty ?
+                                                 placeResponse.address : placeResponse.formattedAddress ).italic()
                                             Spacer()
                                             Text(distanceString(latitude: placeResponse.latitude, longitude: placeResponse.longitude))
                                         }
@@ -60,9 +61,10 @@ struct PlacesList: View {
                             }
                             .listStyle(.sidebar)
                         }, header: {
-                            Text("Recommended Places")
+                            Text("Recommended Places").padding(8)
                         }, footer: {
-                            
+                            let totalResultsFound = chatModel.filteredRecommendedPlaceResults.count
+                            Text("\(totalResultsFound) places found").padding(8)
                         })
                     }
                     
@@ -87,7 +89,7 @@ struct PlacesList: View {
                             }
                             .listStyle(.sidebar)
                         }, header: {
-                            Text("Related Places")
+                            Text("Related Places").padding(8)
                         }, footer: {
                             
                         })
@@ -113,11 +115,11 @@ struct PlacesList: View {
                         .listStyle(.sidebar)
                     }, header: {
                         if chatModel.featureFlags.owns(flag: .hasPremiumSubscription){
-                            Text("Matching Places")
+                            Text("Matching Places").padding(8)
                         }
                     }, footer: {
-                        let totalResultsFound = chatModel.filteredPlaceResults.count + chatModel.recommendedPlaceResults.count + chatModel.relatedPlaceResults.count
-                        Text("\(totalResultsFound) places found")
+                        let totalResultsFound = chatModel.filteredPlaceResults.count
+                        Text("\(totalResultsFound) places found").padding(8)
                     })
                 }
             }
