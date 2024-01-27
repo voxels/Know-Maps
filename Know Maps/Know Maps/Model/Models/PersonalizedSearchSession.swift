@@ -30,6 +30,8 @@ open class PersonalizedSearchSession {
     static let tasteSuggestionsAPIUrl = "v2/tastes/suggestions"
     static let venueRecommendationsAPIUrl = "v2/search/recommendations"
     static let autocompleteAPIUrl = "v2/search/autocomplete"
+    static let relatedVenueAPIUrl = "v2/venues"
+    static let relatedVenuePath = "/related"
     static let foursquareVersionDate = "20240101"
     
     public init(cloudCache: CloudCache, searchSession:URLSession? = nil) {
@@ -342,6 +344,38 @@ extension PersonalizedSearchSession {
                     }
                 }
             }
+        }
+
+        return retval
+    }
+    
+    public func fetchRelatedVenues(for fsqID:String) async throws -> [String:Any] {
+        let apiKey = try await fetchManagedUserAccessToken()
+        
+        if searchSession == nil {
+            let sessionConfiguration = URLSessionConfiguration.default
+            let session = URLSession(configuration: sessionConfiguration)
+            searchSession = session
+        }
+        
+        guard !apiKey.isEmpty, searchSession != nil else {
+            throw PersonalizedSearchSessionError.UnsupportedRequest
+        }
+        
+        let components = URLComponents(string:"\(PersonalizedSearchSession.serverUrl)\(PersonalizedSearchSession.relatedVenueAPIUrl)/\(fsqID)\(PersonalizedSearchSession.relatedVenuePath)")
+        guard let url = components?.url else {
+            throw PersonalizedSearchSessionError.UnsupportedRequest
+        }
+        
+        let response = try await fetch(url: url, apiKey: apiKey)
+        
+        guard let response = response as? [String:Any] else {
+            throw PersonalizedSearchSessionError.NoTasteFound
+        }
+                        
+        var retval = [String:Any]()
+        if let responseDict = response["response"] as? [String:Any] {
+            retval = responseDict
         }
 
         return retval

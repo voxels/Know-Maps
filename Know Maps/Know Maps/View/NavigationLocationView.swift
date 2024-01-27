@@ -25,20 +25,6 @@ struct NavigationLocationView: View {
                         Label("Is Saved", systemImage:isSaved ? "star.fill" : "star").labelStyle(.iconOnly)
                     }
                     
-                    
-                    if result.id == chatModel.selectedDestinationLocationChatResult {
-                        Label(result.locationName, systemImage: "mappin")
-                            .tint(.red)
-                    } else if chatModel.selectedDestinationLocationChatResult == nil, result.locationName == "Current Location" {
-                        Label(result.locationName, systemImage: "mappin")
-                            .tint(.red)
-                    } else {
-                        Label(result.locationName, systemImage: "mappin")
-                            .tint(.blue)
-                    }
-                    Spacer()
-                    
-                    Spacer()
                     if let location = result.location, cloudCache.hasPrivateCloudAccess, result.locationName != "Current Location" {
                         let isSaved = chatModel.cachedLocation(contains: chatModel.cachedLocationIdentity(for: location))
                         if isSaved {
@@ -86,6 +72,17 @@ struct NavigationLocationView: View {
                                 }
                             }
                         }
+                    }
+                    
+                    if result.id == chatModel.selectedDestinationLocationChatResult {
+                        Label(result.locationName, systemImage: "mappin")
+                            .tint(.red).labelStyle(.titleOnly)
+                    } else if chatModel.selectedDestinationLocationChatResult == nil, result.locationName == "Current Location" {
+                        Label(result.locationName, systemImage: "mappin")
+                            .tint(.red).labelStyle(.titleOnly)
+                    } else {
+                        Label(result.locationName, systemImage: "mappin")
+                            .tint(.blue).labelStyle(.titleOnly)
                     }
                 }
             }

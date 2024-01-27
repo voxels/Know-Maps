@@ -33,7 +33,7 @@ struct ContentView: View {
     
     @State private var selectedTab = "Search"
     @State private var popoverPresented:Bool = false
-    
+    @State private var didError = false
     var body: some View {
         GeometryReader() { geo in
             NavigationSplitView(columnVisibility: $columnVisibility) {
@@ -62,6 +62,12 @@ struct ContentView: View {
             } content: {
                 PlacesList(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, resultId: $chatModel.selectedPlaceChatResult)
                     .navigationTitle("Places")
+                    .alert("Unknown Place", isPresented: $didError) {
+                        
+                    } message: {
+                        Text("We don't know much about this place.")
+                    }
+
             } detail: {
                 if chatModel.filteredPlaceResults.count == 0 && chatModel.selectedPlaceChatResult == nil {
                     MapResultsView(chatHost: chatHost, model: chatModel, locationProvider: locationProvider, selectedMapItem: $selectedItem)
@@ -102,8 +108,11 @@ struct ContentView: View {
                             detailNavigationTitle = placeChatResult.title
                         }
                     } catch {
+                        
+                        chatModel.selectedPlaceChatResult = nil
                         chatModel.analytics?.track(name: "error \(error)")
                         print(error)
+                        didError.toggle()
                     }
                 }
             })

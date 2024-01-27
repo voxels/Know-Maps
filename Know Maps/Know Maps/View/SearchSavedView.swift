@@ -18,8 +18,6 @@ struct SearchSavedView: View {
                     if model.cloudCache.hasPrivateCloudAccess {
                         Label("Is Saved", systemImage:"star.fill").labelStyle(.iconOnly)
                     }
-                    Text("\(parent.parentCategory)")
-                    Spacer()
                     if model.cloudCache.hasPrivateCloudAccess {
                         ZStack {
                             Capsule()
@@ -72,6 +70,11 @@ struct SearchSavedView: View {
                         }
                         
                     }
+                    
+                    Text("\(parent.parentCategory)")
+                    Spacer()
+
+
                 }
             }
             .listStyle(.sidebar)

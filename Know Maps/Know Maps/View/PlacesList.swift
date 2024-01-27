@@ -38,6 +38,7 @@ struct PlacesList: View {
                         
                         Section(content: {
                             List(chatModel.filteredRecommendedPlaceResults,selection: $resultId){ result in
+                                let hasPhoto = result.recommendedPlaceResponse?.photo != nil
                                 ZStack(alignment: .bottom, content: {
                                     if let photo = result.recommendedPlaceResponse?.photo, !photo.isEmpty, let url = URL(string: photo) {
                                         AsyncImage(url: url) { phase in
@@ -58,42 +59,63 @@ struct PlacesList: View {
                                                             EmptyView()
                                                         }
                                                     }
+                                        Rectangle().frame(width: geo.size.width-48, height: (geo.size.width) / 4).foregroundStyle(.regularMaterial)
+                                        VStack {
+                                            
+                                            if let neighborhood = result.recommendedPlaceResponse?.neighborhood, !neighborhood.isEmpty {
+                                                Spacer()
+                                                Text(result.title).bold().lineLimit(1).padding(EdgeInsets(top: 0, leading: 8, bottom: 0, trailing: 8)
+                                                )
+                                                Text(neighborhood).italic()
+                                            } else{
+                                                Spacer()
+                                                Text(result.title).bold().lineLimit(1).padding(8
+                                                )
+                                                Text("")
+                                            }
+                                            HStack {
+                                                if let placeResponse = result.recommendedPlaceResponse {
+                                                    Text(!placeResponse.address.isEmpty ?
+                                                         placeResponse.address : placeResponse.formattedAddress )
+                                                    .lineLimit(1)
+                                                    .italic()
+                                                        .padding(EdgeInsets(top: 0, leading: 8, bottom: 0, trailing: 0))
+                                                    Spacer()
+                                                    Text(distanceString(latitude: placeResponse.latitude, longitude: placeResponse.longitude)).padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 8))
+                                                }
+                                            }
+                                        }.padding(EdgeInsets(top: 0, leading: 0, bottom: 16, trailing: 0))
 
                                     } else {
-                                        VStack{
+                                        RoundedRectangle(cornerSize: CGSize(width: 16, height: 16)).frame(width: geo.size.width-48, height: (geo.size.width) / 4).foregroundStyle(.regularMaterial)
+                                        VStack {
                                             Spacer()
-                                            Image(systemName: "photo")
-                                            Spacer()
-                                        }
-                                    }
-                                    Rectangle().frame(width: geo.size.width-48, height: (geo.size.width) / 4).foregroundStyle(.thinMaterial)
-                                    VStack {
-                                        Spacer()
-                                        Text(result.title)
-                                        if let neighborhood = result.recommendedPlaceResponse?.neighborhood, !neighborhood.isEmpty {
-                                            
-                                            Text(neighborhood).italic()
-                                        }
-                                        HStack {
-                                            if let placeResponse = result.recommendedPlaceResponse {
-                                                Text(!placeResponse.address.isEmpty ?
-                                                     placeResponse.address : placeResponse.formattedAddress )
-                                                .lineLimit(1)
-                                                .italic()
-                                                    .padding(EdgeInsets(top: 0, leading: 8, bottom: 0, trailing: 0))
-                                                Spacer()
-                                                Text(distanceString(latitude: placeResponse.latitude, longitude: placeResponse.longitude)).padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 8))
+                                            Text(result.title).bold().lineLimit(1).padding(8)
+                                            if let neighborhood = result.recommendedPlaceResponse?.neighborhood, !neighborhood.isEmpty {
+                                                
+                                                Text(neighborhood).italic()
+                                            } else{
+                                                Text("")
                                             }
-                                        }
-                                    }.padding(EdgeInsets(top: 0, leading: 0, bottom: 16, trailing: 0))
+                                            HStack {
+                                                if let placeResponse = result.recommendedPlaceResponse {
+                                                    Text(!placeResponse.address.isEmpty ?
+                                                         placeResponse.address : placeResponse.formattedAddress )
+                                                    .lineLimit(1)
+                                                    .italic()
+                                                        .padding(EdgeInsets(top: 0, leading: 8, bottom: 0, trailing: 0))
+                                                    Spacer()
+                                                    Text(distanceString(latitude: placeResponse.latitude, longitude: placeResponse.longitude)).padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 8))
+                                                }
+                                            }
+                                        }.padding(EdgeInsets(top: 0, leading: 0, bottom: 16, trailing: 0))
+                                    }
+                                    
                                 })
-                                .frame(width: geo.size.width-48, height: geo.size.width - 48)
+                                .frame(width: geo.size.width-48, height: hasPhoto ? geo.size.width - 48 : geo.size.width / 4 )
                                 .clipShape(RoundedRectangle(cornerSize: CGSize(width: 16, height: 16)))
                                 .cornerRadius(16)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 16)
-                                        .stroke(.gray, lineWidth: 1)
-                                )
+                                
                             }
                             .listStyle(.automatic)
                         }, header: {
@@ -110,7 +132,7 @@ struct PlacesList: View {
                             List(chatModel.filteredPlaceResults,selection: $resultId){ result in
                                 VStack {
                                     HStack {
-                                        Text(result.title)
+                                        Text(result.title).padding(8)
                                         Spacer()
                                     }
                                     HStack {

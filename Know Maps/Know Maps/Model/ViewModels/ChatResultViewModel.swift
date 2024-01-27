@@ -761,7 +761,12 @@ public class ChatResultViewModel : ObservableObject {
         if intent.placeSearchResponses.count > 0, let placeSearchResponse = intent.selectedPlaceSearchResponse {
             intent.selectedPlaceSearchDetails = try await fetchDetails(for: [placeSearchResponse]).first
             intent.placeDetailsResponses = [intent.selectedPlaceSearchDetails!]
+            if featureFlags.owns(flag: .hasPremiumSubscription) {
+                intent.relatedPlaceSearchResponses = try await fetchRelatedPlaces(for: placeSearchResponse.fsqID)
+            }
         }
+        
+
     }
     
     @MainActor
@@ -1478,8 +1483,18 @@ public class ChatResultViewModel : ObservableObject {
                     print("Fetching details for \(response.name)")
                     let rawDetailsResponse = try await strongSelf.placeSearchSession.details(for: request)
                     strongSelf.analytics?.track(name: "fetchDetails")
-                    let detailsResponse = try await PlaceResponseFormatter.placeDetailsResponse(with: rawDetailsResponse, for:response, previousDetails: strongSelf.assistiveHostDelegate?.queryIntentParameters?.queryIntents.last?.placeDetailsResponses, cloudCache:strongSelf.cloudCache)
-                    return detailsResponse
+                    
+                    if strongSelf.featureFlags.owns(flag: .hasPremiumSubscription) {
+                        let tipsRawResponse = try await strongSelf.placeSearchSession.tips(for: response.fsqID)
+                        let tipsResponses = try PlaceResponseFormatter.placeTipsResponses(with: tipsRawResponse, for: response.fsqID)
+                        let photosRawResponse = try await strongSelf.placeSearchSession.photos(for: response.fsqID)
+                        let photoResponses = try PlaceResponseFormatter.placePhotoResponses(with: photosRawResponse, for: response.fsqID)
+                        let detailsResponse = try await PlaceResponseFormatter.placeDetailsResponse(with: rawDetailsResponse, for:response, placePhotosResponses: photoResponses, placeTipsResponses: tipsResponses, previousDetails: strongSelf.assistiveHostDelegate?.queryIntentParameters?.queryIntents.last?.placeDetailsResponses, cloudCache:strongSelf.cloudCache)
+                        return detailsResponse
+                    }else {
+                        let detailsResponse = try await PlaceResponseFormatter.placeDetailsResponse(with: rawDetailsResponse, for:response, previousDetails: strongSelf.assistiveHostDelegate?.queryIntentParameters?.queryIntents.last?.placeDetailsResponses, cloudCache:strongSelf.cloudCache)
+                        return detailsResponse
+                    }
                 }
             }
             var allResponses = [PlaceDetailsResponse]()
@@ -1493,6 +1508,10 @@ public class ChatResultViewModel : ObservableObject {
         return placeDetailsResponses
     }
     
+    internal func fetchRelatedPlaces(for fsqID:String) async throws ->[RecommendedPlaceSearchResponse] {
+        let rawRelatedVenuesResponse = try await personalizedSearchSession.fetchRelatedVenues(for: fsqID)
+        return try PlaceResponseFormatter.relatedPlaceSearchResponses(with: rawRelatedVenuesResponse)
+    }
 }
 
 extension ChatResultViewModel : AssistiveChatHostMessagesDelegate {

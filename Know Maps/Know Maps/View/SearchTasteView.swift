@@ -17,10 +17,7 @@ struct SearchTasteView: View {
                     if model.cloudCache.hasPrivateCloudAccess {
                         let isSaved = model.cachedTastes(contains: parent.parentCategory)
                         Label("Is Saved", systemImage:isSaved ? "star.fill" : "star").labelStyle(.iconOnly)
-                    }
-                    Text("\(parent.parentCategory)")
-                    Spacer()
-
+                    }                    
                     if model.cloudCache.hasPrivateCloudAccess {
                         ZStack {
                             Capsule()
@@ -69,6 +66,11 @@ struct SearchTasteView: View {
                             }
                         }
                     }
+                    
+                    Text("\(parent.parentCategory)")
+                    Spacer()
+
+
                 }.onAppear {
                     if model.tasteResults.last == parent {
                         Task {

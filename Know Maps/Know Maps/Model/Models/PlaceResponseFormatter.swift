@@ -253,6 +253,131 @@ open class PlaceResponseFormatter {
         
     }
     
+    public class func relatedPlaceSearchResponses(with response:[String:Any]) throws ->[RecommendedPlaceSearchResponse] {
+        var retval = [RecommendedPlaceSearchResponse]()
+        
+        guard response.keys.count > 0 else {
+            throw PlaceResponseFormatterError.InvalidRawResponseType
+        }
+        
+        if let resultsDictArray = response["related"] as? [NSDictionary] {
+            for resultsDict in resultsDictArray {
+                
+                if  let results = resultsDict["items"] as? [NSDictionary] {
+                    for result in results {
+                        
+                        var fsqID:String = ""
+                        var name:String = ""
+                        var categories:[String] = [String]()
+                        var latitude:Double = 0
+                        var longitude:Double = 0
+                        var neighborhood:String = ""
+                        var address:String = ""
+                        var country:String = ""
+                        var city:String = ""
+                        var state:String = ""
+                        var postCode:String = ""
+                        var formattedAddress:String = ""
+                        var photo:String? = nil
+                        var photos:[String]  = [String]()
+                        let tastes:[String] = [String]()
+                        
+                        
+                        if let venue = result["venue"] as? NSDictionary {
+                            if let ident = venue["id"] as? String {
+                                fsqID = ident
+                            }
+                            
+                            if let rawName = venue["name"] as? String {
+                                name = rawName
+                            }
+                            
+                            if let rawCategoriesArray = venue["categories"] as? [NSDictionary] {
+                                for rawCategory in rawCategoriesArray {
+                                    if let rawName = rawCategory["name"] as? String {
+                                        categories.append(rawName)
+                                    }
+                                }
+                            }
+                            
+                            if let rawLocationDict = venue["location"] as? NSDictionary {
+                                if let rawAddress = rawLocationDict["address"]  as? String {
+                                    address = rawAddress
+                                }
+                                
+                                if let rawCity = rawLocationDict["city"] as? String {
+                                    city = rawCity
+                                }
+                                
+                                if let rawPostCode = rawLocationDict["postalCode"] as? String {
+                                    postCode = rawPostCode
+                                }
+                                
+                                if let rawState = rawLocationDict["state"]  as? String {
+                                    state = rawState
+                                }
+                                
+                                if let rawCountry =  rawLocationDict["country"] as? String {
+                                    country = rawCountry
+                                }
+                                
+                                if let rawFormattedAddress = rawLocationDict["formattedAddress"] as? [String] {
+                                    formattedAddress = rawFormattedAddress.joined(separator: " ")
+                                }
+                                
+                                if let lat = rawLocationDict["lat"] as? Double {
+                                    latitude = lat
+                                }
+                                
+                                if let lng = rawLocationDict["lng"] as? Double {
+                                    longitude = lng
+                                }
+                                
+                                if let rawNeighborhood = rawLocationDict["neighborhood"] as? String {
+                                    neighborhood = rawNeighborhood
+                                }
+                            }
+                        }
+                        
+                        if let photoDict = result["photo"] as? NSDictionary, let prefix
+                            = photoDict["prefix"] as? String, let suffix
+                            = photoDict["suffix"] as? String, let width = photoDict["width"] as? Double, let height = photoDict["height"] as? Double{
+                            photo = "\(prefix)\(Int(floor(width)))x\(Int(floor(height)))\(suffix)"
+                        }
+                        
+                        if let photosDict = result["photos"] as? NSDictionary,  let groups = photosDict["groups"] as? [NSDictionary] {
+                            
+                            for group in groups {
+                                if let items = group["items"]  as? [NSDictionary] {
+                                    for item in items {
+                                        if let prefix
+                                            = item["prefix"] as? String, let suffix
+                                            = item["suffix"] as? String, let width = item["width"] as? Double, let height = item["height"] as? Double{
+                                            photos.append("\(prefix)\(Int(floor(width)))x\(Int(floor(height)))\(suffix)")
+                                        }
+                                    }
+                                }
+                            }
+                            
+                        }
+                        
+                        
+                        
+                        
+                        let response = RecommendedPlaceSearchResponse(fsqID: fsqID, name: name, categories: categories, latitude: latitude, longitude: longitude, neighborhood: neighborhood, address:address, country: country, city: city, state: state, postCode: postCode, formattedAddress: formattedAddress, photo: photo, photos: photos, tastes: tastes)
+                        retval.append(response)
+                    }
+                }
+            }
+
+        }
+        
+        
+        return retval
+        
+    }
+    
+    
     public class func placeSearchResponses(from recommendedPlaceSearchResponses:[RecommendedPlaceSearchResponse])->[PlaceSearchResponse]{
         var retVal = [PlaceSearchResponse]()
         

@@ -245,10 +245,8 @@ struct PlaceAboutView: View {
                                         
                                         HStack {
                                             let isSaved = chatModel.cachedTastes(contains: taste)
-                                            Label("Is Saved", systemImage:isSaved ? "star.fill" : "star").labelStyle(.iconOnly)
-                                            Text(taste)
-                                            Spacer()
                                             Label("Save", systemImage:isSaved ? "minus" : "plus").labelStyle(.iconOnly)
+                                            Text(taste)
                                         }.padding(8)
                                     }.onTapGesture {
                                         let isSaved = chatModel.cachedTastes(contains: taste)

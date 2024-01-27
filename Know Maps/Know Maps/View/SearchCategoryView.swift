@@ -17,9 +17,6 @@ struct SearchCategoryView: View {
                     let isSaved = model.cachedCategories(contains: parent.parentCategory)
                     Label("Is Saved", systemImage:isSaved ? "star.fill" : "star").labelStyle(.iconOnly)
                 }
-
-                Text("\(parent.parentCategory)")
-                Spacer()
                 if model.cloudCache.hasPrivateCloudAccess {
                     ZStack {
                         Capsule()
@@ -29,7 +26,7 @@ struct SearchCategoryView: View {
 #else
                             .foregroundColor(Color(uiColor:.systemFill))
                             .frame(minWidth: 44, maxWidth: 60, minHeight:44, maxHeight:60)
-#endif                        
+#endif
                         let isSaved = model.cachedCategories(contains: parent.parentCategory)
                         Label("Save", systemImage:isSaved ? "minus" : "plus").labelStyle(.iconOnly)
                     }
@@ -57,6 +54,11 @@ struct SearchCategoryView: View {
                         }
                     }
                 }
+                
+                
+
+                Text("\(parent.parentCategory)")
+                Spacer()
             }
         }
         .listStyle(.sidebar)
