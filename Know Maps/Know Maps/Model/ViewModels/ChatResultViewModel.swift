@@ -792,6 +792,7 @@ public class ChatResultViewModel : ObservableObject {
             
             placeResults = chatResults
             recommendedPlaceQueryModel(intent: intent)
+            relatedPlaceQueryModel(intent: intent)
     }
     
     @MainActor
@@ -924,6 +925,7 @@ public class ChatResultViewModel : ObservableObject {
         locationSearchText = intent.caption
         placeResults = chatResults
         recommendedPlaceQueryModel(intent: intent)
+        relatedPlaceQueryModel(intent: intent)
     }
     
     @MainActor
@@ -962,6 +964,32 @@ public class ChatResultViewModel : ObservableObject {
         
         recommendedPlaceResults = recommendedChatResults
     }
+
+    @MainActor
+    public func relatedPlaceQueryModel(intent:AssistiveChatHostIntent) {
+        var relatedChatResults = [ChatResult]()
+        
+        guard featureFlags.owns(flag: .hasPremiumSubscription) else {
+            self.relatedPlaceResults.removeAll()
+            return
+        }
+        
+        if let recommendedPlaceSearchResponses = intent.relatedPlaceSearchResponses, !recommendedPlaceSearchResponses.isEmpty {
+            for response in recommendedPlaceSearchResponses {
+                if !response.fsqID.isEmpty {
+                    if response.fsqID == intent.selectedRecommendedPlaceSearchResponse?.fsqID, let placeSearchResponse = intent.selectedPlaceSearchResponse {
+                        let results = PlaceResponseFormatter.placeChatResults(for: intent, place: placeSearchResponse, details: intent.selectedPlaceSearchDetails, recommendedPlaceResponse: intent.selectedRecommendedPlaceSearchResponse)
+                        relatedChatResults.append(contentsOf: results)
+                    } else {
+                        let results = PlaceResponseFormatter.placeChatResults(for: intent, place: PlaceSearchResponse(fsqID: response.fsqID, name: response.name, categories: response.categories, latitude: response.latitude, longitude: response.longitude, address: response.address, addressExtended: response.formattedAddress, country: response.country, dma: response.neighborhood, formattedAddress: response.formattedAddress, locality: response.city, postCode: response.postCode, region: response.state, chains: [], link: "", childIDs: [], parentIDs: []), details: nil, recommendedPlaceResponse: response)
+                        relatedChatResults.append(contentsOf: results)
+                    }
+                }
+            }
+        }
+        
+        relatedPlaceResults = relatedChatResults
+    }
     
     @MainActor
     public func searchQueryModel(intent:AssistiveChatHostIntent) async {
@@ -986,6 +1014,7 @@ public class ChatResultViewModel : ObservableObject {
             locationSearchText = intent.caption
             placeResults = newResults
             recommendedPlaceQueryModel(intent: intent)
+            relatedPlaceQueryModel(intent: intent)
             return
         }
         
@@ -1024,6 +1053,7 @@ public class ChatResultViewModel : ObservableObject {
             locationSearchText = intent.caption
             placeResults = chatResults
             recommendedPlaceQueryModel(intent: intent)
+            relatedPlaceQueryModel(intent: intent)
     }
     
     @MainActor

@@ -124,35 +124,7 @@ struct PlacesList: View {
                             let totalResultsFound = chatModel.filteredRecommendedPlaceResults.count
                             Text("\(totalResultsFound) places found")
                         })
-                    }
-                    
-                    if chatModel.relatedPlaceResults.count > 0 {
-                        
-                        Section(content: {
-                            List(chatModel.filteredPlaceResults,selection: $resultId){ result in
-                                VStack {
-                                    HStack {
-                                        Text(result.title).padding(8)
-                                        Spacer()
-                                    }
-                                    HStack {
-                                        if let placeResponse = result.placeResponse {
-                                            
-                                            Text(placeResponse.formattedAddress).italic()
-                                            Spacer()
-                                            Text(distanceString(latitude: placeResponse.latitude, longitude: placeResponse.longitude))
-                                        }
-                                    }
-                                }
-                            }
-                            .listStyle(.sidebar)
-                        }, header: {
-                            Text("Related Places").padding(8)
-                        }, footer: {
-                            
-                        })
-                    }
-                    
+                    }                    
                 } else {
                     Section(content: {
                         List(chatModel.filteredPlaceResults,selection: $resultId){ result in

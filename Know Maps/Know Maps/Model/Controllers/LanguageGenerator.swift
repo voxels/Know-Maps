@@ -67,7 +67,7 @@ open class LanguageGenerator : LanguageGeneratorDelegate {
             prompt.append(" \(taste),")
         }
         prompt.append("\(placeName) is")
-        let request = LanguageGeneratorRequest(chatResult: chatResult, model: "gpt-4-1106-preview", prompt: prompt, maxTokens: 200, temperature: 0, stop: nil, user: nil)
+        let request = LanguageGeneratorRequest(chatResult: chatResult, model: "gpt-4-turbo-preview", prompt: prompt, maxTokens: 200, temperature: 0, stop: nil, user: nil)
         guard let dict = try await session.query(languageGeneratorRequest: request, delegate: delegate) else {
             return
         }
@@ -102,7 +102,7 @@ open class LanguageGenerator : LanguageGeneratorDelegate {
             prompt.append("\n\(tip)")
         }
         prompt.append("\(placeName) is")
-        let request = LanguageGeneratorRequest(chatResult: chatResult, model: "gpt-4-1106-preview", prompt: prompt, maxTokens: 200, temperature: 0, stop: nil, user: nil)
+        let request = LanguageGeneratorRequest(chatResult: chatResult, model: "gpt-4-turbo-preview", prompt: prompt, maxTokens: 200, temperature: 0, stop: nil, user: nil)
         guard let dict = try await session.query(languageGeneratorRequest: request, delegate: delegate) else {
             return
         }

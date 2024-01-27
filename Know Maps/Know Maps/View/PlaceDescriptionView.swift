@@ -30,7 +30,7 @@ struct PlaceDescriptionView: View {
                                     ProgressView().progressViewStyle(.circular)
                                 }
                             } else {
-                                Text("Generate description for \(placeDetailsResponse.searchResponse.name)")
+                                Text("Generate AI description for \(placeDetailsResponse.searchResponse.name)")
                             }
                         }
                         .buttonStyle(.bordered)
@@ -46,7 +46,7 @@ struct PlaceDescriptionView: View {
                             try await chatHost.placeDescription(chatResult: placeChatResult, delegate: chatModel)
                         }
                     } label: {
-                        Text("Generate description for \(placeDetailsResponse.searchResponse.name)")
+                        Text("Generate AI description for \(placeDetailsResponse.searchResponse.name)")
                     }
                     .buttonStyle(.bordered)
                     .backgroundStyle(.primary)

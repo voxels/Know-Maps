@@ -231,6 +231,8 @@ struct PlaceAboutView: View {
                         
                         if let tastes = placeDetailsResponse.tastes, tastes.count > 0 {
                             let gridItems = Array(repeating: GridItem(), count: sizeClass == .compact ? 2 : 4)
+                            Section("Features") {
+                                
                             LazyVGrid(columns:gridItems){
                                 ForEach(tastes, id: \.self) { taste in
                                     ZStack {
@@ -284,12 +286,58 @@ struct PlaceAboutView: View {
                                     }
                                 }
                             }.frame(maxWidth: geo.size.width - PlaceAboutView.defaultPadding * 2 ).padding(PlaceAboutView.defaultPadding * 2)
+                            }
+                        }
+                        
+                        if chatModel.featureFlags.owns(flag: .hasPremiumSubscription) {
+                            if chatModel.relatedPlaceResults.count > 0 {
+                                Section("Related Places") {
+                                    
+                             ScrollView(.horizontal) {
+                                    
+                                    HStack{
+                                        ForEach(chatModel.relatedPlaceResults){ result in
+                                            
+                                            
+                                            
+                                            ZStack(alignment: .center, content: {
+                                                
+                                                RoundedRectangle(cornerSize: CGSize(width: 16, height: 16)).frame(width: geo.size.width-48, height: (geo.size.width) / 4).foregroundStyle(.regularMaterial)
+                                                VStack {
+                                                    Text(result.title).bold().lineLimit(1).padding(8)
+                                                    if let neighborhood = result.recommendedPlaceResponse?.neighborhood, !neighborhood.isEmpty {
+                                                        
+                                                        Text(neighborhood).italic()
+                                                    } else{
+                                                        Text("")
+                                                    }
+                                                    HStack {
+                                                        if let placeResponse = result.recommendedPlaceResponse {
+                                                            Text(!placeResponse.address.isEmpty ?
+                                                                 placeResponse.address : placeResponse.formattedAddress )
+                                                            .lineLimit(1)
+                                                            .italic()
+                                                            .padding(EdgeInsets(top: 0, leading: 8, bottom: 0, trailing: 0))
+                                                        }
+                                                    }
+                                                }
+                                                
+                                            })
+                                            .frame(maxWidth: 300, maxHeight: 130 )
+                                            .clipShape(RoundedRectangle(cornerSize: CGSize(width: 16, height: 16)))
+                                            .cornerRadius(16)
+                                            .padding(EdgeInsets(top: 0, leading: 0, bottom: 16, trailing: 0))
+                                        }
+                                    }
+                                }
+                                }
+                            }
                         }
                         
                     } else {
                         ZStack(alignment: .center) {
                             ProgressView().progressViewStyle(.circular)
-                        }.frame(width: geo.size.width, height:geo.size.height)
+                        }.frame(width: geo.size.width, height:geo.size.width)
                     }
                 }
             }
@@ -324,7 +372,7 @@ struct PlaceAboutView: View {
     let chatHost = AssistiveChatHost()
     let cloudCache = CloudCache()
     let featureFlags = FeatureFlags(cloudCache: cloudCache)
-
+    
     let chatModel = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cloudCache, featureFlags: featureFlags)
     
     chatModel.assistiveHostDelegate = chatHost
