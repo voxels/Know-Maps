@@ -9,8 +9,11 @@ import SwiftUI
 import AuthenticationServices
 
 struct SettingsView: View {
+    @Environment(\.openWindow) private var openWindow
     @EnvironmentObject public var model:SettingsModel
     @EnvironmentObject public var cloudCache:CloudCache
+    @State private var popoverPresented:Bool = false
+    @State private var signInErrorMessage:String = "Error"
     var body: some View {
         if model.appleUserId.isEmpty {
                 SignInWithAppleButton { request in
@@ -27,6 +30,7 @@ struct SettingsView: View {
                                     model.appleUserId = appleIDCredential.user
                                     model.fullName = "\(appleIDCredential.fullName?.givenName ?? "") \(appleIDCredential.fullName?.familyName ?? "")"
                                     cloudCache.hasPrivateCloudAccess = true
+                                    openWindow(id: "ContentView")
                                 }
                                 print("Authorization successful.")
                                 Task {
@@ -44,10 +48,16 @@ struct SettingsView: View {
                             }
                         }
                     case .failure(let error):
-                        print("Authorization failed: " + error.localizedDescription)
+                        signInErrorMessage = String(describing: error)
+                        print("Authorization failed: " + String(describing: error))
+                        popoverPresented.toggle()
                     }
                 }
                 .signInWithAppleButtonStyle(.whiteOutline)
+                .frame(maxWidth: 360, maxHeight: 60)
+                .popover(isPresented: $popoverPresented, content: {
+                    Text(signInErrorMessage).padding()
+                })
         }
         else {
             if let fullName = model.fullName?.trimmingCharacters(in: .whitespaces), !fullName.isEmpty {

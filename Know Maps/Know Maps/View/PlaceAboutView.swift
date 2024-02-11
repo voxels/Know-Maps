@@ -72,13 +72,17 @@ struct PlaceAboutView: View {
                                     Label(placeResponse.formattedAddress, systemImage: "mappin").foregroundStyle(.primary)
                                     
                                 }
-                                .padding(PlaceAboutView.defaultPadding)
+#if os(iOS) || os(visionOS)
+                            .hoverEffect(.lift)
+#endif                                
+                            .padding(PlaceAboutView.defaultPadding)
                                 .onTapGesture {
                                     sectionSelection = 1
                                 }
                                 
                                 HStack {
-                                    ZStack {
+                                    if chatModel.cloudCache.hasPrivateCloudAccess {
+                                        ZStack {
                                         Capsule().frame(height: PlaceAboutView.buttonHeight, alignment: .center)
 #if os(macOS)
                                             .foregroundStyle(.background)
@@ -90,13 +94,19 @@ struct PlaceAboutView: View {
 #if os(iOS) || os(visionOS)
                                             .labelStyle(.iconOnly).foregroundStyle(.primary)
 #endif
-                                    }.onTapGesture {
+                                    }
+#if os(iOS) || os(visionOS)
+                            .hoverEffect(.lift)
+#endif
+                            .onTapGesture {
                                         presentingPopover.toggle()
-                                    }.popover(isPresented: $presentingPopover) {
+                                    }
+                                        .popover(isPresented: $presentingPopover) {
                                         AddListItemView(chatModel: chatModel, presentingPopover:$presentingPopover)
                                             .frame(width:300, height:600)
                                             .presentationCompactAdaptation(.automatic)
                                     }
+                                }
                                     
                                     if let tel = placeDetailsResponse.tel {
                                         ZStack {
@@ -118,7 +128,11 @@ struct PlaceAboutView: View {
                                                     .foregroundStyle(.primary)
                                                     .labelStyle( .titleOnly)
                                             }
-                                        }.onTapGesture {
+                                        }
+#if os(iOS) || os(visionOS)
+                            .hoverEffect(.lift)
+#endif
+                                            .onTapGesture {
 #if os(visionOS) || os(iOS)
                                             if let url = URL(string: "tel://\(tel)") {
                                                 openURL(url)
@@ -150,6 +164,9 @@ struct PlaceAboutView: View {
 #endif
                                             }.foregroundColor(Color.primary)
                                         }
+#if os(iOS) || os(visionOS)
+                            .hoverEffect(.lift)
+#endif
                                     }
                                     
                                     
@@ -168,7 +185,11 @@ struct PlaceAboutView: View {
                                                 .labelStyle(.titleOnly)
 #endif
                                             
-                                        }.onTapGesture {
+                                        }
+#if os(iOS) || os(visionOS)
+                            .hoverEffect(.lift)
+#endif
+                                        .onTapGesture {
                                             sectionSelection = 3
                                         }
                                     }
@@ -196,6 +217,9 @@ struct PlaceAboutView: View {
                                                 Text("\(price)").foregroundStyle(.primary)
                                             }
                                         }
+#if os(iOS) || os(visionOS)
+                            .hoverEffect(.lift)
+#endif
                                     }
                                     
                                     ZStack {
@@ -209,6 +233,9 @@ struct PlaceAboutView: View {
                                         
                                         Image(systemName: "square.and.arrow.up").foregroundStyle(.primary)
                                     }
+#if os(iOS) || os(visionOS)
+                            .hoverEffect(.lift)
+#endif
                                     .onTapGesture {
                                         self.isPresentingShareSheet.toggle()
                                     }
@@ -227,8 +254,10 @@ struct PlaceAboutView: View {
                                 }
                             }
                         
-                        PlaceDescriptionView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, resultId: $resultId).padding(PlaceAboutView.defaultPadding * 2)
-                        
+                        if chatModel.cloudCache.hasPrivateCloudAccess, chatModel.featureFlags.owns(flag: .hasPremiumSubscription) {
+                            PlaceDescriptionView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, resultId: $resultId).padding(PlaceAboutView.defaultPadding * 2)
+                        }
+                        if chatModel.featureFlags.owns(flag: .hasPremiumSubscription), chatModel.cloudCache.hasPrivateCloudAccess {
                         if let tastes = placeDetailsResponse.tastes, tastes.count > 0 {
                             let gridItems = Array(repeating: GridItem(), count: sizeClass == .compact ? 2 : 4)
                             Section("Features") {
@@ -250,7 +279,11 @@ struct PlaceAboutView: View {
                                             Label("Save", systemImage:isSaved ? "minus" : "plus").labelStyle(.iconOnly)
                                             Text(taste)
                                         }.padding(8)
-                                    }.onTapGesture {
+                                    }
+#if os(iOS) || os(visionOS)
+                            .hoverEffect(.lift)
+#endif
+                                    .onTapGesture {
                                         let isSaved = chatModel.cachedTastes(contains: taste)
                                         if isSaved {
                                             if let cachedTasteResults = chatModel.cachedTasteResults(for: "Taste", identity: taste) {
@@ -289,7 +322,7 @@ struct PlaceAboutView: View {
                             }
                         }
                         
-                        if chatModel.featureFlags.owns(flag: .hasPremiumSubscription) {
+
                             if chatModel.relatedPlaceResults.count > 0 {
                                 Section("Related Places") {
                                     
@@ -371,7 +404,7 @@ struct PlaceAboutView: View {
     
     let chatHost = AssistiveChatHost()
     let cloudCache = CloudCache()
-    let featureFlags = FeatureFlags(cloudCache: cloudCache)
+    let featureFlags = FeatureFlags()
     
     let chatModel = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cloudCache, featureFlags: featureFlags)
     

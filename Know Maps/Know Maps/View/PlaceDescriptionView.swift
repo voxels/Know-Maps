@@ -68,7 +68,7 @@ struct PlaceDescriptionView: View {
     
     let chatHost = AssistiveChatHost()
     let cloudCache = CloudCache()
-    let featureFlags = FeatureFlags(cloudCache: cloudCache)
+    let featureFlags = FeatureFlags()
 
     let chatModel = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cloudCache, featureFlags: featureFlags)
     

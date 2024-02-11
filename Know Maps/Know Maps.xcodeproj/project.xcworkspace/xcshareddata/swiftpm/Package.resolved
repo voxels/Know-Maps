@@ -19,6 +19,15 @@
       }
     },
     {
+      "identity" : "purchases-ios",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/RevenueCat/purchases-ios.git",
+      "state" : {
+        "revision" : "d9e79db5109789a71a3a677af3151fc9b663ca85",
+        "version" : "4.36.1"
+      }
+    },
+    {
       "identity" : "sovran-swift",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/segmentio/sovran-swift.git",

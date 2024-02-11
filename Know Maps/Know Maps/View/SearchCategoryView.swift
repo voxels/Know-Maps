@@ -30,7 +30,10 @@ struct SearchCategoryView: View {
                         let isSaved = model.cachedCategories(contains: parent.parentCategory)
                         Label("Save", systemImage:isSaved ? "minus" : "plus").labelStyle(.iconOnly)
                     }
-                    .padding(8)
+#if os(iOS) || os(visionOS)
+                            .hoverEffect(.lift)
+#endif
+                            .padding(8)
                     .onTapGesture {
                         let isSaved = model.cachedCategories(contains: parent.parentCategory)
                         if isSaved {
@@ -88,7 +91,7 @@ struct SearchCategoryView: View {
 #Preview {
     let locationProvider = LocationProvider()
     let cloudCache = CloudCache()
-    let featureFlags = FeatureFlags(cloudCache: cloudCache)
+    let featureFlags = FeatureFlags()
 
     let chatModel = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cloudCache, featureFlags: featureFlags)
     

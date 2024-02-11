@@ -35,12 +35,15 @@ struct NavigationLocationView: View {
                                 .frame(width: 44, height:44)
 #else
                                 .foregroundColor(Color(uiColor:.systemFill))
-                                .frame(minWidth: 44, maxWidth: 60, minHeight:44, maxHeight:60)
+                                .frame(width: 60, height: 60, alignment: .center)
 #endif
                                 Label("Save", systemImage: "minus")
                                     
                                     .labelStyle(.iconOnly)
                             }
+#if os(iOS) || os(visionOS)
+                            .hoverEffect(.lift)
+#endif
                             .onTapGesture {
                                 if let cachedLocationResults = chatModel.cachedLocationResults(for: "Location", identity:chatModel.cachedLocationIdentity(for:location)) {
                                     for cachedLocationResult in cachedLocationResults {
@@ -59,12 +62,17 @@ struct NavigationLocationView: View {
                                     .frame(width: 44, height:44)
 #else
                                     .foregroundColor(Color(uiColor:.systemFill))
-                                    .frame(minWidth: 44, maxWidth: 60, minHeight:44, maxHeight:60)
+                                    .frame(width: 60, height: 60, alignment: .center)
 #endif
                                 Label("Save", systemImage: "plus")
                                     
                                     .labelStyle(.iconOnly)
-                            }.onTapGesture {
+                                
+                            }
+#if os(iOS) || os(visionOS)
+                            .hoverEffect(.lift)
+#endif
+                            .onTapGesture {
                                 Task {
                                     let userRecord = UserCachedRecord(recordId: "", group: "Location", identity: chatModel.cachedLocationIdentity(for: location), title: result.locationName, icons: "", list: nil)
                                     let _ = try await cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title)
@@ -180,7 +188,7 @@ struct NavigationLocationView: View {
     
     let chatHost = AssistiveChatHost()
     let cloudCache = CloudCache()
-    let featureFlags = FeatureFlags(cloudCache: cloudCache)
+    let featureFlags = FeatureFlags()
 
     let chatModel = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cloudCache, featureFlags:featureFlags)
     

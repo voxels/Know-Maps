@@ -32,7 +32,7 @@ struct PlacesList: View {
                     MapResultsView(chatHost: chatHost, model: chatModel, locationProvider: locationProvider, selectedMapItem: $selectedItem).frame(width: geo.size.width, height: geo.size.width / 3)
                 }
 #endif
-                if chatModel.featureFlags.owns(flag: .hasPremiumSubscription) {
+                if chatModel.featureFlags.owns(flag: .hasPremiumSubscription), chatModel.cloudCache.hasPrivateCloudAccess {
                     
                     if chatModel.recommendedPlaceResults.count > 0 {
                         
@@ -144,7 +144,7 @@ struct PlacesList: View {
                         }
                         .listStyle(.sidebar)
                     }, header: {
-                        if chatModel.featureFlags.owns(flag: .hasPremiumSubscription){
+                        if chatModel.featureFlags.owns(flag: .hasPremiumSubscription), chatModel.cloudCache.hasPrivateCloudAccess{
                             Text("Matching Places").padding(8)
                         }
                     }, footer: {
@@ -199,7 +199,7 @@ struct PlacesList: View {
     
     let chatHost = AssistiveChatHost()
     let cloudCache = CloudCache()
-    let featureFlags = FeatureFlags(cloudCache: cloudCache)
+    let featureFlags = FeatureFlags()
     
     let chatModel = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cloudCache, featureFlags: featureFlags)
     

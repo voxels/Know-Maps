@@ -14,6 +14,7 @@ struct ContentView: View {
     
     @EnvironmentObject public var cloudCache:CloudCache
     @EnvironmentObject public var settingsModel:SettingsModel
+    @EnvironmentObject public var featureFlags:FeatureFlags
     @State private var showImmersiveSpace = false
     @State private var immersiveSpaceIsShown = false
     @State private var columnVisibility =
@@ -21,7 +22,6 @@ struct ContentView: View {
     @ObservedObject public var chatHost:AssistiveChatHost
     @StateObject public var chatModel:ChatResultViewModel
     @StateObject public var locationProvider:LocationProvider
-    @StateObject public var featureFlags:FeatureFlags
     @StateObject public var placeDirectionsChatViewModel = PlaceDirectionsViewModel(rawLocationIdent: "")
     @State private var selectedItem: String?
     @State private var detailNavigationTitle:String = ""
@@ -169,8 +169,8 @@ struct ContentView: View {
 #Preview {
     let locationProvider = LocationProvider()
     let cloudCache = CloudCache()
-    let featureFlags = FeatureFlags(cloudCache: cloudCache)
+    let featureFlags = FeatureFlags()
     let chatModel = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cloudCache, featureFlags: featureFlags)
     let chatHost = AssistiveChatHost()
-    return ContentView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, featureFlags: featureFlags)
+    return ContentView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider)
 }

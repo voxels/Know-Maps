@@ -31,7 +31,10 @@ struct SearchTasteView: View {
                             let isSaved = model.cachedTastes(contains: parent.parentCategory)
                             Label("Save", systemImage:isSaved ? "minus" : "plus").labelStyle(.iconOnly)
                         }
-                        .onTapGesture {
+#if os(iOS) || os(visionOS)
+                            .hoverEffect(.lift)
+#endif
+                            .onTapGesture {
                             let isSaved = model.cachedTastes(contains: parent.parentCategory)
                             if isSaved {
                                 if let cachedTasteResults = model.cachedTasteResults(for: "Taste", identity: parent.parentCategory) {
@@ -148,7 +151,7 @@ struct SearchTasteView: View {
 #Preview {
     let locationProvider = LocationProvider()
     let cloudCache = CloudCache()
-    let featureFlags = FeatureFlags(cloudCache: cloudCache)
+    let featureFlags = FeatureFlags()
 
     let chatModel = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cloudCache, featureFlags: featureFlags)
     

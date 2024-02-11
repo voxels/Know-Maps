@@ -19,56 +19,56 @@ struct SearchSavedView: View {
                         Label("Is Saved", systemImage:"star.fill").labelStyle(.iconOnly)
                     }
                     if model.cloudCache.hasPrivateCloudAccess {
-                        ZStack {
-                            Capsule()
-#if os(macOS)
-                                .foregroundStyle(.background)
-                                .frame(width: 44, height:44)
-#else
-                                .foregroundColor(Color(uiColor:.systemFill))
-                                .frame(minWidth: 44, maxWidth: 60, minHeight:44, maxHeight:60)
-#endif
-                            Label("Save", systemImage:"minus")
-                                .labelStyle(.iconOnly)
-                        }
-                        .onTapGesture {
-                            if let cachedCategoricalResults = model.cachedCategoricalResults(for: "Category", identity: parent.parentCategory) {
-                                for cachedCategoricalResult in cachedCategoricalResults {
-                                    Task {
-                                        try await model.cloudCache.deleteUserCachedRecord(for: cachedCategoricalResult)
-                                        try await model.refreshCache(cloudCache: model.cloudCache)
-                                    }
-                                }
-                            }
-                            
-                            if let cachedTasteResults = model.cachedTasteResults(for: "Taste", identity: parent.parentCategory) {
-                                for cachedTasteResult in cachedTasteResults {
-                                    Task {
-                                        try await model.cloudCache.deleteUserCachedRecord(for: cachedTasteResult)
-                                        try await model.refreshCache(cloudCache: model.cloudCache)
-                                    }
-                                }
-                            }
-                            
-                            if let cachedPlaceResults = model.cachedPlaceResults(for: "Place", title:parent.parentCategory ) {
-                                for cachedPlaceResult in cachedPlaceResults {
-                                    Task {
-                                        try await model.cloudCache.deleteUserCachedRecord(for: cachedPlaceResult)
-                                        try await model.refreshCache(cloudCache: model.cloudCache)
-                                    }
-                                }
-                            }
-                            
-                            if let cachedListResults = model.cachedListResults(for: "List", title:parent.parentCategory ) {
-                                for cachedListResult in cachedListResults {
-                                    Task {
-                                        try await model.cloudCache.deleteUserCachedRecord(for: cachedListResult)
-                                        try await model.refreshCache(cloudCache: model.cloudCache)
-                                    }
-                                }
-                            }
-                        }
-                        
+//                        ZStack {
+//                            Capsule()
+//#if os(macOS)
+//                                .foregroundStyle(.background)
+//                                .frame(width: 44, height:44)
+//#else
+//                                .foregroundColor(Color(uiColor:.systemFill))
+//                                .frame(minWidth: 44, maxWidth: 60, minHeight:44, maxHeight:60)
+//#endif
+//                            Label("Save", systemImage:"minus")
+//                                .labelStyle(.iconOnly)
+//                        }
+//                        .onTapGesture {
+//                            if let cachedCategoricalResults = model.cachedCategoricalResults(for: "Category", identity: parent.parentCategory) {
+//                                for cachedCategoricalResult in cachedCategoricalResults {
+//                                    Task {
+//                                        try await model.cloudCache.deleteUserCachedRecord(for: cachedCategoricalResult)
+//                                        try await model.refreshCache(cloudCache: model.cloudCache)
+//                                    }
+//                                }
+//                            }
+//                            
+//                            if let cachedTasteResults = model.cachedTasteResults(for: "Taste", identity: parent.parentCategory) {
+//                                for cachedTasteResult in cachedTasteResults {
+//                                    Task {
+//                                        try await model.cloudCache.deleteUserCachedRecord(for: cachedTasteResult)
+//                                        try await model.refreshCache(cloudCache: model.cloudCache)
+//                                    }
+//                                }
+//                            }
+//                            
+//                            if let cachedPlaceResults = model.cachedPlaceResults(for: "Place", title:parent.parentCategory ) {
+//                                for cachedPlaceResult in cachedPlaceResults {
+//                                    Task {
+//                                        try await model.cloudCache.deleteUserCachedRecord(for: cachedPlaceResult)
+//                                        try await model.refreshCache(cloudCache: model.cloudCache)
+//                                    }
+//                                }
+//                            }
+//                            
+//                            if let cachedListResults = model.cachedListResults(for: "List", title:parent.parentCategory ) {
+//                                for cachedListResult in cachedListResults {
+//                                    Task {
+//                                        try await model.cloudCache.deleteUserCachedRecord(for: cachedListResult)
+//                                        try await model.refreshCache(cloudCache: model.cloudCache)
+//                                    }
+//                                }
+//                            }
+//                        }
+//                        
                     }
                     
                     Text("\(parent.parentCategory)")
@@ -115,7 +115,7 @@ struct SearchSavedView: View {
 #Preview {
     let locationProvider = LocationProvider()
     let cloudCache = CloudCache()
-    let featureFlags = FeatureFlags(cloudCache: cloudCache)
+    let featureFlags = FeatureFlags()
 
     let chatModel = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cloudCache, featureFlags: featureFlags)
     

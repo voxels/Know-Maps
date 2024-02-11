@@ -82,7 +82,7 @@ struct AddListItemView: View {
 #Preview {
     let locationProvider = LocationProvider()
     let cloudCache = CloudCache()
-    let featureFlags = FeatureFlags(cloudCache: cloudCache)
+    let featureFlags = FeatureFlags()
 
     let chatModel = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cloudCache, featureFlags: featureFlags)
 

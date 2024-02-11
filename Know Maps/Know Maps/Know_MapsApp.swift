@@ -7,6 +7,7 @@
 
 import SwiftUI
 import Segment
+import RevenueCat
 
 @main
 struct Know_MapsApp: App {
@@ -14,6 +15,10 @@ struct Know_MapsApp: App {
     @StateObject public var cloudCache:CloudCache  = CloudCache()
     @StateObject public var settingsModel = SettingsModel(userId: "")
     @StateObject public var chatHost:AssistiveChatHost = AssistiveChatHost()
+    @StateObject public var featureFlags = FeatureFlags()
+    
+    @State private var showOnboarding:Bool = true
+    @State private var showSplashScreen:Bool = true
     static let config = Configuration(writeKey: "igx8ZOr5NLbaBsab5j5juFECMzqulFla")
     // Automatically track Lifecycle events
         .trackApplicationLifecycleEvents(true)
@@ -24,41 +29,37 @@ struct Know_MapsApp: App {
     public var analytics:Analytics? = Analytics(configuration: Know_MapsApp.config)
     
     var body: some Scene {
+        
+        let chatModel = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cloudCache, featureFlags: featureFlags)
         WindowGroup(id:"ContentView") {
-            let featureFlags = FeatureFlags(cloudCache: cloudCache)
-            let chatModel = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cloudCache, featureFlags: featureFlags)
-            ContentView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, featureFlags: featureFlags)
-                .environmentObject(cloudCache)
-                .environmentObject(settingsModel)
-                .task { @MainActor in
-                    do {
-                        cloudCache.analytics = analytics
-                        try? chatHost.organizeCategoryCodeList()
-                        let userRecord = try await cloudCache.fetchCloudKitUserRecordID()
-                        settingsModel.keychainId = userRecord?.recordName
-                        if let keychainId = settingsModel.keychainId, !keychainId.isEmpty {
-                            cloudCache.hasPrivateCloudAccess =  try await chatModel.retrieveFsqUser()
-                            if !cloudCache.hasPrivateCloudAccess {
-                                
-                            }
-                        }
-                    } catch {
-                        switch error {
-                        case PersonalizedSearchSessionError.NoTokenFound:
-                            analytics?.track(name: "error \(error)")
-                            print(error)
-                        default:
-                            settingsModel.keychainId = nil
-                            cloudCache.hasPrivateCloudAccess =  false
-                            analytics?.track(name: "error \(error)")
-                            print(error)
-                        }
+            if showSplashScreen{
+                ZStack {
+                    VStack{
+                        Text("Welcome to Know Maps").bold().padding()
+                        Image(systemName: "map.circle")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width:100 , height: 100)
+                    }
+                }                    
+                .task {
+                    Task{
+                        try await startup(chatModel: chatModel, featureFlags: featureFlags)
                     }
                 }
-                .onAppear {
-                    locationProvider.authorize()
-    
+            } else {
+                if showOnboarding{
+                    OnboardingView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, showOnboarding: $showOnboarding)
+                        .environmentObject(cloudCache)
+                        .environmentObject(settingsModel)
+                        .environmentObject(featureFlags)
+                } else {
+                ContentView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider)
+                    .environmentObject(cloudCache)
+                    .environmentObject(settingsModel)
+                    .environmentObject(featureFlags)
                 }
+            }
         }
         
         WindowGroup(id:"SettingsView"){
@@ -84,5 +85,42 @@ struct Know_MapsApp: App {
             ImmersiveView()
         }
 #endif
+    }
+    
+    @MainActor
+    private func startup(chatModel:ChatResultViewModel, featureFlags:FeatureFlags)async throws{
+        do {
+            cloudCache.analytics = analytics
+            try? chatHost.organizeCategoryCodeList()
+            let userRecord = try await cloudCache.fetchCloudKitUserRecordID()
+            settingsModel.keychainId = userRecord?.recordName
+            cloudCache.hasPrivateCloudAccess =  try await chatModel.retrieveFsqUser()
+            #if DEBUG
+            Purchases.logLevel = .debug
+            #endif
+            let purchasesId = settingsModel.purchasesId
+            let revenuecatAPIKey = try await cloudCache.apiKey(for: .revenuecat)
+            Purchases.configure(withAPIKey: revenuecatAPIKey, appUserID: purchasesId)
+            Purchases.shared.delegate = featureFlags
+            let customerInfo = try await Purchases.shared.customerInfo()
+            featureFlags.updateFlags(with: customerInfo)
+            if cloudCache.hasPrivateCloudAccess {
+                showOnboarding = false
+            }
+            settingsModel.fetchSubscriptionOfferings()
+            showSplashScreen = false
+        } catch {
+            switch error {
+            case PersonalizedSearchSessionError.NoTokenFound:
+                analytics?.track(name: "error \(error)")
+                print(error)
+            default:
+                settingsModel.keychainId = nil
+                cloudCache.hasPrivateCloudAccess =  false
+                analytics?.track(name: "error \(error)")
+                print(error)
+            }
+            showSplashScreen = false
+        }
     }
 }

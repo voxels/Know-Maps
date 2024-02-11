@@ -431,7 +431,7 @@ public class ChatResultViewModel : ObservableObject {
     public func placeChatResult(for selectedChatResultID:ChatResult.ID)->ChatResult?{
         var checkChatResultID = selectedChatResultID
 
-        if featureFlags.owns(flag: .hasPremiumSubscription){
+        if featureFlags.owns(flag: .hasPremiumSubscription), cloudCache.hasPrivateCloudAccess{
             let recommendedResult = recommendedPlaceResults.first(where: { checkResult in
                 return checkResult.id == checkChatResultID
             })
@@ -460,7 +460,7 @@ public class ChatResultViewModel : ObservableObject {
     
     public func placeChatResult(for selectedPlaceFsqID:String)->ChatResult? {
         
-        if featureFlags.owns(flag: .hasPremiumSubscription){
+        if featureFlags.owns(flag: .hasPremiumSubscription),  cloudCache.hasPrivateCloudAccess{
             let recommendedResult = recommendedPlaceResults.first(where: { checkResult in
                 return checkResult.placeResponse?.fsqID == selectedPlaceFsqID
             })
@@ -724,7 +724,7 @@ public class ChatResultViewModel : ObservableObject {
                     analytics?.track(name: "searchIntentWithPlace")
             }
         case .Search:
-            if featureFlags.owns(flag: .hasPremiumSubscription) {
+            if featureFlags.owns(flag: .hasPremiumSubscription), cloudCache.hasPrivateCloudAccess {
                 let request = await recommendedPlaceSearchRequest(intent: intent, location: location)
                 let rawQueryResponse = try await personalizedSearchSession.fetchRecommendedVenues(with:request, location: location)
                 let recommendedPlaceSearchResponses = try PlaceResponseFormatter.recommendedPlaceSearchResponses(with: rawQueryResponse)
@@ -741,15 +741,11 @@ public class ChatResultViewModel : ObservableObject {
         case .Location:
             fallthrough
         case .Autocomplete:
-            if featureFlags.owns(flag: .hasPremiumSubscription) {
-                
-            } else {
-                
+
                 let autocompleteResponse = try await placeSearchSession.autocomplete(caption: intent.caption, parameters: intent.queryParameters, location: location)
                 let placeSearchResponses = intent.placeSearchResponses.isEmpty ? try PlaceResponseFormatter.autocompletePlaceSearchResponses(with: autocompleteResponse) : intent.placeSearchResponses
                 intent.placeSearchResponses = placeSearchResponses
                 analytics?.track(name: "searchIntentWithAutocomplete")
-            }
         }
     }
     
@@ -761,7 +757,7 @@ public class ChatResultViewModel : ObservableObject {
         if intent.placeSearchResponses.count > 0, let placeSearchResponse = intent.selectedPlaceSearchResponse {
             intent.selectedPlaceSearchDetails = try await fetchDetails(for: [placeSearchResponse]).first
             intent.placeDetailsResponses = [intent.selectedPlaceSearchDetails!]
-            if featureFlags.owns(flag: .hasPremiumSubscription) {
+            if featureFlags.owns(flag: .hasPremiumSubscription), cloudCache.hasPrivateCloudAccess {
                 intent.relatedPlaceSearchResponses = try await fetchRelatedPlaces(for: placeSearchResponse.fsqID)
             }
         }
@@ -932,7 +928,7 @@ public class ChatResultViewModel : ObservableObject {
     public func recommendedPlaceQueryModel(intent:AssistiveChatHostIntent) {
         var recommendedChatResults = [ChatResult]()
         
-        guard featureFlags.owns(flag: .hasPremiumSubscription) else {
+        guard featureFlags.owns(flag: .hasPremiumSubscription), cloudCache.hasPrivateCloudAccess else {
             recommendedChatResults.removeAll()
             return
         }
@@ -969,7 +965,7 @@ public class ChatResultViewModel : ObservableObject {
     public func relatedPlaceQueryModel(intent:AssistiveChatHostIntent) {
         var relatedChatResults = [ChatResult]()
         
-        guard featureFlags.owns(flag: .hasPremiumSubscription) else {
+        guard featureFlags.owns(flag: .hasPremiumSubscription), cloudCache.hasPrivateCloudAccess else {
             self.relatedPlaceResults.removeAll()
             return
         }
@@ -1514,7 +1510,7 @@ public class ChatResultViewModel : ObservableObject {
                     let rawDetailsResponse = try await strongSelf.placeSearchSession.details(for: request)
                     strongSelf.analytics?.track(name: "fetchDetails")
                     
-                    if strongSelf.featureFlags.owns(flag: .hasPremiumSubscription) {
+                    if strongSelf.featureFlags.owns(flag: .hasPremiumSubscription), strongSelf.cloudCache.hasPrivateCloudAccess {
                         let tipsRawResponse = try await strongSelf.placeSearchSession.tips(for: response.fsqID)
                         let tipsResponses = try PlaceResponseFormatter.placeTipsResponses(with: tipsRawResponse, for: response.fsqID)
                         let photosRawResponse = try await strongSelf.placeSearchSession.photos(for: response.fsqID)
@@ -1647,8 +1643,9 @@ extension ChatResultViewModel : AssistiveChatHostMessagesDelegate {
             throw ChatResultViewModelError.MissingSelectedDestinationLocationChatResult
         }
 
-        if let location = locationProvider.currentLocation() {
-            currentLocationResult.replaceLocation(with: location, name: "Current Location")
+        if let location = locationProvider.currentLocation(), let name = try await currentLocationName() {
+            
+            currentLocationResult.replaceLocation(with: location, name: name)
         }
         
         if selectedSourceLocationChatResult == nil {
@@ -1733,6 +1730,10 @@ extension ChatResultViewModel : AssistiveChatHostMessagesDelegate {
             } else if let filteredLocationResult = filteredLocationResults.first {
                 selectedDestinationChatResult = filteredLocationResult.id
                 selectedDestinationLocationChatResult = filteredLocationResult.id
+                
+            } else {
+                selectedDestinationChatResult = currentLocationResult.id
+                selectedDestinationLocationChatResult = currentLocationResult.id
             }
         } else if let destinationChatResult = selectedDestinationChatResult {
             if  let _ = locationChatResult(for: destinationChatResult) {
