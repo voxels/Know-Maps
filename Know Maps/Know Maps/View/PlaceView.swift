@@ -29,7 +29,7 @@ struct PlaceView: View {
                         Text("Tips").tag(3)
                     }
                 }
-                .padding(8)
+                .padding(24)
                 .pickerStyle(.segmented)
                 Spacer()
                 switch sectionSelection {

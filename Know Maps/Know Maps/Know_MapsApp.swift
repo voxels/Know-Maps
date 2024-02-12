@@ -43,10 +43,24 @@ struct Know_MapsApp: App {
                     }
                 }                    
                 .task {
-                    Task{
-                        try await startup(chatModel: chatModel, featureFlags: featureFlags)
+                    do{
+                        try await startup(chatModel: chatModel)
+                    } catch{
+                        analytics?.track(name: "error \(error)")
+                        print(error)
                     }
                 }
+                .onChange(of: showOnboarding, { oldValue, newValue in
+                    Task{
+                        if !cloudCache.hasPrivateCloudAccess {
+                            let userRecord = try await cloudCache.fetchCloudKitUserRecordID()
+                            settingsModel.keychainId = userRecord?.recordName
+                            cloudCache.hasPrivateCloudAccess =  try await chatModel.retrieveFsqUser()
+                            let customerInfo = try await Purchases.shared.customerInfo()
+                            chatModel.featureFlags.updateFlags(with: customerInfo)
+                        }
+                    }
+                })
             } else {
                 if showOnboarding{
                     OnboardingView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, showOnboarding: $showOnboarding)
@@ -54,7 +68,17 @@ struct Know_MapsApp: App {
                         .environmentObject(settingsModel)
                         .environmentObject(featureFlags)
                 } else {
-                ContentView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider)
+                ContentView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider)                        
+                        .task {
+                            do{
+                                let customerInfo = try await Purchases.shared.customerInfo()
+                                chatModel.featureFlags.updateFlags(with: customerInfo)
+                            } catch {
+                                analytics?.track(name: "error \(error)")
+                                print(error)
+                            }
+                        }
+
                     .environmentObject(cloudCache)
                     .environmentObject(settingsModel)
                     .environmentObject(featureFlags)
@@ -88,7 +112,7 @@ struct Know_MapsApp: App {
     }
     
     @MainActor
-    private func startup(chatModel:ChatResultViewModel, featureFlags:FeatureFlags)async throws{
+    private func startup(chatModel:ChatResultViewModel)async throws{
         do {
             cloudCache.analytics = analytics
             try? chatHost.organizeCategoryCodeList()
@@ -101,9 +125,9 @@ struct Know_MapsApp: App {
             let purchasesId = settingsModel.purchasesId
             let revenuecatAPIKey = try await cloudCache.apiKey(for: .revenuecat)
             Purchases.configure(withAPIKey: revenuecatAPIKey, appUserID: purchasesId)
-            Purchases.shared.delegate = featureFlags
+            Purchases.shared.delegate = chatModel.featureFlags
             let customerInfo = try await Purchases.shared.customerInfo()
-            featureFlags.updateFlags(with: customerInfo)
+            chatModel.featureFlags.updateFlags(with: customerInfo)
             if cloudCache.hasPrivateCloudAccess {
                 showOnboarding = false
             }

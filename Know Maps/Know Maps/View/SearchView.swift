@@ -26,7 +26,7 @@ struct SearchView: View {
                             Text("Saved").tag(2)
                         }
                     }
-                    .padding(8)
+                    .padding(24)
                     .pickerStyle(.segmented)
                     switch sectionSelection {
                     case 0:

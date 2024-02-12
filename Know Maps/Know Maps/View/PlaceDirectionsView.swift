@@ -84,7 +84,7 @@ struct PlaceDirectionsView: View {
                                     MapCompass()
                                 }
                                 .mapStyle(.standard)
-                                .frame(minWidth: geo.size.width, minHeight:geo.size.height * 2.0 / 3.0)
+                                .frame(minWidth: geo.size.width-48, minHeight:geo.size.height * 2.0 / 3.0)
                             }
                         }
                         

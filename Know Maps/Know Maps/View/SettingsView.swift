@@ -30,7 +30,9 @@ struct SettingsView: View {
                                     model.appleUserId = appleIDCredential.user
                                     model.fullName = "\(appleIDCredential.fullName?.givenName ?? "") \(appleIDCredential.fullName?.familyName ?? "")"
                                     cloudCache.hasPrivateCloudAccess = true
+                                    #if os(visionOS)
                                     openWindow(id: "ContentView")
+                                    #endif
                                 }
                                 print("Authorization successful.")
                                 Task {

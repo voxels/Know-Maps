@@ -26,7 +26,7 @@ struct SearchTasteView: View {
                                 .frame(width: 44, height:44)
 #else
                                 .foregroundColor(Color(uiColor:.systemFill))
-                                .frame(minWidth: 44, maxWidth: 60, minHeight:44, maxHeight:60)
+                                .frame(width: 60, height:60)
 #endif
                             let isSaved = model.cachedTastes(contains: parent.parentCategory)
                             Label("Save", systemImage:isSaved ? "minus" : "plus").labelStyle(.iconOnly)
@@ -61,7 +61,7 @@ struct SearchTasteView: View {
                                     }
                                     model.appendCachedTaste(with: userRecord)
                                         try await model.refreshTastes(page:model.lastFetchedTastePage)
-                                    } catch {
+                                    } catch { 
                                         model.analytics?.track(name: "error \(error)")
                                         print(error)
                                     }

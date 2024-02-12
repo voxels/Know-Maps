@@ -51,7 +51,7 @@ struct PlaceDirectionsControlsView: View {
                     Button("Apple Maps", systemImage: "apple.logo") {
                         MKMapItem.openMaps(with: [source,destination], launchOptions: launchOptions)
                     }
-                    .padding(8)
+                    .padding(12)
                     .foregroundStyle(.primary)
                     
                 }
@@ -71,7 +71,7 @@ struct PlaceDirectionsControlsView: View {
                 }.foregroundStyle(.primary)
             }
             Spacer()
-#if os(iOS) || os(visionOS)
+#if os(visionOS)
             if showLookAroundScene {
                 Button("Directions", systemImage: "map.fill") {
                     showLookAroundScene.toggle()
@@ -91,7 +91,7 @@ struct PlaceDirectionsControlsView: View {
                 Button("Apple Maps", systemImage: "apple.logo") {
                     MKMapItem.openMaps(with: [source,destination], launchOptions: launchOptions)
                 }
-                .padding(4)
+                .padding(12)
                 .foregroundStyle(.primary)
             }
         }
