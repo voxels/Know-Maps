@@ -22,9 +22,11 @@ struct SearchCategoryView: View {
     #if os(macOS)
                                 .foregroundStyle(.background)
                                 .frame(width: 44, height:44)
+                                .padding(8)
     #else
                                 .foregroundColor(Color(uiColor:.systemFill))
-                                .frame(width: 44, height: 44, alignment: .center).padding(8)
+                                .frame(width: 44, height: 44, alignment: .center)
+                                .padding(8)
     #endif
                             let isSaved = chatModel.cachedCategories(contains: parent.parentCategory)
                             Label("Save", systemImage:isSaved ? "minus" : "plus").labelStyle(.iconOnly)

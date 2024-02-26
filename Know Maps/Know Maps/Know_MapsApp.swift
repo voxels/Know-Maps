@@ -41,7 +41,7 @@ struct Know_MapsApp: App {
                             .scaledToFit()
                             .frame(width:100 , height: 100)
                     }
-                }                    
+                }.frame(minWidth: 1200, minHeight: 1000)
                 .task {
                     do{
                         try await startup(chatModel: chatModel)
@@ -64,6 +64,7 @@ struct Know_MapsApp: App {
             } else {
                 if showOnboarding{
                     OnboardingView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, showOnboarding: $showOnboarding)
+                        .frame(minWidth: 1200, minHeight: 1000)
                         .environmentObject(cloudCache)
                         .environmentObject(settingsModel)
                         .environmentObject(featureFlags)
@@ -78,13 +79,13 @@ struct Know_MapsApp: App {
                                 print(error)
                             }
                         }
-
+                        .frame(minWidth: 1200, minHeight:1000)
                     .environmentObject(cloudCache)
                     .environmentObject(settingsModel)
                     .environmentObject(featureFlags)
                 }
             }
-        }
+        }.windowResizability(.contentSize)
         
         WindowGroup(id:"SettingsView"){
             SettingsView()

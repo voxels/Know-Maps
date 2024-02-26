@@ -259,66 +259,65 @@ struct PlaceAboutView: View {
                         }
                         if chatModel.featureFlags.owns(flag: .hasPremiumSubscription), chatModel.cloudCache.hasPrivateCloudAccess {
                         if let tastes = placeDetailsResponse.tastes, tastes.count > 0 {
-                            let gridItems = Array(repeating: GridItem(), count: sizeClass == .compact ? 2 : 4)
+                            let gridItems = Array(repeating: GridItem(), count: sizeClass == .compact ? 2 : 3)
                             Section("Features") {
                                 
-                            LazyVGrid(columns:gridItems){
+                                LazyVGrid(columns:gridItems, alignment:.leading, spacing:8 ){
                                 ForEach(tastes, id: \.self) { taste in
-                                    ZStack {
-                                        Capsule()
-#if os(macOS)
-                                            .foregroundStyle(.background)
-                                            .frame(minWidth: 44, minHeight:44)
-#else
-                                            .foregroundColor(Color(uiColor:.systemFill))
-                                            .frame(minWidth: 60, minHeight:60 )
-#endif
-                                        
-                                        HStack {
-                                            let isSaved = chatModel.cachedTastes(contains: taste)
-                                            Label("Save", systemImage:isSaved ? "minus" : "plus").labelStyle(.iconOnly)
-                                            Text(taste)
-                                        }.padding(8)
-                                    }
-#if os(iOS) || os(visionOS)
-                            .hoverEffect(.lift)
-#endif
-                                    .onTapGesture {
+                                    HStack {
                                         let isSaved = chatModel.cachedTastes(contains: taste)
-                                        if isSaved {
-                                            if let cachedTasteResults = chatModel.cachedTasteResults(for: "Taste", identity: taste) {
-                                                for cachedTasteResult in cachedTasteResults {
-                                                    Task {
-                                                        do {
-                                                            try await chatModel.cloudCache.deleteUserCachedRecord(for: cachedTasteResult)
-                                                            try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
-                                                        } catch {
-                                                            chatModel.analytics?.track(name: "error \(error)")
-                                                            print(error)
+                                        Button("Save", systemImage: isSaved ? "minus" : "plus") {
+                                            let isSaved = chatModel.cachedTastes(contains: taste)
+                                            if isSaved {
+                                                if let cachedTasteResults = chatModel.cachedTasteResults(for: "Taste", identity: taste) {
+                                                    for cachedTasteResult in cachedTasteResults {
+                                                        Task {
+                                                            do {
+                                                                try await chatModel.cloudCache.deleteUserCachedRecord(for: cachedTasteResult)
+                                                                try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
+                                                            } catch {
+                                                                chatModel.analytics?.track(name: "error \(error)")
+                                                                print(error)
+                                                            }
+                                                            
                                                         }
-                                                        
                                                     }
                                                 }
-                                            }
-                                        } else {
-                                            Task {
-                                                do {
-                                                    var userRecord = UserCachedRecord(recordId: "", group: "Taste", identity: taste, title: taste, icons: "", list: nil)
-                                                    let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title)
-                                                    if let resultName = record.saveResults.keys.first?.recordName {
-                                                        userRecord.setRecordId(to:resultName)
+                                            } else {
+                                                Task {
+                                                    do {
+                                                        var userRecord = UserCachedRecord(recordId: "", group: "Taste", identity: taste, title: taste, icons: "", list: nil)
+                                                        let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title)
+                                                        if let resultName = record.saveResults.keys.first?.recordName {
+                                                            userRecord.setRecordId(to:resultName)
+                                                        }
+                                                        chatModel.appendCachedTaste(with: userRecord)
+                                                        try await chatModel.refreshTastes(page:chatModel.lastFetchedTastePage)
+                                                    } catch {
+                                                        chatModel.analytics?.track(name: "error \(error)")
+                                                        print(error)
                                                     }
-                                                    chatModel.appendCachedTaste(with: userRecord)
-                                                    try await chatModel.refreshTastes(page:chatModel.lastFetchedTastePage)
-                                                } catch {
-                                                    chatModel.analytics?.track(name: "error \(error)")
-                                                    print(error)
                                                 }
                                             }
                                         }
+                                        .labelStyle(.iconOnly)
+                                        
+
+#if os(macOS)
+                                                .foregroundStyle(.background)
+                                                .frame(minWidth: 44, minHeight:44)
+                                                .padding(16)
+#else
+                                                .foregroundColor(Color(uiColor:.systemFill))
+                                                .frame(minWidth: 44, minHeight:44 )
+                                                .padding(16)
+                                                .hoverEffect(.lift)
+#endif
+                                        Text(taste)
+                                        Spacer()
+                                        }
                                     }
                                 }
-                            }.frame(maxWidth: geo.size.width - PlaceAboutView.defaultPadding * 2 ).padding(PlaceAboutView.defaultPadding * 2)
                             }
                         }
                         

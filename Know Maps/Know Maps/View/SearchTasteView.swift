@@ -15,18 +15,14 @@ struct SearchTasteView: View {
             List(model.tasteResults, selection: $model.selectedTasteCategoryResult) { parent in
                 HStack {
                     if model.cloudCache.hasPrivateCloudAccess {
-                        let isSaved = model.cachedTastes(contains: parent.parentCategory)
-                        Label("Is Saved", systemImage:isSaved ? "star.fill" : "star").labelStyle(.iconOnly)
-                    }                    
-                    if model.cloudCache.hasPrivateCloudAccess {
                         ZStack {
                             Capsule()
 #if os(macOS)
                                 .foregroundStyle(.background)
-                                .frame(width: 44, height:44)
+                                .frame(width: 44, height:44).padding(8)
 #else
                                 .foregroundColor(Color(uiColor:.systemFill))
-                                .frame(width: 60, height:60)
+                                .frame(width: 44, height:44).padding(8)
 #endif
                             let isSaved = model.cachedTastes(contains: parent.parentCategory)
                             Label("Save", systemImage:isSaved ? "minus" : "plus").labelStyle(.iconOnly)
@@ -69,7 +65,10 @@ struct SearchTasteView: View {
                             }
                         }
                     }
-                    
+                    if model.cloudCache.hasPrivateCloudAccess {
+                        let isSaved = model.cachedTastes(contains: parent.parentCategory)
+                        Label("Is Saved", systemImage:isSaved ? "star.fill" : "star").labelStyle(.iconOnly)
+                    }
                     Text("\(parent.parentCategory)")
                     Spacer()
 
