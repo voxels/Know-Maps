@@ -9,7 +9,7 @@ import SwiftUI
 
 struct NavigationLocationView: View {
     @Binding public var columnVisibility:NavigationSplitViewVisibility
-    @State private var searchIsPresented = true
+    @State private var searchIsPresented = false
     @EnvironmentObject public var cloudCache:CloudCache
     @ObservedObject public var chatHost:AssistiveChatHost
     @ObservedObject public var chatModel:ChatResultViewModel
@@ -98,7 +98,7 @@ struct NavigationLocationView: View {
             }
             .listStyle(.sidebar)
             .autocorrectionDisabled(true)
-            .searchable(text: $chatModel.locationSearchText, isPresented:$searchIsPresented)
+            .searchable(text: $chatModel.locationSearchText, isPresented:$searchIsPresented, placement:.automatic, prompt:"Search for a location")
             .onSubmit(of: .search, {
                 if let selectedDestinationLocationChatResult = chatModel.selectedDestinationLocationChatResult, !chatModel.locationSearchText.isEmpty {
                     Task {

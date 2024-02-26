@@ -19,7 +19,7 @@ struct PlaceView: View {
     var body: some View {
         if let resultId = resultId, let placeChatResult = chatModel.placeChatResult(for: resultId) {
             VStack {
-                Text(placeChatResult.title).font(.headline)
+                Text(placeChatResult.title).font(.headline).padding(16)
                 switch sectionSelection {
                 case 0:
                     PlaceAboutView(chatHost:chatHost,chatModel: chatModel, locationProvider: locationProvider, resultId: $resultId, sectionSelection: $sectionSelection)
@@ -72,7 +72,7 @@ struct PlaceView: View {
                 default:
                     ContentUnavailableView("No Place Selected", systemImage:"return")
                 }
-            }.toolbarRole(.browser)
+            }.toolbarRole(.automatic)
                 .toolbar(content: {
                     Button("Back", systemImage: "chevron.left") {
                         chatModel.selectedPlaceChatResult = nil
@@ -90,7 +90,6 @@ struct PlaceView: View {
                     }
                     .pickerStyle(.menu)
                 })
-                .navigationBarTitleDisplayMode(.automatic)
         } else {
             ContentUnavailableView("No place selected", systemImage: "return")
                 .onAppear(perform: {

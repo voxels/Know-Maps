@@ -317,7 +317,7 @@ struct PlaceAboutView: View {
                                         Spacer()
                                         }
                                     }
-                                }
+                                }.padding(16)
                             }
                         }
                         
@@ -361,7 +361,7 @@ struct PlaceAboutView: View {
                                             .padding(EdgeInsets(top: 0, leading: 0, bottom: 16, trailing: 0))
                                         }
                                     }
-                                }
+                             }.padding(16)
                                 }
                             }
                         }

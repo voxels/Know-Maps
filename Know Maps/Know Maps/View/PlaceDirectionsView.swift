@@ -95,8 +95,9 @@ struct PlaceDirectionsView: View {
                                 Rectangle().foregroundStyle(.thickMaterial).padding(4)
                                 VStack(alignment: .leading) {
                                     ForEach(chatRouteResults) { chatRouteResult in
-                                        Label(chatRouteResult.instructions, systemImage: "arrow.triangle.turn.up.right.circle").foregroundStyle(.primary)
-                                            .frame(minWidth:geo.size.width - 16, alignment: .leading).padding(4)
+                                        Text(chatRouteResult.instructions)
+                                            .frame(minWidth:geo.size.width - 16, alignment: .leading)
+                                            .padding(4)
                                     }
                                 }.padding(8)
                             }

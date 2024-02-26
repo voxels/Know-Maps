@@ -117,7 +117,6 @@ struct PlacesList: View {
                                         .onTapGesture {
                                             chatModel.selectedPlaceChatResult = result.id
                                         }
-                                        .hoverEffect(.lift)
                                     }
                                 }
                             }.padding(16)

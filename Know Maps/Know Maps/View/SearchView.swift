@@ -76,7 +76,7 @@ struct SearchView: View {
                 }
             }
         })
-        .toolbarRole(.navigationStack)
+        .toolbarRole(.automatic)
         .toolbar {
             Picker("", selection: $sectionSelection) {
                 Text("Type").tag(0)
