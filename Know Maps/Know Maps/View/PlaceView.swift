@@ -19,19 +19,7 @@ struct PlaceView: View {
     var body: some View {
         if let resultId = resultId, let placeChatResult = chatModel.placeChatResult(for: resultId) {
             VStack {
-                Picker("", selection: $sectionSelection) {
-                    Text("About").tag(0)
-                    Text("Directions").tag(1)
-                    if let detailsResponses = placeChatResult.placeDetailsResponse, let photoResponses = detailsResponses.photoResponses, photoResponses.count > 0 {
-                        Text("Photos").tag(2)
-                    }
-                    if let detailsResponses = placeChatResult.placeDetailsResponse, let tipsResponses = detailsResponses.tipsResponses, tipsResponses.count > 0 {
-                        Text("Tips").tag(3)
-                    }
-                }
-                .padding(24)
-                .pickerStyle(.segmented)
-                Spacer()
+                Text(placeChatResult.title).font(.headline)
                 switch sectionSelection {
                 case 0:
                     PlaceAboutView(chatHost:chatHost,chatModel: chatModel, locationProvider: locationProvider, resultId: $resultId, sectionSelection: $sectionSelection)
@@ -84,7 +72,25 @@ struct PlaceView: View {
                 default:
                     ContentUnavailableView("No Place Selected", systemImage:"return")
                 }
-            }
+            }.toolbarRole(.browser)
+                .toolbar(content: {
+                    Button("Back", systemImage: "chevron.left") {
+                        chatModel.selectedPlaceChatResult = nil
+                    }
+                    Spacer()
+                    Picker("Section", selection: $sectionSelection) {
+                        Text("About").tag(0)
+                        Text("Directions").tag(1)
+                        if let detailsResponses = placeChatResult.placeDetailsResponse, let photoResponses = detailsResponses.photoResponses, photoResponses.count > 0 {
+                            Text("Photos").tag(2)
+                        }
+                        if let detailsResponses = placeChatResult.placeDetailsResponse, let tipsResponses = detailsResponses.tipsResponses, tipsResponses.count > 0 {
+                            Text("Tips").tag(3)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                })
+                .navigationBarTitleDisplayMode(.automatic)
         } else {
             ContentUnavailableView("No place selected", systemImage: "return")
                 .onAppear(perform: {

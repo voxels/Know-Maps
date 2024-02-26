@@ -20,10 +20,6 @@ struct NavigationLocationView: View {
         GeometryReader { geo in
             List(chatModel.filteredDestinationLocationResults, selection:$chatModel.selectedDestinationLocationChatResult) { result in
                 HStack {
-                    if let location = result.location, chatModel.cloudCache.hasPrivateCloudAccess {
-                        let isSaved = chatModel.cachedLocation(contains: chatModel.cachedLocationIdentity(for: location))
-                        Label("Is Saved", systemImage:isSaved ? "star.fill" : "star").labelStyle(.iconOnly)
-                    }
                     
                     if let location = result.location, cloudCache.hasPrivateCloudAccess, result.locationName != "Current Location" {
                         let isSaved = chatModel.cachedLocation(contains: chatModel.cachedLocationIdentity(for: location))
@@ -35,15 +31,12 @@ struct NavigationLocationView: View {
                                 .frame(width: 44, height:44)
 #else
                                 .foregroundColor(Color(uiColor:.systemFill))
-                                .frame(width: 60, height: 60, alignment: .center)
+                                .frame(width: 44, height: 44, alignment: .center).padding(8)
 #endif
                                 Label("Save", systemImage: "minus")
                                     
                                     .labelStyle(.iconOnly)
                             }
-#if os(iOS) || os(visionOS)
-                            .hoverEffect(.lift)
-#endif
                             .onTapGesture {
                                 if let cachedLocationResults = chatModel.cachedLocationResults(for: "Location", identity:chatModel.cachedLocationIdentity(for:location)) {
                                     for cachedLocationResult in cachedLocationResults {
@@ -54,6 +47,9 @@ struct NavigationLocationView: View {
                                     }
                                 }
                             }
+#if os(iOS) || os(visionOS)
+                            .hoverEffect(.lift)
+#endif
                         } else {
                             ZStack {
                                 Capsule()
@@ -62,16 +58,13 @@ struct NavigationLocationView: View {
                                     .frame(width: 44, height:44)
 #else
                                     .foregroundColor(Color(uiColor:.systemFill))
-                                    .frame(width: 60, height: 60, alignment: .center)
+                                    .frame(width: 44, height: 44, alignment: .center).padding(8)
 #endif
                                 Label("Save", systemImage: "plus")
                                     
                                     .labelStyle(.iconOnly)
                                 
                             }
-#if os(iOS) || os(visionOS)
-                            .hoverEffect(.lift)
-#endif
                             .onTapGesture {
                                 Task {
                                     let userRecord = UserCachedRecord(recordId: "", group: "Location", identity: chatModel.cachedLocationIdentity(for: location), title: result.locationName, icons: "", list: nil)
@@ -79,8 +72,17 @@ struct NavigationLocationView: View {
                                     chatModel.appendCachedLocation(with: userRecord)
                                 }
                             }
+#if os(iOS) || os(visionOS)
+                            .hoverEffect(.lift)
+#endif
                         }
                     }
+                    
+                    if let location = result.location, chatModel.cloudCache.hasPrivateCloudAccess {
+                        let isSaved = chatModel.cachedLocation(contains: chatModel.cachedLocationIdentity(for: location))
+                        Label("Is Saved", systemImage:isSaved ? "star.fill" : "star").labelStyle(.iconOnly)
+                    }
+
                     
                     if result.id == chatModel.selectedDestinationLocationChatResult {
                         Label(result.locationName, systemImage: "mappin")

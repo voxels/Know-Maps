@@ -22,9 +22,7 @@ struct ContentView: View {
     @ObservedObject public var chatHost:AssistiveChatHost
     @StateObject public var chatModel:ChatResultViewModel
     @StateObject public var locationProvider:LocationProvider
-    @StateObject public var placeDirectionsChatViewModel = PlaceDirectionsViewModel(rawLocationIdent: "")
     @State private var selectedItem: String?
-    @State private var detailNavigationTitle:String = ""
     @Environment(\.openWindow) private var openWindow
 #if os(visionOS)
     @Environment(\.openImmersiveSpace) var openImmersiveSpace
@@ -39,8 +37,7 @@ struct ContentView: View {
             NavigationSplitView(columnVisibility: $columnVisibility) {
                 VStack() {
                     NavigationLocationView(columnVisibility: $columnVisibility, chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, resultId: $chatModel.selectedPlaceChatResult)
-                        .frame(maxHeight: geo.size.height / 4)
-                    SearchView(chatHost: chatHost, model: chatModel, locationProvider: locationProvider)
+                        .navigationTitle("Locations")
                 }.toolbar {
                     ToolbarItem(placement: .automatic) {
                         Button {
@@ -60,33 +57,16 @@ struct ContentView: View {
                 }
 #endif
             } content: {
+                SearchView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider)
+                    .navigationTitle("Lists")
+            } detail: {
                 PlacesList(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, resultId: $chatModel.selectedPlaceChatResult)
-                    .navigationTitle("Places")
+                    .navigationTitle(chatModel.selectedPlaceChatResult != nil ? "" :  "Places")
                     .alert("Unknown Place", isPresented: $didError) {
                         
                     } message: {
                         Text("We don't know much about this place.")
                     }
-
-            } detail: {
-                if chatModel.filteredPlaceResults.count == 0 && chatModel.selectedPlaceChatResult == nil {
-                    MapResultsView(chatHost: chatHost, model: chatModel, locationProvider: locationProvider, selectedMapItem: $selectedItem)
-                        .onAppear(perform: {
-                            chatModel.analytics?.screen(title: "MapResultsView")
-                        })
-                    
-                } else if chatModel.selectedPlaceChatResult == nil {
-                    MapResultsView(chatHost: chatHost, model: chatModel, locationProvider: locationProvider, selectedMapItem: $selectedItem)
-                        .onAppear(perform: {
-                            chatModel.analytics?.screen(title: "MapResultsView")
-                        })
-                } else {
-                    
-                    PlaceView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, placeDirectionsViewModel: placeDirectionsChatViewModel, resultId: $chatModel.selectedPlaceChatResult)
-                        .onAppear(perform: {
-                            chatModel.analytics?.screen(title: "PlaceView")
-                        }).navigationTitle(detailNavigationTitle)
-                }
             }
             .navigationSplitViewStyle(.balanced)
             .onAppear(perform: {
@@ -105,7 +85,6 @@ struct ContentView: View {
                     do {
                         if newValue != oldValue, let placeChatResult = chatModel.placeChatResult(for: newValue) {
                             try await chatModel.didTap(placeChatResult: placeChatResult)
-                            detailNavigationTitle = placeChatResult.title
                         }
                     } catch {
                         

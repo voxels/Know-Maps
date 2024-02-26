@@ -8,80 +8,79 @@
 import SwiftUI
 
 struct SearchCategoryView: View {
-    @ObservedObject public var model:ChatResultViewModel
-    
+    @ObservedObject public var chatHost:AssistiveChatHost
+    @ObservedObject public var chatModel:ChatResultViewModel
+    @ObservedObject public var locationProvider:LocationProvider
+    @State private var didError = false
+
     var body: some View {
-        List(model.categoryResults, children:\.children, selection:$model.selectedCategoryResult) { parent in
-            HStack {
-                if model.cloudCache.hasPrivateCloudAccess {
-                    let isSaved = model.cachedCategories(contains: parent.parentCategory)
-                    Label("Is Saved", systemImage:isSaved ? "star.fill" : "star").labelStyle(.iconOnly)
-                }
-                if model.cloudCache.hasPrivateCloudAccess {
-                    ZStack {
-                        Capsule()
-#if os(macOS)
-                            .foregroundStyle(.background)
-                            .frame(width: 44, height:44)
-#else
-                            .foregroundColor(Color(uiColor:.systemFill))
-                            .frame(minWidth: 44, maxWidth: 60, minHeight:44, maxHeight:60)
-#endif
-                        let isSaved = model.cachedCategories(contains: parent.parentCategory)
-                        Label("Save", systemImage:isSaved ? "minus" : "plus").labelStyle(.iconOnly)
-                    }
-#if os(iOS) || os(visionOS)
-                            .hoverEffect(.lift)
-#endif
-                            .padding(8)
-                    .onTapGesture {
-                        let isSaved = model.cachedCategories(contains: parent.parentCategory)
-                        if isSaved {
-                            if let cachedCategoricalResults = model.cachedCategoricalResults(for: "Category", identity: parent.parentCategory) {
-                                for cachedCategoricalResult in cachedCategoricalResults {
-                                    Task {
-                                        try await model.cloudCache.deleteUserCachedRecord(for: cachedCategoricalResult)
-                                        try await model.refreshCache(cloudCache: model.cloudCache)
+        List(chatModel.categoryResults, children:\.children, selection:$chatModel.selectedCategoryResult) { parent in
+                HStack {
+                    if chatModel.cloudCache.hasPrivateCloudAccess {
+                        ZStack {
+                            Capsule()
+    #if os(macOS)
+                                .foregroundStyle(.background)
+                                .frame(width: 44, height:44)
+    #else
+                                .foregroundColor(Color(uiColor:.systemFill))
+                                .frame(width: 44, height: 44, alignment: .center).padding(8)
+    #endif
+                            let isSaved = chatModel.cachedCategories(contains: parent.parentCategory)
+                            Label("Save", systemImage:isSaved ? "minus" : "plus").labelStyle(.iconOnly)
+                        }
+                        .onTapGesture {
+                            let isSaved = chatModel.cachedCategories(contains: parent.parentCategory)
+                            if isSaved {
+                                if let cachedCategoricalResults = chatModel.cachedCategoricalResults(for: "Category", identity: parent.parentCategory) {
+                                    for cachedCategoricalResult in cachedCategoricalResults {
+                                        Task {
+                                            try await chatModel.cloudCache.deleteUserCachedRecord(for: cachedCategoricalResult)
+                                            try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
+                                        }
                                     }
                                 }
-                            }
-                        } else {
-                            Task {
-                                var userRecord = UserCachedRecord(recordId: "", group: "Category", identity: parent.parentCategory, title: parent.parentCategory, icons: "", list: nil)
-                                let record = try await model.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title)
-                                if let resultName = record.saveResults.keys.first?.recordName {
-                                    userRecord.setRecordId(to:resultName)
+                            } else {
+                                Task {
+                                    var userRecord = UserCachedRecord(recordId: "", group: "Category", identity: parent.parentCategory, title: parent.parentCategory, icons: "", list: nil)
+                                    let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title)
+                                    if let resultName = record.saveResults.keys.first?.recordName {
+                                        userRecord.setRecordId(to:resultName)
+                                    }
+                                    chatModel.appendCachedCategory(with: userRecord)
                                 }
-                                model.appendCachedCategory(with: userRecord)
                             }
                         }
-                    }
-                }
-                
-                
+    #if os(iOS) || os(visionOS)
+                                .hoverEffect(.lift)
+    #endif
 
-                Text("\(parent.parentCategory)")
-                Spacer()
-            }
+                    }
+                    if chatModel.cloudCache.hasPrivateCloudAccess {
+                        let isSaved = chatModel.cachedCategories(contains: parent.parentCategory)
+                        Label("Is Saved", systemImage:isSaved ? "star.fill" : "star").labelStyle(.iconOnly)
+                    }
+                    Text("\(parent.parentCategory)")
+                }
         }
         .listStyle(.sidebar)
         .refreshable {
-            model.isRefreshingCache = false
+            chatModel.isRefreshingCache = false
             Task {
                 do{
-                    try await model.refreshCache(cloudCache: model.cloudCache)
+                    try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
                 } catch {
-                    model.analytics?.track(name: "error \(error)")
+                    chatModel.analytics?.track(name: "error \(error)")
                     print(error)
                 }
             }
         }.task {
             Task {
                 do {
-                    try await model.refreshCache(cloudCache: model.cloudCache)
+                    try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
                 } catch {
                     print(error)
-                    model.analytics?.track(name: "error \(error)")
+                    chatModel.analytics?.track(name: "error \(error)")
                 }
             }
         }
@@ -95,5 +94,5 @@ struct SearchCategoryView: View {
 
     let chatModel = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cloudCache, featureFlags: featureFlags)
     
-    return SearchCategoryView(model: chatModel)
+    return SearchCategoryView(chatHost: AssistiveChatHost(), chatModel: chatModel, locationProvider: locationProvider)
 }
