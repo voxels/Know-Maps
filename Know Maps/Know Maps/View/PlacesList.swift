@@ -43,7 +43,6 @@ struct PlacesList: View {
                                 
                                 LazyVGrid(columns: threeColumn, spacing: 8) {
                                     ForEach(chatModel.filteredRecommendedPlaceResults){ result in
-                                        let hasPhoto = result.recommendedPlaceResponse?.photo != nil
                                         ZStack(alignment: .bottom, content: {
                                             if let photo = result.recommendedPlaceResponse?.photo, !photo.isEmpty, let url = URL(string: photo) {
                                                 AsyncImage(url: url) { phase in
