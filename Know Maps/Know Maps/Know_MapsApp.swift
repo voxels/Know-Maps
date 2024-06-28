@@ -77,8 +77,9 @@ struct Know_MapsApp: App {
                 ContentView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider)                        
                         .task {
                             do{
-                                let customerInfo = try await Purchases.shared.customerInfo()
-                                chatModel.featureFlags.updateFlags(with: customerInfo)
+//                                if let customerInfo = try await Purchases.shared.customerInfo()
+//                                chatModel.featureFlags.updateFlags(with: customerInfo)
+                                chatModel.featureFlags.update(flag: .hasPremiumSubscription, allowed: true)
                             } catch {
                                 analytics?.track(name: "error \(error)")
                                 print(error)
