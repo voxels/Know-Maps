@@ -230,10 +230,6 @@ public class ChatResultViewModel : ObservableObject {
     
     @MainActor
     public func refreshTastes(page:Int) async throws {
-        guard page == 0 || page > lastFetchedTastePage else {
-            return
-        }
-        
         if page > lastFetchedTastePage || tasteResults.isEmpty {
             let tastes = try await personalizedSearchSession.fetchTastes(page:page)
             tasteResults = tasteCategoryResults(with: tastes, page:page)
