@@ -10,7 +10,7 @@ import Foundation
 public struct PlaceSearchRequest {
     let query:String
     let ll:String?
-    var radius:Int = 50000
+    var radius:Int = 20000
     let categories:String?
     let fields:String?
     var minPrice:Int = 1

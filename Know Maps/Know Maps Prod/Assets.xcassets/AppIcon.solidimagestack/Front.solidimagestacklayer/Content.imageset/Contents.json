@@ -1,7 +1,7 @@
 {
   "images" : [
     {
-      "filename" : "logo_front.png",
+      "filename" : "logo_visionOS_top.png",
       "idiom" : "vision",
       "scale" : "2x"
     }

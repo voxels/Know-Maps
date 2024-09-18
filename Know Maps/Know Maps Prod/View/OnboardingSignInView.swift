@@ -19,7 +19,7 @@ struct OnboardingSignInView: View {
         VStack {
             Spacer()
             Text("Welcome to Know Maps").bold().padding()
-            Image("logo_256")
+            Image("logo_macOS_512")
                 .resizable()
                 .scaledToFit()
                 .frame(width:100 , height: 100)

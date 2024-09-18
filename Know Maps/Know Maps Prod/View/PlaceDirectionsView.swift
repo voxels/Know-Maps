@@ -43,21 +43,24 @@ struct PlaceDirectionsView: View {
                         ZStack(){
                             if showLookAroundScene, let lookAroundScene = lookAroundScene {
                                 LookAroundPreview(initialScene: lookAroundScene)
-                                    .overlay(alignment: .bottomTrailing) {
-                                        HStack {
-                                            Text ("\(model.destination?.name ?? "")")
-                                            if let travelTime {
-                                                Text(travelTime)
-                                            }
-                                        }
-                                        .font(.caption)
-                                        .foregroundStyle(.white)
-                                        .padding()
-                                    }
-                                    .onAppear {
-                                        if let destination = model.destination {
-                                            Task {
-                                                try await getLookAroundScene(mapItem:destination)
+                                    .overlay {
+                                        if let source = model.source, let destination = model.destination {
+                                            let launchOptions = model.appleMapsLaunchOptions()
+                                            VStack(alignment: .center) {
+                                                HStack {
+                                                    Button("Directions", systemImage: "map.fill") {
+                                                        showLookAroundScene.toggle()
+                                                    }
+                                                    .padding(36)
+                                                    .foregroundStyle(.primary)
+                                                    Spacer()
+                                                }
+                                                Spacer()
+                                                Button("Open Apple Maps", systemImage: "apple.logo") {
+                                                    MKMapItem.openMaps(with: [source,destination], launchOptions: launchOptions)
+                                                }
+                                                .padding(8)
+                                                .foregroundStyle(.primary)
                                             }
                                         }
                                     }
@@ -88,12 +91,54 @@ struct PlaceDirectionsView: View {
                                 .cornerRadius(16)
                                 .padding(.top, 16)
                                 .padding(.horizontal, 16)
+                                .overlay {
+                                    if let source = model.source, let destination = model.destination {
+                                        let launchOptions = model.appleMapsLaunchOptions()
+                                        VStack(alignment: .center) {
+                                            if lookAroundScene != nil {
+                                                HStack {
+                                                    Button("Look Around", systemImage: "binoculars.fill") {
+                                                        showLookAroundScene.toggle()
+                                                    }
+                                                    .padding(36)
+                                                    .foregroundStyle(.primary)
+                                                    Spacer()
+                                                }
+                                            }
+                                            Spacer()
+                                            Button("Open Apple Maps", systemImage: "apple.logo") {
+                                                MKMapItem.openMaps(with: [source,destination], launchOptions: launchOptions)
+                                            }
+                                            .padding(8)
+                                            .foregroundStyle(.primary)
+                                        }
+                                    }
+                                    
+                                }
+                                .onAppear {
+                                    if let destination = model.destination {
+                                        Task {
+                                            try await getLookAroundScene(mapItem:destination)
+                                        }
+                                    }
+                                }
                             }
                         }
-                        
-                        PlaceDirectionsControlsView(chatModel:chatModel,model: model, showLookAroundScene: $showLookAroundScene, lookAroundScene:$lookAroundScene)
-                            .padding(.horizontal, 16)
-                        
+                        VStack {
+                            if !showLookAroundScene {
+                                Picker("Transport Type", selection: $model.rawTransportType) {
+                                    Text(PlaceDirectionsViewModel.RawTransportType.Automobile.rawValue).tag(PlaceDirectionsViewModel.RawTransportType.Automobile)
+                                    Text(PlaceDirectionsViewModel.RawTransportType.Walking.rawValue).tag(PlaceDirectionsViewModel.RawTransportType.Walking)
+                                }.foregroundStyle(.primary)
+                                    .pickerStyle(.palette)
+                                Picker("Route Start Location", selection:$model.rawLocationIdent) {
+                                    ForEach(chatModel.filteredLocationResults, id:\.self) { result in
+                                        Text(result.locationName).tag(result.id.uuidString)
+                                    }
+                                }.foregroundStyle(.primary)
+                                    .pickerStyle(.menu)
+                            }
+                        }
                         if let chatRouteResults = model.chatRouteResults, chatRouteResults.count > 0  {
                             VStack(alignment: .leading) {
                                 ForEach(chatRouteResults) { chatRouteResult in
@@ -136,7 +181,7 @@ struct PlaceDirectionsView: View {
                     guard let placeChatResult = chatModel.placeChatResult(for: resultId), let placeResponse = placeChatResult.placeResponse else {
                         return
                     }
-                     
+                    
                     chatModel.selectedSourceLocationChatResult = ident
                     let _ = Task{
                         do {
@@ -185,7 +230,7 @@ struct PlaceDirectionsView: View {
                     return
                 }
                 
-
+                
                 let _ = Task{
                     do {
                         try await refreshDirections(with: placeResponse)
@@ -218,7 +263,7 @@ struct PlaceDirectionsView: View {
             }
             .task {
                 model.rawLocationIdent = chatModel.filteredLocationResults.first?.id.uuidString ?? ""
-
+                
                 if let destination = model.destination  {
                     do {
                         try await getLookAroundScene(mapItem:destination)
@@ -238,7 +283,7 @@ struct PlaceDirectionsView: View {
                         chatModel.selectedSourceLocationChatResult = chatHost.lastLocationIntent()?.selectedDestinationLocationID
                         if let selectedSourceLocationChatResult = chatModel.selectedSourceLocationChatResult {
                             model.rawLocationIdent = selectedSourceLocationChatResult.uuidString
-                        }                        
+                        }
                     }
                     let _ = Task{
                         do {
@@ -345,15 +390,15 @@ struct PlaceDirectionsView: View {
 }
 
 #Preview {
-
+    
     let locationProvider = LocationProvider()
-
+    
     let chatHost = AssistiveChatHost()
     let cloudCache = CloudCache()
     let featureFlags = FeatureFlags()
-
+    
     let chatModel = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cloudCache, featureFlags: featureFlags)
-
+    
     chatModel.assistiveHostDelegate = chatHost
     chatHost.messagesDelegate = chatModel
     let model = PlaceDirectionsViewModel(rawLocationIdent: "")

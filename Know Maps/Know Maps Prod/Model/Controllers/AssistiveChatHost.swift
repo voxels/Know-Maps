@@ -179,7 +179,7 @@ open class AssistiveChatHost : @preconcurrency AssistiveChatHostDelegate, ChatHo
                         "query":"",
                         "parameters":
                         {
-                             "radius":50000,
+                             "radius":20000,
                              "sort":"distance",
                              "limit":50,
                         }

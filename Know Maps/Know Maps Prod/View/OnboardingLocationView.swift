@@ -20,7 +20,7 @@ struct OnboardingLocationView: View {
         VStack{
             Spacer()
             Text("Location Authorization").bold().padding()
-            Image(systemName: "map.circle")
+            Image("logo_macOS_512")
                 .resizable()
                 .scaledToFit()
                 .frame(width:100 , height: 100)

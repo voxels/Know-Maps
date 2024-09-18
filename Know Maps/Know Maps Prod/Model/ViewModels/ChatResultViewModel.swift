@@ -730,9 +730,10 @@ public class ChatResultViewModel : ObservableObject {
                 let rawQueryResponse = try await personalizedSearchSession.fetchRecommendedVenues(with:request, location: location)
                 let recommendedPlaceSearchResponses = try PlaceResponseFormatter.recommendedPlaceSearchResponses(with: rawQueryResponse)
                 intent.recommendedPlaceSearchResponses = recommendedPlaceSearchResponses
-                intent.placeSearchResponses = PlaceResponseFormatter.placeSearchResponses(from: recommendedPlaceSearchResponses)
                 
-                if intent.placeSearchResponses.isEmpty {
+                if let recommendedPlaceSearchResponses = intent.recommendedPlaceSearchResponses, !recommendedPlaceSearchResponses.isEmpty {
+                    intent.placeSearchResponses = PlaceResponseFormatter.placeSearchResponses(from: recommendedPlaceSearchResponses)
+                } else {
                     let request = await placeSearchRequest(intent: intent, location:location)
                     let rawQueryResponse = try await placeSearchSession.query(request:request, location: location)
                     let placeSearchResponses = intent.placeSearchResponses.isEmpty ? try PlaceResponseFormatter.placeSearchResponses(with: rawQueryResponse) : intent.placeSearchResponses
@@ -749,25 +750,32 @@ public class ChatResultViewModel : ObservableObject {
         case .Location:
             fallthrough
         case .Autocomplete:
-
+            if cloudCache.hasPrivateCloudAccess {
+                let autocompleteResponse = try await personalizedSearchSession.autocomplete(caption: intent.caption, parameters: intent.queryParameters, location: location)
+                let placeSearchResponses = intent.placeSearchResponses.isEmpty ? try PlaceResponseFormatter.autocompletePlaceSearchResponses(with: autocompleteResponse) : intent.placeSearchResponses
+                intent.placeSearchResponses = placeSearchResponses
+                analytics?.track(name: "searchIntentWithPersonalizedAutocomplete")
+            } else {
                 let autocompleteResponse = try await placeSearchSession.autocomplete(caption: intent.caption, parameters: intent.queryParameters, location: location)
                 let placeSearchResponses = intent.placeSearchResponses.isEmpty ? try PlaceResponseFormatter.autocompletePlaceSearchResponses(with: autocompleteResponse) : intent.placeSearchResponses
                 intent.placeSearchResponses = placeSearchResponses
                 analytics?.track(name: "searchIntentWithAutocomplete")
+            }
         }
     }
     
     @MainActor
     public func detailIntent( intent: AssistiveChatHostIntent) async throws {
         if intent.selectedPlaceSearchDetails != nil {
-            return
-        }
-        if intent.placeSearchResponses.count > 0, let placeSearchResponse = intent.selectedPlaceSearchResponse {
-            intent.selectedPlaceSearchDetails = try await fetchDetails(for: [placeSearchResponse]).first
-            intent.placeDetailsResponses = [intent.selectedPlaceSearchDetails!]
-            if cloudCache.hasPrivateCloudAccess {
-                intent.relatedPlaceSearchResponses = try await fetchRelatedPlaces(for: placeSearchResponse.fsqID)
+            if intent.placeSearchResponses.count > 0, let placeSearchResponse = intent.selectedPlaceSearchResponse {
+                intent.selectedPlaceSearchDetails = try await fetchDetails(for: [placeSearchResponse]).first
+                intent.placeDetailsResponses = [intent.selectedPlaceSearchDetails!]
+                if cloudCache.hasPrivateCloudAccess {
+                    intent.relatedPlaceSearchResponses = try await fetchRelatedPlaces(for: placeSearchResponse.fsqID)
+                }
             }
+        } else {
+
         }
     }
     
@@ -885,8 +893,8 @@ public class ChatResultViewModel : ObservableObject {
             await placeQueryModel(intent: intent)
             analytics?.track(name: "modelPlaceQueryBuilt")
         case .Search:
-            try await detailIntent(intent: intent)
             await searchQueryModel(intent: intent)
+            try await detailIntent(intent: intent)
             analytics?.track(name: "modelSearchQueryBuilt")
         case .Location:
             fallthrough
@@ -1322,7 +1330,7 @@ public class ChatResultViewModel : ObservableObject {
         var nearLocation:String? = nil
         var minPrice = 1
         var maxPrice = 4
-        var radius = 50000
+        var radius = 20000
         var limit:Int = 50
         var categories = ""
         
@@ -1353,6 +1361,8 @@ public class ChatResultViewModel : ObservableObject {
                         categories.append(",")
                     }
                 }
+            } else {
+                
             }
             
             if let rawTips = rawParameters["tips"] as? [String] {

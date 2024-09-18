@@ -32,7 +32,7 @@ open class PersonalizedSearchSession {
     static let autocompleteAPIUrl = "v2/search/autocomplete"
     static let relatedVenueAPIUrl = "v2/venues/"
     static let relatedVenuePath = "/related"
-    static let foursquareVersionDate = "20240901"
+    static let foursquareVersionDate = "20240101"
     
     public init(cloudCache: CloudCache, searchSession:URLSession? = nil) {
         self.cloudCache = cloudCache
@@ -264,7 +264,7 @@ extension PersonalizedSearchSession {
         }
         
         if let categories = request.categories {
-            let categoriesQueryItem = URLQueryItem(name:"categories", value:categories)
+            let categoriesQueryItem = URLQueryItem(name:"categoryId", value:categories)
             components?.queryItems?.append(categoriesQueryItem)
         }
         

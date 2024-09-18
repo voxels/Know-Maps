@@ -30,7 +30,6 @@ struct PlacesList: View {
             if let _ = chatModel.selectedPlaceChatResult {
                 PlaceView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, placeDirectionsViewModel: placeDirectionsChatViewModel, resultId: $resultId)
             } else {
-                
                 VStack{
                     let mapHeight = chatModel.recommendedPlaceResults.count == 0 && chatModel.placeResults.count == 0 ? geo.size.height : geo.size.height / 3
                     MapResultsView(chatHost: chatHost, model: chatModel, locationProvider: locationProvider, selectedMapItem: $selectedItem)
@@ -38,7 +37,6 @@ struct PlacesList: View {
                     
                     if chatModel.cloudCache.hasPrivateCloudAccess {
                         if chatModel.recommendedPlaceResults.count > 0 {
-                            
                             let threeColumn = [GridItem(), GridItem()]
                             ScrollView {
                                 LazyVGrid(columns: threeColumn, spacing: 16) {
@@ -120,7 +118,7 @@ struct PlacesList: View {
                                     }
                                 }
                             }.padding(.horizontal, 16)
-                        } else if chatModel.placeResults.count > 0 {
+                        } else if chatModel.recommendedPlaceResults.isEmpty && chatModel.placeResults.count > 0 {
                             let threeColumn = [GridItem(), GridItem()]
                             ScrollView {
                                 LazyVGrid(columns: threeColumn, spacing: 16) {
@@ -146,7 +144,7 @@ struct PlacesList: View {
                                                     }
                                                 }
                                                 Rectangle().foregroundStyle(.regularMaterial).frame( height:100)
-                                                VStack {
+                                                VStack(alignment: .leading) {
                                                     
                                                     if let neighborhood = result.placeResponse?.locality, !neighborhood.isEmpty {
                                                         Spacer()
@@ -172,7 +170,7 @@ struct PlacesList: View {
                                                 
                                             } else {
                                                 RoundedRectangle(cornerSize: CGSize(width: 16, height: 16)).foregroundStyle(.regularMaterial)
-                                                VStack {
+                                                VStack(alignment:.leading) {
                                                     Spacer()
                                                     Text(result.title).bold().lineLimit(2).padding(8)
                                                     if let neighborhood = result.placeResponse?.locality, !neighborhood.isEmpty {
@@ -204,7 +202,7 @@ struct PlacesList: View {
                             }.padding(.horizontal, 16)
                         } else {
                             List(chatModel.filteredPlaceResults,selection: $resultId){ result in
-                                VStack {
+                                VStack(alignment: .leading) {
                                     HStack {
                                         Text(result.title)
                                         Spacer()
