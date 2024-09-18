@@ -257,7 +257,7 @@ open class PlaceResponseFormatter {
         var retval = [RecommendedPlaceSearchResponse]()
         
         guard response.keys.count > 0 else {
-            throw PlaceResponseFormatterError.InvalidRawResponseType
+            return retval
         }
         
         if let resultsDictArray = response["related"] as? [NSDictionary] {

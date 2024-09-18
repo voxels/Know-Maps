@@ -139,6 +139,7 @@ open class AssistiveChatHost : @preconcurrency AssistiveChatHostDelegate, ChatHo
         if let placeResponse = chatResult.placeResponse, !placeResponse.fsqID.isEmpty, placeResponse.name.isEmpty {
             intent = .Place
         }
+        
         await messagesDelegate?.didTap(chatResult: chatResult, selectedPlaceSearchResponse: chatResult.placeResponse, selectedPlaceSearchDetails:chatResult.placeDetailsResponse, selectedRecommendedPlaceSearchResponse: chatResult.recommendedPlaceResponse, intent:intent )
     }
     

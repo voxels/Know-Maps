@@ -98,7 +98,8 @@ struct NavigationLocationView: View {
             }
             .listStyle(.sidebar)
             .autocorrectionDisabled(true)
-            .searchable(text: $chatModel.locationSearchText, isPresented:$searchIsPresented, placement:.automatic, prompt:"Search for a location")
+            .searchable(text: $chatModel.locationSearchText, isPresented:$searchIsPresented, placement:.automatic, prompt:"Search for a place by address")
+            .help(Text("Search by a Location Name or Postal Address"))
             .onSubmit(of: .search, {
                 if let selectedDestinationLocationChatResult = chatModel.selectedDestinationLocationChatResult, !chatModel.locationSearchText.isEmpty {
                     Task {

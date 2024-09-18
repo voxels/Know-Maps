@@ -85,22 +85,21 @@ struct PlaceDirectionsView: View {
                                 }
                                 .mapStyle(.standard)
                                 .frame(minWidth: geo.size.width-48, minHeight:geo.size.height * 2.0 / 3.0)
+                                .cornerRadius(16)
+                                .padding(.top, 16)
+                                .padding(.horizontal, 16)
                             }
                         }
                         
                         PlaceDirectionsControlsView(chatModel:chatModel,model: model, showLookAroundScene: $showLookAroundScene, lookAroundScene:$lookAroundScene)
+                            .padding(.horizontal, 16)
                         
                         if let chatRouteResults = model.chatRouteResults, chatRouteResults.count > 0  {
-                            ZStack() {
-                                Rectangle().foregroundStyle(.thickMaterial).padding(4)
-                                VStack(alignment: .leading) {
-                                    ForEach(chatRouteResults) { chatRouteResult in
-                                        Text(chatRouteResult.instructions)
-                                            .frame(minWidth:geo.size.width - 16, alignment: .leading)
-                                            .padding(4)
-                                    }
-                                }.padding(8)
-                            }
+                            VStack(alignment: .leading) {
+                                ForEach(chatRouteResults) { chatRouteResult in
+                                    Text(chatRouteResult.instructions)
+                                }
+                            }.padding(.horizontal, 16)
                         }
                     }
                 }

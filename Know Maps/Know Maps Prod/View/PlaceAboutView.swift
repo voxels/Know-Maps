@@ -36,7 +36,7 @@ struct PlaceAboutView: View {
                         let placeCoordinate = CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude)
                         
                         let title = placeResponse.name
-                        Map(initialPosition: .automatic, bounds: MapCameraBounds(minimumDistance: 5000, maximumDistance: 250000)) {
+                        Map(initialPosition: .automatic, bounds: MapCameraBounds(minimumDistance: 5000, maximumDistance: 250000), interactionModes: [.zoom, .rotate]) {
                             Marker(title, coordinate: placeCoordinate.coordinate)
                         }
                         .mapControls {
@@ -46,13 +46,16 @@ struct PlaceAboutView: View {
                         }
                         .mapStyle(.hybrid)
                         .frame(minHeight: geo.size.height / 2.0)
-                        .padding(EdgeInsets(top: 0, leading: PlaceAboutView.defaultPadding * 2, bottom: PlaceAboutView.defaultPadding, trailing: PlaceAboutView.defaultPadding * 2))
+                        .cornerRadius(16)
+                        .padding(EdgeInsets(top: PlaceAboutView.defaultPadding * 2, leading: PlaceAboutView.defaultPadding * 2, bottom: PlaceAboutView.defaultPadding, trailing: PlaceAboutView.defaultPadding * 2))
                         
                         ZStack(alignment: .leading) {
                             Rectangle().foregroundStyle(.thinMaterial)
+                            .cornerRadius(16)
                             VStack(){
                                 ZStack {
                                     Rectangle().foregroundStyle(.thickMaterial)
+                                        .cornerRadius(16)
                                     VStack{
                                         Text(placeResponse.categories.joined(separator: ", ")).italic()
                                     }
@@ -73,9 +76,9 @@ struct PlaceAboutView: View {
                                     
                                 }
 #if os(iOS) || os(visionOS)
-                            .hoverEffect(.lift)
-#endif                                
-                            .padding(PlaceAboutView.defaultPadding)
+                                .hoverEffect(.lift)
+#endif
+                                .padding(PlaceAboutView.defaultPadding)
                                 .onTapGesture {
                                     sectionSelection = 1
                                 }
@@ -83,30 +86,30 @@ struct PlaceAboutView: View {
                                 HStack {
                                     if chatModel.cloudCache.hasPrivateCloudAccess {
                                         ZStack {
-                                        Capsule().frame(height: PlaceAboutView.buttonHeight, alignment: .center)
+                                            Capsule().frame(height: PlaceAboutView.buttonHeight, alignment: .center)
 #if os(macOS)
-                                            .foregroundStyle(.background)
+                                                .foregroundStyle(.background)
 #else
-                                            .foregroundColor(Color(uiColor:.systemFill))
+                                                .foregroundColor(Color(uiColor:.systemFill))
 #endif
-                                        
-                                        Label("Add to List", systemImage: "star")
+                                            
+                                            Label("Add to List", systemImage: "star")
 #if os(iOS) || os(visionOS)
-                                            .labelStyle(.iconOnly).foregroundStyle(.primary)
+                                                .labelStyle(.iconOnly).foregroundStyle(.primary)
 #endif
-                                    }
+                                        }
 #if os(iOS) || os(visionOS)
-                            .hoverEffect(.lift)
+                                        .hoverEffect(.lift)
 #endif
-                            .onTapGesture {
-                                        presentingPopover.toggle()
-                                    }
+                                        .onTapGesture {
+                                            presentingPopover.toggle()
+                                        }
                                         .popover(isPresented: $presentingPopover) {
-                                        AddListItemView(chatModel: chatModel, presentingPopover:$presentingPopover)
-                                            .frame(width:300, height:600)
-                                            .presentationCompactAdaptation(.automatic)
+                                            AddListItemView(chatModel: chatModel, presentingPopover:$presentingPopover)
+                                                .frame(width:300, height:600)
+                                                .presentationCompactAdaptation(.automatic)
+                                        }
                                     }
-                                }
                                     
                                     if let tel = placeDetailsResponse.tel {
                                         ZStack {
@@ -130,9 +133,9 @@ struct PlaceAboutView: View {
                                             }
                                         }
 #if os(iOS) || os(visionOS)
-                            .hoverEffect(.lift)
+                                        .hoverEffect(.lift)
 #endif
-                                            .onTapGesture {
+                                        .onTapGesture {
 #if os(visionOS) || os(iOS)
                                             if let url = URL(string: "tel://\(tel)") {
                                                 openURL(url)
@@ -165,7 +168,7 @@ struct PlaceAboutView: View {
                                             }.foregroundColor(Color.primary)
                                         }
 #if os(iOS) || os(visionOS)
-                            .hoverEffect(.lift)
+                                        .hoverEffect(.lift)
 #endif
                                     }
                                     
@@ -187,7 +190,7 @@ struct PlaceAboutView: View {
                                             
                                         }
 #if os(iOS) || os(visionOS)
-                            .hoverEffect(.lift)
+                                        .hoverEffect(.lift)
 #endif
                                         .onTapGesture {
                                             sectionSelection = 3
@@ -218,7 +221,7 @@ struct PlaceAboutView: View {
                                             }
                                         }
 #if os(iOS) || os(visionOS)
-                            .hoverEffect(.lift)
+                                        .hoverEffect(.lift)
 #endif
                                     }
                                     
@@ -234,7 +237,7 @@ struct PlaceAboutView: View {
                                         Image(systemName: "square.and.arrow.up").foregroundStyle(.primary)
                                     }
 #if os(iOS) || os(visionOS)
-                            .hoverEffect(.lift)
+                                    .hoverEffect(.lift)
 #endif
                                     .onTapGesture {
                                         self.isPresentingShareSheet.toggle()
@@ -244,8 +247,9 @@ struct PlaceAboutView: View {
                                     Spacer()
                                 }.padding(PlaceAboutView.defaultPadding)
                             }
-                        }.padding(EdgeInsets(top: 0, leading: PlaceAboutView.defaultPadding * 2, bottom: 0, trailing: PlaceAboutView.defaultPadding * 2))
-                            .popover(isPresented: $isPresentingShareSheet) {
+                        }
+                        .padding(EdgeInsets(top: 0, leading: PlaceAboutView.defaultPadding * 2, bottom: 0, trailing: PlaceAboutView.defaultPadding * 2))
+                        .popover(isPresented: $isPresentingShareSheet) {
                                 if let result = chatModel.placeChatResult(for: resultId), let placeDetailsResponse = result.placeDetailsResponse  {
                                     let items:[Any] = [placeDetailsResponse.website ?? placeDetailsResponse.searchResponse.address]
 #if os(visionOS) || os(iOS)
@@ -254,114 +258,124 @@ struct PlaceAboutView: View {
                                 }
                             }
                         
-                        if chatModel.cloudCache.hasPrivateCloudAccess, chatModel.featureFlags.owns(flag: .hasMonthlySubscription) {
-                            PlaceDescriptionView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, resultId: $resultId).padding(PlaceAboutView.defaultPadding * 2)
-                        }
-                        if chatModel.featureFlags.owns(flag: .hasMonthlySubscription), chatModel.cloudCache.hasPrivateCloudAccess {
-                        if let tastes = placeDetailsResponse.tastes, tastes.count > 0 {
-                            let gridItems = Array(repeating: GridItem(), count: sizeClass == .compact ? 2 : 3)
-                            Section("Features") {
+                        if chatModel.cloudCache.hasPrivateCloudAccess {
+                            PlaceDescriptionView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, resultId: $resultId)
+                                .padding(PlaceAboutView.defaultPadding * 2)
                                 
-                                LazyVGrid(columns:gridItems, alignment:.leading, spacing:8 ){
-                                ForEach(tastes, id: \.self) { taste in
-                                    HStack {
-                                        let isSaved = chatModel.cachedTastes(contains: taste)
-                                        Button("Save", systemImage: isSaved ? "minus" : "plus") {
-                                            let isSaved = chatModel.cachedTastes(contains: taste)
-                                            if isSaved {
-                                                if let cachedTasteResults = chatModel.cachedTasteResults(for: "Taste", identity: taste) {
-                                                    for cachedTasteResult in cachedTasteResults {
-                                                        Task {
-                                                            do {
-                                                                try await chatModel.cloudCache.deleteUserCachedRecord(for: cachedTasteResult)
-                                                                try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
-                                                            } catch {
-                                                                chatModel.analytics?.track(name: "error \(error)")
-                                                                print(error)
+                        }
+                        if chatModel.cloudCache.hasPrivateCloudAccess {
+                            if let tastes = placeDetailsResponse.tastes, tastes.count > 0 {
+                                Section("Tastes") {
+                                    let gridItems = Array(repeating: GridItem(), count: sizeClass == .compact ? 2 : 3)
+                                    LazyVGrid(columns:gridItems, alignment:.leading, spacing:8 ){
+                                        ForEach(tastes, id: \.self) { taste in
+                                            HStack {
+                                                ZStack {
+                                                    Capsule()
+#if os(macOS)
+                                                        .foregroundStyle(.background)
+                                                        .frame(width: 44, height:44)
+                                                        .padding(8)
+#else
+                                                        .foregroundColor(Color(uiColor:.systemFill))
+                                                        .frame(width: 44, height: 44, alignment: .center)
+                                                        .padding(8)
+#endif
+                                                    let isSaved = chatModel.cachedTastes(contains: taste)
+                                                    Button("Save", systemImage: isSaved ? "minus" : "plus") {
+                                                        let isSaved = chatModel.cachedTastes(contains: taste)
+                                                        if isSaved {
+                                                            if let cachedTasteResults = chatModel.cachedTasteResults(for: "Taste", identity: taste) {
+                                                                for cachedTasteResult in cachedTasteResults {
+                                                                    Task {
+                                                                        do {
+                                                                            try await chatModel.cloudCache.deleteUserCachedRecord(for: cachedTasteResult)
+                                                                            try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
+                                                                        } catch {
+                                                                            chatModel.analytics?.track(name: "error \(error)")
+                                                                            print(error)
+                                                                        }
+                                                                        
+                                                                    }
+                                                                }
                                                             }
-                                                            
+                                                        } else {
+                                                            Task {
+                                                                do {
+                                                                    var userRecord = UserCachedRecord(recordId: "", group: "Taste", identity: taste, title: taste, icons: "", list: nil)
+                                                                    let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title)
+                                                                    if let resultName = record.saveResults.keys.first?.recordName {
+                                                                        userRecord.setRecordId(to:resultName)
+                                                                    }
+                                                                    chatModel.appendCachedTaste(with: userRecord)
+                                                                    try await chatModel.refreshTastes(page:chatModel.lastFetchedTastePage)
+                                                                } catch {
+                                                                    chatModel.analytics?.track(name: "error \(error)")
+                                                                    print(error)
+                                                                }
+                                                            }
                                                         }
                                                     }
+                                                    .labelStyle(.iconOnly)
+                                                    
+                                                    
+#if os(macOS)
+                                                    .foregroundStyle(.background)
+                                                    .frame(minWidth: 44, minHeight:44)
+                                                    .padding(16)
+#else
+                                                    .foregroundStyle(.white)
+                                                    .frame(minWidth: 44, minHeight:44)
+                                                    .cornerRadius(22)
+                                                    .padding(16)
+                                                    .hoverEffect(.lift)
+#endif
                                                 }
-                                            } else {
-                                                Task {
-                                                    do {
-                                                        var userRecord = UserCachedRecord(recordId: "", group: "Taste", identity: taste, title: taste, icons: "", list: nil)
-                                                        let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title)
-                                                        if let resultName = record.saveResults.keys.first?.recordName {
-                                                            userRecord.setRecordId(to:resultName)
-                                                        }
-                                                        chatModel.appendCachedTaste(with: userRecord)
-                                                        try await chatModel.refreshTastes(page:chatModel.lastFetchedTastePage)
-                                                    } catch {
-                                                        chatModel.analytics?.track(name: "error \(error)")
-                                                        print(error)
-                                                    }
-                                                }
+                                                Text(taste)
+                                                Spacer()
                                             }
                                         }
-                                        .labelStyle(.iconOnly)
-                                        
-
-#if os(macOS)
-                                                .foregroundStyle(.background)
-                                                .frame(minWidth: 44, minHeight:44)
-                                                .padding(16)
-#else
-                                                .foregroundColor(Color(uiColor:.systemFill))
-                                                .frame(minWidth: 44, minHeight:44 )
-                                                .padding(16)
-                                                .hoverEffect(.lift)
-#endif
-                                        Text(taste)
-                                        Spacer()
-                                        }
                                     }
-                                }.padding(16)
+                                }
                             }
-                        }
-                        
-
+                            
+                            
                             if chatModel.relatedPlaceResults.count > 0 {
                                 Section("Related Places") {
                                     
-                             ScrollView(.horizontal) {
-                                    
-                                    HStack{
-                                        ForEach(chatModel.relatedPlaceResults){ result in
-                                            
-                                            
-                                            
-                                            ZStack(alignment: .center, content: {
-                                                
-                                                RoundedRectangle(cornerSize: CGSize(width: 16, height: 16)).frame(width: geo.size.width-48, height: (geo.size.width) / 4).foregroundStyle(.regularMaterial)
-                                                VStack {
-                                                    Text(result.title).bold().lineLimit(1).padding(8)
-                                                    if let neighborhood = result.recommendedPlaceResponse?.neighborhood, !neighborhood.isEmpty {
-                                                        
-                                                        Text(neighborhood).italic()
-                                                    } else{
-                                                        Text("")
-                                                    }
-                                                    HStack {
-                                                        if let placeResponse = result.recommendedPlaceResponse {
-                                                            Text(!placeResponse.address.isEmpty ?
-                                                                 placeResponse.address : placeResponse.formattedAddress )
-                                                            .lineLimit(1)
-                                                            .italic()
-                                                            .padding(EdgeInsets(top: 0, leading: 8, bottom: 0, trailing: 0))
+                                    ScrollView(.horizontal) {
+                                        
+                                        HStack{
+                                            ForEach(chatModel.relatedPlaceResults){ result in
+                                                ZStack(alignment: .center, content: {
+                                                    
+                                                    RoundedRectangle(cornerSize: CGSize(width: 16, height: 16)).frame(width: geo.size.width-48, height: (geo.size.width) / 4).foregroundStyle(.regularMaterial)
+                                                    VStack {
+                                                        Text(result.title).bold().padding(8)
+                                                        if let neighborhood = result.recommendedPlaceResponse?.neighborhood, !neighborhood.isEmpty {
+                                                            
+                                                            Text(neighborhood).italic()
+                                                        } else{
+                                                            Text("")
+                                                        }
+                                                        HStack {
+                                                            if let placeResponse = result.recommendedPlaceResponse {
+                                                                Text(!placeResponse.address.isEmpty ?
+                                                                     placeResponse.address : placeResponse.formattedAddress )
+                                                                .italic()
+                                                                .padding(EdgeInsets(top: 0, leading: 8, bottom: 0, trailing: 0))
+                                                            }
                                                         }
                                                     }
-                                                }
-                                                
-                                            })
-                                            .frame(maxWidth: 300, maxHeight: 130 )
-                                            .clipShape(RoundedRectangle(cornerSize: CGSize(width: 16, height: 16)))
-                                            .cornerRadius(16)
-                                            .padding(EdgeInsets(top: 0, leading: 0, bottom: 16, trailing: 0))
+                                                    
+                                                })
+                                                .frame(maxWidth: 300, maxHeight: 130 )
+                                                .clipShape(RoundedRectangle(cornerSize: CGSize(width: 16, height: 16)))
+                                                .cornerRadius(16)
+                                                .padding(EdgeInsets(top: 0, leading: 0, bottom: 16, trailing: 0))
+                                            }
                                         }
-                                    }
-                             }.padding(16)
+                                    }.padding(16)
                                 }
                             }
                         }

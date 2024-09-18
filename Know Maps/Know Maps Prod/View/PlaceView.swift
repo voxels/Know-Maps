@@ -18,8 +18,7 @@ struct PlaceView: View {
     
     var body: some View {
         if let resultId = resultId, let placeChatResult = chatModel.placeChatResult(for: resultId) {
-            VStack {
-                Text(placeChatResult.title).font(.headline).padding(16)
+            ZStack {
                 switch sectionSelection {
                 case 0:
                     PlaceAboutView(chatHost:chatHost,chatModel: chatModel, locationProvider: locationProvider, resultId: $resultId, sectionSelection: $sectionSelection)
@@ -72,28 +71,41 @@ struct PlaceView: View {
                 default:
                     ContentUnavailableView("No Place Selected", systemImage:"return")
                 }
-            }.toolbarRole(.automatic)
+            }
+            .navigationTitle(placeChatResult.title)
+            .navigationBarBackButtonHidden(true)
+            .toolbarRole(.automatic)
                 .toolbar(content: {
-                    Button("Back", systemImage: "chevron.left") {
-                        chatModel.selectedPlaceChatResult = nil
-                    }
-                    Spacer()
-                    Picker("Section", selection: $sectionSelection) {
-                        Text("About").tag(0)
-                        Text("Directions").tag(1)
-                        if let detailsResponses = placeChatResult.placeDetailsResponse, let photoResponses = detailsResponses.photoResponses, photoResponses.count > 0 {
-                            Text("Photos").tag(2)
-                        }
-                        if let detailsResponses = placeChatResult.placeDetailsResponse, let tipsResponses = detailsResponses.tipsResponses, tipsResponses.count > 0 {
-                            Text("Tips").tag(3)
+                    #if os(iOS) || os(visionOS)
+                    ToolbarItem(placement: .navigationBarLeading) {
+                        Button("Back", systemImage: "chevron.left") {
+                            chatModel.selectedPlaceChatResult = nil
                         }
                     }
-                    .pickerStyle(.menu)
+                    #else
+                    ToolbarItem(placement: .automatic) {
+                        Button("Back", systemImage: "chevron.left") {
+                            chatModel.selectedPlaceChatResult = nil
+                        }
+                    }
+                    #endif
+                    ToolbarItem(placement: .principal) {
+                        Picker("Section", selection: $sectionSelection) {
+                            Text("About").tag(0)
+                            Text("Directions").tag(1)
+                            if let detailsResponses = placeChatResult.placeDetailsResponse, let photoResponses = detailsResponses.photoResponses, photoResponses.count > 0 {
+                                Text("Photos").tag(2)
+                            }
+                            if let detailsResponses = placeChatResult.placeDetailsResponse, let tipsResponses = detailsResponses.tipsResponses, tipsResponses.count > 0 {
+                                Text("Tips").tag(3)
+                            }
+                        }
+                        .pickerStyle(.palette)
+                    }
                 })
         } else {
             ContentUnavailableView("No place selected", systemImage: "return")
                 .onAppear(perform: {
-                    chatModel.resetPlaceModel()
             })
         }
     }

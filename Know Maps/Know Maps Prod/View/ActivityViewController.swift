@@ -7,6 +7,8 @@
 
 import SwiftUI
 
+#if os(iOS) || os(visionOS)
+
 struct ActivityViewController: UIViewControllerRepresentable {
 
     var activityItems: [Any]
@@ -26,3 +28,47 @@ struct ActivityViewController: UIViewControllerRepresentable {
     func updateUIViewController(_ uiViewController: UIActivityViewController, context: UIViewControllerRepresentableContext<ActivityViewController>) {}
 
 }
+
+
+#elseif os(macOS)
+
+struct ActivityViewController: NSViewControllerRepresentable {
+    
+    var activityItems: [Any]
+    @Binding public var isPresentingShareSheet: Bool
+
+    func makeNSViewController(context: Context) -> NSViewController {
+        let viewController = NSViewController()
+        return viewController
+    }
+
+    func updateNSViewController(_ nsViewController: NSViewController, context: Context) {}
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
+
+    class Coordinator: NSObject {
+        var parent: ActivityViewController
+
+        init(_ parent: ActivityViewController) {
+            self.parent = parent
+        }
+
+        func share() {
+            guard let window = NSApplication.shared.windows.first else { return }
+            let picker = NSSharingServicePicker(items: parent.activityItems)
+            picker.show(relativeTo: .zero, of: window.contentView!, preferredEdge: .minY)
+            parent.isPresentingShareSheet.toggle()
+        }
+    }
+}
+
+extension ActivityViewController {
+    func share() {
+        makeCoordinator().share()
+    }
+}
+
+#endif
+

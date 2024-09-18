@@ -18,12 +18,13 @@ struct OnboardingView: View {
     
     @State private var selectedTab = 1
     @Binding public var showOnboarding:Bool
+    @Binding public var isAuthorized:Bool
 
     var body: some View {
         TabView(selection: $selectedTab,
                 content:  {
             OnboardingSignInView(selectedTab: $selectedTab).tag(1)
-            OnboardingLocationView(locationProvider: locationProvider, selectedTab: $selectedTab).tag(2)
+            OnboardingLocationView(locationProvider: locationProvider, isAuthorized: $isAuthorized, selectedTab: $selectedTab).tag(2)
             OnboardingSubscriptionView(selectedTab: $selectedTab, showOnboarding: $showOnboarding).tag(3)
         })
         #if os(iOS) || os(visionOS)
@@ -40,5 +41,5 @@ struct OnboardingView: View {
     let featureFlags = FeatureFlags()
     let chatModel = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cloudCache, featureFlags: featureFlags)
     let chatHost = AssistiveChatHost()
-    return OnboardingView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, showOnboarding: .constant(true))
+    OnboardingView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, showOnboarding: .constant(true), isAuthorized: .constant(false))
 }

@@ -19,7 +19,7 @@ struct OnboardingSignInView: View {
         VStack {
             Spacer()
             Text("Welcome to Know Maps").bold().padding()
-            Image(systemName: "map.circle")
+            Image("logo_256")
                 .resizable()
                 .scaledToFit()
                 .frame(width:100 , height: 100)

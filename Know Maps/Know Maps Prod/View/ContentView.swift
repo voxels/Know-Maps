@@ -63,7 +63,11 @@ struct ContentView: View {
                 PlacesList(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, resultId: $chatModel.selectedPlaceChatResult)
                     .navigationTitle(chatModel.selectedPlaceChatResult != nil ? "" :  "Places")
                     .alert("Unknown Place", isPresented: $didError) {
-                        
+                        Button(action: {
+                            chatModel.selectedPlaceChatResult = nil
+                        }, label: {
+                            Text("Go Back")
+                        })
                     } message: {
                         Text("We don't know much about this place.")
                     }
@@ -89,7 +93,6 @@ struct ContentView: View {
                     } catch {
                         chatModel.analytics?.track(name: "error \(error)")
                         print(error)
-                        chatModel.selectedPlaceChatResult = nil
                         didError.toggle()
                     }
                 }

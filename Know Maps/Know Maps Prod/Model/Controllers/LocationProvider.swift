@@ -7,7 +7,6 @@
 
 import Foundation
 import CoreLocation
-
 public enum LocationProviderError : Error {
     case LocationManagerFailed
 }
@@ -16,19 +15,35 @@ open class LocationProvider : NSObject, ObservableObject  {
     private var locationManager: CLLocationManager = CLLocationManager()
     private var retryCount = 0
     private var maxRetries = 2
+        
+    public func isAuthorized() -> Bool {
+#if os(visionOS) || os(iOS)
+        return locationManager.authorizationStatus == .authorizedWhenInUse
+#endif
+#if os(macOS)
+        return locationManager.authorizationStatus == .authorizedAlways
+#endif
+    }
     
     public func authorize() {
         #if os(visionOS) || os(iOS)
-        locationManager.requestWhenInUseAuthorization()
-        #endif
-        #if os(macOS)
-        if locationManager.authorizationStatus != .authorized {
-            locationManager.requestAlwaysAuthorization()
+        if locationManager.authorizationStatus != .authorizedWhenInUse {
+            locationManager.requestWhenInUseAuthorization()
+            locationManager.delegate = self
+            locationManager.requestLocation()
+            return true
         }
         #endif
-        
-        locationManager.delegate = self
-        locationManager.requestLocation()
+        #if os(macOS)
+        if locationManager.authorizationStatus != .authorizedAlways {
+            locationManager.requestAlwaysAuthorization()
+            locationManager.delegate = self
+            locationManager.requestLocation()
+        } else {
+            locationManager.delegate = self
+            locationManager.requestLocation()
+        }
+        #endif
     }
         
     public func currentLocation()->CLLocation? {
@@ -38,7 +53,7 @@ if locationManager.authorizationStatus != .authorizedWhenInUse {
 }
 #endif
 #if os(macOS)
-if locationManager.authorizationStatus != .authorized {
+if locationManager.authorizationStatus != .authorizedAlways {
     authorize()
 }
 #endif
@@ -46,6 +61,8 @@ if locationManager.authorizationStatus != .authorized {
         locationManager.requestLocation()
         return locationManager.location
     }
+    
+
 }
 
 extension LocationProvider : CLLocationManagerDelegate {

@@ -28,7 +28,9 @@ struct PlaceDirectionsControlsView: View {
                     Picker("Transport Type", selection: $model.rawTransportType) {
                         Text(PlaceDirectionsViewModel.RawTransportType.Automobile.rawValue).tag(PlaceDirectionsViewModel.RawTransportType.Automobile)
                         Text(PlaceDirectionsViewModel.RawTransportType.Walking.rawValue).tag(PlaceDirectionsViewModel.RawTransportType.Walking)
-                    }.foregroundStyle(.primary)
+                    }
+                    .pickerStyle(.palette)
+                    .foregroundStyle(.primary)
                 }
             }
             HStack {
@@ -48,12 +50,11 @@ struct PlaceDirectionsControlsView: View {
                 Spacer()
                 if let source = model.source, let destination = model.destination {
                     let launchOptions = model.appleMapsLaunchOptions()
-                    Button("Apple Maps", systemImage: "apple.logo") {
+                    Button("Open Apple Maps", systemImage: "apple.logo") {
                         MKMapItem.openMaps(with: [source,destination], launchOptions: launchOptions)
                     }
-                    .padding(12)
+                    .padding(16)
                     .foregroundStyle(.primary)
-                    
                 }
             }
         }
@@ -88,7 +89,7 @@ struct PlaceDirectionsControlsView: View {
             #endif
             if let source = model.source, let destination = model.destination {
                 let launchOptions = model.appleMapsLaunchOptions()
-                Button("Apple Maps", systemImage: "apple.logo") {
+                Button("Open Apple Maps", systemImage: "apple.logo") {
                     MKMapItem.openMaps(with: [source,destination], launchOptions: launchOptions)
                 }
                 .padding(12)

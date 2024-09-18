@@ -30,9 +30,9 @@ open class PersonalizedSearchSession {
     static let tasteSuggestionsAPIUrl = "v2/tastes/suggestions"
     static let venueRecommendationsAPIUrl = "v2/search/recommendations"
     static let autocompleteAPIUrl = "v2/search/autocomplete"
-    static let relatedVenueAPIUrl = "v2/venues/search"
+    static let relatedVenueAPIUrl = "v2/venues/"
     static let relatedVenuePath = "/related"
-    static let foursquareVersionDate = "20231010"
+    static let foursquareVersionDate = "20240901"
     
     public init(cloudCache: CloudCache, searchSession:URLSession? = nil) {
         self.cloudCache = cloudCache
@@ -363,7 +363,7 @@ extension PersonalizedSearchSession {
             throw PersonalizedSearchSessionError.UnsupportedRequest
         }
         
-        let components = URLComponents(string:"\(PersonalizedSearchSession.serverUrl)\(PersonalizedSearchSession.relatedVenueAPIUrl)/\(fsqID)\(PersonalizedSearchSession.relatedVenuePath)")
+        let components = URLComponents(string:"\(PersonalizedSearchSession.serverUrl)\(PersonalizedSearchSession.relatedVenueAPIUrl)\(fsqID)\(PersonalizedSearchSession.relatedVenuePath)")
         guard let url = components?.url else {
             throw PersonalizedSearchSessionError.UnsupportedRequest
         }

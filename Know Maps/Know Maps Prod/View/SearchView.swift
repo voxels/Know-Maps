@@ -79,13 +79,13 @@ struct SearchView: View {
         .toolbarRole(.automatic)
         .toolbar {
             if cloudCache.hasPrivateCloudAccess {
-                ToolbarItem {
+                ToolbarItem(placement:.principal)  {
                     Picker("", selection: $sectionSelection) {
                         Text("Type").tag(0)
                         Text("Taste").tag(1)
                         Text("Saved").tag(2)
                     }
-                    .pickerStyle(.segmented)
+                    .pickerStyle(.palette)
                     .padding(8)
                 }
             }

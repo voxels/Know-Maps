@@ -8,6 +8,7 @@
 import SwiftUI
 import Segment
 import RevenueCat
+import CoreLocation
 
 @main
 struct Know_MapsApp: App {
@@ -18,6 +19,7 @@ struct Know_MapsApp: App {
     @StateObject public var featureFlags = FeatureFlags()
     
     @State private var showOnboarding:Bool = true
+    @State private var isAuthorized:Bool = false
     @State private var showSplashScreen:Bool = true
     static let config = Configuration(writeKey: "igx8ZOr5NLbaBsab5j5juFECMzqulFla")
     // Automatically track Lifecycle events
@@ -29,21 +31,20 @@ struct Know_MapsApp: App {
     public var analytics:Analytics? = Analytics(configuration: Know_MapsApp.config)
     
     var body: some Scene {
-        
         let chatModel = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cloudCache, featureFlags: featureFlags)
         WindowGroup(id:"ContentView") {
             if showSplashScreen{
                 ZStack {
                     VStack{
                         Text("Welcome to Know Maps").bold().padding()
-                        Image(systemName: "map.circle")
+                        Image("logo_256")
                             .resizable()
                             .scaledToFit()
                             .frame(width:100 , height: 100)
                     }
                 }
-#if os(visionOS)
-                .frame(minWidth: 1200, minHeight: 1000)
+#if os(visionOS) || os(macOS)
+                .frame(minWidth: 1280, minHeight: 720)
                 #endif
                 .task {
                     do {
@@ -62,19 +63,17 @@ struct Know_MapsApp: App {
                     }
                 }
             } else {
-                if showOnboarding{
-                    OnboardingView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, showOnboarding: $showOnboarding)
-#if os(visionOS)
-                        .frame(minWidth: 1200, minHeight: 1000)
-                    #endif
+                if showOnboarding {
+                    OnboardingView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, showOnboarding: $showOnboarding, isAuthorized: $isAuthorized)
+#if os(visionOS) || os(macOS)
+                        .frame(minWidth: 1280, minHeight: 720)                    #endif
                         .environmentObject(cloudCache)
                         .environmentObject(settingsModel)
                         .environmentObject(featureFlags)
                 } else {
                 ContentView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider)
-#if os(visionOS)
-                        .frame(minWidth: 1200, minHeight:1000)
-                    #endif
+#if os(visionOS) || os(macOS)
+                        .frame(minWidth: 1280, minHeight: 720)                    #endif
                     .environmentObject(cloudCache)
                     .environmentObject(settingsModel)
                     .environmentObject(featureFlags)
@@ -124,7 +123,8 @@ struct Know_MapsApp: App {
             Purchases.shared.delegate = chatModel.featureFlags
             let customerInfo = try await Purchases.shared.customerInfo()
             chatModel.featureFlags.updateFlags(with: customerInfo)
-            if cloudCache.hasPrivateCloudAccess {
+            isAuthorized = locationProvider.isAuthorized()
+            if cloudCache.hasPrivateCloudAccess, isAuthorized {
                 showOnboarding = false
             }
             settingsModel.fetchSubscriptionOfferings()

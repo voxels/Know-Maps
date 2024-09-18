@@ -7,8 +7,14 @@
 
 import SwiftUI
 
+#if os(macOS)
+import AppKit
+#endif
+
+
 struct OnboardingLocationView: View {
     @ObservedObject public var locationProvider:LocationProvider
+    @Binding public var isAuthorized:Bool
     @Binding public var selectedTab:Int
     var body: some View {
         VStack{
@@ -25,12 +31,27 @@ struct OnboardingLocationView: View {
                 locationProvider.authorize()
                 selectedTab = 3
             }.padding()
+                .alert("Location Settings", isPresented: $isAuthorized, actions:                 {
+                    Button("Open System Preferences") {
+                        openLocationPreferences()
+                    }
+                }, message: {
+                    Text("Please open the location settings system preferences to allow Know Maps to access your location.")
+                })
             Spacer()
         }
     }
+    
+#if os(macOS)
+public func openLocationPreferences() {
+    if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_LocationServices") {
+        NSWorkspace.shared.open(url)
+    }
+}
+#endif
 }
 
 #Preview {
     let locationProvider = LocationProvider()
-    return OnboardingLocationView(locationProvider: locationProvider, selectedTab: .constant(2))
+    OnboardingLocationView(locationProvider: locationProvider, isAuthorized: .constant(false), selectedTab: .constant(2))
 }

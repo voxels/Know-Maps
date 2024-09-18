@@ -20,6 +20,7 @@ struct PlaceTipsView: View {
             List(tips){ tip in
                 ZStack() {
                     Rectangle().foregroundStyle(.thickMaterial)
+                        .cornerRadius(16)
                     Text(tip.text).padding()
                 }.padding()
             }

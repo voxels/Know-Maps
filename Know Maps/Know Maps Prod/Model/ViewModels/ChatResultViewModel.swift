@@ -230,10 +230,6 @@ public class ChatResultViewModel : ObservableObject {
     
     @MainActor
     public func refreshTastes(page:Int) async throws {
-        guard page == 0 || page > lastFetchedTastePage else {
-            return
-        }
-        
         if page > lastFetchedTastePage || tasteResults.isEmpty {
             let tastes = try await personalizedSearchSession.fetchTastes(page:page)
             tasteResults = tasteCategoryResults(with: tastes, page:page)
@@ -436,7 +432,7 @@ public class ChatResultViewModel : ObservableObject {
     public func placeChatResult(for selectedChatResultID:ChatResult.ID)->ChatResult?{
         var checkChatResultID = selectedChatResultID
 
-        if featureFlags.owns(flag: .hasMonthlySubscription), cloudCache.hasPrivateCloudAccess{
+        if cloudCache.hasPrivateCloudAccess{
             let recommendedResult = recommendedPlaceResults.first(where: { checkResult in
                 return checkResult.id == checkChatResultID
             })
@@ -465,7 +461,7 @@ public class ChatResultViewModel : ObservableObject {
     
     public func placeChatResult(for selectedPlaceFsqID:String)->ChatResult? {
         
-        if featureFlags.owns(flag: .hasMonthlySubscription),  cloudCache.hasPrivateCloudAccess{
+        if cloudCache.hasPrivateCloudAccess{
             let recommendedResult = recommendedPlaceResults.first(where: { checkResult in
                 return checkResult.placeResponse?.fsqID == selectedPlaceFsqID
             })
@@ -729,12 +725,19 @@ public class ChatResultViewModel : ObservableObject {
                     analytics?.track(name: "searchIntentWithPlace")
             }
         case .Search:
-            if featureFlags.owns(flag: .hasMonthlySubscription), cloudCache.hasPrivateCloudAccess {
+            if cloudCache.hasPrivateCloudAccess {
                 let request = await recommendedPlaceSearchRequest(intent: intent, location: location)
                 let rawQueryResponse = try await personalizedSearchSession.fetchRecommendedVenues(with:request, location: location)
                 let recommendedPlaceSearchResponses = try PlaceResponseFormatter.recommendedPlaceSearchResponses(with: rawQueryResponse)
                 intent.recommendedPlaceSearchResponses = recommendedPlaceSearchResponses
                 intent.placeSearchResponses = PlaceResponseFormatter.placeSearchResponses(from: recommendedPlaceSearchResponses)
+                
+                if intent.placeSearchResponses.isEmpty {
+                    let request = await placeSearchRequest(intent: intent, location:location)
+                    let rawQueryResponse = try await placeSearchSession.query(request:request, location: location)
+                    let placeSearchResponses = intent.placeSearchResponses.isEmpty ? try PlaceResponseFormatter.placeSearchResponses(with: rawQueryResponse) : intent.placeSearchResponses
+                    intent.placeSearchResponses = placeSearchResponses
+                }
                 analytics?.track(name: "searchIntentWithSearch")
             } else {
                 let request = await placeSearchRequest(intent: intent, location:location)
@@ -762,12 +765,10 @@ public class ChatResultViewModel : ObservableObject {
         if intent.placeSearchResponses.count > 0, let placeSearchResponse = intent.selectedPlaceSearchResponse {
             intent.selectedPlaceSearchDetails = try await fetchDetails(for: [placeSearchResponse]).first
             intent.placeDetailsResponses = [intent.selectedPlaceSearchDetails!]
-            if featureFlags.owns(flag: .hasMonthlySubscription), cloudCache.hasPrivateCloudAccess {
+            if cloudCache.hasPrivateCloudAccess {
                 intent.relatedPlaceSearchResponses = try await fetchRelatedPlaces(for: placeSearchResponse.fsqID)
             }
         }
-        
-
     }
     
     @MainActor
@@ -932,12 +933,7 @@ public class ChatResultViewModel : ObservableObject {
     @MainActor
     public func recommendedPlaceQueryModel(intent:AssistiveChatHostIntent) {
         var recommendedChatResults = [ChatResult]()
-        
-        guard featureFlags.owns(flag: .hasMonthlySubscription), cloudCache.hasPrivateCloudAccess else {
-            recommendedChatResults.removeAll()
-            return
-        }
-        
+                
         if !recommendedPlaceResults.isEmpty, let selectedPlaceChatResult = selectedPlaceChatResult, let placeChatResult = placeChatResult(for: selectedPlaceChatResult), recommendedPlaceResults.contains(where: { result in
             result.recommendedPlaceResponse?.fsqID == placeChatResult.recommendedPlaceResponse?.fsqID
         }){
@@ -970,7 +966,7 @@ public class ChatResultViewModel : ObservableObject {
     public func relatedPlaceQueryModel(intent:AssistiveChatHostIntent) {
         var relatedChatResults = [ChatResult]()
         
-        guard featureFlags.owns(flag: .hasMonthlySubscription), cloudCache.hasPrivateCloudAccess else {
+        guard cloudCache.hasPrivateCloudAccess else {
             self.relatedPlaceResults.removeAll()
             return
         }
@@ -1515,7 +1511,7 @@ public class ChatResultViewModel : ObservableObject {
                     let rawDetailsResponse = try await strongSelf.placeSearchSession.details(for: request)
                     strongSelf.analytics?.track(name: "fetchDetails")
                     
-                    if strongSelf.featureFlags.owns(flag: .hasMonthlySubscription), strongSelf.cloudCache.hasPrivateCloudAccess {
+                    if strongSelf.cloudCache.hasPrivateCloudAccess {
                         let tipsRawResponse = try await strongSelf.placeSearchSession.tips(for: response.fsqID)
                         let tipsResponses = try PlaceResponseFormatter.placeTipsResponses(with: tipsRawResponse, for: response.fsqID)
                         let photosRawResponse = try await strongSelf.placeSearchSession.photos(for: response.fsqID)
@@ -1614,6 +1610,7 @@ extension ChatResultViewModel : @preconcurrency AssistiveChatHostMessagesDelegat
         try await self.detailIntent(intent: newIntent)
 
         chatHost.updateLastIntentParameters(intent: newIntent)
+    
         if let queryIntentParameters = chatHost.queryIntentParameters {
             try await didUpdateQuery(with: queryIntentParameters)
         }
@@ -1658,6 +1655,7 @@ extension ChatResultViewModel : @preconcurrency AssistiveChatHostMessagesDelegat
         }
         
         try await updateLastIntentParameter(for: placeChatResult, selectedDestinationChatResultID:selectedDestinationLocationChatResult)
+        
     }
     
     @MainActor
