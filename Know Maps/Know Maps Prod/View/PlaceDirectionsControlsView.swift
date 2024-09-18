@@ -53,7 +53,7 @@ struct PlaceDirectionsControlsView: View {
                     Button("Open Apple Maps", systemImage: "apple.logo") {
                         MKMapItem.openMaps(with: [source,destination], launchOptions: launchOptions)
                     }
-                    .padding(16)
+                    .padding(8)
                     .foregroundStyle(.primary)
                 }
             }
@@ -92,7 +92,7 @@ struct PlaceDirectionsControlsView: View {
                 Button("Open Apple Maps", systemImage: "apple.logo") {
                     MKMapItem.openMaps(with: [source,destination], launchOptions: launchOptions)
                 }
-                .padding(12)
+                .padding(8)
                 .foregroundStyle(.primary)
             }
         }

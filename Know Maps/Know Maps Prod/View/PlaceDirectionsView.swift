@@ -51,8 +51,10 @@ struct PlaceDirectionsView: View {
                                                     Button("Directions", systemImage: "map.fill") {
                                                         showLookAroundScene.toggle()
                                                     }
-                                                    .padding(36)
+                                                    .padding(.horizontal, 24)
+                                                    .padding(.vertical, 64)
                                                     .foregroundStyle(.primary)
+                                                    .backgroundStyle(.thickMaterial)
                                                     Spacer()
                                                 }
                                                 Spacer()

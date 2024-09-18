@@ -31,7 +31,6 @@ open class LocationProvider : NSObject, ObservableObject  {
             locationManager.requestWhenInUseAuthorization()
             locationManager.delegate = self
             locationManager.requestLocation()
-            return true
         }
         #endif
         #if os(macOS)
