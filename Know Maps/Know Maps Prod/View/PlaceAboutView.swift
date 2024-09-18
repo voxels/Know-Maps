@@ -266,83 +266,77 @@ struct PlaceAboutView: View {
                         if chatModel.cloudCache.hasPrivateCloudAccess {
                             if let tastes = placeDetailsResponse.tastes, tastes.count > 0 {
                                 Section("Tastes") {
-                                    let gridItems = Array(repeating: GridItem(), count: sizeClass == .compact ? 2 : 3)
-                                    LazyVGrid(columns:gridItems, alignment:.leading, spacing:8 ){
+                                    let gridItems = Array(repeating: GridItem(.flexible(), spacing: PlaceAboutView.defaultPadding), count: sizeClass == .compact ? 2 : 3)
+                                    
+                                    LazyVGrid(columns: gridItems, alignment: .leading, spacing: 16) {
                                         ForEach(tastes, id: \.self) { taste in
                                             HStack {
                                                 ZStack {
                                                     Capsule()
-#if os(macOS)
+                                                    #if os(macOS)
                                                         .foregroundStyle(.background)
-                                                        .frame(width: 44, height:44)
+                                                        .frame(width: 44, height: 44)
                                                         .padding(8)
-#else
-                                                        .foregroundColor(Color(uiColor:.systemFill))
+                                                    #else
+                                                        .foregroundColor(Color(uiColor: .systemFill))
                                                         .frame(width: 44, height: 44, alignment: .center)
                                                         .padding(8)
-#endif
+                                                    #endif
+                                                    
                                                     let isSaved = chatModel.cachedTastes(contains: taste)
-                                                    Button("Save", systemImage: isSaved ? "minus" : "plus") {
-                                                        let isSaved = chatModel.cachedTastes(contains: taste)
-                                                        if isSaved {
-                                                            if let cachedTasteResults = chatModel.cachedTasteResults(for: "Taste", identity: taste) {
-                                                                for cachedTasteResult in cachedTasteResults {
-                                                                    Task {
-                                                                        do {
-                                                                            try await chatModel.cloudCache.deleteUserCachedRecord(for: cachedTasteResult)
-                                                                            try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
-                                                                        } catch {
-                                                                            chatModel.analytics?.track(name: "error \(error)")
-                                                                            print(error)
-                                                                        }
-                                                                        
+                                                    Label("Save", systemImage: isSaved ? "minus" : "plus")
+                                                        .labelStyle(.iconOnly)
+                                                        .foregroundStyle(.white)
+                                                }
+                                                .onTapGesture {
+                                                    let isSaved = chatModel.cachedTastes(contains: taste)
+                                                    if isSaved {
+                                                        if let cachedTasteResults = chatModel.cachedTasteResults(for: "Taste", identity: taste) {
+                                                            for cachedTasteResult in cachedTasteResults {
+                                                                Task {
+                                                                    do {
+                                                                        try await chatModel.cloudCache.deleteUserCachedRecord(for: cachedTasteResult)
+                                                                        try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
+                                                                    } catch {
+                                                                        chatModel.analytics?.track(name: "error \(error)")
+                                                                        print(error)
                                                                     }
-                                                                }
-                                                            }
-                                                        } else {
-                                                            Task {
-                                                                do {
-                                                                    var userRecord = UserCachedRecord(recordId: "", group: "Taste", identity: taste, title: taste, icons: "", list: nil)
-                                                                    let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title)
-                                                                    if let resultName = record.saveResults.keys.first?.recordName {
-                                                                        userRecord.setRecordId(to:resultName)
-                                                                    }
-                                                                    chatModel.appendCachedTaste(with: userRecord)
-                                                                    try await chatModel.refreshTastes(page:chatModel.lastFetchedTastePage)
-                                                                } catch {
-                                                                    chatModel.analytics?.track(name: "error \(error)")
-                                                                    print(error)
+                                                                    
                                                                 }
                                                             }
                                                         }
+                                                    } else {
+                                                        Task {
+                                                            do {
+                                                                var userRecord = UserCachedRecord(recordId: "", group: "Taste", identity: taste, title: taste, icons: "", list: nil)
+                                                                let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title)
+                                                                if let resultName = record.saveResults.keys.first?.recordName {
+                                                                    userRecord.setRecordId(to:resultName)
+                                                                }
+                                                                chatModel.appendCachedTaste(with: userRecord)
+                                                                try await chatModel.refreshTastes(page:chatModel.lastFetchedTastePage)
+                                                            } catch {
+                                                                chatModel.analytics?.track(name: "error \(error)")
+                                                                print(error)
+                                                            }
+                                                        }
                                                     }
-                                                    .labelStyle(.iconOnly)
-                                                    
-                                                    
-#if os(macOS)
-                                                    .foregroundStyle(.background)
-                                                    .frame(minWidth: 44, minHeight:44)
-                                                    .padding(16)
-#else
-                                                    .foregroundStyle(.white)
-                                                    .frame(minWidth: 44, minHeight:44)
-                                                    .cornerRadius(22)
-                                                    .padding(16)
-                                                    .hoverEffect(.lift)
-#endif
                                                 }
+                                                #if os(iOS) || os(visionOS)
+                                                .hoverEffect(.lift)
+                                                #endif
                                                 Text(taste)
                                                 Spacer()
                                             }
                                         }
-                                    }
+                                    }.padding(.horizontal, 16)
                                 }
+                                .padding(.vertical, 16)
                             }
                             
                             
                             if chatModel.relatedPlaceResults.count > 0 {
                                 Section("Related Places") {
-                                    
                                     ScrollView(.horizontal) {
                                         
                                         HStack{
@@ -375,8 +369,8 @@ struct PlaceAboutView: View {
                                                 .padding(EdgeInsets(top: 0, leading: 0, bottom: 16, trailing: 0))
                                             }
                                         }
-                                    }.padding(16)
-                                }
+                                    }
+                                }.padding(.vertical, 16)
                             }
                         }
                         

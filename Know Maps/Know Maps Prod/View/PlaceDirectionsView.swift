@@ -138,13 +138,13 @@ struct PlaceDirectionsView: View {
                                 }.foregroundStyle(.primary)
                                     .pickerStyle(.menu)
                             }
-                        }
+                        }.padding(.horizontal, 16)
                         if let chatRouteResults = model.chatRouteResults, chatRouteResults.count > 0  {
                             VStack(alignment: .leading) {
                                 ForEach(chatRouteResults) { chatRouteResult in
                                     Text(chatRouteResult.instructions)
                                 }
-                            }.padding(.horizontal, 16)
+                            }.padding(16)
                         }
                     }
                 }
