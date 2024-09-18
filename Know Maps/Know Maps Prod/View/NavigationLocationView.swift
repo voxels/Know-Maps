@@ -95,6 +95,66 @@ struct NavigationLocationView: View {
                 .listStyle(.sidebar)
             }
             .toolbar(content: {
+                #if os(macOS)
+                ToolbarItemGroup(placement: .automatic) {
+                    HStack {
+                        Spacer()
+                    Button(showPopover ? "Done" : "Add", systemImage: showPopover ? "checkmark" :"plus") {
+                        showPopover.toggle()
+                    }.labelStyle(.iconOnly)
+                    .padding()
+                        .popover(isPresented: $showPopover) {
+                            TextField("Search for location name (i.e. 'New York, NY')", text: $chatModel.locationSearchText)
+                                .padding()
+                                .onSubmit {
+                                    showPopover.toggle()
+                                    if !chatModel.locationSearchText.isEmpty {
+                                        if let selectedDestinationLocationChatResult = chatModel.selectedDestinationLocationChatResult {
+                                            Task {
+                                                do {
+                                                    try await chatModel.didSearch(caption:chatModel.locationSearchText, selectedDestinationChatResultID:selectedDestinationLocationChatResult)
+                                                } catch {
+                                                    chatModel.analytics?.track(name: "error \(error)")
+                                                    print(error)
+                                                }
+                                            }
+                                        }
+                                            else {
+//                                            if let firstLocationResultID = chatModel.filteredDestinationLocationResults.first?.id {
+//                                                Task {
+//                                                    do {
+//                                                        try await chatModel.didSearch(caption:chatModel.locationSearchText, selectedDestinationChatResultID:firstLocationResultID)
+//                                                    } catch {
+//                                                        chatModel.analytics?.track(name: "error \(error)")
+//                                                        print(error)
+//                                                    }
+//                                                }
+//                                            } else {
+//                                                if let location = locationProvider.currentLocation() {
+//                                                    Task {
+//                                                        do {
+//                                                            if let name = try await chatModel.currentLocationName() {
+//                                                                chatModel.currentLocationResult.replaceLocation(with: location, name: name)
+//                                                                if chatModel.selectedSourceLocationChatResult == nil, chatModel.currentLocationResult.location != nil {
+//                                                                    chatModel.selectedSourceLocationChatResult = chatModel.currentLocationResult.id
+//                                                                }
+//                                                                try await chatModel.didSearch(caption:chatModel.locationSearchText, selectedDestinationChatResultID:chatModel.currentLocationResult.id)
+//                                                            }
+//                                                        } catch {
+//                                                            chatModel.analytics?.track(name: "error \(error)")
+//                                                            print(error)
+//                                                        }
+//                                                    }
+//                                                }
+//                                            }
+                                        }
+                                    }
+                                }
+                        }
+                    Spacer()
+                    }
+                }
+                #else
                 ToolbarItemGroup(placement: .bottomBar) {
                     HStack {
                         Spacer()
@@ -108,7 +168,7 @@ struct NavigationLocationView: View {
                                 .onSubmit {
                                     showPopover.toggle()
                                     if !chatModel.locationSearchText.isEmpty {
-                                        if let selectedDestinationLocationChatResult = chatModel.selectedDestinationLocationChatResult, !chatModel.locationSearchText.isEmpty {
+                                        if let selectedDestinationLocationChatResult = chatModel.selectedDestinationLocationChatResult {
                                             Task {
                                                 do {
                                                     try await chatModel.didSearch(caption:chatModel.locationSearchText, selectedDestinationChatResultID:selectedDestinationLocationChatResult)
@@ -117,53 +177,43 @@ struct NavigationLocationView: View {
                                                     print(error)
                                                 }
                                             }
-                                        } else if !chatModel.locationSearchText.isEmpty {
-                                            if let firstLocationResultID = chatModel.filteredDestinationLocationResults.first?.id {
-                                                Task {
-                                                    do {
-                                                        try await chatModel.didSearch(caption:chatModel.locationSearchText, selectedDestinationChatResultID:firstLocationResultID)
-                                                    } catch {
-                                                        chatModel.analytics?.track(name: "error \(error)")
-                                                        print(error)
-                                                    }
-                                                }
-                                            } else {
-                                                if let location = locationProvider.currentLocation() {
-                                                    Task {
-                                                        do {
-                                                            if let name = try await chatModel.currentLocationName() {
-                                                                chatModel.currentLocationResult.replaceLocation(with: location, name: name)
-                                                                if chatModel.selectedSourceLocationChatResult == nil, chatModel.currentLocationResult.location != nil {
-                                                                    chatModel.selectedSourceLocationChatResult = chatModel.currentLocationResult.id
-                                                                }
-                                                                try await chatModel.didSearch(caption:chatModel.locationSearchText, selectedDestinationChatResultID:chatModel.currentLocationResult.id)
-                                                            }
-                                                        } catch {
-                                                            chatModel.analytics?.track(name: "error \(error)")
-                                                            print(error)
-                                                        }
-                                                    }
-                                                }
-                                            }
+                                        }
+                                            else {
+//                                            if let firstLocationResultID = chatModel.filteredDestinationLocationResults.first?.id {
+//                                                Task {
+//                                                    do {
+//                                                        try await chatModel.didSearch(caption:chatModel.locationSearchText, selectedDestinationChatResultID:firstLocationResultID)
+//                                                    } catch {
+//                                                        chatModel.analytics?.track(name: "error \(error)")
+//                                                        print(error)
+//                                                    }
+//                                                }
+//                                            } else {
+//                                                if let location = locationProvider.currentLocation() {
+//                                                    Task {
+//                                                        do {
+//                                                            if let name = try await chatModel.currentLocationName() {
+//                                                                chatModel.currentLocationResult.replaceLocation(with: location, name: name)
+//                                                                if chatModel.selectedSourceLocationChatResult == nil, chatModel.currentLocationResult.location != nil {
+//                                                                    chatModel.selectedSourceLocationChatResult = chatModel.currentLocationResult.id
+//                                                                }
+//                                                                try await chatModel.didSearch(caption:chatModel.locationSearchText, selectedDestinationChatResultID:chatModel.currentLocationResult.id)
+//                                                            }
+//                                                        } catch {
+//                                                            chatModel.analytics?.track(name: "error \(error)")
+//                                                            print(error)
+//                                                        }
+//                                                    }
+//                                                }
+//                                            }
                                         }
                                     }
                                 }
                         }
                     Spacer()
-                    Button("Refresh", systemImage: "arrow.clockwise") {
-                        Task {
-                            do {
-                                try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
-                            } catch {
-                                chatModel.analytics?.track(name: "error \(error)")
-                                print(error)
-                            }
-                        }
-                    }.labelStyle(.iconOnly)
-                    .padding()
-                        Spacer()
                     }
                 }
+                #endif
             })
         }
     }

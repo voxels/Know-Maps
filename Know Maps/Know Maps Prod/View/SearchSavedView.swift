@@ -32,11 +32,19 @@ struct SearchSavedView: View {
                 }
             }
             .toolbar {
+                #if os(macOS)
+                ToolbarItem(placement: .automatic) {
+                    Button("Done", systemImage: "plus") {
+                        showPopover = false
+                    }.labelStyle(.titleOnly).padding(16)
+                }
+                #else
                 ToolbarItem(placement: .bottomBar) {
                     Button("Done", systemImage: "plus") {
                         showPopover = false
                     }.labelStyle(.titleOnly).padding(16)
                 }
+                #endif
             }
         } else {
             Section {
@@ -121,6 +129,30 @@ struct SearchSavedView: View {
                     }
                 }
             }.toolbar {
+                #if os(macOS)
+                ToolbarItemGroup(placement: .automatic) {
+                    HStack {
+                        Spacer()
+                        Button("Add", systemImage: "plus") {
+                            showPopover = true
+                        }.labelStyle(.iconOnly).padding()
+                        Spacer()
+                        Button("Refresh", systemImage: "arrow.clockwise") {
+                            Task {
+                                do {
+                                    try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
+                                } catch {
+                                    chatModel.analytics?.track(name: "error \(error)")
+                                    print(error)
+                                }
+                            }
+                        }.labelStyle(.iconOnly).padding()
+                        Spacer()
+                    }
+                }
+
+                #else
+                
                 ToolbarItemGroup(placement: .bottomBar) {
                     HStack {
                         Spacer()
@@ -141,6 +173,8 @@ struct SearchSavedView: View {
                         Spacer()
                     }
                 }
+#endif
+
             }
         }
     }
