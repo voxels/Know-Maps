@@ -38,7 +38,14 @@ struct ContentView: View {
                 VStack() {
                     NavigationLocationView(columnVisibility: $columnVisibility, chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, resultId: $chatModel.selectedPlaceChatResult)
                         .navigationTitle("Locations")
-                }.toolbar {
+                        .onChange(of: chatModel.selectedDestinationLocationChatResult) { oldValue, newValue in
+                            chatModel.resetPlaceModel()
+                        }
+                }
+                .onAppear(perform:  {
+                    chatModel.selectedDestinationLocationChatResult = chatModel.currentLocationResult.id
+                })
+                .toolbar {
                     ToolbarItem(placement: .automatic) {
                         Button {
 #if os(iOS)

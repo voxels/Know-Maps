@@ -171,7 +171,7 @@ public class ChatResultViewModel : ObservableObject {
                 return result.title <= checkResult.title
             }
 
-            if let selectedSourceLocationChatResult = selectedSourceLocationChatResult, let locationChatResult = locationChatResult(for: selectedSourceLocationChatResult), let location = locationChatResult.location {
+            if let selectedDestinationLocationChatResult = selectedDestinationLocationChatResult, let locationChatResult = locationChatResult(for: selectedDestinationLocationChatResult), let location = locationChatResult.location {
                 retval.sort { result, checkResult in
                     guard let placeResponse = result.placeResponse, let checkPlaceResponse = checkResult.placeResponse else {
                         return false
@@ -225,6 +225,16 @@ public class ChatResultViewModel : ObservableObject {
         selectedPlaceChatResult = nil
         locationSearchText.removeAll()
         placeResults.removeAll()
+        recommendedPlaceResults.removeAll()
+        relatedPlaceResults.removeAll()
+        
+        selectedCategoryResult = nil
+        selectedSavedResult = nil
+        selectedTasteCategoryResult = nil
+        selectedListCategoryResult = nil
+        selectedCategoryChatResult =  nil
+        selectedPlaceChatResult = nil
+        
         analytics?.track(name: "resetPlaceModel")
     }
     
@@ -409,7 +419,15 @@ public class ChatResultViewModel : ObservableObject {
     }
     
     public func locationChatResult(for selectedChatResultID:LocationResult.ID)->LocationResult?{
-        let selectedResult = locationResults.first(where: { checkResult in
+        var selectedResult = cachedLocationResults.first(where: { checkResult in
+            return checkResult.id == selectedChatResultID
+        })
+                                                         
+         if let selectedResult = selectedResult {
+             return selectedResult
+         }
+
+        selectedResult = locationResults.first(where: { checkResult in
             return checkResult.id == selectedChatResultID
         })
         

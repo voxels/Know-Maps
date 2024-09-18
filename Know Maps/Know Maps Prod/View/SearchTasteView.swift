@@ -2,7 +2,8 @@ import SwiftUI
 
 struct SearchTasteView: View {
     @ObservedObject public var model:ChatResultViewModel
-    
+    @State private var searchText:String = ""
+    @State private var isPresented:Bool = false
     var body: some View {
             List(model.tasteResults, selection: $model.selectedTasteCategoryResult) { parent in
                 HStack {
@@ -116,6 +117,10 @@ struct SearchTasteView: View {
                         model.analytics?.track(name: "error \(error)")
                     }
                 }
+            }
+            .searchable(text: $searchText, isPresented: $isPresented, prompt: "Search for a taste")
+            .onSubmit(of: .search) {
+                
             }
         }
 }

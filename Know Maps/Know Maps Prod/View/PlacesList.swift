@@ -7,6 +7,7 @@
 
 import SwiftUI
 import CoreLocation
+import MapKit
 
 struct PlacesList: View {
     @Environment(\.horizontalSizeClass) var sizeClass
@@ -18,6 +19,7 @@ struct PlacesList: View {
     
     @Binding public var resultId:ChatResult.ID?
     @State private var showingPopover:Bool = false
+    @State private var cameraPosition:MapCameraPosition = .automatic
     
     static var formatter:NumberFormatter {
         let retval = NumberFormatter()
@@ -32,7 +34,7 @@ struct PlacesList: View {
             } else {
                 VStack{
                     let mapHeight = chatModel.recommendedPlaceResults.count == 0 && chatModel.placeResults.count == 0 ? geo.size.height : geo.size.height / 3
-                    MapResultsView(chatHost: chatHost, model: chatModel, locationProvider: locationProvider, selectedMapItem: $selectedItem)
+                    MapResultsView(chatHost: chatHost, model: chatModel, locationProvider: locationProvider, selectedMapItem: $selectedItem, cameraPosition:$cameraPosition)
                         .frame(height:mapHeight)
                     
                     if chatModel.cloudCache.hasPrivateCloudAccess {

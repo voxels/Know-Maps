@@ -30,8 +30,9 @@ struct SearchSavedView: View {
                             Label("AI", systemImage: "atom")
                         }
                 }
-            } footer: {
-                HStack {
+            }
+            .toolbar {
+                ToolbarItem(placement: .bottomBar) {
                     Button("Done", systemImage: "plus") {
                         showPopover = false
                     }.labelStyle(.titleOnly).padding(16)
@@ -119,22 +120,26 @@ struct SearchSavedView: View {
                         }
                     }
                 }
-            } footer: {
-                HStack {
-                    Button("Add", systemImage: "plus") {
-                        showPopover = true
-                    }.labelStyle(.iconOnly).padding(16)
-                    
-                    Button("Refresh", systemImage: "arrow.clockwise") {
-                        Task {
-                            do {
-                                try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
-                            } catch {
-                                chatModel.analytics?.track(name: "error \(error)")
-                                print(error)
+            }.toolbar {
+                ToolbarItemGroup(placement: .bottomBar) {
+                    HStack {
+                        Spacer()
+                        Button("Add", systemImage: "plus") {
+                            showPopover = true
+                        }.labelStyle(.iconOnly).padding()
+                        Spacer()
+                        Button("Refresh", systemImage: "arrow.clockwise") {
+                            Task {
+                                do {
+                                    try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
+                                } catch {
+                                    chatModel.analytics?.track(name: "error \(error)")
+                                    print(error)
+                                }
                             }
-                        }
-                    }.labelStyle(.iconOnly).padding(16)
+                        }.labelStyle(.iconOnly).padding()
+                        Spacer()
+                    }
                 }
             }
         }

@@ -11,19 +11,20 @@ import MapKit
 
 struct MapResultsView: View {
     @ObservedObject public var chatHost:AssistiveChatHost
-    @ObservedObject public var
-model:ChatResultViewModel
+    @ObservedObject public var model:ChatResultViewModel
     @ObservedObject public var locationProvider:LocationProvider
     @Binding public var selectedMapItem: String?
+    @Binding public var cameraPosition:MapCameraPosition
+    
     var body: some View {
-        let initialPosition:MapCameraPosition = model.selectedDestinationLocationChatResult != nil && model.placeResults.isEmpty ? .camera(MapCamera(centerCoordinate: model.locationChatResult(for: model.selectedDestinationLocationChatResult!)?.location?.coordinate ?? locationProvider.currentLocation()!.coordinate, distance: 250000))   : .automatic
-        Map(initialPosition: initialPosition, bounds: MapCameraBounds(minimumDistance: 5000, maximumDistance: 250000), interactionModes: .all, selection:$selectedMapItem, scope: nil) {
-                ForEach(model.filteredPlaceResults) { result in
-                    if let placeResponse = result.placeResponse {
-                        Marker(result.title, coordinate: CLLocationCoordinate2D(latitude: placeResponse.latitude, longitude: placeResponse.longitude)).tag(placeResponse.fsqID)
-                    }
+        
+        Map(position: $cameraPosition, interactionModes: .all, selection: $selectedMapItem) {
+            ForEach(model.filteredPlaceResults) { result in
+                if let placeResponse = result.placeResponse {
+                    Marker(result.title, coordinate: CLLocationCoordinate2D(latitude: placeResponse.latitude, longitude: placeResponse.longitude)).tag(placeResponse.fsqID)
                 }
             }
+        }
             .mapControls {
                 MapPitchToggle()
                 MapUserLocationButton()
@@ -32,20 +33,21 @@ model:ChatResultViewModel
             .mapStyle(.imagery)
             .cornerRadius(16)
             .padding(16)
+            .task {
+                cameraPosition = model.selectedDestinationLocationChatResult != nil ? .camera(MapCamera(centerCoordinate: model.locationChatResult(for: model.selectedDestinationLocationChatResult!)?.location?.coordinate ?? locationProvider.currentLocation()!.coordinate, distance: 250000)) : .automatic
+            }
+            .onChange(of: model.selectedDestinationLocationChatResult) { oldValue, newValue in
+                if let newLocation = newValue {
+                    updateCamera(for: newLocation)
+                }
+            }
     }
-}
-
-#Preview {
-
-    let locationProvider = LocationProvider()
-
-    let chatHost = AssistiveChatHost()
-    let cloudCache = CloudCache()
-    let featureFlags = FeatureFlags()
-
-    let chatModel = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cloudCache, featureFlags: featureFlags)
-    chatModel.assistiveHostDelegate = chatHost
-    chatHost.messagesDelegate = chatModel
-
-    return MapResultsView(chatHost: chatHost, model:chatModel, locationProvider: locationProvider, selectedMapItem: .constant(nil))
+    
+    private func updateCamera(for locationResult: UUID) {
+        if let location = model.locationChatResult(for: locationResult)?.location?.coordinate {
+            withAnimation {
+                cameraPosition = .camera(MapCamera(centerCoordinate: location, distance: 250000))
+            }
+        }
+    }
 }
