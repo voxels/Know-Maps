@@ -1,17 +1,9 @@
-//
-//  SearchTasteView.swift
-//  Know Maps
-//
-//  Created by Michael A Edgcumbe on 1/11/24.
-//
-
 import SwiftUI
 
 struct SearchTasteView: View {
     @ObservedObject public var model:ChatResultViewModel
     
     var body: some View {
-        Section {
             List(model.tasteResults, selection: $model.selectedTasteCategoryResult) { parent in
                 HStack {
                     if model.cloudCache.hasPrivateCloudAccess {
@@ -57,17 +49,13 @@ struct SearchTasteView: View {
                                     }
                                     model.appendCachedTaste(with: userRecord)
                                         try await model.refreshTastes(page:model.lastFetchedTastePage)
-                                    } catch { 
+                                    } catch {
                                         model.analytics?.track(name: "error \(error)")
                                         print(error)
                                     }
                                 }
                             }
                         }
-                    }
-                    if model.cloudCache.hasPrivateCloudAccess {
-                        let isSaved = model.cachedTastes(contains: parent.parentCategory)
-                        Label("Is Saved", systemImage:isSaved ? "star.fill" : "star").labelStyle(.iconOnly)
                     }
                     Text("\(parent.parentCategory)")
                     Spacer()
@@ -86,7 +74,6 @@ struct SearchTasteView: View {
                     }
                 }
             }
-            .listStyle(.sidebar)
             .onAppear {
                 guard model.tasteResults.isEmpty else {
                     return
@@ -130,21 +117,7 @@ struct SearchTasteView: View {
                     }
                 }
             }
-        } footer: {
-            Button("Refresh", systemImage: "arrow.clockwise") {
-                Task { @MainActor in
-                    do {
-                        model.tasteResults.removeAll()
-                        model.lastFetchedTastePage = 0
-                        try await model.refreshTastes(page:model.lastFetchedTastePage)
-                    } catch {
-                        model.analytics?.track(name: "error \(error)")
-                        print(error)
-                    }
-                }
-            }.labelStyle(.iconOnly).padding(16)
         }
-    }
 }
 
 #Preview {

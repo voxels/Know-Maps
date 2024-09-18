@@ -58,10 +58,6 @@ struct SearchCategoryView: View {
     #endif
 
                     }
-                    if chatModel.cloudCache.hasPrivateCloudAccess {
-                        let isSaved = chatModel.cachedCategories(contains: parent.parentCategory)
-                        Label("Is Saved", systemImage:isSaved ? "star.fill" : "star").labelStyle(.iconOnly)
-                    }
                     Text("\(parent.parentCategory)")
                 }
         }

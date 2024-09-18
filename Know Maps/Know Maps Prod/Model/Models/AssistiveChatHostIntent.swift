@@ -19,6 +19,7 @@ public class AssistiveChatHostIntent : Equatable {
     public var placeDetailsResponses:[PlaceDetailsResponse]?
     public var recommendedPlaceSearchResponses:[RecommendedPlaceSearchResponse]?
     public var relatedPlaceSearchResponses:[RecommendedPlaceSearchResponse]?
+    public var tasteAutocompleteResponese:[TasteAutocompleteResponse]?
     public let queryParameters:[String:Any]?
     
     public init(caption: String, intent: AssistiveChatHost.Intent, selectedPlaceSearchResponse: PlaceSearchResponse?, selectedPlaceSearchDetails: PlaceDetailsResponse?, selectedRecommendedPlaceSearchResponse:RecommendedPlaceSearchResponse?, placeSearchResponses: [PlaceSearchResponse], selectedDestinationLocationID:LocationResult.ID, placeDetailsResponses:[PlaceDetailsResponse]?, recommendedPlaceSearchResponses:[RecommendedPlaceSearchResponse]? = nil, relatedPlaceSearchResponses:[RecommendedPlaceSearchResponse]? = nil, queryParameters: [String : Any]?) {

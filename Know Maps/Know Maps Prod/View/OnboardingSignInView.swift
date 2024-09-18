@@ -9,7 +9,7 @@ import SwiftUI
 import AuthenticationServices
 
 struct OnboardingSignInView: View {
-    @Binding public var selectedTab:Int
+    @Binding public var selectedTab:String
     @EnvironmentObject public var model:SettingsModel
     @EnvironmentObject public var cloudCache:CloudCache
     @State private var popoverPresented:Bool = false
@@ -56,7 +56,7 @@ struct OnboardingSignInView: View {
                                 }
                                 print("Storing Apple ID successful.")
                             }
-                            selectedTab = 2
+                            selectedTab = "Location"
                         }
                     }
                 case .failure(let error):
@@ -76,5 +76,5 @@ struct OnboardingSignInView: View {
 }
 
 #Preview {
-    OnboardingSignInView(selectedTab: .constant(1))
+    OnboardingSignInView(selectedTab: .constant("Sign In"))
 }

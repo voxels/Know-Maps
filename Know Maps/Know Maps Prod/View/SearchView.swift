@@ -13,24 +13,13 @@ struct SearchView: View {
     @ObservedObject public var chatModel:ChatResultViewModel
     @ObservedObject public var locationProvider:LocationProvider
     @State private var savedSectionSelection = 1
-    @State private var sectionSelection = 0
     @State private var didError = false
 
     var body: some View {
         VStack {
-            switch sectionSelection {
-            case 0:
-                SearchCategoryView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider)
-            case 1:
-                SearchTasteView(model: chatModel)
-            case 2:
-                SearchSavedView(model: chatModel)
-            default:
-                ContentUnavailableView("No Tastes", systemImage:"return")
-            }
+            SearchSavedView(chatHost:chatHost, chatModel: chatModel, locationProvider: locationProvider)
         }
         .onChange(of: chatModel.selectedSavedResult) { oldValue, newValue in
-            
             chatModel.resetPlaceModel()
             
             guard let newValue = newValue else {
@@ -76,20 +65,6 @@ struct SearchView: View {
                 }
             }
         })
-        .toolbarRole(.automatic)
-        .toolbar {
-            if cloudCache.hasPrivateCloudAccess {
-                ToolbarItem(placement:.principal)  {
-                    Picker("", selection: $sectionSelection) {
-                        Text("Type").tag(0)
-                        Text("Taste").tag(1)
-                        Text("Saved").tag(2)
-                    }
-                    .pickerStyle(.palette)
-                    .padding(8)
-                }
-            }
-        }
     }
 }
 

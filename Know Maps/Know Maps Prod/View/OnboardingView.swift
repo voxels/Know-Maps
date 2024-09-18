@@ -16,22 +16,39 @@ struct OnboardingView: View {
     @ObservedObject public var chatModel:ChatResultViewModel
     @ObservedObject public var locationProvider:LocationProvider
     
-    @State private var selectedTab = 1
+    @Binding public var selectedTab:String
     @Binding public var showOnboarding:Bool
     @Binding public var isAuthorized:Bool
+    @Binding public var isOnboarded:Bool
 
     var body: some View {
+        if selectedTab != "Saving" {
+            OnboardingTemplateView(selectedTab: $selectedTab, showOnboarding: $showOnboarding, isOnboarded: $isOnboarded, chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider).tag("Saving")
+        } else {
         TabView(selection: $selectedTab,
                 content:  {
-            OnboardingSignInView(selectedTab: $selectedTab).tag(1)
-            OnboardingLocationView(locationProvider: locationProvider, isAuthorized: $isAuthorized, selectedTab: $selectedTab).tag(2)
-            OnboardingSubscriptionView(selectedTab: $selectedTab, showOnboarding: $showOnboarding).tag(3)
+            OnboardingSignInView(selectedTab: $selectedTab)
+                .tag("Sign In")
+                .tabItem({
+                    Label("Sign In", systemImage: "person.crop.circle.badge.plus")
+                })
+            OnboardingLocationView(locationProvider: locationProvider, isAuthorized: $isAuthorized, selectedTab: $selectedTab)
+                .tag("Location")
+                .tabItem({
+                    Label("Sign In", systemImage: "map" )
+                })
+            OnboardingSubscriptionView(selectedTab: $selectedTab, showOnboarding: $showOnboarding)
+                .tag("Subscription")
+                .tabItem({
+                Label("Subscription", systemImage: "cart")
+            })
         })
         #if os(iOS) || os(visionOS)
         .tabViewStyle(.page(indexDisplayMode: .never))
         .indexViewStyle(.page(backgroundDisplayMode: .always))
         .scrollDisabled(true)
         #endif
+        }
     }
 }
 
@@ -41,5 +58,5 @@ struct OnboardingView: View {
     let featureFlags = FeatureFlags()
     let chatModel = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cloudCache, featureFlags: featureFlags)
     let chatHost = AssistiveChatHost()
-    OnboardingView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, showOnboarding: .constant(true), isAuthorized: .constant(false))
+    OnboardingView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, selectedTab:.constant("Sign In"), showOnboarding: .constant(true), isAuthorized: .constant(false), isOnboarded: .constant(false))
 }

@@ -15,7 +15,7 @@ import AppKit
 struct OnboardingLocationView: View {
     @ObservedObject public var locationProvider:LocationProvider
     @Binding public var isAuthorized:Bool
-    @Binding public var selectedTab:Int
+    @Binding public var selectedTab:String
     var body: some View {
         VStack{
             Spacer()
@@ -29,7 +29,7 @@ struct OnboardingLocationView: View {
                 .padding()
             Button("Authorize Location Tracking") {
                 locationProvider.authorize()
-                selectedTab = 3
+                selectedTab = "Subscription"
             }.padding()
                 .alert("Location Settings", isPresented: $isAuthorized, actions:                 {
                     Button("Open System Preferences") {
@@ -61,5 +61,5 @@ func openLocationPreferences() {
 
 #Preview {
     let locationProvider = LocationProvider()
-    OnboardingLocationView(locationProvider: locationProvider, isAuthorized: .constant(false), selectedTab: .constant(2))
+    OnboardingLocationView(locationProvider: locationProvider, isAuthorized: .constant(false), selectedTab: .constant("Location"))
 }

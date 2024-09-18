@@ -78,12 +78,6 @@ struct NavigationLocationView: View {
                         }
                     }
                     
-                    if let location = result.location, chatModel.cloudCache.hasPrivateCloudAccess {
-                        let isSaved = chatModel.cachedLocation(contains: chatModel.cachedLocationIdentity(for: location))
-                        Label("Is Saved", systemImage:isSaved ? "star.fill" : "star").labelStyle(.iconOnly)
-                    }
-
-                    
                     if result.id == chatModel.selectedDestinationLocationChatResult {
                         Label(result.locationName, systemImage: "mappin")
                             .tint(.red).labelStyle(.titleOnly)
@@ -163,25 +157,11 @@ struct NavigationLocationView: View {
                         
                     }
                 }
-            }.onDisappear {
-                Task { @MainActor in
-                    do {
-                        let name = try await chatModel.currentLocationName()
-                        if let location = locationProvider.currentLocation(), let name = name {
-                            chatModel.currentLocationResult.replaceLocation(with: location, name:name )
-                        }
-                        
-                        if chatModel.selectedSourceLocationChatResult == nil, chatModel.currentLocationResult.location != nil {
-                            chatModel.selectedSourceLocationChatResult = chatModel.currentLocationResult.id
-                        }
-                        
-                        
-                    } catch {
-                        chatModel.analytics?.track(name: "error \(error)")
-                        print(error)
-                    }
+            }.onAppear(perform:  {
+                if chatModel.selectedDestinationLocationChatResult == nil {
+                    chatModel.selectedDestinationLocationChatResult = chatModel.currentLocationResult.id
                 }
-            }
+            })
         }
     }
 }

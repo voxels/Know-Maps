@@ -30,6 +30,7 @@ open class PersonalizedSearchSession {
     static let tasteSuggestionsAPIUrl = "v2/tastes/suggestions"
     static let venueRecommendationsAPIUrl = "v2/search/recommendations"
     static let autocompleteAPIUrl = "v2/search/autocomplete"
+    static let autocompleteTastesAPIUrl = "v2/tastes/autocomplete"
     static let relatedVenueAPIUrl = "v2/venues/"
     static let relatedVenuePath = "/related"
     static let foursquareVersionDate = "20240101"
@@ -127,9 +128,64 @@ extension PersonalizedSearchSession {
 }
 
 extension PersonalizedSearchSession {
+    public func autocompleteTastes(caption:String, parameters:[String:Any]?, location:CLLocation) async throws -> [String:Any] {
+        
+        let apiKey = try await fetchManagedUserAccessToken()
+        
+        if searchSession == nil {
+            let sessionConfiguration = URLSessionConfiguration.default
+            let session = URLSession(configuration: sessionConfiguration)
+            searchSession = session
+        }
+        
+        var limit = 50
+        var nameString:String = ""
+        
+        if let parameters = parameters, let rawQuery = parameters["query"] as? String {
+            nameString = rawQuery
+        }
+        
+        if let parameters = parameters, let rawParameters = parameters["parameters"] as? NSDictionary {
+            
+            if let rawLimit = rawParameters["limit"] as? Int {
+                limit = rawLimit
+            }
+        }
+        
+        var queryComponents = URLComponents(string:"\(PersonalizedSearchSession.serverUrl)\(PersonalizedSearchSession.autocompleteTastesAPIUrl)")
+        queryComponents?.queryItems = [URLQueryItem]()
+
+        if nameString.count > 0 {
+            let queryUrlItem = URLQueryItem(name: "query", value: nameString.trimmingCharacters(in: .whitespacesAndNewlines))
+            queryComponents?.queryItems?.append(queryUrlItem)
+        } else {
+            let queryUrlItem = URLQueryItem(name: "query", value: caption)
+            queryComponents?.queryItems?.append(queryUrlItem)
+        }
+        
+        let limitQueryItem = URLQueryItem(name: "limit", value: "\(limit)")
+        queryComponents?.queryItems?.append(limitQueryItem)
+
+        guard let url = queryComponents?.url else {
+            throw PlaceSearchSessionError.UnsupportedRequest
+        }
+        
+        let tastesAutocompleteResponse = try await fetch(url: url, apiKey: apiKey, urlQueryItems: queryComponents?.queryItems)
+        
+        guard let response = tastesAutocompleteResponse as? [String:Any] else {
+            return [String:Any]()
+        }
+                
+        var retval = [String:Any]()
+        if let responseDict = response["response"] as? [String:Any] {
+            print(responseDict)
+            retval = responseDict
+        }
+
+        return retval
+    }
     
     public func autocomplete(caption:String, parameters:[String:Any]?, location:CLLocation) async throws -> [String:Any] {
-        
         
         let apiKey = try await fetchManagedUserAccessToken()
         

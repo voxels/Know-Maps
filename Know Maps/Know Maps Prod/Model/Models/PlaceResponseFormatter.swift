@@ -15,6 +15,32 @@ public enum PlaceResponseFormatterError : Error {
 
 open class PlaceResponseFormatter {
     
+    public class func autocompleteTastesResponses(with response:[String:Any]) throws ->[TasteAutocompleteResponse] {
+        var retval = [TasteAutocompleteResponse]()
+        
+        if let resultsDict = response as? NSDictionary {
+            if let results = resultsDict["tastes"] as? [NSDictionary] {
+                for result in results {
+                    var id:String = ""
+                    var text:String = ""
+                    
+                    if let rawId = result["id"] as? String {
+                        id = rawId
+                    }
+                    
+                    if let rawText = result["text"] as? String {
+                        text = rawText
+                    }
+                    
+                    let taste = TasteAutocompleteResponse(id:id, text:text)
+                    retval.append(taste)
+                }
+            }
+        }
+        
+        return retval
+    }
+    
     public class func autocompleteRecommendedPlaceSearchResponses(with response:[String:Any]) throws ->[RecommendedPlaceSearchResponse] {
         var retval = [RecommendedPlaceSearchResponse]()
         

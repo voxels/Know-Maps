@@ -20,7 +20,7 @@ public struct SubscriptionPlan: Identifiable, Equatable, Hashable {
 }
 
 struct OnboardingSubscriptionView: View {
-    @Binding public var selectedTab:Int
+    @Binding public var selectedTab:String
     @Binding public var showOnboarding:Bool
     @EnvironmentObject public var featureFlags:FeatureFlags
     @EnvironmentObject public var model:SettingsModel
@@ -28,7 +28,7 @@ struct OnboardingSubscriptionView: View {
     @State private var selectedSubscription:SubscriptionPlan?
     @State private var subscriptionIncomplete:Bool = true
     
-    @State private var allPlans = [SubscriptionPlan(plan:.monthly)]
+    @State private var allPlans = [SubscriptionPlan(plan:.free), SubscriptionPlan(plan:.monthly)]
     
     var body: some View {
         VStack{
@@ -56,7 +56,7 @@ struct OnboardingSubscriptionView: View {
             }
             
             Button("Get Started") {
-                showOnboarding = false
+                selectedTab = "Saving"
             }
             .padding(EdgeInsets(top: 32, leading: 0, bottom: 64, trailing: 0))
             .disabled(subscriptionIncomplete)
@@ -100,5 +100,5 @@ struct CheckmarkModifier: ViewModifier {
 }
 
 #Preview {
-    return OnboardingSubscriptionView(selectedTab: .constant(3), showOnboarding: .constant(true))
+    return OnboardingSubscriptionView(selectedTab: .constant("Subscription"), showOnboarding: .constant(true))
 }

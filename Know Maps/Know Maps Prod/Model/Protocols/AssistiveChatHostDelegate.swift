@@ -23,7 +23,7 @@ public protocol AssistiveChatHostDelegate:AnyObject {
     func organizeCategoryCodeList() throws
     func didTap(chatResult: ChatResult) async
     func didTap(categoricalResult:CategoryResult, chatResult:ChatResult?) async
-    func determineIntent(for caption:String) -> AssistiveChatHost.Intent
+    func determineIntent(for caption:String, override:AssistiveChatHost.Intent?) -> AssistiveChatHost.Intent
     func updateLastIntentParameters(intent:AssistiveChatHostIntent)
     func appendIntentParameters(intent:AssistiveChatHostIntent)
     func resetIntentParameters()

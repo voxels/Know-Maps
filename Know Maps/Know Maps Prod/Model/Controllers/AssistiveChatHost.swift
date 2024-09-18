@@ -19,7 +19,8 @@ open class AssistiveChatHost : @preconcurrency AssistiveChatHostDelegate, ChatHo
     public enum Intent : String {
         case Search
         case Place
-        case Autocomplete
+        case AutocompleteSearch
+        case AutocompleteTastes
         case Location
     }
     
@@ -144,7 +145,7 @@ open class AssistiveChatHost : @preconcurrency AssistiveChatHostDelegate, ChatHo
     }
     
     
-    public func determineIntent(for caption:String) -> Intent
+    public func determineIntent(for caption:String, override:Intent? = nil) -> Intent
     {
         let components = caption.components(separatedBy: "near")
         if let prefix = components.first {
@@ -169,7 +170,7 @@ open class AssistiveChatHost : @preconcurrency AssistiveChatHostDelegate, ChatHo
             #endif
         }
                 
-        return .Autocomplete
+        return .AutocompleteSearch
     }
     
     public func defaultParameters(for query:String) async throws -> [String:Any]? {

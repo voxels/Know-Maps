@@ -18,10 +18,10 @@ struct ContentView: View {
     @State private var showImmersiveSpace = false
     @State private var immersiveSpaceIsShown = false
     @State private var columnVisibility =
-    NavigationSplitViewVisibility.all
+    NavigationSplitViewVisibility.doubleColumn
     @ObservedObject public var chatHost:AssistiveChatHost
-    @StateObject public var chatModel:ChatResultViewModel
-    @StateObject public var locationProvider:LocationProvider
+    @ObservedObject public var chatModel:ChatResultViewModel
+    @ObservedObject public var locationProvider:LocationProvider
     @State private var selectedItem: String?
     @Environment(\.openWindow) private var openWindow
 #if os(visionOS)
@@ -104,39 +104,6 @@ struct ContentView: View {
                     }
                 }
             })
-            .task { @MainActor in
-                chatModel.cloudCache = cloudCache
-                do {
-                    try await chatModel.retrieveFsqUser()
-                } catch {
-                    chatModel.analytics?.track(name: "error \(error)")
-                    print(error)
-                }
-                if chatModel.categoryResults.isEmpty {
-                    chatModel.assistiveHostDelegate = chatHost
-                    chatHost.messagesDelegate = chatModel
-                    await chatModel.categoricalSearchModel()
-                }
-                
-                do {
-                    let name = try await chatModel.currentLocationName()
-                    if let location = locationProvider.currentLocation(), let name = name {
-                        chatModel.currentLocationResult.replaceLocation(with: location, name:name )
-                    }
-                    
-                    try await chatModel.refreshCachedLocations(cloudCache: chatModel.cloudCache)
-                    
-                    if chatModel.selectedSourceLocationChatResult == nil, chatModel.currentLocationResult.location != nil {
-                        chatModel.selectedSourceLocationChatResult = chatModel.currentLocationResult.id
-                    }
-                    
-                    
-                } catch {
-                    chatModel.analytics?.track(name: "error \(error)")
-                    print(error)
-                }
-                
-            }
             .tag("Search")
 #if os(visionOS) || os(iOS)
             .toolbarColorScheme(
