@@ -2,7 +2,6 @@ import SwiftUI
 
 struct SearchTasteView: View {
     @ObservedObject public var model:ChatResultViewModel
-    @State private var searchText:String = ""
     @State private var isPresented:Bool = false
     var body: some View {
             List(model.tasteResults, selection: $model.selectedTasteCategoryResult) { parent in
@@ -118,9 +117,18 @@ struct SearchTasteView: View {
                     }
                 }
             }
-            .searchable(text: $searchText, isPresented: $isPresented, prompt: "Search for a taste")
+            .searchable(text: $model.locationSearchText, isPresented: $isPresented, prompt: "Search for a taste")
             .onSubmit(of: .search) {
-                
+                if let selectedDestinationLocationChatResult = model.selectedDestinationLocationChatResult {
+                    Task {
+                        do {
+                            try await model.didSearch(caption:model.locationSearchText, selectedDestinationChatResultID:selectedDestinationLocationChatResult, intent:.AutocompleteTastes)
+                        } catch {
+                            print(error)
+                            model.analytics?.track(name: "error \(error)")
+                        }
+                    }
+                }
             }
         }
 }
