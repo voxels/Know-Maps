@@ -445,16 +445,14 @@ public class ChatResultViewModel : ObservableObject {
                 if let selectedResult = selectedResult {
                     checkChatResultID = selectedResult.id
                 }
+                
+                return selectedResult
             }
         }
         
         let selectedResult = placeResults.first(where: { checkResult in
             return checkResult.id == checkChatResultID
         })
-        
-        if let selectedResult = selectedResult {
-            return selectedResult
-        }
         
         return selectedResult
     }
@@ -766,7 +764,7 @@ public class ChatResultViewModel : ObservableObject {
     
     @MainActor
     public func detailIntent( intent: AssistiveChatHostIntent) async throws {
-        if intent.selectedPlaceSearchDetails != nil {
+        if intent.selectedPlaceSearchDetails == nil {
             if intent.placeSearchResponses.count > 0, let placeSearchResponse = intent.selectedPlaceSearchResponse {
                 intent.selectedPlaceSearchDetails = try await fetchDetails(for: [placeSearchResponse]).first
                 intent.placeDetailsResponses = [intent.selectedPlaceSearchDetails!]

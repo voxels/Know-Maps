@@ -144,7 +144,7 @@ struct PlacesList: View {
                                                     }
                                                 }
                                                 Rectangle().foregroundStyle(.regularMaterial).frame( height:100)
-                                                VStack(alignment: .leading) {
+                                                VStack(alignment: .center) {
                                                     
                                                     if let neighborhood = result.placeResponse?.locality, !neighborhood.isEmpty {
                                                         Spacer()
@@ -170,7 +170,7 @@ struct PlacesList: View {
                                                 
                                             } else {
                                                 RoundedRectangle(cornerSize: CGSize(width: 16, height: 16)).foregroundStyle(.regularMaterial)
-                                                VStack(alignment:.leading) {
+                                                VStack(alignment:.center) {
                                                     Spacer()
                                                     Text(result.title).bold().lineLimit(2).padding(8)
                                                     if let neighborhood = result.placeResponse?.locality, !neighborhood.isEmpty {
@@ -202,7 +202,7 @@ struct PlacesList: View {
                             }.padding(.horizontal, 16)
                         } else {
                             List(chatModel.filteredPlaceResults,selection: $resultId){ result in
-                                VStack(alignment: .leading) {
+                                VStack(alignment: .center) {
                                     HStack {
                                         Text(result.title)
                                         Spacer()

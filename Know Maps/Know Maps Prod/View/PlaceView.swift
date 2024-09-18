@@ -69,7 +69,11 @@ struct PlaceView: View {
                         }
                     }
                 default:
-                    ContentUnavailableView("No Place Selected", systemImage:"return")
+                    VStack {
+                        Spacer()
+                        ContentUnavailableView("No Place Selected", systemImage:"return")
+                        Spacer()
+                    }
                 }
             }
             .navigationTitle(placeChatResult.title)
@@ -104,9 +108,11 @@ struct PlaceView: View {
                     }
                 })
         } else {
-            ContentUnavailableView("No place selected", systemImage: "return")
-                .onAppear(perform: {
-            })
+            VStack {
+                Spacer()
+                ContentUnavailableView("No Place Selected", systemImage:"return")
+                Spacer()
+            }
         }
     }
 }
