@@ -42,9 +42,6 @@ struct ContentView: View {
                             chatModel.resetPlaceModel()
                         }
                 }
-                .onAppear(perform:  {
-                    chatModel.selectedDestinationLocationChatResult = chatModel.currentLocationResult.id
-                })
                 .toolbar {
                     ToolbarItem(placement: .automatic) {
                         Button {

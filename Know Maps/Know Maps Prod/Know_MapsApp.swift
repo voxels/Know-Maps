@@ -134,6 +134,9 @@ struct Know_MapsApp: App {
                         }
                         
                     }
+                    .task {
+                        chatModel.selectedDestinationLocationChatResult = chatModel.currentLocationResult.id
+                    }
                 }
             }
         }.windowResizability(.contentSize)
