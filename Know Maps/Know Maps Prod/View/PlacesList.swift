@@ -39,7 +39,7 @@ struct PlacesList: View {
                     
                     if chatModel.cloudCache.hasPrivateCloudAccess {
                         if chatModel.recommendedPlaceResults.count > 0 {
-                            let threeColumn = [GridItem(), GridItem()]
+                            let threeColumn = Array(repeating: GridItem(.flexible(), spacing: PlaceAboutView.defaultPadding), count: sizeClass == .compact ? 2 : 3)
                             ScrollView {
                                 LazyVGrid(columns: threeColumn, spacing: 16) {
                                     ForEach(chatModel.filteredRecommendedPlaceResults){ result in
@@ -52,7 +52,7 @@ struct PlacesList: View {
                                                     case .success(let image):
                                                         image.resizable()
                                                             .aspectRatio(contentMode: .fill)
-                                                            .frame(maxWidth:geo.size.width/2 - 64)
+                                                            .frame(maxWidth:geo.size.width / ( sizeClass == .compact ? 2 : 3) - 48 )
                                                     case .failure:
                                                         Image(systemName: "photo")
                                                     @unknown default:
@@ -121,7 +121,7 @@ struct PlacesList: View {
                                 }
                             }.padding(.horizontal, 16)
                         } else if chatModel.recommendedPlaceResults.isEmpty && chatModel.placeResults.count > 0 {
-                            let threeColumn = [GridItem(), GridItem()]
+                            let threeColumn = Array(repeating: GridItem(.flexible(), spacing: PlaceAboutView.defaultPadding), count: sizeClass == .compact ? 2 : 3)
                             ScrollView {
                                 LazyVGrid(columns: threeColumn, spacing: 16) {
                                     ForEach(chatModel.filteredPlaceResults){ result in
@@ -134,7 +134,7 @@ struct PlacesList: View {
                                                     case .success(let image):
                                                         image.resizable()
                                                             .aspectRatio(contentMode: .fill)
-                                                            .frame(maxWidth:geo.size.width/2 - 64)
+                                                            .frame(maxWidth:geo.size.width / ( sizeClass == .compact ? 2 : 3) - 48)
                                                     case .failure:
                                                         Image(systemName: "photo")
                                                     @unknown default:
