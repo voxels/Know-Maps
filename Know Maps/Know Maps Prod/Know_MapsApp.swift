@@ -89,7 +89,7 @@ struct Know_MapsApp: App {
                 } else {
                     ContentView(chatHost: chatHost, chatModel: chatModel, locationProvider: chatModel.locationProvider)
 #if os(visionOS) || os(macOS)
-                        .frame(minWidth: 1280, minHeqight: 720)                    #endif
+                        .frame(minWidth: 1280, minHeight: 720)                    #endif
                         .environmentObject(chatModel.cloudCache)
                     .environmentObject(settingsModel)
                     .environmentObject(chatModel.featureFlags)

@@ -34,7 +34,7 @@ struct MapResultsView: View {
             .cornerRadius(16)
             .padding(16)
             .task {
-                cameraPosition = model.selectedDestinationLocationChatResult != nil ? .camera(MapCamera(centerCoordinate: model.locationChatResult(for: model.selectedDestinationLocationChatResult!)?.location?.coordinate ?? locationProvider.currentLocation()!.coordinate, distance: 250000)) : .automatic
+                cameraPosition = model.selectedDestinationLocationChatResult != nil ? .camera(MapCamera(centerCoordinate: model.locationChatResult(for: model.selectedDestinationLocationChatResult!)?.location?.coordinate ?? locationProvider.currentLocation()!.coordinate, distance: 50000)) : .automatic
             }
             .onChange(of: model.selectedDestinationLocationChatResult) { oldValue, newValue in
                 if let newLocation = newValue {
@@ -46,7 +46,7 @@ struct MapResultsView: View {
     private func updateCamera(for locationResult: UUID) {
         if let location = model.locationChatResult(for: locationResult)?.location?.coordinate {
             withAnimation {
-                cameraPosition = .camera(MapCamera(centerCoordinate: location, distance: 250000))
+                cameraPosition = .camera(MapCamera(centerCoordinate: location, distance: 50000))
             }
         }
     }
