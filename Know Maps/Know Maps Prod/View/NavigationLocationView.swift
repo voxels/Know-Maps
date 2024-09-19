@@ -106,19 +106,14 @@ struct NavigationLocationView: View {
                                 .onSubmit {
                                     showPopover.toggle()
                                     if !chatModel.locationSearchText.isEmpty {
-                                        if let selectedDestinationLocationChatResult = chatModel.selectedDestinationLocationChatResult {
                                             Task {
                                                 do {
-                                                    try await chatModel.didSearch(caption:chatModel.locationSearchText, selectedDestinationChatResultID:selectedDestinationLocationChatResult)
+                                                    try await chatModel.didSearch(caption:chatModel.locationSearchText, selectedDestinationChatResultID:chatModel.selectedDestinationLocationChatResult, intent:.Location)
                                                 } catch {
                                                     chatModel.analytics?.track(name: "error \(error)")
                                                     print(error)
                                                 }
                                             }
-                                        }
-                                        else {
-                                            
-                                        }
                                     }
                                 }
                         }

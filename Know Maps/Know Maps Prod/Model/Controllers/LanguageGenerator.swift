@@ -13,6 +13,7 @@ public protocol LanguageGeneratorDelegate {
     func placeDescription(chatResult:ChatResult, delegate:AssistiveChatHostStreamResponseDelegate) async throws
     func placeDescription(with description:String, chatResult:ChatResult, delegate:AssistiveChatHostStreamResponseDelegate) async
     func lookUpLocation(location:CLLocation) async throws -> [CLPlacemark]?
+    func lookUpLocationName(name:String) async throws -> [CLPlacemark]?
 }
 
 
@@ -132,5 +133,11 @@ open class LanguageGenerator : LanguageGeneratorDelegate {
         let geocoder = CLGeocoder()
        
         return try await geocoder.reverseGeocodeLocation(location)
+    }
+    
+    public func lookUpLocationName(name: String) async throws -> [CLPlacemark]? {
+        let geocoder = CLGeocoder()
+            
+        return try await geocoder.geocodeAddressString(name)
     }
 }

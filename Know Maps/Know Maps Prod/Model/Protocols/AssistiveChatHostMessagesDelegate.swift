@@ -8,7 +8,7 @@
 import Foundation
 
 public protocol AssistiveChatHostMessagesDelegate : AnyObject {
-    func didSearch(caption: String, selectedDestinationChatResultID:LocationResult.ID, intent: AssistiveChatHost.Intent?) async throws
+    func didSearch(caption: String, selectedDestinationChatResultID:LocationResult.ID?, intent: AssistiveChatHost.Intent?) async throws
     func didTap(placeChatResult:ChatResult) async throws
     func didTap(chatResult:ChatResult, selectedPlaceSearchResponse:PlaceSearchResponse?, selectedPlaceSearchDetails:PlaceDetailsResponse?, selectedRecommendedPlaceSearchResponse:RecommendedPlaceSearchResponse?, intent:AssistiveChatHost.Intent) async
     func addReceivedMessage(caption:String, parameters:AssistiveChatHostQueryParameters, isLocalParticipant:Bool) async throws
