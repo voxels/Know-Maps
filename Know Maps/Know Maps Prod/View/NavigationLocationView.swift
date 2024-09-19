@@ -21,7 +21,7 @@ struct NavigationLocationView: View {
     var body: some View {
         GeometryReader { geo in
             Section {
-                List(chatModel.filteredDestinationLocationResults, selection:$chatModel.selectedDestinationLocationChatResult) { result in
+                List(chatModel.filteredLocationResults, selection:$chatModel.selectedDestinationLocationChatResult) { result in
                     HStack {
                         if let location = result.location, cloudCache.hasPrivateCloudAccess, result.locationName != "Current Location" {
                             let isSaved = chatModel.cachedLocation(contains: chatModel.cachedLocationIdentity(for: location))
@@ -81,9 +81,6 @@ struct NavigationLocationView: View {
                         }
                         
                         if result.id == chatModel.selectedDestinationLocationChatResult {
-                            Label(result.locationName, systemImage: "mappin")
-                                .tint(.red)
-                        } else if chatModel.selectedDestinationLocationChatResult == nil, result.locationName == "Current Location" {
                             Label(result.locationName, systemImage: "mappin")
                                 .tint(.red)
                         } else {

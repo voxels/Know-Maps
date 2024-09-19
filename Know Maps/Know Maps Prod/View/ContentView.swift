@@ -38,9 +38,6 @@ struct ContentView: View {
                 VStack() {
                     NavigationLocationView(columnVisibility: $columnVisibility, chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, resultId: $chatModel.selectedPlaceChatResult)
                         .navigationTitle("Locations")
-                        .onChange(of: chatModel.selectedDestinationLocationChatResult) { oldValue, newValue in
-                            chatModel.resetPlaceModel()
-                        }
                 }
                 .toolbar {
                     ToolbarItem(placement: .automatic) {

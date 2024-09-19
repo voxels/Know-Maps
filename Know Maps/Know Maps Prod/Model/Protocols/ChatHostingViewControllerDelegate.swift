@@ -8,5 +8,5 @@
 import Foundation
 
 public protocol ChatHostingViewControllerDelegate : AnyObject {
-    func didTap(chatResult:ChatResult) async
+    func didTap(chatResult: ChatResult, selectedDestinationChatResultID:UUID) async 
 }

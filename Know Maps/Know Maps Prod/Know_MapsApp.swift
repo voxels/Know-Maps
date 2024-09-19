@@ -80,18 +80,7 @@ struct Know_MapsApp: App {
                             }
                             
                             do {
-                                let name = try await chatModel.currentLocationName()
-                                if let location = chatModel.locationProvider.currentLocation(), let name = name {
-                                    chatModel.currentLocationResult.replaceLocation(with: location, name:name )
-                                }
-                                
                                 try await chatModel.refreshCachedLocations(cloudCache: chatModel.cloudCache)
-                                
-                                if chatModel.selectedSourceLocationChatResult == nil, chatModel.currentLocationResult.location != nil {
-                                    chatModel.selectedSourceLocationChatResult = chatModel.currentLocationResult.id
-                                }
-                                
-                                
                             } catch {
                                 chatModel.analytics?.track(name: "error \(error)")
                                 print(error)
@@ -116,26 +105,13 @@ struct Know_MapsApp: App {
                         }
                         
                         do {
-                            let name = try await chatModel.currentLocationName()
-                            if let location = chatModel.locationProvider.currentLocation(), let name = name {
-                                chatModel.currentLocationResult.replaceLocation(with: location, name:name )
-                            }
-                            
                             try await chatModel.refreshCachedLocations(cloudCache: chatModel.cloudCache)
-                            
-                            if chatModel.selectedSourceLocationChatResult == nil, chatModel.currentLocationResult.location != nil {
-                                chatModel.selectedSourceLocationChatResult = chatModel.currentLocationResult.id
-                            }
-                            
-                            
+                                                    
                         } catch {
                             chatModel.analytics?.track(name: "error \(error)")
                             print(error)
                         }
                         
-                    }
-                    .task {
-                        chatModel.selectedDestinationLocationChatResult = chatModel.currentLocationResult.id
                     }
                 }
             }

@@ -128,20 +128,20 @@ open class AssistiveChatHost : @preconcurrency AssistiveChatHostDelegate, ChatHo
         }
     }
     
-    public func didTap(categoricalResult:CategoryResult, chatResult:ChatResult?) async {
+    public func didTap(categoricalResult:CategoryResult, chatResult:ChatResult?, selectedDestinationChatResultID:UUID) async {
         if let chatResult = chatResult {
-            await didTap(chatResult: chatResult)
+            await didTap(chatResult: chatResult, selectedDestinationChatResultID: selectedDestinationChatResultID)
         }
     }
     
-    public func didTap(chatResult: ChatResult) async {
+    public func didTap(chatResult: ChatResult, selectedDestinationChatResultID:UUID) async {
         print("Did tap result:\(chatResult.title) for place:\(chatResult.placeResponse?.fsqID ?? "")")
         var intent = AssistiveChatHost.Intent.Search
         if let placeResponse = chatResult.placeResponse, !placeResponse.fsqID.isEmpty, placeResponse.name.isEmpty {
             intent = .Place
         }
         
-        await messagesDelegate?.didTap(chatResult: chatResult, selectedPlaceSearchResponse: chatResult.placeResponse, selectedPlaceSearchDetails:chatResult.placeDetailsResponse, selectedRecommendedPlaceSearchResponse: chatResult.recommendedPlaceResponse, intent:intent )
+        await messagesDelegate?.didTap(chatResult: chatResult, selectedPlaceSearchResponse: chatResult.placeResponse, selectedPlaceSearchDetails:chatResult.placeDetailsResponse, selectedRecommendedPlaceSearchResponse: chatResult.recommendedPlaceResponse, selectedDestinationChatResultID:selectedDestinationChatResultID, intent:intent )
     }
     
     
