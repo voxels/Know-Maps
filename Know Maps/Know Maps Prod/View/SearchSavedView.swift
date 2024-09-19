@@ -134,6 +134,7 @@ struct SearchSavedView: View {
                     HStack {
                         Spacer()
                         Button("Add", systemImage: "plus") {
+                            chatModel.locationSearchText = ""
                             showPopover = true
                         }.labelStyle(.iconOnly).padding()
                         Spacer()
@@ -157,6 +158,7 @@ struct SearchSavedView: View {
                     HStack {
                         Spacer()
                         Button("Add", systemImage: "plus") {
+                            chatModel.locationSearchText = ""
                             showPopover = true
                         }.labelStyle(.iconOnly).padding()
                         Spacer()

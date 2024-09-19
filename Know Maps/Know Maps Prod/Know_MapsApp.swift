@@ -89,7 +89,7 @@ struct Know_MapsApp: App {
                 } else {
                     ContentView(chatHost: chatHost, chatModel: chatModel, locationProvider: chatModel.locationProvider)
 #if os(visionOS) || os(macOS)
-                        .frame(minWidth: 1280, minHeight: 720)                    #endif
+                        .frame(minWidth: 1280, minHeqight: 720)                    #endif
                         .environmentObject(chatModel.cloudCache)
                     .environmentObject(settingsModel)
                     .environmentObject(chatModel.featureFlags)
@@ -106,7 +106,17 @@ struct Know_MapsApp: App {
                         
                         do {
                             try await chatModel.refreshCachedLocations(cloudCache: chatModel.cloudCache)
-                                                    
+                            var uuid = UUID()
+                            var minDistance = Double.greatestFiniteMagnitude
+                            for cachedLocation in chatModel.cachedLocationResults {
+                                if let location = cachedLocation.location {
+                                    if location.distance(from: chatModel.locationProvider.currentLocation()!) < minDistance {
+                                        uuid = cachedLocation.id
+                                        minDistance = location.distance(from: chatModel.locationProvider.currentLocation()!)
+                                    }
+                                }
+                            }
+                            chatModel.selectedDestinationLocationChatResult = uuid
                         } catch {
                             chatModel.analytics?.track(name: "error \(error)")
                             print(error)

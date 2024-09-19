@@ -95,6 +95,9 @@ struct NavigationLocationView: View {
                 ToolbarItem(placement: .automatic) {
                     Button(showPopover ? "Done" : "Add", systemImage: showPopover ? "checkmark" :"plus") {
                         showPopover.toggle()
+                        if showPopover {
+                            chatModel.locationSearchText.removeAll()
+                        }
                     }.labelStyle(.iconOnly)
                     .padding()
                         .popover(isPresented: $showPopover) {
