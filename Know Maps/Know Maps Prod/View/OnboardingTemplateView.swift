@@ -18,7 +18,7 @@ struct OnboardingTemplateView: View {
     @ObservedObject public var chatHost:AssistiveChatHost
     @ObservedObject public var chatModel:ChatResultViewModel
     @ObservedObject public var locationProvider:LocationProvider
-    @State private var searchIsPresented:Bool = false
+    @State private var searchIsPresented:Bool = true
 
     var body: some View {
         VStack(alignment:.leading) {

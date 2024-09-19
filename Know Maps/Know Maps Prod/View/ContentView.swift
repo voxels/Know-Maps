@@ -17,8 +17,14 @@ struct ContentView: View {
     @EnvironmentObject public var featureFlags:FeatureFlags
     @State private var showImmersiveSpace = false
     @State private var immersiveSpaceIsShown = false
+#if os(iOS) || os(macOS)
     @State private var columnVisibility =
     NavigationSplitViewVisibility.doubleColumn
+#elseif os(visionOS)
+    @State private var columnVisibility =
+    NavigationSplitViewVisibility.all
+#endif
+ 
     @ObservedObject public var chatHost:AssistiveChatHost
     @ObservedObject public var chatModel:ChatResultViewModel
     @ObservedObject public var locationProvider:LocationProvider
@@ -42,7 +48,7 @@ struct ContentView: View {
                 .toolbar {
                     ToolbarItem(placement: .automatic) {
                         Button {
-#if os(iOS)
+#if os(iOS) || os(visionOS)
                             popoverPresented.toggle()
 #else
                             openWindow(id: "SettingsView")
@@ -52,7 +58,7 @@ struct ContentView: View {
                         }
                     }
                 }
-#if os(iOS)
+#if os(iOS) || os(visionOS)
                 .popover(isPresented: $popoverPresented) {
                     SettingsView()
                 }

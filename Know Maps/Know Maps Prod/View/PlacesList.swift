@@ -62,8 +62,8 @@ struct PlacesList: View {
                                                         // in the future:
                                                         EmptyView()
                                                     }
-                                                }
-                                                Rectangle().foregroundStyle(.regularMaterial).frame( height:100)
+                                                }.padding(.bottom, 128)
+                                                Rectangle().foregroundStyle(.regularMaterial).frame( height:128)
                                                 VStack {
                                                     
                                                     if let neighborhood = result.recommendedPlaceResponse?.neighborhood, !neighborhood.isEmpty {
@@ -144,8 +144,8 @@ struct PlacesList: View {
                                                         // in the future:
                                                         EmptyView()
                                                     }
-                                                }
-                                                Rectangle().foregroundStyle(.regularMaterial).frame( height:100)
+                                                }.padding(.bottom, 128)
+                                                Rectangle().foregroundStyle(.regularMaterial).frame( height:128)
                                                 VStack(alignment: .center) {
                                                     
                                                     if let neighborhood = result.placeResponse?.locality, !neighborhood.isEmpty {
