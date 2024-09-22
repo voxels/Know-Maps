@@ -5,7 +5,7 @@ struct SearchSavedView: View {
     @ObservedObject public var chatHost: AssistiveChatHost
     @ObservedObject public var chatModel: ChatResultViewModel
     @ObservedObject public var locationProvider: LocationProvider
-    @Binding public var columnVisibility: NavigationSplitViewVisibility
+    
     @State private var showPopover: Bool = false
     @State private var sectionSelection: String = "Category"
     
@@ -140,6 +140,16 @@ struct SearchSavedView: View {
                             chatModel.locationSearchText = ""
                             showPopover = true
                         }.labelStyle(.iconOnly).padding()
+                        Button("Refresh", systemImage: "arrow.clockwise") {
+                            Task {
+                                do {
+                                    try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
+                                } catch {
+                                    chatModel.analytics?.track(name: "error \(error)")
+                                    print(error)
+                                }
+                            }
+                        }.labelStyle(.iconOnly).padding()
                 }
 
                 #else
@@ -149,19 +159,16 @@ struct SearchSavedView: View {
                             chatModel.locationSearchText = ""
                             showPopover = true
                         }.labelStyle(.iconOnly).padding()
-                    #if os(visionOS)
-                        Button("Location", systemImage: "map") {
+                        Button("Refresh", systemImage: "arrow.clockwise") {
                             Task {
                                 do {
                                     try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
-                                    columnVisibility = .all
                                 } catch {
                                     chatModel.analytics?.track(name: "error \(error)")
                                     print(error)
                                 }
                             }
                         }.labelStyle(.iconOnly).padding()
-                    #endif
                 }
 #endif
 

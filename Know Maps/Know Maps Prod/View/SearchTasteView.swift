@@ -81,7 +81,7 @@ struct SearchTasteView: View {
                     }
                 }
             }
-            .padding(.top, 64)
+            .padding(.top, 36)
             .overlay(alignment: .top, content: {
                 VStack(alignment: .center) {
                     TextField("", text: $model.locationSearchText, prompt:Text("Search for a taste"))

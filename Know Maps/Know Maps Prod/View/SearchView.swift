@@ -12,13 +12,12 @@ struct SearchView: View {
     @ObservedObject public var chatHost:AssistiveChatHost
     @ObservedObject public var chatModel:ChatResultViewModel
     @ObservedObject public var locationProvider:LocationProvider
-    @Binding public var columnVisibility:NavigationSplitViewVisibility
     @State private var savedSectionSelection = 1
     @State private var didError = false
     
     var body: some View {
         VStack {
-            SearchSavedView(chatHost:chatHost, chatModel: chatModel, locationProvider: locationProvider, columnVisibility: $columnVisibility)
+            SearchSavedView(chatHost:chatHost, chatModel: chatModel, locationProvider: locationProvider)
         }
         .onChange(of: chatModel.selectedDestinationLocationChatResult, { oldValue, newValue in
             chatModel.resetPlaceModel()
@@ -97,3 +96,16 @@ struct SearchView: View {
     }
 }
 
+#Preview {
+    
+    let locationProvider = LocationProvider()
+    let chatHost = AssistiveChatHost()
+    let cloudCache = CloudCache()
+    let featureFlags = FeatureFlags()
+    
+    let chatModel = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cloudCache, featureFlags: featureFlags)
+    
+    chatModel.assistiveHostDelegate = chatHost
+    chatHost.messagesDelegate = chatModel
+    return SearchView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider)
+}
