@@ -286,12 +286,6 @@ public class ChatResultViewModel : ObservableObject {
         
         cachedLocationRecords = storedLocationRecords
         cachedLocationResults = savedLocationResults()
-        
-        if let searchLocationResultID = selectedDestinationLocationChatResult, let locationResult = locationResults.firstIndex(where: { result in
-            result.id == searchLocationResultID
-        }), let locationResult = locationChatResult(for: searchLocationResultID) {
-            cachedLocationResults.append(locationResult)
-        }
     }
     
     @MainActor
@@ -715,7 +709,7 @@ public class ChatResultViewModel : ObservableObject {
                     }
                 }
             }
-            selectedDestinationLocationChatResult = filteredLocationResults.first(where: { $0.locationName == sourceLocationResult.locationName })?.id
+//            selectedDestinationLocationChatResult = filteredLocationResults.first(where: { $0.locationName == sourceLocationResult.locationName })?.id
         }
     }
     
@@ -876,8 +870,7 @@ public class ChatResultViewModel : ObservableObject {
             var ids = candidates.compactMap { result in
                 return result.locationName.contains(caption) ? result.id : nil
             }
-            
-            selectedDestinationLocationChatResult = ids.first
+//            selectedDestinationLocationChatResult = ids.first
         }
         
         try await refreshCachedLocations(cloudCache: cloudCache)
@@ -1733,10 +1726,10 @@ extension ChatResultViewModel : @preconcurrency AssistiveChatHostMessagesDelegat
         } else {
             if let destinationChatResult = selectedDestinationChatResult, let _ = locationChatResult(for: destinationChatResult) {
                 
-            } else if let lastIntent = assistiveHostDelegate?.lastLocationIntent()  {
-                let locationChatResult = await locationChatResult(with:lastIntent.caption)
-                selectedDestinationChatResult = locationChatResult.id
-                selectedDestinationLocationChatResult = locationChatResult.id
+            } else if let lastIntent = assistiveHostDelegate?.queryIntentParameters?.queryIntents.last  {
+                let locationChatResult = locationChatResult(for: lastIntent.selectedDestinationLocationID ?? currentLocationResult.id)
+                selectedDestinationChatResult = locationChatResult?.id
+                selectedDestinationLocationChatResult = locationChatResult?.id
             } else {
                 throw ChatResultViewModelError.MissingSelectedDestinationLocationChatResult
             }
