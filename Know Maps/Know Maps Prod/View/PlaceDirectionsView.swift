@@ -264,7 +264,7 @@ struct PlaceDirectionsView: View {
                 }
             }
             .task {
-                model.rawLocationIdent = chatModel.filteredLocationResults.first?.id.uuidString ?? ""
+                model.rawLocationIdent = chatModel.selectedDestinationLocationChatResult?.uuidString ?? chatModel.currentLocationResult.id.uuidString
                 
                 if let destination = model.destination  {
                     do {
