@@ -208,7 +208,7 @@ public class ChatResultViewModel : ObservableObject {
     
     @MainActor
     public func resetPlaceModel() {
-        selectedPlaceChatResult = nil
+//        selectedPlaceChatResult = nil
         placeResults.removeAll()
         recommendedPlaceResults.removeAll()
         relatedPlaceResults.removeAll()
@@ -820,6 +820,33 @@ public class ChatResultViewModel : ObservableObject {
             return
         }
         
+        
+        if let placemarks = try await checkSearchTextForLocations(with: locationSearchText) {
+            let locations = placemarks.compactMap({ placemark in
+                return LocationResult(locationName: placemark.name ?? "Unknown Location", location: placemark.location)
+            })
+            
+            var candidates = [LocationResult]()
+            
+            for location in locations {
+                let newLocationName =  try await chatHost.languageDelegate.lookUpLocationName(name: location.locationName)?.first?.name ?? location.locationName
+                candidates.append(LocationResult(locationName: newLocationName, location: location.location))
+            }
+            let existingLocationNames = locationResults.map { $0.locationName }
+            let newLocations = candidates.filter { result in
+                !existingLocationNames.contains(result.locationName)
+            }
+            
+            locationResults.append(contentsOf:newLocations)
+            
+            let ids = candidates.compactMap { result in
+                return result.locationName.contains(locationSearchText) ? result.id : nil
+            }
+            selectedDestinationLocationChatResult = ids.first
+        }
+        
+        try await refreshCachedLocations(cloudCache: cloudCache)
+        
         var caption = ""
         
         if let lastIntent = queryIntents?.last {
@@ -841,31 +868,6 @@ public class ChatResultViewModel : ObservableObject {
             try await model(intent: newIntent)
         }
         
-        if let placemarks = try await checkSearchTextForLocations(with: caption) {
-            let locations = placemarks.compactMap({ placemark in
-                return LocationResult(locationName: placemark.name ?? "Unknown Location", location: placemark.location)
-            })
-            
-            var candidates = [LocationResult]()
-            
-            for location in locations {
-                let newLocationName =  try await chatHost.languageDelegate.lookUpLocationName(name: location.locationName)?.first?.name ?? location.locationName
-                candidates.append(LocationResult(locationName: newLocationName, location: location.location))
-            }
-            let existingLocationNames = locationResults.map { $0.locationName }
-            let newLocations = candidates.filter { result in
-                !existingLocationNames.contains(result.locationName)
-            }
-            
-            locationResults.append(contentsOf:newLocations)
-            
-            var ids = candidates.compactMap { result in
-                return result.locationName.contains(caption) ? result.id : nil
-            }
-//            selectedDestinationLocationChatResult = ids.first
-        }
-        
-        try await refreshCachedLocations(cloudCache: cloudCache)
     }
     
     public func model(intent:AssistiveChatHostIntent) async throws {

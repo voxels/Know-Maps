@@ -17,13 +17,8 @@ struct ContentView: View {
     @EnvironmentObject public var featureFlags:FeatureFlags
     @State private var showImmersiveSpace = false
     @State private var immersiveSpaceIsShown = false
-#if os(iOS) || os(macOS)
     @State private var columnVisibility =
     NavigationSplitViewVisibility.doubleColumn
-#elseif os(visionOS)
-    @State private var columnVisibility =
-    NavigationSplitViewVisibility.all
-#endif
  
     @ObservedObject public var chatHost:AssistiveChatHost
     @ObservedObject public var chatModel:ChatResultViewModel
@@ -64,7 +59,7 @@ struct ContentView: View {
                 }
 #endif
             } content: {
-                SearchView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider)
+                SearchView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, columnVisibility: $columnVisibility)
                     .navigationTitle("Lists")
             } detail: {
                 PlacesList(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, resultId: $chatModel.selectedPlaceChatResult)
