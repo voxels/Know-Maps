@@ -15,6 +15,7 @@ struct NavigationLocationView: View {
     @ObservedObject public var chatModel:ChatResultViewModel
     @ObservedObject public var locationProvider:LocationProvider
     @Binding public var resultId:ChatResult.ID?
+    @State private var searchText:String = ""
     
     @State private var showPopover:Bool = false
     
@@ -100,22 +101,25 @@ struct NavigationLocationView: View {
                         }
                     }.labelStyle(.iconOnly)
                     .padding()
-                        .popover(isPresented: $showPopover) {
-                            TextField("Search for location name (i.e. 'New York, NY')", text: $chatModel.locationSearchText)
-                                .padding()
-                                .onSubmit {
-                                    showPopover.toggle()
-                                    if !chatModel.locationSearchText.isEmpty {
+                        .alert("Location Search", isPresented: $showPopover) {
+                            VStack {
+                                TextField("New York, NY", text: $searchText)
+                                    .padding()
+                                Button(action:{
+                                    if !searchText.isEmpty {
                                             Task {
                                                 do {
-                                                    try await chatModel.didSearch(caption:chatModel.locationSearchText, selectedDestinationChatResultID:chatModel.selectedDestinationLocationChatResult, intent:.Location)
+                                                    try await chatModel.didSearch(caption:searchText, selectedDestinationChatResultID:nil)
                                                 } catch {
                                                     chatModel.analytics?.track(name: "error \(error)")
                                                     print(error)
                                                 }
                                             }
                                     }
-                                }
+                                }, label:{
+                                    Text("Search")
+                                })
+                            }
                         }
                 }
             })

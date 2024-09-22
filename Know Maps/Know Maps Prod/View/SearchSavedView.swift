@@ -24,6 +24,11 @@ struct SearchSavedView: View {
                         .tabItem {
                             Label("Taste", systemImage: "heart")
                         }
+                    SearchPlacesView(model:chatModel)
+                        .tag("Places")
+                        .tabItem {
+                            Label("Places", systemImage: "mappin")
+                        }
                     SearchEditView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider)
                         .tag("AI")
                         .tabItem {
@@ -39,7 +44,7 @@ struct SearchSavedView: View {
                     }.labelStyle(.titleOnly).padding(16)
                 }
                 #else
-                ToolbarItem(placement: .bottomBar) {
+                ToolbarItem(placement:.confirmationAction) {
                     Button("Done", systemImage: "plus") {
                         showPopover = false
                     }.labelStyle(.titleOnly).padding(16)
@@ -131,13 +136,10 @@ struct SearchSavedView: View {
             }.toolbar {
                 #if os(macOS)
                 ToolbarItemGroup(placement: .automatic) {
-                    HStack {
-                        Spacer()
                         Button("Add", systemImage: "plus") {
                             chatModel.locationSearchText = ""
                             showPopover = true
                         }.labelStyle(.iconOnly).padding()
-                        Spacer()
                         Button("Refresh", systemImage: "arrow.clockwise") {
                             Task {
                                 do {
@@ -148,20 +150,15 @@ struct SearchSavedView: View {
                                 }
                             }
                         }.labelStyle(.iconOnly).padding()
-                        Spacer()
-                    }
                 }
 
                 #else
                 
-                ToolbarItemGroup(placement: .bottomBar) {
-                    HStack {
-                        Spacer()
+                ToolbarItemGroup(placement: .topBarTrailing) {
                         Button("Add", systemImage: "plus") {
                             chatModel.locationSearchText = ""
                             showPopover = true
                         }.labelStyle(.iconOnly).padding()
-                        Spacer()
                         Button("Refresh", systemImage: "arrow.clockwise") {
                             Task {
                                 do {
@@ -172,8 +169,6 @@ struct SearchSavedView: View {
                                 }
                             }
                         }.labelStyle(.iconOnly).padding()
-                        Spacer()
-                    }
                 }
 #endif
 

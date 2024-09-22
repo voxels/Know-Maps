@@ -31,25 +31,11 @@ struct SearchView: View {
                     if let cachedResult = chatModel.cachedChatResult(for: newValue) {
                         chatModel.locationSearchText = cachedResult.title
                         await chatHost.didTap(chatResult: cachedResult, selectedDestinationChatResultID: selectedDestinationLocationChatResult)
-                    } else {
-                        do {
-                            try await chatModel.didSearch(caption: chatModel.locationSearchText, selectedDestinationChatResultID: selectedDestinationLocationChatResult, intent:.Location)
-                        } catch {
-                            chatModel.analytics?.track(name: "error \(error)")
-                            print(error)
-                        }
                     }
                 } else {
                     if let cachedResult = chatModel.cachedChatResult(for: newValue) {
                         chatModel.locationSearchText = cachedResult.title
                         await chatHost.didTap(chatResult: cachedResult, selectedDestinationChatResultID: chatModel.currentLocationResult.id)
-                    } else {
-                        do {
-                            try await chatModel.didSearch(caption: chatModel.locationSearchText, selectedDestinationChatResultID: chatModel.currentLocationResult.id, intent:.Location)
-                        } catch {
-                            chatModel.analytics?.track(name: "error \(error)")
-                            print(error)
-                        }
                     }
                 }
             }

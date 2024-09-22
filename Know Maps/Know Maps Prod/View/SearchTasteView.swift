@@ -69,8 +69,6 @@ struct SearchTasteView: View {
                     }
                     Text("\(parent.parentCategory)")
                     Spacer()
-                    
-                    
                 }
             }
             .onAppear {
@@ -98,7 +96,7 @@ struct SearchTasteView: View {
                 }
             }
             
-        }.padding()
+        }
 #else
         List(model.tasteResults, selection: $model.selectedTasteCategoryResult) { parent in
             HStack {
@@ -174,20 +172,20 @@ struct SearchTasteView: View {
                 }
             }
         }
-        .searchable(text: $model.locationSearchText, isPresented: $isPresented, prompt: "Search for a taste")
-        .searchPresentationToolbarBehavior(.automatic)
-        .onSubmit(of: .search) {
-            if let selectedDestinationLocationChatResult = model.selectedDestinationLocationChatResult {
-                Task {
-                    do {
-                        try await model.didSearch(caption:model.locationSearchText, selectedDestinationChatResultID:selectedDestinationLocationChatResult, intent:.AutocompleteTastes)
-                    } catch {
-                        print(error)
-                        model.analytics?.track(name: "error \(error)")
-                    }
-                }
-            }
-        }
+//        .searchable(text: $model.locationSearchText, isPresented: $isPresented, prompt: "Search for a taste")
+//        .searchPresentationToolbarBehavior(.automatic)
+//        .onSubmit(of: .search) {
+//            if let selectedDestinationLocationChatResult = model.selectedDestinationLocationChatResult {
+//                Task {
+//                    do {
+//                        try await model.didSearch(caption:model.locationSearchText, selectedDestinationChatResultID:selectedDestinationLocationChatResult, intent:.AutocompleteTastes)
+//                    } catch {
+//                        print(error)
+//                        model.analytics?.track(name: "error \(error)")
+//                    }
+//                }
+//            }
+//        }
 #endif
     }
 }
