@@ -22,7 +22,7 @@ public protocol AssistiveChatHostDelegate:AnyObject {
     init(messagesDelegate: AssistiveChatHostMessagesDelegate?, analytics: Analytics?, lastGeocodedPlacemarks: [CLPlacemark]?)
     func organizeCategoryCodeList() throws
     
-    func didTap(chatResult: ChatResult, selectedDestinationChatResultID:UUID) async
+    func didTap(chatResult: ChatResult, selectedDestinationChatResultID:UUID?) async
     func didTap(categoricalResult:CategoryResult, chatResult:ChatResult?, selectedDestinationChatResultID:UUID) async
     func determineIntent(for caption:String, override:AssistiveChatHost.Intent?) -> AssistiveChatHost.Intent
     func updateLastIntentParameters(intent:AssistiveChatHostIntent)

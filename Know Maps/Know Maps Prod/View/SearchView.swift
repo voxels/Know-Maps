@@ -81,7 +81,7 @@ struct SearchView: View {
                 if let newValue = newValue, let categoricalResult =
                     chatModel.categoricalResult(for: newValue) {
                     chatModel.locationSearchText = chatModel.categoricalResult(for: newValue)?.title ?? chatModel.locationSearchText
-                    await chatHost.didTap(chatResult: categoricalResult, selectedDestinationChatResultID: chatModel.selectedDestinationLocationChatResult ?? chatModel.currentLocationResult.id)
+                    await chatHost.didTap(chatResult: categoricalResult, selectedDestinationChatResultID:nil)
                 }
             }
         }.onChange(of: chatModel.selectedTasteCategoryResult, { oldValue, newValue in
@@ -89,7 +89,7 @@ struct SearchView: View {
             Task { @MainActor in
                 if let newValue = newValue, let tasteResult = chatModel.tasteResult(for: newValue) {
                     chatModel.locationSearchText = tasteResult.title
-                    await chatHost.didTap(chatResult: tasteResult, selectedDestinationChatResultID: chatModel.selectedDestinationLocationChatResult ?? chatModel.currentLocationResult.id)
+                    await chatHost.didTap(chatResult: tasteResult, selectedDestinationChatResultID:nil)
                 }
             }
         })

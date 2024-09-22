@@ -90,8 +90,10 @@ struct ContentView: View {
             })
             .onChange(of: chatModel.selectedPlaceChatResult, { oldValue, newValue in
                 guard let newValue = newValue else {
+                    
                     return
                 }
+                
                 let _ = Task { @MainActor in
                     do {
                         if newValue != oldValue, let placeChatResult = chatModel.placeChatResult(for: newValue) {

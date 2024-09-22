@@ -396,15 +396,7 @@ public class ChatResultViewModel : ObservableObject {
         return "\(location.coordinate.latitude),\(location.coordinate.longitude)"
     }
     
-    public func locationChatResult(for selectedChatResultID:LocationResult.ID)->LocationResult?{
-        var selectedResult = cachedLocationResults.first(where: { checkResult in
-            return checkResult.id == selectedChatResultID
-        })
-                                                         
-         if let selectedResult = selectedResult {
-             return selectedResult
-         }
-        
+    public func locationChatResult(for selectedChatResultID:LocationResult.ID)->LocationResult?{     
         let savedResult = filteredLocationResults.first(where: {checkResult in
             return checkResult.id == selectedChatResultID
         })
@@ -1687,7 +1679,7 @@ extension ChatResultViewModel : @preconcurrency AssistiveChatHostMessagesDelegat
 
     @MainActor
     public func didTap(chatResult: ChatResult, selectedPlaceSearchResponse: PlaceSearchResponse?, selectedPlaceSearchDetails: PlaceDetailsResponse?, selectedRecommendedPlaceSearchResponse:RecommendedPlaceSearchResponse?,
-                       selectedDestinationChatResultID:UUID, intent:AssistiveChatHost.Intent = .Search) async {
+                       selectedDestinationChatResultID:UUID?, intent:AssistiveChatHost.Intent = .Search) async {
         
         do {
             guard let chatHost = self.assistiveHostDelegate else {
@@ -1699,7 +1691,7 @@ extension ChatResultViewModel : @preconcurrency AssistiveChatHostMessagesDelegat
             let queryParameters = try await chatHost.defaultParameters(for: caption)
             
             let placeSearchResponses = chatResult.placeResponse != nil ? [chatResult.placeResponse!] : [PlaceSearchResponse]()
-            var destinationLocationChatResult = selectedDestinationChatResultID
+            let destinationLocationChatResult = selectedDestinationChatResultID
             
             let newIntent = AssistiveChatHostIntent(caption: caption, intent: intent, selectedPlaceSearchResponse: selectedPlaceSearchResponse, selectedPlaceSearchDetails: selectedPlaceSearchDetails, selectedRecommendedPlaceSearchResponse: selectedRecommendedPlaceSearchResponse, placeSearchResponses: placeSearchResponses, selectedDestinationLocationID: destinationLocationChatResult, placeDetailsResponses:nil, queryParameters: queryParameters)
             chatHost.appendIntentParameters(intent: newIntent)

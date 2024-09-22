@@ -134,7 +134,7 @@ open class AssistiveChatHost : @preconcurrency AssistiveChatHostDelegate, ChatHo
         }
     }
     
-    public func didTap(chatResult: ChatResult, selectedDestinationChatResultID:UUID) async {
+    public func didTap(chatResult: ChatResult, selectedDestinationChatResultID:UUID?) async {
         print("Did tap result:\(chatResult.title) for place:\(chatResult.placeResponse?.fsqID ?? "")")
         var intent = AssistiveChatHost.Intent.Search
         if let placeResponse = chatResult.placeResponse, !placeResponse.fsqID.isEmpty, placeResponse.name.isEmpty {
