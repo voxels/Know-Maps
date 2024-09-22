@@ -836,7 +836,7 @@ public class ChatResultViewModel : ObservableObject {
             let intent = chatHost.determineIntent(for: caption, override: nil)
             let location = chatHost.lastLocationIntent()
             let queryParameters = try await chatHost.defaultParameters(for: caption)
-            let newIntent = AssistiveChatHostIntent(caption: caption, intent: intent, selectedPlaceSearchResponse: nil, selectedPlaceSearchDetails: nil, selectedRecommendedPlaceSearchResponse: nil, placeSearchResponses: [PlaceSearchResponse](), selectedDestinationLocationID:location?.selectedDestinationLocationID ?? filteredLocationResults.first!.id , placeDetailsResponses:nil, queryParameters: queryParameters)
+            let newIntent = AssistiveChatHostIntent(caption: caption, intent: intent, selectedPlaceSearchResponse: nil, selectedPlaceSearchDetails: nil, selectedRecommendedPlaceSearchResponse: nil, placeSearchResponses: [PlaceSearchResponse](), selectedDestinationLocationID:location?.selectedDestinationLocationID ?? currentLocationResult.id, placeDetailsResponses:nil, queryParameters: queryParameters)
             chatHost.appendIntentParameters(intent: newIntent)
             try await model(intent: newIntent)
         }
