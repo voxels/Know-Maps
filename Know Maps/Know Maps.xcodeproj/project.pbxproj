@@ -343,8 +343,8 @@
 		1EA7F76E2B050065002AE371 /* View */ = {
 			isa = PBXGroup;
 			children = (
-				1EA7F74E2B03FA71002AE371 /* ContentView.swift */,
 				1E1F5E442B725D56008B6BAD /* OnboardingView.swift */,
+				1EA7F74E2B03FA71002AE371 /* ContentView.swift */,
 				1E1F5E482B725FBB008B6BAD /* OnboardingSignInView.swift */,
 				1E1F5E502B726680008B6BAD /* OnboardingLocationView.swift */,
 				1E1F5E542B72694A008B6BAD /* OnboardingSubscriptionView.swift */,

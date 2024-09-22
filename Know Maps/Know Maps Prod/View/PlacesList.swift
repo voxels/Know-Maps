@@ -10,7 +10,7 @@ import CoreLocation
 import MapKit
 
 struct PlacesList: View {
-    @Environment(\.horizontalSizeClass) var sizeClass
+    @Environment(\.verticalSizeClass) var sizeClass
     @StateObject public var placeDirectionsChatViewModel = PlaceDirectionsViewModel(rawLocationIdent: "")
     @ObservedObject public var chatHost:AssistiveChatHost
     @ObservedObject public var chatModel:ChatResultViewModel
@@ -33,15 +33,15 @@ struct PlacesList: View {
                 PlaceView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, placeDirectionsViewModel: placeDirectionsChatViewModel, resultId: $resultId)
             } else {
                 VStack{
-                    let mapHeight = chatModel.recommendedPlaceResults.count == 0 && chatModel.placeResults.count == 0 ? geo.size.height : geo.size.height / 3
+                    let mapHeight = chatModel.recommendedPlaceResults.count == 0 && chatModel.placeResults.count == 0 ? geo.size.height : geo.size.height / 2
                     MapResultsView(chatHost: chatHost, model: chatModel, locationProvider: locationProvider, selectedMapItem: $selectedItem, cameraPosition:$cameraPosition)
                         .frame(height:mapHeight)
                     
                     if chatModel.cloudCache.hasPrivateCloudAccess {
                         if chatModel.recommendedPlaceResults.count > 0 {
-                            let threeColumn = Array(repeating: GridItem(.flexible(), spacing: PlaceAboutView.defaultPadding), count: sizeClass == .compact ? 2 : 3)
-                            ScrollView {
-                                LazyVGrid(columns: threeColumn, spacing: 16) {
+                            let threeColumn = Array(repeating: GridItem(.flexible(), spacing: PlaceAboutView.defaultPadding), count:1)
+                            ScrollView(.horizontal) {
+                                LazyHGrid(rows: threeColumn, spacing: 16) {
                                     ForEach(chatModel.filteredRecommendedPlaceResults){ result in
                                         ZStack(alignment: .bottom, content: {
                                             if let photo = result.recommendedPlaceResponse?.photo, !photo.isEmpty, let url = URL(string: photo) {
@@ -51,10 +51,11 @@ struct PlacesList: View {
                                                         ProgressView()
                                                     case .success(let image):
                                                         image.resizable()
-                                                            .aspectRatio(contentMode: .fill)
-                                                            .frame(maxWidth:geo.size.width / ( sizeClass == .compact ? 2 : 3) - 48 )
+                                                            .aspectRatio(contentMode: .fit)
                                                     case .failure:
-                                                        Image(systemName: "photo")
+                                                        if let backupPhoto = result.placeDetailsResponse?.photoResponses?.first?.photoUrl() {
+                                                            AsyncImage(url: backupPhoto)
+                                                        }
                                                     @unknown default:
                                                         // Since the AsyncImagePhase enum isn't frozen,
                                                         // we need to add this currently unused fallback
@@ -112,6 +113,7 @@ struct PlacesList: View {
                                             }
                                             
                                         })
+                                        .frame(minWidth:geo.size.width / 3)
                                         .contentShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                                         .cornerRadius(16)
                                         .onTapGesture {
@@ -121,9 +123,9 @@ struct PlacesList: View {
                                 }
                             }.padding(.horizontal, 16)
                         } else if chatModel.recommendedPlaceResults.isEmpty && chatModel.placeResults.count > 0 {
-                            let threeColumn = Array(repeating: GridItem(.flexible(), spacing: PlaceAboutView.defaultPadding), count: sizeClass == .compact ? 2 : 3)
+                            let threeColumn = Array(repeating: GridItem(.flexible(), spacing: PlaceAboutView.defaultPadding), count:1)
                             ScrollView {
-                                LazyVGrid(columns: threeColumn, spacing: 16) {
+                                LazyHGrid(rows: threeColumn, spacing: 16) {
                                     ForEach(chatModel.filteredPlaceResults){ result in
                                         ZStack(alignment: .bottom, content: {
                                             if let response = result.placeDetailsResponse, let photoResponses = response.photoResponses, let photo = photoResponses.first, let url = photo.photoUrl() {
@@ -133,8 +135,7 @@ struct PlacesList: View {
                                                         ProgressView()
                                                     case .success(let image):
                                                         image.resizable()
-                                                            .aspectRatio(contentMode: .fill)
-                                                            .frame(maxWidth:geo.size.width / ( sizeClass == .compact ? 2 : 3) - 48)
+                                                            .aspectRatio(contentMode: .fit)
                                                     case .failure:
                                                         Image(systemName: "photo")
                                                     @unknown default:
@@ -147,7 +148,7 @@ struct PlacesList: View {
                                                 }.padding(.bottom, 128)
                                                 Rectangle().foregroundStyle(.regularMaterial).frame( height:128)
                                                 VStack(alignment: .center) {
-                                                    
+                                                    Spacer()
                                                     if let neighborhood = result.placeResponse?.locality, !neighborhood.isEmpty {
                                                         Spacer()
                                                         Text(result.title).bold().lineLimit(2).padding(EdgeInsets(top: 0, leading: 8, bottom: 0, trailing: 8)
@@ -168,6 +169,7 @@ struct PlacesList: View {
                                                             .padding(EdgeInsets(top: 0, leading: 8, bottom: 0, trailing: 0))
                                                         }
                                                     }
+                                                    Spacer()
                                                 }.padding(EdgeInsets(top: 0, leading: 0, bottom: 16, trailing: 0))
                                                 
                                             } else {
@@ -190,10 +192,12 @@ struct PlacesList: View {
                                                             .padding(EdgeInsets(top: 0, leading: 8, bottom: 0, trailing: 0))
                                                         }
                                                     }
+                                                    Spacer()
                                                 }.padding(EdgeInsets(top: 0, leading: 0, bottom: 16, trailing: 0))
                                             }
                                             
                                         })
+                                        .frame(minWidth:geo.size.width / 3)
                                         .contentShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                                         .cornerRadius(16)
                                         .onTapGesture {
@@ -204,7 +208,7 @@ struct PlacesList: View {
                             }.padding(.horizontal, 16)
                         } else {
                             List(chatModel.filteredPlaceResults,selection: $resultId){ result in
-                                VStack(alignment: .center) {
+                                HStack(alignment: .center) {
                                     HStack {
                                         Text(result.title)
                                         Spacer()
@@ -217,6 +221,7 @@ struct PlacesList: View {
                                 }
                             }
                             .listStyle(.sidebar)
+                            .padding(.horizontal, 16)
                         }
                     }
                 }
