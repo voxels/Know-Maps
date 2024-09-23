@@ -89,6 +89,10 @@ struct SettingsView: View {
               Text("Delete all of my saved groups")
             }).padding()
         }.padding()
+        #if os(macOS)
+            .navigationTitle("Settings")
+        #else
         .navigationBarTitle("Settings")
+        #endif
     }
 }
