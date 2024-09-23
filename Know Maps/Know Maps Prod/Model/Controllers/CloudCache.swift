@@ -435,15 +435,7 @@ open class CloudCache : NSObject, ObservableObject {
 
     
     @discardableResult
-    public func storeUserCachedRecord(for group:String, identity:String, title:String, icons:String? = nil, list:String? = nil) async throws -> (saveResults: [CKRecord.ID : Result<CKRecord, Error>], deleteResults: [CKRecord.ID : Result<Void, Error>]) {
-        
-        let existingGroups = try await fetchGroupedUserCachedRecords(for: group)
-        var existingRecordsToDelete = [CKRecord.ID]()
-        for group in existingGroups {
-            if group.identity == identity {
-                existingRecordsToDelete.append(CKRecord.ID(recordName: group.recordId))
-            }
-        }
+    public func storeUserCachedRecord(for group:String, identity:String, title:String, icons:String? = nil, list:String? = nil) async throws -> String {
         
         let record = CKRecord(recordType:"UserCachedRecord")
         record.setObject(group as NSString, forKey: "Group")
@@ -459,12 +451,40 @@ open class CloudCache : NSObject, ObservableObject {
         } else {
             record.setObject("" as NSString, forKey:"List")
         }
-        return try await cacheContainer.privateCloudDatabase.modifyRecords(saving: [record], deleting: existingRecordsToDelete, atomically: true)
+        let result = try await cacheContainer.privateCloudDatabase.modifyRecords(saving: [record], deleting:[], atomically: false)
+        if let resultName = result.saveResults.keys.first?.recordName {
+            return resultName
+        }
+
+        return record.recordID.recordName
     }
     
     public func deleteUserCachedRecord(for cachedRecord:UserCachedRecord) async throws {
+        if cachedRecord.recordId.isEmpty {
+            return
+        }
         try await cacheContainer.privateCloudDatabase.deleteRecord(withID: CKRecord.ID(recordName: cachedRecord.recordId))
     }
+    
+    @discardableResult
+    public func deleteAllUserCachedRecords(for group:String) async throws -> (saveResults: [CKRecord.ID : Result<CKRecord, Error>], deleteResults: [CKRecord.ID : Result<Void, Error>]) {
+        let existingGroups = try await fetchGroupedUserCachedRecords(for: group)
+        var existingRecordsToDelete = [CKRecord.ID]()
+        for group in existingGroups {
+            existingRecordsToDelete.append(CKRecord.ID(recordName: group.recordId))
+        }
+        return try await cacheContainer.privateCloudDatabase.modifyRecords(saving:[], deleting: existingRecordsToDelete, atomically: true)
+    }
+    
+    
+    public func deleteAllUserCachedGroups() async throws {
+        try await deleteAllUserCachedRecords(for: "Location")
+        try await deleteAllUserCachedRecords(for: "Category")
+        try await deleteAllUserCachedRecords(for: "Taste")
+        try await deleteAllUserCachedRecords(for: "Place")
+        try await deleteAllUserCachedRecords(for: "List")
+    }
+    
 }
 
 

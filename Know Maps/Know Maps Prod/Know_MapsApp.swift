@@ -87,7 +87,7 @@ struct Know_MapsApp: App {
                             }
                         }
                 } else {
-                    ContentView(chatHost: chatHost, chatModel: chatModel, locationProvider: chatModel.locationProvider)
+                    ContentView(chatHost: chatHost, chatModel: chatModel, locationProvider: chatModel.locationProvider, isOnboarded: $isOnboarded, showOnboarding: $showOnboarding)
 #if os(visionOS) || os(macOS)
                         .frame(minWidth: 1280, minHeight: 720)                    #endif
                         .environmentObject(chatModel.cloudCache)
@@ -128,7 +128,7 @@ struct Know_MapsApp: App {
         }.windowResizability(.contentSize)
         
         WindowGroup(id:"SettingsView"){
-            SettingsView()
+            SettingsView(chatModel:chatModel, isOnboarded: $isOnboarded, showOnboarding: $showOnboarding)
                 .tag("Settings")
                 .onChange(of: settingsModel.appleUserId, { oldValue, newValue in
                     

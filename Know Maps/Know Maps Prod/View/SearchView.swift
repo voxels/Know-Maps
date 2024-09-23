@@ -20,27 +20,27 @@ struct SearchView: View {
         VStack {
             SearchSavedView(chatHost:chatHost, chatModel: chatModel, locationProvider: locationProvider, columnVisibility: $columnVisibility)
         }
-        .onChange(of: chatModel.selectedDestinationLocationChatResult, { oldValue, newValue in
-            chatModel.resetPlaceModel()
-            
-            guard let newValue = newValue else {
-                return
-            }
-            
-            Task { @MainActor in
-                if let selectedDestinationLocationChatResult = chatModel.selectedDestinationLocationChatResult {
-                    if let cachedResult = chatModel.cachedChatResult(for: newValue) {
-                        chatModel.locationSearchText = cachedResult.title
-                        await chatHost.didTap(chatResult: cachedResult, selectedDestinationChatResultID: selectedDestinationLocationChatResult)
-                    }
-                } else {
-                    if let cachedResult = chatModel.cachedChatResult(for: newValue) {
-                        chatModel.locationSearchText = cachedResult.title
-                        await chatHost.didTap(chatResult: cachedResult, selectedDestinationChatResultID: chatModel.currentLocationResult.id)
-                    }
-                }
-            }
-        })
+//        .onChange(of: chatModel.selectedDestinationLocationChatResult, { oldValue, newValue in
+//            chatModel.resetPlaceModel()
+//            
+//            guard let newValue = newValue else {
+//                return
+//            }
+//            
+//            Task { @MainActor in
+//                if let selectedDestinationLocationChatResult = chatModel.selectedDestinationLocationChatResult {
+//                    if let cachedResult = chatModel.cachedChatResult(for: newValue) {
+//                        chatModel.locationSearchText = cachedResult.title
+//                        await chatHost.didTap(chatResult: cachedResult, selectedDestinationChatResultID: selectedDestinationLocationChatResult)
+//                    }
+//                } else {
+//                    if let cachedResult = chatModel.cachedChatResult(for: newValue) {
+//                        chatModel.locationSearchText = cachedResult.title
+//                        await chatHost.didTap(chatResult: cachedResult, selectedDestinationChatResultID: nil)
+//                    }
+//                }
+//            }
+//        })
         .onChange(of: chatModel.selectedSavedResult) { oldValue, newValue in
             chatModel.resetPlaceModel()
             
@@ -64,10 +64,10 @@ struct SearchView: View {
                 } else {
                     if let cachedResult = chatModel.cachedChatResult(for: newValue) {
                         chatModel.locationSearchText = cachedResult.title
-                        await chatHost.didTap(chatResult: cachedResult, selectedDestinationChatResultID: chatModel.currentLocationResult.id)
+                        await chatHost.didTap(chatResult: cachedResult, selectedDestinationChatResultID: nil)
                     } else {
                         do {
-                            try await chatModel.didSearch(caption: chatModel.locationSearchText, selectedDestinationChatResultID: chatModel.currentLocationResult.id, intent:.Location)
+                            try await chatModel.didSearch(caption: chatModel.locationSearchText, selectedDestinationChatResultID:nil)
                         } catch {
                             chatModel.analytics?.track(name: "error \(error)")
                             print(error)
@@ -82,7 +82,7 @@ struct SearchView: View {
                 if let newValue = newValue, let categoricalResult =
                     chatModel.categoricalResult(for: newValue) {
                     chatModel.locationSearchText = chatModel.categoricalResult(for: newValue)?.title ?? chatModel.locationSearchText
-                    await chatHost.didTap(chatResult: categoricalResult, selectedDestinationChatResultID:nil)
+                    await chatHost.didTap(chatResult: categoricalResult, selectedDestinationChatResultID:chatModel.selectedDestinationLocationChatResult)
                 }
             }
         }.onChange(of: chatModel.selectedTasteCategoryResult, { oldValue, newValue in
@@ -90,7 +90,7 @@ struct SearchView: View {
             Task { @MainActor in
                 if let newValue = newValue, let tasteResult = chatModel.tasteResult(for: newValue) {
                     chatModel.locationSearchText = tasteResult.title
-                    await chatHost.didTap(chatResult: tasteResult, selectedDestinationChatResultID:nil)
+                    await chatHost.didTap(chatResult: tasteResult, selectedDestinationChatResultID:chatModel.selectedDestinationLocationChatResult)
                 }
             }
         })

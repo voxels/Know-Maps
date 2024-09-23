@@ -217,9 +217,9 @@ public class ChatResultViewModel : ObservableObject {
     }
     
     @MainActor
-    public func autocompleteTastes(lastIntent:AssistiveChatHostIntent, location:CLLocation) async throws {
+    public func autocompleteTastes(lastIntent:AssistiveChatHostIntent) async throws {
         let query = lastIntent.caption
-        let rawResponse = try await personalizedSearchSession.autocompleteTastes(caption: query, parameters:lastIntent.queryParameters, location: location)
+        let rawResponse = try await personalizedSearchSession.autocompleteTastes(caption: query, parameters:lastIntent.queryParameters)
         let tastes = try PlaceResponseFormatter.autocompleteTastesResponses(with: rawResponse)
         tasteResults = tasteCategoryResults(with: tastes.map(\.self.text), page:0)
         lastFetchedTastePage = 0
@@ -280,10 +280,6 @@ public class ChatResultViewModel : ObservableObject {
         
         let storedLocationRecords = try await cloudCache.fetchGroupedUserCachedRecords(for: "Location")
         
-        guard !storedLocationRecords.isEmpty else {
-            return
-        }
-        
         cachedLocationRecords = storedLocationRecords
         cachedLocationResults = savedLocationResults()
     }
@@ -293,10 +289,6 @@ public class ChatResultViewModel : ObservableObject {
         
         let storedCategoryRecords = try await cloudCache.fetchGroupedUserCachedRecords(for: "Category")
         
-        guard !storedCategoryRecords.isEmpty else {
-            return
-        }
-        
         cachedCategoryRecords = storedCategoryRecords
         cachedCategoryResults = savedCategoricalResults()
     }
@@ -304,10 +296,6 @@ public class ChatResultViewModel : ObservableObject {
     @MainActor
     public func refreshCachedTastes(cloudCache:CloudCache) async throws {
         let storedTasteRecords = try await cloudCache.fetchGroupedUserCachedRecords(for: "Taste")
-        
-        guard !storedTasteRecords.isEmpty else {
-            return
-        }
         
         cachedTasteRecords = storedTasteRecords
         cachedTasteResults = savedTasteResults()
@@ -318,10 +306,6 @@ public class ChatResultViewModel : ObservableObject {
         let storedPlaceRecords =  try await cloudCache.fetchGroupedUserCachedRecords(for: "Place")
         let storedListRecords = try await cloudCache.fetchGroupedUserCachedRecords(for: "List")
         
-        guard !storedListRecords.isEmpty else {
-            return
-        }
-        
         cachedPlaceRecords = storedPlaceRecords
         cachedPlaceResults = savedPlaceResults()
         cachedListRecords = storedListRecords
@@ -331,6 +315,16 @@ public class ChatResultViewModel : ObservableObject {
     @MainActor
     public func refreshCachedResults() {
         allCachedResults = allSavedResults()
+    }
+    
+    @MainActor
+    public func removeCachedResults() {
+        cachedListResults.removeAll()
+        cachedPlaceResults.removeAll()
+        cachedTasteResults.removeAll()
+        cachedCategoryResults.removeAll()
+        cachedLocationResults.removeAll()
+        refreshCachedResults()
     }
     
     @MainActor
@@ -522,6 +516,15 @@ public class ChatResultViewModel : ObservableObject {
         }
         
         return nil
+    }
+    
+    public func cachedTasteResult(for selectedCategoryID:CategoryResult.ID)->CategoryResult? {
+        let searchCategories = cachedTasteResults
+        let parentCategory = searchCategories.first { result in
+            return result.id == selectedCategoryID
+        }
+        
+        return parentCategory
     }
     
     public func tasteResult(for selectedCategoryID:CategoryResult.ID)->ChatResult? {
@@ -763,8 +766,8 @@ public class ChatResultViewModel : ObservableObject {
                 analytics?.track(name: "searchIntentWithAutocomplete")
             }
         case .AutocompleteTastes:
-            if cloudCache.hasPrivateCloudAccess, let location = location {
-                let autocompleteResponse = try await personalizedSearchSession.autocompleteTastes(caption: intent.caption, parameters: intent.queryParameters, location: location)
+            if cloudCache.hasPrivateCloudAccess {
+                let autocompleteResponse = try await personalizedSearchSession.autocompleteTastes(caption: intent.caption, parameters: intent.queryParameters)
                 let tastes = try PlaceResponseFormatter.autocompleteTastesResponses(with: autocompleteResponse)
                 intent.tasteAutocompleteResponese = tastes
                 analytics?.track(name: "searchIntentWithPersonalizedAutocompleteTastes")
@@ -841,34 +844,13 @@ public class ChatResultViewModel : ObservableObject {
             try await model(intent: newIntent)
         }
         
-        if let placemarks = try await checkSearchTextForLocations(with: caption) {
-            let locations = placemarks.compactMap({ placemark in
-                return LocationResult(locationName: placemark.name ?? "Unknown Location", location: placemark.location)
-            })
-            
-            var candidates = [LocationResult]()
-            
-            for location in locations {
-                let newLocationName =  try await chatHost.languageDelegate.lookUpLocationName(name: location.locationName)?.first?.name ?? location.locationName
-                candidates.append(LocationResult(locationName: newLocationName, location: location.location))
-            }
-            let existingLocationNames = locationResults.map { $0.locationName }
-            let newLocations = candidates.filter { result in
-                !existingLocationNames.contains(result.locationName)
-            }
-            
-            locationResults.append(contentsOf:newLocations)
-            
-            var ids = candidates.compactMap { result in
-                return result.locationName.contains(caption) ? result.id : nil
-            }
-//            selectedDestinationLocationChatResult = ids.first
-        }
-        
-        try await refreshCachedLocations(cloudCache: cloudCache)
     }
     
     public func model(intent:AssistiveChatHostIntent) async throws {
+        guard let chatHost = self.assistiveHostDelegate else {
+            return
+        }
+        
         switch intent.intent {
         case .Place:
             await placeQueryModel(intent: intent)
@@ -878,7 +860,31 @@ public class ChatResultViewModel : ObservableObject {
             try await detailIntent(intent: intent)
             analytics?.track(name: "modelSearchQueryBuilt")
         case .Location:
-            break
+            if let placemarks = try await checkSearchTextForLocations(with: intent.caption) {
+                let locations = placemarks.compactMap({ placemark in
+                    return LocationResult(locationName: placemark.name ?? "Unknown Location", location: placemark.location)
+                })
+                
+                var candidates = [LocationResult]()
+                
+                for location in locations {
+                    let newLocationName =  try await chatHost.languageDelegate.lookUpLocationName(name: location.locationName)?.first?.name ?? location.locationName
+                    candidates.append(LocationResult(locationName: newLocationName, location: location.location))
+                }
+                let existingLocationNames = locationResults.map { $0.locationName }
+                let newLocations = candidates.filter { result in
+                    !existingLocationNames.contains(result.locationName)
+                }
+                
+                locationResults.append(contentsOf:newLocations)
+                
+                var ids = candidates.compactMap { result in
+                    return result.locationName.contains(intent.caption) ? result.id : nil
+                }
+    //            selectedDestinationLocationChatResult = ids.first
+            }
+            
+            try await refreshCachedLocations(cloudCache: cloudCache)
         case .AutocompleteSearch:
             do {
                 if let selectedDestinationLocationChatResult = selectedDestinationLocationChatResult, let locationResult = locationChatResult(for: selectedDestinationLocationChatResult), let finalLocation = locationResult.location {
@@ -891,10 +897,8 @@ public class ChatResultViewModel : ObservableObject {
             }
         case .AutocompleteTastes:
             do {
-                if let selectedDestinationLocationChatResult = selectedDestinationLocationChatResult, let locationResult = locationChatResult(for: selectedDestinationLocationChatResult), let finalLocation = locationResult.location {
-                    try await autocompleteTastes(lastIntent: intent, location: finalLocation)
-                    analytics?.track(name: "modelAutocompletePlaceModelBuilt")
-                }
+                try await autocompleteTastes(lastIntent: intent)
+                analytics?.track(name: "modelAutocompletePlaceModelBuilt")
             }
         }
     }

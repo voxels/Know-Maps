@@ -35,21 +35,19 @@ struct SearchCategoryView: View {
                             let isSaved = chatModel.cachedCategories(contains: parent.parentCategory)
                             if isSaved {
                                 if let cachedCategoricalResults = chatModel.cachedCategoricalResults(for: "Category", identity: parent.parentCategory) {
-                                    for cachedCategoricalResult in cachedCategoricalResults {
-                                        Task {
+                                    Task {
+                                        for cachedCategoricalResult in cachedCategoricalResults {
                                             try await chatModel.cloudCache.deleteUserCachedRecord(for: cachedCategoricalResult)
-                                            try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
                                         }
+                                        try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
                                     }
                                 }
                             } else {
                                 Task {
                                     var userRecord = UserCachedRecord(recordId: "", group: "Category", identity: parent.parentCategory, title: parent.parentCategory, icons: "", list: nil)
-                                    let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title)
-                                    if let resultName = record.saveResults.keys.first?.recordName {
-                                        userRecord.setRecordId(to:resultName)
-                                    }
                                     chatModel.appendCachedCategory(with: userRecord)
+                                    let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title)
+                                    userRecord.setRecordId(to:record)
                                 }
                             }
                         }

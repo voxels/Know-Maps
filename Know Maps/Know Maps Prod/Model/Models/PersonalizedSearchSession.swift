@@ -128,7 +128,7 @@ extension PersonalizedSearchSession {
 }
 
 extension PersonalizedSearchSession {
-    public func autocompleteTastes(caption:String, parameters:[String:Any]?, location:CLLocation) async throws -> [String:Any] {
+    public func autocompleteTastes(caption:String, parameters:[String:Any]?) async throws -> [String:Any] {
         
         let apiKey = try await fetchManagedUserAccessToken()
         

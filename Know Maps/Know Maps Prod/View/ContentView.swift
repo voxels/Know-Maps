@@ -29,7 +29,9 @@ struct ContentView: View {
     @Environment(\.openImmersiveSpace) var openImmersiveSpace
     @Environment(\.dismissImmersiveSpace) var dismissImmersiveSpace
 #endif
-    
+    @Binding public var isOnboarded:Bool
+    @Binding public var showOnboarding:Bool
+
     @State private var selectedTab = "Search"
     @State private var popoverPresented:Bool = false
     @State private var didError = false
@@ -55,7 +57,7 @@ struct ContentView: View {
                 }
 #if os(iOS) || os(visionOS)
                 .popover(isPresented: $popoverPresented) {
-                    SettingsView()
+                    SettingsView(chatModel: chatModel, isOnboarded: $isOnboarded, showOnboarding: $showOnboarding)
                 }
 #endif
             } content: {
@@ -115,14 +117,4 @@ struct ContentView: View {
 #endif
         }
     }
-}
-
-
-#Preview {
-    let locationProvider = LocationProvider()
-    let cloudCache = CloudCache()
-    let featureFlags = FeatureFlags()
-    let chatModel = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cloudCache, featureFlags: featureFlags)
-    let chatHost = AssistiveChatHost()
-    return ContentView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider)
 }

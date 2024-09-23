@@ -45,7 +45,7 @@ struct NavigationLocationView: View {
                                         for cachedLocationResult in cachedLocationResults {
                                             Task {
                                                 try await cloudCache.deleteUserCachedRecord(for: cachedLocationResult)
-                                                try await chatModel.refreshCachedLocations(cloudCache: cloudCache)
+//                                                try await chatModel.refreshCachedLocations(cloudCache: cloudCache)
                                             }
                                         }
                                     }
@@ -70,9 +70,10 @@ struct NavigationLocationView: View {
                                 }
                                 .onTapGesture {
                                     Task {
-                                        let userRecord = UserCachedRecord(recordId: "", group: "Location", identity: chatModel.cachedLocationIdentity(for: location), title: result.locationName, icons: "", list: nil)
-                                        let _ = try await cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title)
+                                        var userRecord = UserCachedRecord(recordId: "", group: "Location", identity: chatModel.cachedLocationIdentity(for: location), title: result.locationName, icons: "", list: nil)
                                         chatModel.appendCachedLocation(with: userRecord)
+                                        let record = try await cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title)
+                                        userRecord.setRecordId(to:record)
                                     }
                                 }
 #if os(iOS) || os(visionOS)

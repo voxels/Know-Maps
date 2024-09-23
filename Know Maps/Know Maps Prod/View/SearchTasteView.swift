@@ -39,12 +39,10 @@ struct SearchTasteView: View {
                                 Task {
                                     do {
                                         var userRecord = UserCachedRecord(recordId: "", group: "Taste", identity: parent.parentCategory, title: parent.parentCategory, icons: "", list: nil)
-                                        let record = try await model.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title)
-                                        if let resultName = record.saveResults.keys.first?.recordName {
-                                            userRecord.setRecordId(to:resultName)
-                                        }
                                         model.appendCachedTaste(with: userRecord)
-                                        try await model.refreshTastes(page:model.lastFetchedTastePage)
+                                        let record = try await model.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title)
+                                        userRecord.setRecordId(to:record)
+//                                        try await model.refreshTastes(page:model.lastFetchedTastePage)
                                     } catch {
                                         model.analytics?.track(name: "error \(error)")
                                         print(error)

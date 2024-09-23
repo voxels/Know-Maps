@@ -153,7 +153,7 @@ struct SearchSavedView: View {
                         Button("Location", systemImage: "map") {
                             Task {
                                 do {
-                                    try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
+//                                    try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
                                     columnVisibility = .all
                                 } catch {
                                     chatModel.analytics?.track(name: "error \(error)")

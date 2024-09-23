@@ -301,7 +301,6 @@ struct PlaceAboutView: View {
                                                                         chatModel.analytics?.track(name: "error \(error)")
                                                                         print(error)
                                                                     }
-                                                                    
                                                                 }
                                                             }
                                                         }
@@ -309,12 +308,11 @@ struct PlaceAboutView: View {
                                                         Task {
                                                             do {
                                                                 var userRecord = UserCachedRecord(recordId: "", group: "Taste", identity: taste, title: taste, icons: "", list: nil)
-                                                                let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title)
-                                                                if let resultName = record.saveResults.keys.first?.recordName {
-                                                                    userRecord.setRecordId(to:resultName)
-                                                                }
                                                                 chatModel.appendCachedTaste(with: userRecord)
-                                                                try await chatModel.refreshTastes(page:chatModel.lastFetchedTastePage)
+                                                                let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title)
+                                                                
+                                                                userRecord.setRecordId(to:record)
+                                                                
                                                             } catch {
                                                                 chatModel.analytics?.track(name: "error \(error)")
                                                                 print(error)
