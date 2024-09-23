@@ -24,17 +24,19 @@ struct OnboardingTemplateView: View {
     
     var body: some View {
         GeometryReader { geometry in
-            VStack(alignment:.leading) {
+            VStack(alignment:.leading, spacing:0) {
                 Text("Know Maps is an app that helps you find nearby places to go to.")
                     .font(.headline)
-                    .padding()
-                VStack(alignment: .leading) {
-                    Text("1. Use the search bar to find the things your like.")
-                    Text("2. Click on the plus button to save it.")
-                    Text("3. Search for and save as many items as you wish, then tap the \"Done\" button")
+                    .padding(.top, 60)
+                if chatModel.locationSearchText.isEmpty {
+                    withAnimation {
+                        VStack(alignment: .leading) {
+                            Text("1. Use the search bar to find the things your like.")
+                            Text("2. Click on the plus button to save it.")
+                            Text("3. Search for and save as many items as you wish, then tap the \"Done\" button")
+                        }
+                    }
                 }
-                .padding()
-                
                 TextField("Search for food, drinks, coffee, shops, arts, outdoor sights, or a place name", text: $chatModel.locationSearchText)
                     .onSubmit {
                         if let _ = locationProvider.currentLocation() {
@@ -47,27 +49,18 @@ struct OnboardingTemplateView: View {
                                 }
                             }
                         }
-                    }.padding()
-                HStack {
-                    VStack (alignment: .leading) {
-                        Text("Search Results")
+                    }.padding(.vertical, 16)
+                HStack(spacing:0) {
+                    VStack (alignment: .leading, spacing: 0) {
+                        Text("Search Results").padding(.vertical,4)
                         List(selection:$chatModel.selectedTasteCategoryResult){
                             ForEach(chatModel.tasteResults) { result in
                                 Text(result.parentCategory)
                             }
                         }
-                    }.padding()
-                    Button(action:{
-                        Task(priority:.userInitiated) { @MainActor in
-                            try await chatModel.refreshCache(cloudCache: cloudCache)
-                        }
-                    }, label:{
-                        Label("Store in iCloud", systemImage:"square.and.arrow.up.circle").labelStyle(.titleAndIcon)
-                        })
-                    .frame(width: 60, height:60)
-                    .foregroundStyle(.primary)
-                    VStack(alignment: .leading){
-                        Text("Saved Results")
+                    }
+                    VStack(alignment: .leading, spacing: 0){
+                        Text("Saved Results").padding(.vertical, 4)
                         if isSaving {
                             VStack {
                                 Spacer()
@@ -83,45 +76,53 @@ struct OnboardingTemplateView: View {
                                 Text(result.parentCategory)
                             }
                         }
-                    }.padding()
-                }.padding()
-                    .onChange(of: chatModel.selectedTasteCategoryResult) { oldValue, newValue in
-                        guard let newValue = newValue else { return }
-                        if let result = chatModel.cachedTasteResult(for: newValue) {
-                            
-                            let isSaved = chatModel.cachedTastes(contains: result.parentCategory)
-                            if isSaved {
-                                if let cachedTasteResults = chatModel.cachedTasteResults(for: "Taste", identity: result.parentCategory) {
-                                    for cachedTasteResult in cachedTasteResults {
-                                        Task(priority: .userInitiated) {
-                                            do {
-                                                try await chatModel.cloudCache.deleteUserCachedRecord(for: cachedTasteResult)
-                                                try await chatModel.refreshCachedTastes(cloudCache: cloudCache)
-                                            } catch {
-                                                chatModel.analytics?.track(name: "error \(error)")
-                                                print(error)
-                                            }
-                                            
+                    }
+                }
+                .onChange(of: chatModel.selectedTasteCategoryResult) { oldValue, newValue in
+                    guard let newValue = newValue else { return }
+                    if let result = chatModel.cachedTasteResult(for: newValue) {
+                        
+                        let isSaved = chatModel.cachedTastes(contains: result.parentCategory)
+                        if isSaved {
+                            if let cachedTasteResults = chatModel.cachedTasteResults(for: "Taste", identity: result.parentCategory) {
+                                for cachedTasteResult in cachedTasteResults {
+                                    Task(priority: .userInitiated) {
+                                        do {
+                                            try await chatModel.cloudCache.deleteUserCachedRecord(for: cachedTasteResult)
+                                            try await chatModel.refreshCachedTastes(cloudCache: cloudCache)
+                                        } catch {
+                                            chatModel.analytics?.track(name: "error \(error)")
+                                            print(error)
                                         }
+                                        
                                     }
                                 }
                             }
-                        } else if let result = chatModel.tasteResult(for: newValue) {
-                            Task(priority: .userInitiated) {
-                                do {
-                                    var userRecord = UserCachedRecord(recordId: "", group: "Taste", identity: result.title, title:result.title, icons: "", list: nil)
-                                    isSaving = true
-                                    userRecord.recordId = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title)
-                                    try await chatModel.refreshCachedTastes(cloudCache: cloudCache)
-                                    isSaving = false
-                                } catch {
-                                    chatModel.analytics?.track(name: "error \(error)")
-                                    print(error)
-                                }
+                        }
+                    } else if let result = chatModel.tasteResult(for: newValue) {
+                        Task(priority: .userInitiated) {
+                            do {
+                                var userRecord = UserCachedRecord(recordId: "", group: "Taste", identity: result.title, title:result.title, icons: "", list: nil)
+                                userRecord.recordId = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title)
+                                try await chatModel.refreshCachedTastes(cloudCache: cloudCache)
+                            } catch {
+                                chatModel.analytics?.track(name: "error \(error)")
+                                print(error)
                             }
                         }
                     }
-                
+                }
+                HStack {
+                    Button(action:{
+                        Task(priority:.userInitiated) { @MainActor in
+                            try await chatModel.refreshCache(cloudCache: cloudCache)
+                        }
+                    }, label:{
+                        Label("Store in iCloud", systemImage:"square.and.arrow.up.circle").labelStyle(.titleAndIcon)
+                    })
+                    .foregroundStyle(.accent)
+                    Spacer()
+                }.padding()
             }
             .overlay(content: {
                 VStack {
@@ -132,10 +133,10 @@ struct OnboardingTemplateView: View {
                             showOnboarding = false
                         } label: {
                             Text("Done")
-                        }
-                    }.padding()
+                        }.padding()
+                    }
                     Spacer()
-                }.padding()
+                }
             })
         }.padding()
     }

@@ -378,11 +378,9 @@ public class ChatResultViewModel : ObservableObject {
     }
     
     public func cachedLocation(contains location:String)->Bool {
-        guard let cachedLocationRecords = cachedLocationRecords, !cachedLocationRecords.isEmpty else {
-            return false
-        }
-        return cachedLocationRecords.contains { record in
-            record.identity == location
+
+        return cachedLocationResults.contains { record in
+            record.locationName == location
         }
     }
     

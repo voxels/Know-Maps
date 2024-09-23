@@ -24,8 +24,8 @@ struct NavigationLocationView: View {
             Section {
                 List(chatModel.filteredLocationResults, selection:$chatModel.selectedDestinationLocationChatResult) { result in
                     HStack {
-                        if let location = result.location, cloudCache.hasPrivateCloudAccess, result.locationName != "Current Location" {
-                            let isSaved = chatModel.cachedLocation(contains: chatModel.cachedLocationIdentity(for: location))
+                        if let location = result.location, cloudCache.hasPrivateCloudAccess{
+                            let isSaved = chatModel.cachedLocation(contains: result.locationName)
                             if isSaved {
                                 ZStack {
                                     Capsule()
@@ -41,12 +41,14 @@ struct NavigationLocationView: View {
                                         .labelStyle(.iconOnly)
                                 }
                                 .onTapGesture {
-                                    if let cachedLocationResults = chatModel.cachedLocationResults(for: "Location", identity:chatModel.cachedLocationIdentity(for:location)) {
+                                    if let cachedLocationResults = chatModel.cachedLocationResults(for: "Location", identity:result.locationName) {
+                                        Task {
                                         for cachedLocationResult in cachedLocationResults {
-                                            Task {
+                                            
                                                 try await cloudCache.deleteUserCachedRecord(for: cachedLocationResult)
-//                                                try await chatModel.refreshCachedLocations(cloudCache: cloudCache)
                                             }
+                                                                                            try await chatModel.refreshCachedLocations(cloudCache: cloudCache)
+
                                         }
                                     }
                                 }
@@ -69,11 +71,13 @@ struct NavigationLocationView: View {
                                     
                                 }
                                 .onTapGesture {
-                                    Task {
+                                    Task(priority: .userInitiated) {
                                         var userRecord = UserCachedRecord(recordId: "", group: "Location", identity: chatModel.cachedLocationIdentity(for: location), title: result.locationName, icons: "", list: nil)
-                                        chatModel.appendCachedLocation(with: userRecord)
                                         let record = try await cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title)
                                         userRecord.setRecordId(to:record)
+                                        
+                                        chatModel.appendCachedLocation(with: userRecord)
+                                        try await chatModel.refreshCachedLocations(cloudCache: cloudCache)
                                     }
                                 }
 #if os(iOS) || os(visionOS)
@@ -110,7 +114,7 @@ struct NavigationLocationView: View {
                                     if !searchText.isEmpty {
                                             Task {
                                                 do {
-                                                    try await chatModel.didSearch(caption:searchText, selectedDestinationChatResultID:nil)
+                                                    try await chatModel.didSearch(caption:searchText, selectedDestinationChatResultID:nil, intent:.Location)
                                                 } catch {
                                                     chatModel.analytics?.track(name: "error \(error)")
                                                     print(error)
