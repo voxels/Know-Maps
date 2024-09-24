@@ -40,12 +40,14 @@ struct SearchSavedView: View {
                 #if os(macOS)
                 ToolbarItem(placement: .automatic) {
                     Button("Done", systemImage: "plus") {
+                        chatModel.refreshCachedResults()
                         showPopover = false
                     }.labelStyle(.titleOnly).padding(16)
                 }
                 #else
                 ToolbarItem(placement:.confirmationAction) {
                     Button("Done", systemImage: "plus") {
+                        chatModel.refreshCachedResults()
                         showPopover = false
                     }.labelStyle(.titleOnly).padding(16)
                 }
@@ -71,6 +73,7 @@ struct SearchSavedView: View {
 #if os(iOS) || os(visionOS)
                             .hoverEffect(.lift)
 #endif
+                            .foregroundStyle(.accent)
                             .onTapGesture {
                                 if let cachedCategoricalResults = chatModel.cachedCategoricalResults(for: "Category", identity: parent.parentCategory) {
                                     for cachedCategoricalResult in cachedCategoricalResults {
@@ -115,7 +118,7 @@ struct SearchSavedView: View {
                 }
                 .listStyle(.sidebar)
                 .refreshable {
-                    Task {
+                    Task(priority:.userInitiated) {
                         do {
                             try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
                         } catch {
@@ -124,7 +127,7 @@ struct SearchSavedView: View {
                         }
                     }
                 }.task {
-                    Task {
+                    Task(priority:.userInitiated) {
                         do {
                             try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
                         } catch {

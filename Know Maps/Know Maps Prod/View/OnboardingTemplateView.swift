@@ -104,7 +104,8 @@ struct OnboardingTemplateView: View {
                             do {
                                 var userRecord = UserCachedRecord(recordId: "", group: "Taste", identity: result.title, title:result.title, icons: "", list: nil)
                                 userRecord.recordId = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title)
-                                try await chatModel.refreshCachedTastes(cloudCache: cloudCache)
+                                chatModel.appendCachedTaste(with: userRecord)
+                                chatModel.refreshCachedResults()
                             } catch {
                                 chatModel.analytics?.track(name: "error \(error)")
                                 print(error)

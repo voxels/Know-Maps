@@ -3,22 +3,27 @@ import SwiftUI
 struct SearchTasteView: View {
     @ObservedObject public var model:ChatResultViewModel
     @State private var isPresented:Bool = true
+    @State private var isLoadingNextPage = false
+    @State private var tasteSearchText:String = ""
     var body: some View {
             List(model.tasteResults, selection: $model.selectedTasteCategoryResult) { parent in
                 HStack {
                     if model.cloudCache.hasPrivateCloudAccess {
                         ZStack {
                             Capsule()
-                            #if os(visionOS) || os(iOS)
+    #if os(macOS)
+                                .foregroundStyle(.background)
+                                .frame(width: 44, height:44)
+                                .padding(8)
+    #else
                                 .foregroundColor(Color(uiColor:.systemFill))
-#endif
-                                .frame(width: 44, height:44).padding(8)
+                                .frame(width: 44, height: 44, alignment: .center)
+                                .padding(8)
+    #endif
                             let isSaved = model.cachedTastes(contains: parent.parentCategory)
                             Label("Save", systemImage:isSaved ? "minus" : "plus").labelStyle(.iconOnly)
                         }
-#if os(visionOS) || os(iOS)
-                        .hoverEffect(.lift)
-#endif
+                        .foregroundStyle(.accent)
                         .onTapGesture {
                             let isSaved = model.cachedTastes(contains: parent.parentCategory)
                             if isSaved {
@@ -39,10 +44,10 @@ struct SearchTasteView: View {
                                 Task {
                                     do {
                                         var userRecord = UserCachedRecord(recordId: "", group: "Taste", identity: parent.parentCategory, title: parent.parentCategory, icons: "", list: nil)
-                                        model.appendCachedTaste(with: userRecord)
                                         let record = try await model.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title)
                                         userRecord.setRecordId(to:record)
-//                                        try await model.refreshTastes(page:model.lastFetchedTastePage)
+                                        model.appendCachedTaste(with: userRecord)
+                                        model.refreshCachedResults()
                                     } catch {
                                         model.analytics?.track(name: "error \(error)")
                                         print(error)
@@ -53,6 +58,20 @@ struct SearchTasteView: View {
                     }
                     Text("\(parent.parentCategory)")
                     Spacer()
+                }
+                .onAppear {
+                    if let last = model.tasteResults.last, parent == last {
+                        isLoadingNextPage = true
+                        Task {
+                            do {
+                                try await model.refreshTastes(page: model.lastFetchedTastePage)
+                            } catch {
+                                model.analytics?.track(name: "error \(error)")
+                                print(error)
+                            }
+                            isLoadingNextPage = false
+                        }
+                    }
                 }
             }
             .onAppear {
@@ -79,14 +98,16 @@ struct SearchTasteView: View {
                     }
                 }
             }
+            .listStyle(.sidebar)
             .padding(.top, 64)
             .overlay(alignment: .top, content: {
                 VStack(alignment: .center) {
-                    TextField("", text: $model.locationSearchText, prompt:Text("Search for a taste"))
+                    TextField("", text: $tasteSearchText, prompt:Text("Search for a taste"))
                         .onSubmit() {
                             Task {
+                                model.tasteResults.removeAll()
                                 do {
-                                    try await model.didSearch(caption:model.locationSearchText, selectedDestinationChatResultID:model.selectedDestinationLocationChatResult, intent:.AutocompleteTastes)
+                                    try await model.didSearch(caption:tasteSearchText, selectedDestinationChatResultID:model.selectedDestinationLocationChatResult, intent:.AutocompleteTastes)
                                 } catch {
                                     print(error)
                                     model.analytics?.track(name: "error \(error)")

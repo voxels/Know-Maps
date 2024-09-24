@@ -205,7 +205,7 @@ struct PlacesList: View {
                                         }
                                     }
                                 }
-                            }.padding(.horizontal, 16)
+                            }.padding(16)
                         } else {
                             List(chatModel.filteredPlaceResults,selection: $resultId){ result in
                                 HStack(alignment: .center) {
@@ -220,8 +220,7 @@ struct PlacesList: View {
                                     }
                                 }
                             }
-                            .listStyle(.sidebar)
-                            .padding(.horizontal, 16)
+                            .padding(16)
                         }
                     }
                 }

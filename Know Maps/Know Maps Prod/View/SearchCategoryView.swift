@@ -31,6 +31,7 @@ struct SearchCategoryView: View {
                             let isSaved = chatModel.cachedCategories(contains: parent.parentCategory)
                             Label("Save", systemImage:isSaved ? "minus" : "plus").labelStyle(.iconOnly)
                         }
+                        .foregroundStyle(.accent)
                         .onTapGesture {
                             let isSaved = chatModel.cachedCategories(contains: parent.parentCategory)
                             if isSaved {
@@ -45,9 +46,10 @@ struct SearchCategoryView: View {
                             } else {
                                 Task {
                                     var userRecord = UserCachedRecord(recordId: "", group: "Category", identity: parent.parentCategory, title: parent.parentCategory, icons: "", list: nil)
-                                    chatModel.appendCachedCategory(with: userRecord)
                                     let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title)
                                     userRecord.setRecordId(to:record)
+                                    chatModel.appendCachedCategory(with: userRecord)
+                                    chatModel.refreshCachedResults()
                                 }
                             }
                         }

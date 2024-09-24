@@ -236,10 +236,8 @@ public class ChatResultViewModel : ObservableObject {
             let tastes = try await personalizedSearchSession.fetchTastes(page:page)
             tasteResults = tasteCategoryResults(with: tastes, page:page)
             lastFetchedTastePage = page
-            try await refreshCachedTastes(cloudCache: cloudCache)
         } else {
             refreshTasteCategories(page: page)
-            try await refreshCachedTastes(cloudCache: cloudCache)
         }
     }
     
@@ -1305,7 +1303,7 @@ public class ChatResultViewModel : ObservableObject {
     
     @MainActor
     private func tasteCategoryResults(with tastes:[String], page:Int)->[CategoryResult] {
-        var retval  = [CategoryResult]()
+        var retval  = tasteResults
         if page > 0 {
             retval.append(contentsOf: tasteResults)
         }

@@ -32,13 +32,13 @@ struct AddListItemView: View {
                         }
                     }.onChange(of: chatModel.selectedListCategoryResult, { oldValue, newValue in
                         Task {
-                            presentingPopover.toggle()
                             if let newValue = newValue, let selectedPlaceChatResult = chatModel.selectedPlaceChatResult, let chatResult = chatModel.placeChatResult(for: selectedPlaceChatResult), let placeResponse = chatResult.placeResponse, let cachedListResult = chatModel.cachedListResult(for: newValue) {
                                 
                                 var userRecord = UserCachedRecord(recordId: "", group: "Place", identity:placeResponse.fsqID, title: placeResponse.name, icons: "", list:cachedListResult.list)
-                                chatModel.appendCachedPlace(with: userRecord)
                                 let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, list:userRecord.list)
                                 userRecord.setRecordId(to: record)
+                                chatModel.appendCachedCategory(with: userRecord)
+                                chatModel.refreshCachedResults()
                             }
                         }
                     })
@@ -55,9 +55,10 @@ struct AddListItemView: View {
                                 
                                 Task {
                                     var userRecord = UserCachedRecord(recordId: "", group: "List", identity: textFieldData, title: textFieldData, icons: "", list: textFieldData)
-                                    chatModel.appendCachedList(with: userRecord)
                                     let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, list:userRecord.list)
                                     userRecord.setRecordId(to: record)
+                                    chatModel.appendCachedList(with: userRecord)
+                                    chatModel.refreshCachedResults()
                                 }
                             }
                         Spacer()
@@ -69,11 +70,18 @@ struct AddListItemView: View {
                             
                             Task { 
                                 var userRecord = UserCachedRecord(recordId: "", group: "List", identity: textFieldData, title: textFieldData, icons: "", list: textFieldData)
-                                chatModel.appendCachedList(with: userRecord)
                                 let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, list:userRecord.list)
                                 userRecord.setRecordId(to: record)
+                                chatModel.appendCachedList(with: userRecord)
+                                chatModel.refreshCachedResults()
                             }
                         }.labelStyle(.iconOnly)
+                        Button("Done") {
+                            Task {
+                                try await chatModel.refreshCache(cloudCache: cloudCache)
+                            }
+                            presentingPopover.toggle()
+                        }
                     }
                 }
             }

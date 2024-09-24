@@ -51,7 +51,7 @@ struct PlaceAboutView: View {
                         
                         ZStack(alignment: .leading) {
                             Rectangle().foregroundStyle(.thinMaterial)
-                            .cornerRadius(16)
+                                .cornerRadius(16)
                             VStack(){
                                 ZStack {
                                     Rectangle().foregroundStyle(.thickMaterial)
@@ -250,18 +250,18 @@ struct PlaceAboutView: View {
                         }
                         .padding(EdgeInsets(top: 0, leading: PlaceAboutView.defaultPadding * 2, bottom: 0, trailing: PlaceAboutView.defaultPadding * 2))
                         .popover(isPresented: $isPresentingShareSheet) {
-                                if let result = chatModel.placeChatResult(for: resultId), let placeDetailsResponse = result.placeDetailsResponse  {
-                                    let items:[Any] = [placeDetailsResponse.website ?? placeDetailsResponse.searchResponse.address]
+                            if let result = chatModel.placeChatResult(for: resultId), let placeDetailsResponse = result.placeDetailsResponse  {
+                                let items:[Any] = [placeDetailsResponse.website ?? placeDetailsResponse.searchResponse.address]
 #if os(visionOS) || os(iOS)
-                                    ActivityViewController(activityItems:items, applicationActivities:[UIActivity](), isPresentingShareSheet: $isPresentingShareSheet)
+                                ActivityViewController(activityItems:items, applicationActivities:[UIActivity](), isPresentingShareSheet: $isPresentingShareSheet)
 #endif
-                                }
                             }
+                        }
                         
                         if chatModel.cloudCache.hasPrivateCloudAccess {
                             PlaceDescriptionView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, resultId: $resultId)
                                 .padding(PlaceAboutView.defaultPadding * 2)
-                                
+                            
                         }
                         if chatModel.cloudCache.hasPrivateCloudAccess {
                             if let tastes = placeDetailsResponse.tastes, tastes.count > 0 {
@@ -273,21 +273,22 @@ struct PlaceAboutView: View {
                                             HStack {
                                                 ZStack {
                                                     Capsule()
-                                                    #if os(macOS)
+#if os(macOS)
                                                         .foregroundStyle(.background)
                                                         .frame(width: 44, height: 44)
                                                         .padding(8)
-                                                    #else
+#else
                                                         .foregroundColor(Color(uiColor: .systemFill))
                                                         .frame(width: 44, height: 44, alignment: .center)
                                                         .padding(8)
-                                                    #endif
+#endif
                                                     
                                                     let isSaved = chatModel.cachedTastes(contains: taste)
                                                     Label("Save", systemImage: isSaved ? "minus" : "plus")
                                                         .labelStyle(.iconOnly)
                                                         .foregroundStyle(.white)
                                                 }
+                                                .foregroundStyle(.accent)
                                                 .onTapGesture {
                                                     let isSaved = chatModel.cachedTastes(contains: taste)
                                                     if isSaved {
@@ -308,11 +309,11 @@ struct PlaceAboutView: View {
                                                         Task {
                                                             do {
                                                                 var userRecord = UserCachedRecord(recordId: "", group: "Taste", identity: taste, title: taste, icons: "", list: nil)
-                                                                chatModel.appendCachedTaste(with: userRecord)
                                                                 let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title)
                                                                 
                                                                 userRecord.setRecordId(to:record)
-                                                                
+                                                                chatModel.appendCachedTaste(with: userRecord)
+                                                                chatModel.refreshCachedResults()
                                                             } catch {
                                                                 chatModel.analytics?.track(name: "error \(error)")
                                                                 print(error)
@@ -320,9 +321,9 @@ struct PlaceAboutView: View {
                                                         }
                                                     }
                                                 }
-                                                #if os(iOS) || os(visionOS)
+#if os(iOS) || os(visionOS)
                                                 .hoverEffect(.lift)
-                                                #endif
+#endif
                                                 Text(taste)
                                                 Spacer()
                                             }

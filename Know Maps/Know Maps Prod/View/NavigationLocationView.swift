@@ -40,6 +40,7 @@ struct NavigationLocationView: View {
                                     
                                         .labelStyle(.iconOnly)
                                 }
+                                .foregroundStyle(.accent)
                                 .onTapGesture {
                                     if let cachedLocationResults = chatModel.cachedLocationResults(for: "Location", identity:result.locationName) {
                                         Task {
@@ -47,7 +48,7 @@ struct NavigationLocationView: View {
                                             
                                                 try await cloudCache.deleteUserCachedRecord(for: cachedLocationResult)
                                             }
-                                                                                            try await chatModel.refreshCachedLocations(cloudCache: cloudCache)
+                                            try await chatModel.refreshCachedResults()
 
                                         }
                                     }
@@ -70,14 +71,14 @@ struct NavigationLocationView: View {
                                         .labelStyle(.iconOnly)
                                     
                                 }
+                                .foregroundStyle(.accent)
                                 .onTapGesture {
                                     Task(priority: .userInitiated) {
                                         var userRecord = UserCachedRecord(recordId: "", group: "Location", identity: chatModel.cachedLocationIdentity(for: location), title: result.locationName, icons: "", list: nil)
                                         let record = try await cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title)
                                         userRecord.setRecordId(to:record)
-                                        
                                         chatModel.appendCachedLocation(with: userRecord)
-                                        try await chatModel.refreshCachedLocations(cloudCache: cloudCache)
+                                        chatModel.refreshCachedResults()
                                     }
                                 }
 #if os(iOS) || os(visionOS)
