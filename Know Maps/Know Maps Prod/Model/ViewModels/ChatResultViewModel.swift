@@ -87,18 +87,22 @@ public class ChatResultViewModel : ObservableObject {
         get {
             var retval = recommendedPlaceResults
 
-            if let selectedSourceLocationChatResult = selectedDestinationLocationChatResult, let locationChatResult = locationChatResult(for: selectedSourceLocationChatResult), let location = locationChatResult.location {
-                retval.sort { result, checkResult in
-                    guard let placeResponse = result.placeResponse, let checkPlaceResponse = checkResult.placeResponse else {
-                        return false
-                    }
-                    let resultLocation = CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude)
-                    let checkResultLocation = CLLocation(latitude: checkPlaceResponse.latitude, longitude: checkPlaceResponse.longitude)
-                    return resultLocation.distance(from: location) < checkResultLocation.distance(from: location)
+            
+            let unfilteredPlaceChatResults = retval
+            
+            if let selectedTasteCategoryResult = selectedTasteCategoryResult, let tasteCategoryResult = tasteResult(for: selectedTasteCategoryResult) {
+                retval = retval.filter { result in
+                    result.recommendedPlaceResponse?.tastes.contains(tasteCategoryResult.title) ?? false
+                }
+            }
+            
+            if let selectedSavedResult = selectedSavedResult, let savedResult = cachedChatResult(for: selectedSavedResult)  {
+                retval = retval.filter { result in
+                    result.recommendedPlaceResponse?.tastes.contains(savedResult.title.lowercased()) ?? false
                 }
             }
         
-            return retval
+            return retval.isEmpty ? unfilteredPlaceChatResults : retval
         }
     }
     
@@ -874,15 +878,18 @@ public class ChatResultViewModel : ObservableObject {
                     !existingLocationNames.contains(result.locationName)
                 }
                 
-                locationResults.append(contentsOf:newLocations)
-                
-                var ids = candidates.compactMap { result in
-                    return result.locationName.contains(intent.caption) ? result.id : nil
+                Task(priority:.high) { @MainActor in
+                    locationResults.append(contentsOf:newLocations)
+                    let ids = candidates.compactMap { result in
+                        return result.locationName.contains(intent.caption) ? result.id : nil
+                    }
+                    selectedDestinationLocationChatResult = ids.first
                 }
-    //            selectedDestinationLocationChatResult = ids.first
             }
             
-            try await refreshCachedLocations(cloudCache: cloudCache)
+            Task(priority: .background) {
+                try await refreshCachedLocations(cloudCache: cloudCache)
+            }
         case .AutocompleteSearch:
             do {
                 if let selectedDestinationLocationChatResult = selectedDestinationLocationChatResult, let locationResult = locationChatResult(for: selectedDestinationLocationChatResult), let finalLocation = locationResult.location {
@@ -956,6 +963,7 @@ public class ChatResultViewModel : ObservableObject {
                 recommendedChatResults.append(contentsOf: results)
             }
         }
+        
         
         recommendedPlaceResults = recommendedChatResults
     }
@@ -1323,6 +1331,7 @@ public class ChatResultViewModel : ObservableObject {
         var radius = 20000
         var limit:Int = 50
         var categories = ""
+        var tags = AssistiveChatHostTaggedWord()
         
         if let revisedQuery = intent.queryParameters?["query"] as? String {
             query = revisedQuery
@@ -1382,6 +1391,11 @@ public class ChatResultViewModel : ObservableObject {
             if let rawLimit = rawParameters["limit"] as? Int {
                 limit = rawLimit
             }
+            
+            if let rawTags = rawParameters["tags"] as? AssistiveChatHostTaggedWord {
+                tags = rawTags
+            }
+
         }
         
         print("Created query for search request:\(query) near location:\(String(describing: nearLocation)) with selected chat result: \(String(describing: location))")
@@ -1398,7 +1412,7 @@ public class ChatResultViewModel : ObservableObject {
         
         query = query.trimmingCharacters(in: .whitespacesAndNewlines)
         
-        let request = RecommendedPlaceSearchRequest(query: query, ll: ll, radius: radius, categories: categories, minPrice:minPrice, maxPrice:maxPrice, openNow: openNow, nearLocation: nearLocation, limit: limit)
+        let request = RecommendedPlaceSearchRequest(query: query, ll: ll, radius: radius, categories: categories, minPrice:minPrice, maxPrice:maxPrice, openNow: openNow, nearLocation: nearLocation, limit: limit, tags:tags)
         
         return request
     }

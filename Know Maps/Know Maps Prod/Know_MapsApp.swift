@@ -29,7 +29,7 @@ struct Know_MapsApp: App {
     
     
     public var analytics:Analytics? = Analytics(configuration: Know_MapsApp.config)
-
+    
     
     var body: some Scene {
         WindowGroup(id:"ContentView") {
@@ -41,11 +41,20 @@ struct Know_MapsApp: App {
                             .resizable()
                             .scaledToFit()
                             .frame(width:100 , height: 100)
+                        
+                        if !chatModel.locationProvider.isAuthorized() {
+                            Text("Know Maps requires access to your location. Please allow access to your location in System Preferences.")
+                            Button(action: {
+                                openLocationPreferences()
+                            }, label: {
+                                Label("Allow Access", systemImage: "arrow.2.circlepath.circle")
+                            })
+                        }
                     }
                 }
 #if os(visionOS) || os(macOS)
                 .frame(minWidth: 1280, minHeight: 720)
-                #endif
+#endif
                 .task {
                     do {
                         try await startup(chatModel: chatModel)
@@ -91,38 +100,38 @@ struct Know_MapsApp: App {
 #if os(visionOS) || os(macOS)
                         .frame(minWidth: 1280, minHeight: 720)                    #endif
                         .environmentObject(chatModel.cloudCache)
-                    .environmentObject(settingsModel)
-                    .environmentObject(chatModel.featureFlags)
-                    .task { @MainActor in
-                        do {
-                            try await chatModel.retrieveFsqUser()
-                        } catch {
-                            chatModel.analytics?.track(name: "error \(error)")
-                            print(error)
-                        }
-                        if chatModel.categoryResults.isEmpty {
-                            await chatModel.categoricalSearchModel()
-                        }
-                        
-                        do {
-                            try await chatModel.refreshCachedLocations(cloudCache: chatModel.cloudCache)
-                            var uuid = UUID()
-                            var minDistance = Double.greatestFiniteMagnitude
-                            for cachedLocation in chatModel.cachedLocationResults {
-                                if let location = cachedLocation.location {
-                                    if location.distance(from: chatModel.locationProvider.currentLocation()!) < minDistance {
-                                        uuid = cachedLocation.id
-                                        minDistance = location.distance(from: chatModel.locationProvider.currentLocation()!)
+                        .environmentObject(settingsModel)
+                        .environmentObject(chatModel.featureFlags)
+                        .task { @MainActor in
+                            do {
+                                try await chatModel.retrieveFsqUser()
+                            } catch {
+                                chatModel.analytics?.track(name: "error \(error)")
+                                print(error)
+                            }
+                            if chatModel.categoryResults.isEmpty {
+                                await chatModel.categoricalSearchModel()
+                            }
+                            
+                            do {
+                                try await chatModel.refreshCachedLocations(cloudCache: chatModel.cloudCache)
+                                var uuid = UUID()
+                                var minDistance = Double.greatestFiniteMagnitude
+                                for cachedLocation in chatModel.cachedLocationResults {
+                                    if let currentLocation = chatModel.locationProvider.currentLocation(), let location = cachedLocation.location {
+                                        if location.distance(from: currentLocation) < minDistance {
+                                            uuid = cachedLocation.id
+                                            minDistance = location.distance(from:currentLocation)
+                                        }
                                     }
                                 }
+                                chatModel.selectedDestinationLocationChatResult = uuid
+                            } catch {
+                                chatModel.analytics?.track(name: "error \(error)")
+                                print(error)
                             }
-                            chatModel.selectedDestinationLocationChatResult = uuid
-                        } catch {
-                            chatModel.analytics?.track(name: "error \(error)")
-                            print(error)
+                            
                         }
-                        
-                    }
                 }
             }
         }.windowResizability(.contentSize)
@@ -162,9 +171,9 @@ struct Know_MapsApp: App {
             let userRecord = try await chatModel.cloudCache.fetchCloudKitUserRecordID()
             settingsModel.keychainId = userRecord?.recordName
             chatModel.cloudCache.hasPrivateCloudAccess =  try await chatModel.retrieveFsqUser()
-            #if DEBUG
+#if DEBUG
             Purchases.logLevel = .debug
-            #endif
+#endif
             let purchasesId = settingsModel.purchasesId
             let revenuecatAPIKey = try await chatModel.cloudCache.apiKey(for: .revenuecat)
             Purchases.configure(withAPIKey: revenuecatAPIKey, appUserID: purchasesId)
@@ -173,15 +182,20 @@ struct Know_MapsApp: App {
             chatModel.featureFlags.updateFlags(with: customerInfo)
             isAuthorized = chatModel.locationProvider.isAuthorized()
             settingsModel.fetchSubscriptionOfferings()
-
+            
             try await chatModel.refreshCachedTastes(cloudCache: chatModel.cloudCache)
             
             isOnboarded = !chatModel.cachedTasteResults.isEmpty
             
-           if chatModel.cloudCache.hasPrivateCloudAccess, isAuthorized, isOnboarded {
+            if chatModel.cloudCache.hasPrivateCloudAccess, isAuthorized, isOnboarded {
                 showOnboarding = false
                 showSplashScreen = false
             } else if chatModel.cloudCache.hasPrivateCloudAccess, isAuthorized, !isOnboarded {
+                selectedTab = "Saving"
+                showSplashScreen = false
+            } else if chatModel.cloudCache.hasPrivateCloudAccess,
+                      !isAuthorized, !isOnboarded {
+                chatModel.locationProvider.authorize()
                 selectedTab = "Saving"
                 showSplashScreen = false
             }
@@ -199,4 +213,20 @@ struct Know_MapsApp: App {
             showSplashScreen = false
         }
     }
+    
+#if os(macOS)
+public func openLocationPreferences() {
+    if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_LocationServices") {
+        NSWorkspace.shared.open(url)
+    }
+}
+#else
+func openLocationPreferences() {
+    if let url = URL(string: UIApplication.openSettingsURLString) {
+        if UIApplication.shared.canOpenURL(url) {
+            UIApplication.shared.open(url, options: [:], completionHandler: nil)
+        }
+    }
+}
+#endif
 }

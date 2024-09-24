@@ -202,6 +202,7 @@ open class AssistiveChatHost : @preconcurrency AssistiveChatHostDelegate, ChatHo
                 }
                 
                 let tags = try tags(for: query)
+                rawParameters["tags"] = tags
                 
                 if let radius = radius(for: query) {
                     rawParameters["radius"] = radius
@@ -553,10 +554,7 @@ extension AssistiveChatHost {
         
         var NAICSCodes = [String]()
         
-        let components = query.components(separatedBy: "near")
-        if let prefix = components.first {
-            query = prefix.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
-        }
+        query = rawQuery.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
         
         for categoryCode in self.categoryCodes {
             let candidates = categoryCode.filter { categoryDict in
@@ -569,7 +567,7 @@ extension AssistiveChatHost {
                 
                 for subcategory in subcategories {
                     if let category = subcategory["category"] {
-                        if query.contains(category.lowercased()) {
+                        if query.contains(category.lowercased()) || category.lowercased().contains(query) {
                             return true
                         }
                     }
@@ -586,6 +584,8 @@ extension AssistiveChatHost {
                 }
             }
         }
+        
+        NAICSCodes = NAICSCodes.count > 1 ? Array(NAICSCodes.dropFirst()) : NAICSCodes
         
         return NAICSCodes
     }

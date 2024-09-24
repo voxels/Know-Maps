@@ -305,19 +305,22 @@ extension PersonalizedSearchSession {
             
             let locationQueryItem = URLQueryItem(name: "ll", value: rawLocation)
             components?.queryItems?.append(locationQueryItem)
-        } else {
-            var value = request.radius
-            if let nearLocation = request.nearLocation, !nearLocation.isEmpty {
-                value = 15000
-            }
-            let radiusQueryItem = URLQueryItem(name: "radius", value: "\(value)")
-            components?.queryItems?.append(radiusQueryItem)
-
-            if let rawLocation = request.ll {
-                let locationQueryItem = URLQueryItem(name: "ll", value: rawLocation)
-                components?.queryItems?.append(locationQueryItem)
-            }
+        } else if let rawLocation = request.ll {
+            let locationQueryItem = URLQueryItem(name: "ll", value: rawLocation)
+            components?.queryItems?.append(locationQueryItem)
         }
+        
+        var value = request.radius
+        if let nearLocation = request.nearLocation, !nearLocation.isEmpty {
+            value = 15000
+        }
+        
+        if let ll = request.ll, !ll.isEmpty {
+            value = 15000
+        }
+        
+        let radiusQueryItem = URLQueryItem(name: "radius", value: "\(value)")
+        components?.queryItems?.append(radiusQueryItem)
         
         if let categories = request.categories {
             let categoriesQueryItem = URLQueryItem(name:"categoryId", value:categories)
