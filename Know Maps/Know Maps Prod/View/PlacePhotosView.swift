@@ -19,8 +19,9 @@ struct PlacePhotosView: View {
                                         AsyncImage(url: url) { image in
                                             image
                                                 .resizable()
-                                                .aspectRatio(contentMode: .fit)
+                                                .aspectRatio(contentMode: .fill)
                                                 .cornerRadius(16)
+                                                .clipped()
                                         } placeholder: {
                                             Rectangle()
                                                 .foregroundColor(.gray)

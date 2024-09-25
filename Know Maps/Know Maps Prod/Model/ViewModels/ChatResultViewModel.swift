@@ -86,9 +86,12 @@ public class ChatResultViewModel : ObservableObject {
     public var filteredRecommendedPlaceResults:[ChatResult] {
         get {
             var retval = recommendedPlaceResults
-
             
             let unfilteredPlaceChatResults = retval
+            
+            retval = retval.filter({ result in
+                result.placeDetailsResponse?.dateClosed?.isEmpty ?? true
+            })
             
             if let selectedTasteCategoryResult = selectedTasteCategoryResult, let tasteCategoryResult = tasteChatResult(for: selectedTasteCategoryResult) {
                 retval = retval.filter { result in
@@ -157,20 +160,11 @@ public class ChatResultViewModel : ObservableObject {
     
     public var filteredPlaceResults:[ChatResult] {
         get {
-            var retval = placeResults.sorted { result, checkResult in
-                return result.title <= checkResult.title
-            }
-
-            if let selectedDestinationLocationChatResult = selectedDestinationLocationChatResult, let locationChatResult = locationChatResult(for: selectedDestinationLocationChatResult), let location = locationChatResult.location {
-                retval.sort { result, checkResult in
-                    guard let placeResponse = result.placeResponse, let checkPlaceResponse = checkResult.placeResponse else {
-                        return false
-                    }
-                    let resultLocation = CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude)
-                    let checkResultLocation = CLLocation(latitude: checkPlaceResponse.latitude, longitude: checkPlaceResponse.longitude)
-                    return resultLocation.distance(from: location) < checkResultLocation.distance(from: location)
-                }
-            }
+            var retval = placeResults
+            
+            retval = retval.filter({ result in
+                result.placeDetailsResponse?.dateClosed?.isEmpty ?? true
+            })
         
             return retval
         }
