@@ -312,11 +312,11 @@ extension PersonalizedSearchSession {
         
         var value = request.radius
         if let nearLocation = request.nearLocation, !nearLocation.isEmpty {
-            value = 15000
+            value = 25000
         }
         
         if let ll = request.ll, !ll.isEmpty {
-            value = 15000
+            value = 25000
         }
         
         let radiusQueryItem = URLQueryItem(name: "radius", value: "\(value)")
