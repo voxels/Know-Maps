@@ -121,6 +121,7 @@ struct PlacesList: View {
                                 }
                             }
                         }.padding(.horizontal, 16)
+                            .background(.black)
                     } else if chatModel.recommendedPlaceResults.isEmpty && chatModel.placeResults.count > 0 {
                         let threeColumn = Array(repeating: GridItem(.flexible(), spacing: PlaceAboutView.defaultPadding), count:sizeClass == .compact ? 1 : 2)
                         ScrollView {
@@ -207,6 +208,7 @@ struct PlacesList: View {
                                 }
                             }
                         }.padding(16)
+                            .background(.black)
                     } else {
                         List(chatModel.filteredPlaceResults,selection: $resultId){ result in
                             VStack(alignment: .center) {
@@ -228,6 +230,7 @@ struct PlacesList: View {
                                 chatModel.selectedPlaceChatResult = placeResponse.id
                             }
                         }
+                        .frame(width: geo.size.width, height: geo.size.height)
                 }
                 .toolbar {
                     ToolbarItem {
