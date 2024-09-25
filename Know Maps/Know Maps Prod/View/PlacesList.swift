@@ -224,13 +224,23 @@ struct PlacesList: View {
                         .padding(16)
                     }
                 }.sheet(isPresented: $sheetIsPresented) {
-                    MapResultsView(chatHost: chatHost, model: chatModel, locationProvider: locationProvider, selectedMapItem: $selectedItem, cameraPosition:$cameraPosition)
-                        .onChange(of: selectedItem) { oldValue, newValue in
-                            if let newValue, let placeResponse = chatModel.filteredPlaceResults.first(where: { $0.placeResponse?.fsqID == newValue }) {
-                                chatModel.selectedPlaceChatResult = placeResponse.id
+                    VStack(alignment: .center, spacing: 0) {
+                        HStack(alignment: .bottom, spacing: 0) {
+                            Spacer()
+                            Button(action:{
+                                sheetIsPresented.toggle()
+                            }, label:{
+                                Label("List", systemImage: "list.bullet").labelStyle(.iconOnly)
+                            })
+                        }.padding()
+                        MapResultsView(chatHost: chatHost, model: chatModel, locationProvider: locationProvider, selectedMapItem: $selectedItem, cameraPosition:$cameraPosition)
+                            .onChange(of: selectedItem) { oldValue, newValue in
+                                if let newValue, let placeResponse = chatModel.filteredPlaceResults.first(where: { $0.placeResponse?.fsqID == newValue }) {
+                                    chatModel.selectedPlaceChatResult = placeResponse.id
+                                }
                             }
-                        }
-                        .frame(width: geo.size.width, height: geo.size.height)
+                            .frame(width: geo.size.width, height: geo.size.height - 44)
+                    }
                 }
                 .toolbar {
                     ToolbarItem {
