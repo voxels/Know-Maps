@@ -78,7 +78,7 @@ public class ChatResultViewModel : ObservableObject {
     
     public func currentLocationName() async throws -> String? {
         if let location = locationProvider.currentLocation() {
-            return try await assistiveHostDelegate?.languageDelegate.lookUpLocation(location: location)?.first?.name ?? "Current Location"
+            return try await assistiveHostDelegate?.languageDelegate.lookUpLocation(location: location)?.first?.name
         }
         return nil
     }
@@ -1632,7 +1632,7 @@ extension ChatResultViewModel : @preconcurrency AssistiveChatHostMessagesDelegat
         
     }
     
-    public func updateLastIntentParameter(for placeChatResult:ChatResult, selectedDestinationChatResultID:LocationResult.ID) async throws {
+    public func updateLastIntentParameter(for placeChatResult:ChatResult, selectedDestinationChatResultID:LocationResult.ID?) async throws {
         guard let chatHost = assistiveHostDelegate, let lastIntent = assistiveHostDelegate?.queryIntentParameters?.queryIntents.last, lastIntent.placeSearchResponses.count > 0 else {
             return
         }
@@ -1698,10 +1698,6 @@ extension ChatResultViewModel : @preconcurrency AssistiveChatHostMessagesDelegat
         
         if selectedDestinationLocationChatResult == nil {
             selectedDestinationLocationChatResult = lastIntent.selectedDestinationLocationID
-        }
-        
-        guard let selectedDestinationLocationChatResult = selectedDestinationLocationChatResult else {
-            throw ChatResultViewModelError.MissingSelectedDestinationLocationChatResult
         }
         
         if selectedSourceLocationChatResult == nil {

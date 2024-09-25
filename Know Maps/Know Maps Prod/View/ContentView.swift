@@ -40,10 +40,10 @@ struct ContentView: View {
             NavigationSplitView(columnVisibility: $columnVisibility) {
                 VStack() {
                     NavigationLocationView(columnVisibility: $columnVisibility, chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, resultId: $chatModel.selectedPlaceChatResult)
-                        .navigationTitle("Locations")
+                        .navigationTitle("Destination")
                 }
                 .toolbar {
-                    ToolbarItem(placement: .automatic) {
+                    ToolbarItem(placement: .topBarLeading) {
                         Button {
 #if os(iOS) || os(visionOS)
                             popoverPresented.toggle()
@@ -62,10 +62,10 @@ struct ContentView: View {
 #endif
             } content: {
                 SearchView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, columnVisibility: $columnVisibility)
-                    .navigationTitle("Prompts")
+                    .navigationTitle("Prompt")
             } detail: {
                 PlacesList(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, resultId: $chatModel.selectedPlaceChatResult)
-                    .navigationTitle("Results")
+                    .navigationTitle("Places")
                     .alert("Unknown Place", isPresented: $didError) {
                         Button(action: {
                             chatModel.selectedPlaceChatResult = nil

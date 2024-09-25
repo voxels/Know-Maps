@@ -23,70 +23,8 @@ struct NavigationLocationView: View {
         GeometryReader { geo in
             Section {
                 List(chatModel.filteredLocationResults, selection:$chatModel.selectedDestinationLocationChatResult) { result in
+                    let isSaved = chatModel.cachedLocation(contains:result.locationName)
                     HStack {
-                        if let location = result.location, cloudCache.hasPrivateCloudAccess{
-                            let isSaved = chatModel.cachedLocation(contains: result.locationName)
-                            if isSaved {
-                                ZStack {
-                                    Capsule()
-#if os(macOS)
-                                        .foregroundStyle(.background)
-                                        .frame(width: 44, height:44)
-#else
-                                        .foregroundColor(Color(uiColor:.systemFill))
-                                        .frame(width: 44, height: 44, alignment: .center).padding(8)
-#endif
-                                    Label("Save", systemImage: "minus")
-                                    
-                                        .labelStyle(.iconOnly)
-                                }
-                                .foregroundStyle(.accent)
-                                .onTapGesture {
-                                    if let cachedLocationResults = chatModel.cachedLocationResults(for: "Location", identity:result.locationName) {
-                                        Task {
-                                        for cachedLocationResult in cachedLocationResults {
-                                            
-                                                try await cloudCache.deleteUserCachedRecord(for: cachedLocationResult)
-                                            }
-                                            try await chatModel.refreshCachedResults()
-
-                                        }
-                                    }
-                                }
-#if os(iOS) || os(visionOS)
-                                .hoverEffect(.lift)
-#endif
-                            } else {
-                                ZStack {
-                                    Capsule()
-#if os(macOS)
-                                        .foregroundStyle(.background)
-                                        .frame(width: 44, height:44)
-#else
-                                        .foregroundColor(Color(uiColor:.systemFill))
-                                        .frame(width: 44, height: 44, alignment: .center).padding(8)
-#endif
-                                    Label("Save", systemImage: "plus")
-                                    
-                                        .labelStyle(.iconOnly)
-                                    
-                                }
-                                .foregroundStyle(.accent)
-                                .onTapGesture {
-                                    Task(priority: .userInitiated) {
-                                        var userRecord = UserCachedRecord(recordId: "", group: "Location", identity: chatModel.cachedLocationIdentity(for: location), title: result.locationName, icons: "", list: nil)
-                                        let record = try await cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title)
-                                        userRecord.setRecordId(to:record)
-                                        chatModel.appendCachedLocation(with: userRecord)
-                                        chatModel.refreshCachedResults()
-                                    }
-                                }
-#if os(iOS) || os(visionOS)
-                                .hoverEffect(.lift)
-#endif
-                            }
-                        }
-                        
                         if result.id == chatModel.selectedDestinationLocationChatResult {
                             Label(result.locationName, systemImage: "mappin")
                                 .tint(.red)
@@ -94,41 +32,89 @@ struct NavigationLocationView: View {
                             Label(result.locationName, systemImage: "mappin")
                                 .tint(.blue)
                         }
+                        Spacer()
+                        isSaved ? Image(systemName: "checkmark.circle.fill") : Image(systemName: "circle")
                     }
                 }
-                .listStyle(.sidebar)
             }
-            .toolbar(content: {
-                ToolbarItem(placement: .automatic) {
-                    Button(showPopover ? "Done" : "Add", systemImage: showPopover ? "checkmark" :"plus") {
-                        showPopover.toggle()
-                        if showPopover {
-                            chatModel.locationSearchText.removeAll()
+            .listStyle(.sidebar)
+        }
+        .toolbar {
+            ToolbarItemGroup(placement: .topBarTrailing) {
+                Button("Current Location", systemImage:"location") {
+                    Task {
+                        do {
+                            if let currentLocationName = try await chatModel.currentLocationName() {
+                                try await chatModel.didSearch(caption:currentLocationName, selectedDestinationChatResultID:nil, intent:.Location)
+                            } else {
+                                showPopover.toggle()
+                            }
+                        } catch {
+                            chatModel.analytics?.track(name: "error \(error)")
+                            print(error)
                         }
-                    }.labelStyle(.iconOnly)
-                    .padding()
-                        .alert("Location Search", isPresented: $showPopover) {
-                            VStack {
-                                TextField("New York, NY", text: $searchText)
-                                    .padding()
-                                Button(action:{
-                                    if !searchText.isEmpty {
-                                            Task {
-                                                do {
-                                                    try await chatModel.didSearch(caption:searchText, selectedDestinationChatResultID:nil, intent:.Location)
-                                                } catch {
-                                                    chatModel.analytics?.track(name: "error \(error)")
-                                                    print(error)
+                    }
+                }
+                Button("Add", systemImage:"plus") {
+                    chatModel.locationSearchText.removeAll()
+                    showPopover.toggle()
+                }.labelStyle(.iconOnly)
+                    .alert("Location Search", isPresented: $showPopover) {
+                        VStack {
+                            TextField("New York, NY", text: $searchText)
+                                .padding()
+                            Button(action:{
+                                if !searchText.isEmpty {
+                                    Task {
+                                        do {
+                                            try await chatModel.didSearch(caption:searchText, selectedDestinationChatResultID:nil, intent:.Location)
+                                            if let selectedDestinationLocationChatResult = chatModel.selectedDestinationLocationChatResult,
+                                               let parent = chatModel.locationChatResult(for: selectedDestinationLocationChatResult)
+                                            {
+                                                
+                                                Task(priority: .userInitiated) {
+                                                    if let location = parent.location {
+                                                        var userRecord = UserCachedRecord(recordId: "", group: "Location", identity: chatModel.cachedLocationIdentity(for: location), title: parent.locationName, icons: "", list: nil)
+                                                        let record = try await cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title)
+                                                        userRecord.setRecordId(to:record)
+                                                        chatModel.appendCachedLocation(with: userRecord)
+                                                        chatModel.refreshCachedResults()
+                                                    }
                                                 }
                                             }
+                                        } catch {
+                                            chatModel.analytics?.track(name: "error \(error)")
+                                            print(error)
+                                        }
                                     }
-                                }, label:{
-                                    Text("Search")
-                                })
+                                }
+                            }, label:{
+                                Text("Search")
+                            })
+                        }
+                    }
+                
+                if let selectedDestinationLocationChatResult = chatModel.selectedDestinationLocationChatResult,
+                   let parent = chatModel.locationChatResult(for: selectedDestinationLocationChatResult)
+                {
+                    
+                    let isSaved = chatModel.cachedLocation(contains:parent.locationName)
+                    if isSaved {
+                        Button("Remove", systemImage:"minus") {
+                            if let cachedLocationResults = chatModel.cachedLocationResults(for: "Location", identity:parent.locationName) {
+                                Task {
+                                    for cachedLocationResult in cachedLocationResults {
+                                        
+                                        try await cloudCache.deleteUserCachedRecord(for: cachedLocationResult)
+                                    }
+                                    chatModel.refreshCachedResults()
+                                    
+                                }
                             }
                         }
+                    }
                 }
-            })
+            }
         }
     }
 }
