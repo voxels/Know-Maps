@@ -80,15 +80,15 @@ struct SearchView: View {
             chatModel.resetPlaceModel()
             Task { @MainActor in
                 if let newValue = newValue, let categoricalResult =
-                    chatModel.categoricalResult(for: newValue) {
-                    chatModel.locationSearchText = chatModel.categoricalResult(for: newValue)?.title ?? chatModel.locationSearchText
+                    chatModel.categoricalChatResult(for: newValue) {
+                    chatModel.locationSearchText = chatModel.categoricalChatResult(for: newValue)?.title ?? chatModel.locationSearchText
                     await chatHost.didTap(chatResult: categoricalResult, selectedDestinationChatResultID:chatModel.selectedDestinationLocationChatResult)
                 }
             }
         }.onChange(of: chatModel.selectedTasteCategoryResult, { oldValue, newValue in
             chatModel.resetPlaceModel()
             Task { @MainActor in
-                if let newValue = newValue, let tasteResult = chatModel.tasteResult(for: newValue) {
+                if let newValue = newValue, let tasteResult = chatModel.tasteChatResult(for: newValue) {
                     chatModel.locationSearchText = tasteResult.title
                     await chatHost.didTap(chatResult: tasteResult, selectedDestinationChatResultID:chatModel.selectedDestinationLocationChatResult)
                 }

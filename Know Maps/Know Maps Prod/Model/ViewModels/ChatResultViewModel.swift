@@ -90,7 +90,7 @@ public class ChatResultViewModel : ObservableObject {
             
             let unfilteredPlaceChatResults = retval
             
-            if let selectedTasteCategoryResult = selectedTasteCategoryResult, let tasteCategoryResult = tasteResult(for: selectedTasteCategoryResult) {
+            if let selectedTasteCategoryResult = selectedTasteCategoryResult, let tasteCategoryResult = tasteChatResult(for: selectedTasteCategoryResult) {
                 retval = retval.filter { result in
                     result.recommendedPlaceResponse?.tastes.contains(tasteCategoryResult.title) ?? false
                 }
@@ -487,8 +487,8 @@ public class ChatResultViewModel : ObservableObject {
         if parentCategory == nil {
             var allChildrenCategories = [CategoryResult]()
             for searchCategory in searchCategories {
-                if let children = searchCategory.children {
-                    for childCategory in children {
+                if !searchCategory.children.isEmpty {
+                    for childCategory in searchCategory.children {
                         allChildrenCategories.append(childCategory)
                     }
                 }
@@ -503,14 +503,14 @@ public class ChatResultViewModel : ObservableObject {
             return nil
         }
         
-        if parentCategory.id == selectedCategoryID, parentCategory.categoricalChatResults?.count == 1, let child = parentCategory.categoricalChatResults?.first, child.title == parentCategory.parentCategory {
-            return parentCategory.categoricalChatResults?.first
+        if parentCategory.id == selectedCategoryID, parentCategory.categoricalChatResults.count == 1, let child = parentCategory.categoricalChatResults.first, child.title == parentCategory.parentCategory {
+            return parentCategory.categoricalChatResults.first
         }
         
-        if let children = parentCategory.children {
-            for child in children {
+        if !parentCategory.children.isEmpty {
+            for child in parentCategory.children {
                 if child.id == selectedCategoryID {
-                    return child.categoricalChatResults?.first
+                    return child.categoricalChatResults.first
                 }
             }
         }
@@ -527,7 +527,17 @@ public class ChatResultViewModel : ObservableObject {
         return parentCategory
     }
     
-    public func tasteResult(for selectedCategoryID:CategoryResult.ID)->ChatResult? {
+    public func tasteResult(for selectedCategoryID:CategoryResult.ID)->CategoryResult? {
+        let searchCategories = tasteResults
+        
+        let parentCategory = searchCategories.first { result in
+            return result.id == selectedCategoryID
+        }
+        
+        return parentCategory
+    }
+    
+    public func tasteChatResult(for selectedCategoryID:CategoryResult.ID)->ChatResult? {
         let searchCategories = tasteResults
         
         let parentCategory = searchCategories.first { result in
@@ -539,7 +549,7 @@ public class ChatResultViewModel : ObservableObject {
         }
         
         if parentCategory.id == selectedCategoryID {
-            return parentCategory.categoricalChatResults?.first
+            return parentCategory.categoricalChatResults.first
         }
         
         
@@ -555,12 +565,12 @@ public class ChatResultViewModel : ObservableObject {
         return parentCategory
     }
     
-    public func categoricalResult(for selectedCategoryID:CategoryResult.ID)->ChatResult? {
+    public func categoricalResult(for selectedCategoryID:CategoryResult.ID)->CategoryResult? {
         var searchCategories = [CategoryResult]()
         for result in categoryResults {
             searchCategories.append(result)
-            if let children = result.children {
-                for child in children {
+            if !result.children.isEmpty {
+                for child in result.children {
                     searchCategories.append(child)
                 }
             }
@@ -568,9 +578,42 @@ public class ChatResultViewModel : ObservableObject {
         
         
         let parentCategory = searchCategories.first { result in
-            if let children = result.children {
+            if !result.children.isEmpty {
                 var foundChild = false
-                for child in children {
+                for child in result.children {
+                    if child.id == selectedCategoryID {
+                        print("found match:\(child.id)")
+                        foundChild = true
+                    }
+                }
+                if !foundChild {
+                    return result.id == selectedCategoryID
+                }
+            } else {
+                return result.id == selectedCategoryID
+            }
+            return false
+        }
+        
+        return parentCategory
+    }
+    
+    public func categoricalChatResult(for selectedCategoryID:CategoryResult.ID)->ChatResult? {
+        var searchCategories = [CategoryResult]()
+        for result in categoryResults {
+            searchCategories.append(result)
+            if !result.children.isEmpty {
+                for child in result.children {
+                    searchCategories.append(child)
+                }
+            }
+        }
+        
+        
+        let parentCategory = searchCategories.first { result in
+            if !result.children.isEmpty {
+                var foundChild = false
+                for child in result.children {
                     if child.id == selectedCategoryID {
                         print("found match:\(child.id)")
                         foundChild = true
@@ -590,13 +633,13 @@ public class ChatResultViewModel : ObservableObject {
         }
         
         if parentCategory.id == selectedCategoryID {
-            return parentCategory.categoricalChatResults?.last
+            return parentCategory.categoricalChatResults.last
         }
         
-        if let children = parentCategory.children {
-            for child in children {
+        if !parentCategory.children.isEmpty {
+            for child in parentCategory.children {
                 if child.id == selectedCategoryID {
-                    return child.categoricalChatResults?.first
+                    return child.categoricalChatResults.first
                 }
             }
         }
@@ -1200,8 +1243,8 @@ public class ChatResultViewModel : ObservableObject {
         
         for record in savedRecords {
             for placeResult in cachedPlaceResults {
-                if let chatResults = placeResult.categoricalChatResults, let list = placeResult.list, list == record.identity {
-                    for chatResult in chatResults {
+                if !placeResult.categoricalChatResults.isEmpty, let list = placeResult.list, list == record.identity {
+                    for chatResult in placeResult.categoricalChatResults {
                         if let existingArray = temp[record.title] {
                             var newArray = existingArray.1
                             newArray.append(chatResult)
@@ -1279,8 +1322,8 @@ public class ChatResultViewModel : ObservableObject {
                     }
                     
                     for result in existingResults {
-                        if let existingValues = result.categoricalChatResults {
-                            newChatResults.append(contentsOf:existingValues)
+                        if !result.categoricalChatResults.isEmpty {
+                            newChatResults.append(contentsOf:result.categoricalChatResults)
                         }
                         retval.removeAll { checkResult in
                             return checkResult.parentCategory == key

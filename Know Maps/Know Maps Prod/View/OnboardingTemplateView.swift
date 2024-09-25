@@ -99,7 +99,7 @@ struct OnboardingTemplateView: View {
                                 }
                             }
                         }
-                    } else if let result = chatModel.tasteResult(for: newValue) {
+                    } else if let result = chatModel.tasteChatResult(for: newValue) {
                         Task(priority: .userInitiated) {
                             do {
                                 var userRecord = UserCachedRecord(recordId: "", group: "Taste", identity: result.title, title:result.title, icons: "", list: nil)

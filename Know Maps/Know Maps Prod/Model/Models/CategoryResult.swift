@@ -7,51 +7,57 @@
 
 import Foundation
 
-public struct CategoryResult : Identifiable, Equatable, Hashable {
+@Observable
+public class CategoryResult : Identifiable, Equatable, Hashable {
     public static func == (lhs: CategoryResult, rhs: CategoryResult) -> Bool {
         lhs.id == rhs.id
     }
     
-    public let id = UUID()
-    let parentCategory:String
-    let list:String?
-    private(set) var categoricalChatResults:[ChatResult]?
-    public var children:[CategoryResult]?
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
     
-    public init(parentCategory: String, list:String? = nil, categoricalChatResults: [ChatResult]? = nil ) {
+    public let id = UUID()
+    var parentCategory:String
+    var list:String?
+    private(set) var categoricalChatResults:[ChatResult] = [ChatResult]()
+    public var children:[CategoryResult] = [CategoryResult]()
+    public var isExpanded:Bool = false
+    
+    public init(parentCategory: String, list:String? = nil, categoricalChatResults: [ChatResult]) {
         self.parentCategory = parentCategory
         self.list = list
         self.categoricalChatResults = categoricalChatResults
         self.children = children(with: self.categoricalChatResults)
     }
     
-    mutating func replaceChatResults(with results:[ChatResult]) {
+    func replaceChatResults(with results:[ChatResult]) {
         categoricalChatResults = results
         children = children(with: results)
     }
     
-    func children(with chatResults:[ChatResult]?)->[CategoryResult]? {
-        guard let chatResults = chatResults else {
-            return nil
-        }
+    func children(with chatResults:[ChatResult]?)->[CategoryResult] {
         var retval = [CategoryResult]()
+        guard let chatResults = chatResults else {
+            return retval
+        }
         for chatResult in chatResults {
             if chatResult.title != parentCategory {
                 let newCategoryResult = CategoryResult(parentCategory: chatResult.title, categoricalChatResults: [chatResult])
                 retval.append(newCategoryResult)
             }
         }
-        return retval.isEmpty ? nil : retval
+        return retval
     }
     
     func result(for id:ChatResult.ID)->ChatResult? {
-        return categoricalChatResults?.filter { result in
+        return categoricalChatResults.filter { result in
             result.id == id || result.parentId == id
         }.first
     }
     
     func result(title:String)->ChatResult? {
-        return categoricalChatResults?.filter { result in
+        return categoricalChatResults.filter { result in
             result.title.lowercased() == title.lowercased().trimmingCharacters(in: .whitespaces)
         }.first
     }

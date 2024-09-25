@@ -62,10 +62,10 @@ struct ContentView: View {
 #endif
             } content: {
                 SearchView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, columnVisibility: $columnVisibility)
-                    .navigationTitle("Lists")
+                    .navigationTitle("Prompts")
             } detail: {
                 PlacesList(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, resultId: $chatModel.selectedPlaceChatResult)
-                    .navigationTitle(chatModel.selectedPlaceChatResult != nil ? "" :  "Places")
+                    .navigationTitle("Results")
                     .alert("Unknown Place", isPresented: $didError) {
                         Button(action: {
                             chatModel.selectedPlaceChatResult = nil
