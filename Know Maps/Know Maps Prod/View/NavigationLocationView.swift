@@ -40,7 +40,7 @@ struct NavigationLocationView: View {
             .listStyle(.sidebar)
         }
         .toolbar {
-            ToolbarItemGroup(placement: .topBarTrailing) {
+            ToolbarItemGroup(placement: .automatic) {
                 Button("Current Location", systemImage:"location") {
                     Task {
                         do {
@@ -54,8 +54,8 @@ struct NavigationLocationView: View {
                             print(error)
                         }
                     }
-                }
-                Button("Add", systemImage:"plus") {
+                }.labelStyle(.iconOnly)
+                Button("Add Location", systemImage:"plus") {
                     chatModel.locationSearchText.removeAll()
                     showPopover.toggle()
                 }.labelStyle(.iconOnly)
@@ -100,7 +100,7 @@ struct NavigationLocationView: View {
                     
                     let isSaved = chatModel.cachedLocation(contains:parent.locationName)
                     if isSaved {
-                        Button("Remove", systemImage:"minus") {
+                        Button("Remove Location", systemImage:"minus") {
                             if let cachedLocationResults = chatModel.cachedLocationResults(for: "Location", identity:parent.locationName) {
                                 Task {
                                     for cachedLocationResult in cachedLocationResults {
@@ -111,7 +111,7 @@ struct NavigationLocationView: View {
                                     
                                 }
                             }
-                        }
+                        }.labelStyle(.iconOnly)
                     }
                 }
             }

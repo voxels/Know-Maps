@@ -43,7 +43,7 @@ struct ContentView: View {
                         .navigationTitle("Destination")
                 }
                 .toolbar {
-                    ToolbarItem(placement: .topBarLeading) {
+                    ToolbarItem(placement: .automatic) {
                         Button {
 #if os(iOS) || os(visionOS)
                             popoverPresented.toggle()

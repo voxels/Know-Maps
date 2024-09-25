@@ -37,9 +37,9 @@ struct SearchSavedView: View {
                 }
             }
             .toolbar {
-                ToolbarItemGroup(placement:.topBarTrailing) {
+                ToolbarItemGroup(placement:.automatic) {
                     
-                    if sectionSelection == "Category", let parentID = chatModel.selectedCategoryResult, let parent = chatModel.categoricalResult(for: parentID) {
+                    if sectionSelection == "Industry", let parentID = chatModel.selectedCategoryResult, let parent = chatModel.categoricalResult(for: parentID) {
                         if chatModel.cachedCategories(contains: parent.parentCategory) {
                             Button("Remove", systemImage: "minus") {
                                 guard let cachedCategoricalResults =  chatModel.cachedCategoricalResults(for: "Category", identity: parent.parentCategory) else { return }
