@@ -10,7 +10,7 @@ import CoreLocation
 import MapKit
 
 struct PlacesList: View {
-    @Environment(\.horizontalSizeClass) var sizeClass
+    @Environment(\.verticalSizeClass) var sizeClass
     @StateObject public var placeDirectionsChatViewModel = PlaceDirectionsViewModel(rawLocationIdent: "")
     @ObservedObject public var chatHost:AssistiveChatHost
     @ObservedObject public var chatModel:ChatResultViewModel
@@ -59,8 +59,8 @@ struct PlacesList: View {
                                                     EmptyView()
                                                 }
                                             }
-                                            .padding(.bottom, 112)
-                                            Rectangle().foregroundStyle(.regularMaterial).frame( height:112)
+                                            .padding(.bottom,  128)
+                                            Rectangle().foregroundStyle(.regularMaterial).frame( height:128)
                                             VStack {
                                                 
                                                 if let neighborhood = result.recommendedPlaceResponse?.neighborhood, !neighborhood.isEmpty {
@@ -68,13 +68,13 @@ struct PlacesList: View {
                                                     Text(result.title).bold()
                                                         .lineLimit(2)
                                                         .multilineTextAlignment(.center)
-                                                        .padding(EdgeInsets(top: 0, leading: 8, bottom: 0, trailing: 8)
-                                                    )
+                                                        .padding(.horizontal, 8)
                                                     Text(neighborhood).italic()
+                                                        .padding(.horizontal, 8)
                                                 } else{
                                                     Spacer()
-                                                    Text(result.title).bold().lineLimit(2).padding(8
-                                                    )
+                                                    Text(result.title).bold().lineLimit(2)
+                                                        .padding(.horizontal, 8)
                                                     Text("")
                                                 }
                                                 HStack {
@@ -83,18 +83,18 @@ struct PlacesList: View {
                                                              placeResponse.address : placeResponse.formattedAddress )
                                                         .lineLimit(2)
                                                         .italic()
-                                                        .padding(EdgeInsets(top: 0, leading: 8, bottom: 0, trailing: 0))
-                                                    }
+                                                        .padding(.horizontal, 8)                                                    }
                                                 }
                                             }.padding(EdgeInsets(top: 0, leading: 0, bottom: 16, trailing: 0))
                                         } else {
                                             RoundedRectangle(cornerSize: CGSize(width: 16, height: 16)).foregroundStyle(.regularMaterial)
                                             VStack {
                                                 Spacer()
-                                                Text(result.title).bold().lineLimit(2).padding(8)
+                                                Text(result.title).bold().lineLimit(2).padding(.horizontal, 8)
                                                 if let neighborhood = result.recommendedPlaceResponse?.neighborhood, !neighborhood.isEmpty {
                                                     
                                                     Text(neighborhood).italic()
+                                                        .padding(.horizontal, 8)
                                                 } else{
                                                     Text("")
                                                 }
@@ -104,7 +104,7 @@ struct PlacesList: View {
                                                              placeResponse.address : placeResponse.formattedAddress )
                                                         .lineLimit(2)
                                                         .italic()
-                                                        .padding(EdgeInsets(top: 0, leading: 8, bottom: 0, trailing: 0))
+                                                        .padding(.horizontal, 8)
                                                     }
                                                 }
                                             }.padding(EdgeInsets(top: 0, leading: 0, bottom: 16, trailing: 0))
@@ -112,7 +112,7 @@ struct PlacesList: View {
                                         
                                     })
                                     .background(.ultraThinMaterial)
-                                    .frame(width:sizeClass == .compact ? geo.size.width : geo.size.width / 2)
+                                    .frame(maxWidth: geo.size.width - 32, maxHeight:geo.size.height/2 - 16)
                                     .contentShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                                     .cornerRadius(16)
                                     .onTapGesture {
@@ -145,21 +145,20 @@ struct PlacesList: View {
                                                     EmptyView()
                                                 }
                                             }
-                                            .padding(.bottom, 112)
-                                            .frame(maxWidth:sizeClass == .compact ? geo.size.width : geo.size.width / 2)
-                                            Rectangle().foregroundStyle(.regularMaterial).frame( height:112)
+                                            .padding(.bottom, 128)
+                                            .frame(maxWidth:sizeClass == .compact ? geo.size.width - 32 : geo.size.width / 2 - 40, maxHeight:geo.size.height/2 - 16)
+                                            Rectangle().foregroundStyle(.regularMaterial).frame( height:128)
                                             VStack(alignment: .center) {
                                                 Spacer()
                                                 if let neighborhood = result.placeResponse?.locality, !neighborhood.isEmpty {
                                                     Spacer()
-                                                    Text(result.title).bold().lineLimit(2).padding(EdgeInsets(top: 0, leading: 8, bottom: 0, trailing: 8)
-                                                    )
-                                                    Text(neighborhood).italic()
+                                                    Text(result.title).bold().lineLimit(2).padding(.horizontal, 8)
+                                                    Text(neighborhood).italic().padding(.horizontal, 8)
+                                                    
                                                 } else{
                                                     Spacer()
-                                                    Text(result.title).bold().lineLimit(2).padding(8
-                                                    )
-                                                    Text("")
+                                                    Text(result.title).bold().lineLimit(2)
+                                                        .padding(.horizontal, 8)
                                                 }
                                                 HStack {
                                                     if let placeResponse = result.placeResponse {
@@ -167,7 +166,7 @@ struct PlacesList: View {
                                                              placeResponse.address : placeResponse.formattedAddress )
                                                         .lineLimit(2)
                                                         .italic()
-                                                        .padding(EdgeInsets(top: 0, leading: 8, bottom: 0, trailing: 0))
+                                                        .padding(.horizontal, 8)
                                                     }
                                                 }
                                                 Spacer()
@@ -198,7 +197,7 @@ struct PlacesList: View {
                                         }
                                         
                                     })
-                                    .frame(width:sizeClass == .compact ? geo.size.width : geo.size.width / 2)
+                                    .frame(maxWidth: geo.size.width - 32, maxHeight: geo.size.height / 2 - 16)
                                     .background(.ultraThinMaterial)
                                     .contentShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                                     .cornerRadius(16)
