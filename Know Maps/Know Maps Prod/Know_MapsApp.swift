@@ -109,10 +109,7 @@ struct Know_MapsApp: App {
                                 chatModel.analytics?.track(name: "error \(error)")
                                 print(error)
                             }
-                            if chatModel.categoryResults.isEmpty {
-                                await chatModel.categoricalSearchModel()
-                            }
-                            
+                                                        
                             do {
                                 try await chatModel.refreshCachedLocations(cloudCache: chatModel.cloudCache)
                                 var uuid = UUID()

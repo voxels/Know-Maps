@@ -129,7 +129,7 @@ struct PopoverToolbarView: View {
     
     private func removeCategory(parent: CategoryResult) -> () -> Void {
         return {
-            guard let cachedResults = chatModel.cachedCategoricalResults(for: "Category", identity: parent.parentCategory) else { return }
+            guard let cachedResults = chatModel.cachedResults(for: "Category", identity: parent.parentCategory) else { return }
             Task {
                 for result in cachedResults {
                     try await chatModel.cloudCache.deleteUserCachedRecord(for: result)
@@ -153,7 +153,7 @@ struct PopoverToolbarView: View {
     
     private func removeTaste(parent: CategoryResult) -> () -> Void {
         return {
-            guard let cachedResults = chatModel.cachedTasteResults(for: "Taste", identity: parent.parentCategory) else { return }
+            guard let cachedResults = chatModel.cachedResults(for: "Taste", identity: parent.parentCategory) else { return }
             for result in cachedResults {
                 Task {
                     try await chatModel.cloudCache.deleteUserCachedRecord(for: result)

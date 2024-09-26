@@ -84,7 +84,7 @@ struct OnboardingTemplateView: View {
                         
                         let isSaved = chatModel.cachedTastes(contains: result.parentCategory)
                         if isSaved {
-                            if let cachedTasteResults = chatModel.cachedTasteResults(for: "Taste", identity: result.parentCategory) {
+                            if let cachedTasteResults = chatModel.cachedResults(for: "Taste", identity: result.parentCategory) {
                                 for cachedTasteResult in cachedTasteResults {
                                     Task(priority: .userInitiated) {
                                         do {

@@ -50,6 +50,7 @@ struct SearchCategoryView: View {
         }.task {
             Task {
                 do {
+                    await chatModel.categoricalSearchModel()
                     try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
                 } catch {
                     print(error)

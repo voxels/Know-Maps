@@ -101,7 +101,7 @@ struct NavigationLocationView: View {
                     let isSaved = chatModel.cachedLocation(contains:parent.locationName)
                     if isSaved {
                         Button("Remove Location", systemImage:"minus") {
-                            if let cachedLocationResults = chatModel.cachedLocationResults(for: "Location", identity:parent.locationName) {
+                            if let cachedLocationResults = chatModel.cachedResults(for: "Location", identity:parent.locationName) {
                                 Task {
                                     for cachedLocationResult in cachedLocationResults {
                                         

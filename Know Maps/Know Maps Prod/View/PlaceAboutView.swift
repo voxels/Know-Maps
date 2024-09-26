@@ -292,7 +292,7 @@ struct PlaceAboutView: View {
                                                 .onTapGesture {
                                                     let isSaved = chatModel.cachedTastes(contains: taste)
                                                     if isSaved {
-                                                        if let cachedTasteResults = chatModel.cachedTasteResults(for: "Taste", identity: taste) {
+                                                        if let cachedTasteResults = chatModel.cachedResults(for: "Taste", identity: taste) {
                                                             for cachedTasteResult in cachedTasteResults {
                                                                 Task {
                                                                     do {
