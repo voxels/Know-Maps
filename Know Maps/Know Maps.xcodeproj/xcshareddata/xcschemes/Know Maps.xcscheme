@@ -52,6 +52,17 @@
                ReferencedContainer = "container:Know Maps.xcodeproj">
             </BuildableReference>
          </TestableReference>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "1EE599B22CA4A6DE00C211A6"
+               BuildableName = "Know MapsTests.xctest"
+               BlueprintName = "Know MapsTests"
+               ReferencedContainer = "container:Know Maps.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
    </TestAction>
    <LaunchAction

@@ -39,9 +39,7 @@ open class PersonalizedSearchSession {
         self.cloudCache = cloudCache
         self.searchSession = searchSession
     }
-}
-
-extension PersonalizedSearchSession {
+    
     @discardableResult
     public func fetchManagedUserIdentity() async throws ->String? {
         let cloudFsqIdentity = try await cloudCache.fetchFsqIdentity()
@@ -125,9 +123,7 @@ extension PersonalizedSearchSession {
         
         return true
     }
-}
 
-extension PersonalizedSearchSession {
     public func autocompleteTastes(caption:String, parameters:[String:Any]?) async throws -> [String:Any] {
         
         let apiKey = try await fetchManagedUserAccessToken()
@@ -440,9 +436,7 @@ extension PersonalizedSearchSession {
 
         return retval
     }
-}
 
-extension PersonalizedSearchSession {
     private func fetchFoursquareServiceAPIKey() async throws -> String? {
         let task = Task.init { () -> Bool in
             let predicate = NSPredicate(format: "service == %@", "foursquareService")
@@ -487,10 +481,7 @@ extension PersonalizedSearchSession {
         let _ = try await task.value
         return fsqServiceAPIKey
     }
-}
-
-
-extension PersonalizedSearchSession {
+    
     internal func fetch(url:URL, apiKey:String, urlQueryItems:[URLQueryItem]? = nil, httpMethod:String = "GET") async throws -> Any {
         print("Requesting URL: \(url)")
         

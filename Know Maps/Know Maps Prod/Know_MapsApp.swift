@@ -183,7 +183,7 @@ struct Know_MapsApp: App {
             isAuthorized = chatModel.locationProvider.isAuthorized()
             settingsModel.fetchSubscriptionOfferings()
             
-            try await chatModel.refreshCachedTastes(cloudCache: chatModel.cloudCache)
+            try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
             
             isOnboarded = !chatModel.cachedTasteResults.isEmpty
             

@@ -20,7 +20,7 @@ struct SearchTasteView: View {
                         isLoadingNextPage = true
                         Task {
                             do {
-                                try await model.refreshTastes(page: model.lastFetchedTastePage)
+                                try await model.refreshTastes(page: model.lastFetchedTastePage + 1)
                             } catch {
                                 model.analytics?.track(name: "error \(error)")
                                 print(error)
@@ -36,6 +36,7 @@ struct SearchTasteView: View {
                 }
                 
                 Task {
+                    model.lastFetchedTastePage = 0
                     do {
                         try await model.refreshTastes(page:model.lastFetchedTastePage)
                     } catch {

@@ -78,7 +78,7 @@ struct SettingsView: View {
                     do {
                         try await cloudCache.deleteAllUserCachedGroups()
                         chatModel.removeCachedResults()
-                        try await chatModel.refreshCachedTastes(cloudCache: cloudCache)
+                        try await chatModel.refreshCache(cloudCache: cloudCache)
                         isOnboarded = false
                         showOnboarding = true
                     } catch {

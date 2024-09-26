@@ -89,7 +89,7 @@ struct OnboardingTemplateView: View {
                                     Task(priority: .userInitiated) {
                                         do {
                                             try await chatModel.cloudCache.deleteUserCachedRecord(for: cachedTasteResult)
-                                            try await chatModel.refreshCachedTastes(cloudCache: cloudCache)
+                                            try await chatModel.refreshCache(cloudCache: cloudCache)
                                         } catch {
                                             chatModel.analytics?.track(name: "error \(error)")
                                             print(error)
