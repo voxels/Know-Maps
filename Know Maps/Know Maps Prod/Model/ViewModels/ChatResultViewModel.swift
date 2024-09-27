@@ -209,10 +209,12 @@ final class ChatResultViewModel: ObservableObject {
         await withTaskGroup(of: Void.self) { group in
             group.addTask { await self.refreshCachedCategories(cloudCache: cloudCache) }
             group.addTask { await self.refreshCachedTastes(cloudCache: cloudCache) }
-            group.addTask { await self.refreshCachedLists(cloudCache: cloudCache) }
+            group.addTask { await self.refreshCachedPlaces(cloudCache: cloudCache) }
         }
         
+        await self.refreshCachedLists(cloudCache: cloudCache)
         refreshCachedResults()
+        
         isRefreshingCache = false
     }
     
@@ -238,28 +240,24 @@ final class ChatResultViewModel: ObservableObject {
         }
     }
     
+    private func refreshCachedPlaces(cloudCache:CloudCache) async {
+        do {
+            self.cachedPlaceRecords = try await cloudCache.fetchGroupedUserCachedRecords(for: "Place")
+            self.cachedPlaceResults = self.savedPlaceResults()
+        } catch {
+            print(error)
+            self.analytics?.track(name: "error \(error)")
+        }
+    }
+    
     @MainActor
     private func refreshCachedLists(cloudCache: CloudCache) async {
-        await withTaskGroup(of: Void.self) { group in
-            group.addTask { @MainActor in
-                do {
-                    self.cachedPlaceRecords = try await cloudCache.fetchGroupedUserCachedRecords(for: "Place")
-                    self.cachedPlaceResults = self.savedPlaceResults()
-                } catch {
-                    print(error)
-                    self.analytics?.track(name: "error \(error)")
-                }
-            }
-            
-            group.addTask { @MainActor in
-                do {
-                    self.cachedListRecords = try await cloudCache.fetchGroupedUserCachedRecords(for: "List")
-                    self.cachedListResults = self.savedListResults()
-                } catch {
-                    print(error)
-                    self.analytics?.track(name: "error \(error)")
-                }
-            }
+        do {
+            self.cachedListRecords = try await cloudCache.fetchGroupedUserCachedRecords(for: "List")
+            self.cachedListResults = self.savedListResults()
+        } catch {
+            print(error)
+            self.analytics?.track(name: "error \(error)")
         }
     }
     
@@ -449,7 +447,7 @@ final class ChatResultViewModel: ObservableObject {
     private func savedTasteResults() -> [CategoryResult] {
         return cachedTasteRecords?.map {
             let chatResults = [ChatResult(title: $0.title, placeResponse: nil, recommendedPlaceResponse: nil)]
-            return CategoryResult(parentCategory: $0.title, categoricalChatResults: chatResults)
+            return CategoryResult(parentCategory: $0.title, list: $0.list, categoricalChatResults: chatResults)
         } ?? []
     }
     
@@ -498,16 +496,33 @@ final class ChatResultViewModel: ObservableObject {
                     }
                 }
             }
+            
+            for tasteResult in cachedTasteResults {
+                if let list = tasteResult.list, list == record.identity {
+                    if var existing = temp[record.title] {
+                        existing.1.append(contentsOf: tasteResult.categoricalChatResults)
+                        temp[record.title] = existing
+                    } else {
+                        temp[record.title] = (list, tasteResult.categoricalChatResults)
+                    }
+                }
+            }
+            
             if temp[record.title] == nil {
                 temp[record.title] = (record.identity, [])
             }
         }
-        return temp.map { CategoryResult(parentCategory: $0.key, list: $0.value.0, categoricalChatResults: $0.value.1) }
+ 
+        return temp.map {
+            CategoryResult(parentCategory: $0.key, list: $0.value.0, categoricalChatResults: $0.value.1)
+        }.sorted {
+            $0.parentCategory.lowercased() < $1.parentCategory.lowercased()
+        }
     }
     
     private func allSavedResults() -> [CategoryResult] {
-        var results = cachedCategoryResults + cachedTasteResults + cachedListResults
-        results.sort { $0.parentCategory < $1.parentCategory }
+        var results = cachedCategoryResults + cachedTasteResults.filter({$0.list == nil}) + cachedListResults
+        results.sort { $0.parentCategory.lowercased() < $1.parentCategory.lowercased() }
         return results
     }
     

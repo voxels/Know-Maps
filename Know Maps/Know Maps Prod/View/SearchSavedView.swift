@@ -72,9 +72,9 @@ struct PopoverContentView: View {
                     }
 
                 SearchPlacesView(model: chatModel)
-                    .tag("Places")
+                    .tag("Place")
                     .tabItem {
-                        Label("Places", systemImage: "mappin")
+                        Label("Place", systemImage: "mappin")
                     }
                     .onAppear() {
                         contentViewDetail = .places
@@ -223,7 +223,6 @@ struct SavedListView: View {
                     }
                 }
             }
-            .onMove(perform: moveItem)
             .onDelete(perform: deleteItem)
         }
         .listStyle(.sidebar)

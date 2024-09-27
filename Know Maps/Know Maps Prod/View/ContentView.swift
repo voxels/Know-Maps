@@ -76,7 +76,7 @@ struct ContentView: View {
                 switch contentViewDetail {
                 case .places:
                     PlacesList(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, resultId: $chatModel.selectedPlaceChatResult)
-                        .navigationTitle("Places")
+                        .navigationTitle("Place")
                         .alert("Unknown Place", isPresented: $didError) {
                             Button(action: {
                                 chatModel.selectedPlaceChatResult = nil
