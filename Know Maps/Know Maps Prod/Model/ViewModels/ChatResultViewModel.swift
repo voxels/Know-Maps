@@ -702,7 +702,7 @@ final class ChatResultViewModel: ObservableObject {
             }
         case .AutocompleteTastes:
             do {
-                try await autocompleteTastes(lastIntent: intent)
+                    try await autocompleteTastes(lastIntent: intent)
                 analytics?.track(name: "modelAutocompletePlaceModelBuilt")
             }
         }

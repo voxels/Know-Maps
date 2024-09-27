@@ -16,6 +16,7 @@
 		1E9039732B8B5F2100C3BA42 /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = 1E9039722B8B5F2100C3BA42 /* RevenueCat */; };
 		1E9039752B8B5F3B00C3BA42 /* RevenueCatUI in Frameworks */ = {isa = PBXBuildFile; productRef = 1E9039742B8B5F3B00C3BA42 /* RevenueCatUI */; };
 		1E9039772B8B5F4100C3BA42 /* ReceiptParser in Frameworks */ = {isa = PBXBuildFile; productRef = 1E9039762B8B5F4100C3BA42 /* ReceiptParser */; };
+		1E91AA1F2CA6F40E00F63C3A /* PromptRankingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E91AA1E2CA6F40E00F63C3A /* PromptRankingView.swift */; };
 		1EF378E22C986EE7001C5E39 /* Know_MapsApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EA7F74C2B03FA71002AE371 /* Know_MapsApp.swift */; };
 		1EF378E32C986EE7001C5E39 /* AssistiveChatHost.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EA7F7952B052DE4002AE371 /* AssistiveChatHost.swift */; };
 		1EF378E42C986EE7001C5E39 /* CloudCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E630C852B16440100A57CCB /* CloudCache.swift */; };
@@ -131,6 +132,7 @@
 		1E7121402B616C6400758259 /* RecommendedPlaceSearchResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecommendedPlaceSearchResponse.swift; sourceTree = "<group>"; };
 		1E8E5AFA2CA03D8600B37E6A /* SearchPlacesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchPlacesView.swift; sourceTree = "<group>"; };
 		1E9039782B8B650C00C3BA42 /* Know Maps ProdDebug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Know Maps ProdDebug.entitlements"; sourceTree = "<group>"; };
+		1E91AA1E2CA6F40E00F63C3A /* PromptRankingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PromptRankingView.swift; sourceTree = "<group>"; };
 		1E98C7CE2B18DC2200283E92 /* ChatHostingViewControllerDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatHostingViewControllerDelegate.swift; sourceTree = "<group>"; };
 		1E98C7D02B18DC4100283E92 /* AssistiveChatHostStreamResponseDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistiveChatHostStreamResponseDelegate.swift; sourceTree = "<group>"; };
 		1E98C7D22B18DC7400283E92 /* AssistiveChatHostIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistiveChatHostIntent.swift; sourceTree = "<group>"; };
@@ -365,6 +367,7 @@
 				1EE068892B0D1E2B0016851A /* PlaceDirectionsView.swift */,
 				1EE0688B2B0D1E930016851A /* PlacePhotosView.swift */,
 				1EE0688D2B0D1EB40016851A /* PlaceTipsView.swift */,
+				1E91AA1E2CA6F40E00F63C3A /* PromptRankingView.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -583,6 +586,7 @@
 				1E8E5AFB2CA03D8F00B37E6A /* SearchPlacesView.swift in Sources */,
 				1EF378F62C986EE7001C5E39 /* PlacePhotoResponse.swift in Sources */,
 				1EF378F72C986EE7001C5E39 /* PlaceSearchRequest.swift in Sources */,
+				1E91AA1F2CA6F40E00F63C3A /* PromptRankingView.swift in Sources */,
 				1EF378F82C986EE7001C5E39 /* PlaceSearchResponse.swift in Sources */,
 				1EF378F92C986EE7001C5E39 /* PlaceTipsResponse.swift in Sources */,
 				1EF378FA2C986EE7001C5E39 /* PlaceResponseFormatter.swift in Sources */,

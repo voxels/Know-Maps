@@ -6,6 +6,7 @@ struct SearchSavedView: View {
     @ObservedObject public var chatModel: ChatResultViewModel
     @ObservedObject public var locationProvider: LocationProvider
     @Binding public var columnVisibility: NavigationSplitViewVisibility
+    @Binding public var contentViewDetail:ContentDetailView
     @State private var showPopover: Bool = false
     @State private var sectionSelection: String = "Industry"
 
@@ -15,20 +16,20 @@ struct SearchSavedView: View {
                 chatHost: chatHost,
                 chatModel: chatModel,
                 locationProvider: locationProvider,
-                sectionSelection: $sectionSelection
+                sectionSelection: $sectionSelection, contentViewDetail: $contentViewDetail
             )
             .toolbar {
                 ToolbarItemGroup(placement: .automatic) {
                     PopoverToolbarView(
                         chatModel: chatModel,
                         sectionSelection: $sectionSelection,
-                        showPopover: $showPopover
+                        showPopover: $showPopover, contentViewDetail: $contentViewDetail
                     )
                 }
             }
         } else {
             Section {
-                SavedListView(chatModel: chatModel)
+                SavedListView(chatModel: chatModel, contentViewDetail: $contentViewDetail)
             }
             .toolbar {
                 ToolbarItemGroup(placement: .automatic) {
@@ -48,7 +49,8 @@ struct PopoverContentView: View {
     @ObservedObject public var chatModel: ChatResultViewModel
     @ObservedObject public var locationProvider: LocationProvider
     @Binding public var sectionSelection: String
-
+    @Binding public var contentViewDetail:ContentDetailView
+    
     var body: some View {
         Section {
             TabView(selection: $sectionSelection) {
@@ -57,21 +59,33 @@ struct PopoverContentView: View {
                     .tabItem {
                         Label("Industry", systemImage: "building")
                     }
-                
+                    .onAppear() {
+                        contentViewDetail = .places
+                    }
                 SearchTasteView(model: chatModel)
                     .tag("Taste")
                     .tabItem {
                         Label("Taste", systemImage: "heart")
                     }
+                    .onAppear() {
+                        contentViewDetail = .places
+                    }
+
                 SearchPlacesView(model: chatModel)
                     .tag("Places")
                     .tabItem {
                         Label("Places", systemImage: "mappin")
                     }
-                SearchEditView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider)
+                    .onAppear() {
+                        contentViewDetail = .places
+                    }
+                SearchEditView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, contentViewDetail: $contentViewDetail)
                     .tag("AI")
                     .tabItem {
                         Label("AI", systemImage: "atom")
+                    }
+                    .onAppear() {
+                        contentViewDetail = .lists
                     }
             }
         }
@@ -82,6 +96,7 @@ struct PopoverToolbarView: View {
     @ObservedObject public var chatModel: ChatResultViewModel
     @Binding public var sectionSelection: String
     @Binding public var showPopover: Bool
+    @Binding public var contentViewDetail:ContentDetailView
 
     var body: some View {
             if sectionSelection == "Industry",
@@ -119,6 +134,7 @@ struct PopoverToolbarView: View {
             
             Button(action: {
                 chatModel.refreshCachedResults()
+                contentViewDetail = .places
                 showPopover = false
             }) {
                 Label("Done", systemImage: "checkmark")
@@ -178,7 +194,8 @@ struct PopoverToolbarView: View {
 
 struct SavedListView: View {
     @ObservedObject public var chatModel: ChatResultViewModel
-
+    @Binding public var contentViewDetail:ContentDetailView
+    
     var body: some View {
         List(selection: $chatModel.selectedSavedResult) {
             ForEach(chatModel.allCachedResults, id: \.id) { parent in

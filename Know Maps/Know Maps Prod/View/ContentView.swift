@@ -10,6 +10,11 @@ import RealityKit
 import Segment
 import MapKit
 
+public enum ContentDetailView {
+    case places
+    case lists
+}
+
 struct ContentView: View {
     
     @EnvironmentObject public var cloudCache:CloudCache
@@ -31,10 +36,14 @@ struct ContentView: View {
 #endif
     @Binding public var isOnboarded:Bool
     @Binding public var showOnboarding:Bool
-
-    @State private var selectedTab = "Search"
+    
     @State private var popoverPresented:Bool = false
     @State private var didError = false
+    @State private var contentViewDetail:ContentDetailView = .places
+    
+
+    
+    
     var body: some View {
         GeometryReader() { geo in
             NavigationSplitView(columnVisibility: $columnVisibility) {
@@ -61,20 +70,25 @@ struct ContentView: View {
                 }
 #endif
             } content: {
-                SearchView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, columnVisibility: $columnVisibility)
+                SearchView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, columnVisibility: $columnVisibility, contentViewDetail: $contentViewDetail)
                     .navigationTitle("Prompt")
             } detail: {
-                PlacesList(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, resultId: $chatModel.selectedPlaceChatResult)
-                    .navigationTitle("Places")
-                    .alert("Unknown Place", isPresented: $didError) {
-                        Button(action: {
-                            chatModel.selectedPlaceChatResult = nil
-                        }, label: {
-                            Text("Go Back")
-                        })
-                    } message: {
-                        Text("We don't know much about this place.")
-                    }
+                switch contentViewDetail {
+                case .places:
+                    PlacesList(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, resultId: $chatModel.selectedPlaceChatResult)
+                        .navigationTitle("Places")
+                        .alert("Unknown Place", isPresented: $didError) {
+                            Button(action: {
+                                chatModel.selectedPlaceChatResult = nil
+                            }, label: {
+                                Text("Go Back")
+                            })
+                        } message: {
+                            Text("We don't know much about this place.")
+                        }
+                case .lists:
+                    PromptRankingView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, contentViewDetail: $contentViewDetail)
+                }
             }
             .navigationSplitViewStyle(.balanced)
             .onAppear(perform: {

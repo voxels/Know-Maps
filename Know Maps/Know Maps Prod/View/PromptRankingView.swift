@@ -1,13 +1,15 @@
 //
-//  SearchEditView.swift
+//  PromptRankingView.swift
 //  Know Maps
 //
-//  Created by Michael A Edgcumbe on 9/18/24.
+//  Created by Michael A Edgcumbe on 9/27/24.
 //
+
+import Foundation
 
 import SwiftUI
 
-struct SearchEditView: View {
+struct PromptRankingView: View {
     @EnvironmentObject var cloudCache: CloudCache
     @ObservedObject public var chatHost: AssistiveChatHost
     @ObservedObject public var chatModel: ChatResultViewModel

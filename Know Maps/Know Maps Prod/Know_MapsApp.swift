@@ -20,7 +20,7 @@ struct Know_MapsApp: App {
     @State private var isAuthorized:Bool = false
     @State private var isOnboarded:Bool = false
     @State private var showSplashScreen:Bool = true
-    @State private var selectedTab:String = "Sign In"
+    @State private var selectedOnboardingTab:String = "Sign In"
     static let config = Configuration(writeKey: "igx8ZOr5NLbaBsab5j5juFECMzqulFla")
     // Automatically track Lifecycle events
         .trackApplicationLifecycleEvents(true)
@@ -73,7 +73,7 @@ struct Know_MapsApp: App {
                 }
             } else {
                 if showOnboarding {
-                    OnboardingView(chatHost: chatHost, chatModel: chatModel, locationProvider: chatModel.locationProvider, selectedTab: $selectedTab, showOnboarding: $showOnboarding, isAuthorized: $isAuthorized, isOnboarded: $isOnboarded)
+                    OnboardingView(chatHost: chatHost, chatModel: chatModel, locationProvider: chatModel.locationProvider, selectedTab: $selectedOnboardingTab, showOnboarding: $showOnboarding, isAuthorized: $isAuthorized, isOnboarded: $isOnboarded)
 #if os(visionOS) || os(macOS)
                         .frame(minWidth: 1280, minHeight: 720)
 #endif
@@ -188,12 +188,12 @@ struct Know_MapsApp: App {
                 showOnboarding = false
                 showSplashScreen = false
             } else if chatModel.cloudCache.hasPrivateCloudAccess, isAuthorized, !isOnboarded {
-                selectedTab = "Saving"
+                selectedOnboardingTab = "Saving"
                 showSplashScreen = false
             } else if chatModel.cloudCache.hasPrivateCloudAccess,
                       !isAuthorized, !isOnboarded {
                 chatModel.locationProvider.authorize()
-                selectedTab = "Saving"
+                selectedOnboardingTab = "Saving"
                 showSplashScreen = false
             }
         } catch {

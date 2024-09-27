@@ -13,34 +13,15 @@ struct SearchView: View {
     @ObservedObject public var chatModel:ChatResultViewModel
     @ObservedObject public var locationProvider:LocationProvider
     @Binding public var columnVisibility:NavigationSplitViewVisibility
+    @Binding public var contentViewDetail:ContentDetailView
+
     @State private var savedSectionSelection = 1
     @State private var didError = false
     
     var body: some View {
         VStack {
-            SearchSavedView(chatHost:chatHost, chatModel: chatModel, locationProvider: locationProvider, columnVisibility: $columnVisibility)
+            SearchSavedView(chatHost:chatHost, chatModel: chatModel, locationProvider: locationProvider, columnVisibility: $columnVisibility, contentViewDetail: $contentViewDetail)
         }
-//        .onChange(of: chatModel.selectedDestinationLocationChatResult, { oldValue, newValue in
-//            chatModel.resetPlaceModel()
-//            
-//            guard let newValue = newValue else {
-//                return
-//            }
-//            
-//            Task { @MainActor in
-//                if let selectedDestinationLocationChatResult = chatModel.selectedDestinationLocationChatResult {
-//                    if let cachedResult = chatModel.cachedChatResult(for: newValue) {
-//                        chatModel.locationSearchText = cachedResult.title
-//                        await chatHost.didTap(chatResult: cachedResult, selectedDestinationChatResultID: selectedDestinationLocationChatResult)
-//                    }
-//                } else {
-//                    if let cachedResult = chatModel.cachedChatResult(for: newValue) {
-//                        chatModel.locationSearchText = cachedResult.title
-//                        await chatHost.didTap(chatResult: cachedResult, selectedDestinationChatResultID: nil)
-//                    }
-//                }
-//            }
-//        })
         .onChange(of: chatModel.selectedSavedResult) { oldValue, newValue in
             chatModel.resetPlaceModel()
             
