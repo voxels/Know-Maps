@@ -39,8 +39,7 @@ struct PlaceDirectionsView: View {
             let title = placeResponse.name
             GeometryReader { geo in
                 ScrollView {
-                    VStack(alignment: .leading) {
-                        ZStack(){
+                    VStack(alignment: .center) {
                             if showLookAroundScene, let lookAroundScene = lookAroundScene {
                                 LookAroundPreview(initialScene: lookAroundScene)
                                     .overlay {
@@ -75,6 +74,17 @@ struct PlaceDirectionsView: View {
                                     }
                                     .frame(minWidth: geo.size.width, minHeight:geo.size.height * 2.0 / 3.0)
                             } else {
+                                HStack {
+                                    Text("Route start:")
+                                    Picker("Route Start Location", selection:$model.rawLocationIdent) {
+                                        Text("Select a location")
+                                        ForEach(chatModel.filteredLocationResults, id:\.self) { result in
+                                            Text(result.locationName).tag(result.id.uuidString)
+                                        }
+                                    }.foregroundStyle(.primary)
+                                        .pickerStyle(.menu)
+                                }
+                                
                                 Map(initialPosition: .automatic, bounds: MapCameraBounds(minimumDistance: 1500, maximumDistance:250000)) {
                                     Marker(title, coordinate: placeCoordinate.coordinate)
                                     
@@ -125,22 +135,14 @@ struct PlaceDirectionsView: View {
                                     }
                                 }
                             }
-                        }
-                        VStack {
                             if !showLookAroundScene {
                                 Picker("Transport Type", selection: $model.rawTransportType) {
                                     Text(PlaceDirectionsViewModel.RawTransportType.Automobile.rawValue).tag(PlaceDirectionsViewModel.RawTransportType.Automobile)
                                     Text(PlaceDirectionsViewModel.RawTransportType.Walking.rawValue).tag(PlaceDirectionsViewModel.RawTransportType.Walking)
                                 }.foregroundStyle(.primary)
                                     .pickerStyle(.palette)
-                                Picker("Route Start Location", selection:$model.rawLocationIdent) {
-                                    ForEach(chatModel.filteredLocationResults, id:\.self) { result in
-                                        Text(result.locationName).tag(result.id.uuidString)
-                                    }
-                                }.foregroundStyle(.primary)
-                                    .pickerStyle(.menu)
+                                    .padding(.horizontal, 16)
                             }
-                        }.padding(.horizontal, 16)
                         if let chatRouteResults = model.chatRouteResults, chatRouteResults.count > 0  {
                             VStack(alignment: .leading) {
                                 ForEach(chatRouteResults) { chatRouteResult in
@@ -169,13 +171,8 @@ struct PlaceDirectionsView: View {
                     }
                 }
             }
-            .onChange(of: chatModel.selectedSourceLocationChatResult, { oldValue, newValue in
-                if let newValue = newValue {
-                    model.rawLocationIdent = newValue.uuidString
-                }
-            })
             .onChange(of: model.rawLocationIdent, { oldValue, newValue in
-                guard newValue != oldValue else {
+                guard newValue != oldValue, newValue != "Select a location" else {
                     return
                 }
                 
@@ -264,8 +261,6 @@ struct PlaceDirectionsView: View {
                 }
             }
             .task {
-                model.rawLocationIdent = chatModel.selectedDestinationLocationChatResult?.uuidString ?? chatModel.currentLocationResult.id.uuidString
-                
                 if let destination = model.destination  {
                     do {
                         try await getLookAroundScene(mapItem:destination)
@@ -280,24 +275,21 @@ struct PlaceDirectionsView: View {
                         chatModel.analytics?.track(name: "error \(error)")
                         print(error)
                     }
-                } else {
-                    if chatModel.selectedSourceLocationChatResult == nil {
-                        chatModel.selectedSourceLocationChatResult = chatHost.lastLocationIntent()?.selectedDestinationLocationID
-                        if let selectedSourceLocationChatResult = chatModel.selectedSourceLocationChatResult {
-                            model.rawLocationIdent = selectedSourceLocationChatResult.uuidString
-                        }
-                    }
-                    let _ = Task{
-                        do {
-                            try await refreshDirections(with: placeResponse)
-                        } catch {
-                            chatModel.analytics?.track(name: "error \(error)")
-                            print(error)
-                        }
+                }
+                if chatModel.selectedDestinationLocationChatResult == nil {
+                    chatModel.selectedSourceLocationChatResult = chatHost.lastLocationIntent()?.selectedDestinationLocationID
+                    if let selectedSourceLocationChatResult = chatModel.selectedSourceLocationChatResult {
+                        model.rawLocationIdent = selectedSourceLocationChatResult.uuidString
                     }
                 }
-                
-                
+                let _ = Task{
+                    do {
+                        try await refreshDirections(with: placeResponse)
+                    } catch {
+                        chatModel.analytics?.track(name: "error \(error)")
+                        print(error)
+                    }
+                }
             }
         }
         else {
@@ -403,7 +395,7 @@ struct PlaceDirectionsView: View {
     
     chatModel.assistiveHostDelegate = chatHost
     chatHost.messagesDelegate = chatModel
-    let model = PlaceDirectionsViewModel(rawLocationIdent: "")
+    let model = PlaceDirectionsViewModel(rawLocationIdent: "Select a location")
     
     return PlaceDirectionsView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, model: model, resultId: .constant(nil))
 }

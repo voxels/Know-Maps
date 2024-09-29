@@ -18,7 +18,19 @@ struct PlaceView: View {
     
     var body: some View {
         if let resultId = resultId, let placeChatResult = chatModel.placeChatResult(for: resultId) {
-            ZStack {
+            VStack {
+                Picker("", selection: $sectionSelection) {
+                    Text("About").tag(0)
+                    Text("Directions").tag(1)
+                    if let detailsResponses = placeChatResult.placeDetailsResponse, let photoResponses = detailsResponses.photoResponses, photoResponses.count > 0 {
+                        Text("Photos").tag(2)
+                    }
+                    if let detailsResponses = placeChatResult.placeDetailsResponse, let tipsResponses = detailsResponses.tipsResponses, tipsResponses.count > 0 {
+                        Text("Tips").tag(3)
+                    }
+                }
+                .padding()
+                .pickerStyle(.palette)
                 switch sectionSelection {
                 case 0:
                     PlaceAboutView(chatHost:chatHost,chatModel: chatModel, locationProvider: locationProvider, resultId: $resultId, sectionSelection: $sectionSelection)
@@ -72,24 +84,17 @@ struct PlaceView: View {
                     }
                 }
             }
+            #if os(macOS)
             .toolbar(content: {
-                ToolbarItemGroup(placement: .automatic) {
-                    Button("Back", systemImage: "chevron.left") {
-                        chatModel.selectedPlaceChatResult = nil
-                    }
-                    Picker("Section", selection: $sectionSelection) {
-                        Text("About").tag(0)
-                        Text("Directions").tag(1)
-                        if let detailsResponses = placeChatResult.placeDetailsResponse, let photoResponses = detailsResponses.photoResponses, photoResponses.count > 0 {
-                            Text("Photos").tag(2)
-                        }
-                        if let detailsResponses = placeChatResult.placeDetailsResponse, let tipsResponses = detailsResponses.tipsResponses, tipsResponses.count > 0 {
-                            Text("Tips").tag(3)
-                        }
-                    }
-                    .pickerStyle(.palette)
+                ToolbarItemGroup {
+                    Button(action: {
+                        self.resultId = nil
+                    }, label:{
+                        Label("List", systemImage:"list.bullet")
+                    })
                 }
             })
+            #endif
         } else {
             VStack {
                 Spacer()

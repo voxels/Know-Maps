@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct PlacePhotosView: View {
+    @Environment(\.horizontalSizeClass) var sizeClass
     @ObservedObject public var chatHost: AssistiveChatHost
     @ObservedObject public var chatModel: ChatResultViewModel
     @ObservedObject public var locationProvider: LocationProvider
@@ -13,21 +14,29 @@ struct PlacePhotosView: View {
                 if let resultId = resultId, let placeChatResult = chatModel.placeChatResult(for: resultId), let placeDetailsResponse = placeChatResult.placeDetailsResponse, let photoResponses = placeDetailsResponse.photoResponses {
                     if photoResponses.count > 0 {
                         ScrollView(.vertical) {
-                            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) { // Two-column grid
+                            let sizeWidth:CGFloat = sizeClass == .compact ? 1 : 2
+                            let columns = Array(repeating: GridItem(.adaptive(minimum: geo.size.width / sizeWidth)),  count:Int(sizeWidth))
+                            LazyVGrid(columns: columns, spacing: 16) {
                                 ForEach(photoResponses) { response in
                                     if let url = response.photoUrl() {
-                                        AsyncImage(url: url) { image in
-                                            image
-                                                .resizable()
-                                                .aspectRatio(contentMode: .fill)
-                                                .cornerRadius(16)
-                                                .clipped()
-                                        } placeholder: {
-                                            Rectangle()
-                                                .foregroundColor(.gray)
-                                                .cornerRadius(16)
+                                        AsyncImage(url: url) { phase in
+                                            switch phase {
+                                            case .empty:
+                                                ProgressView()
+                                            case .success(let image):
+                                                image.resizable()
+                                                    .aspectRatio(contentMode: .fit)
+                                                    .cornerRadius(16)
+                                            case .failure:
+                                                EmptyView()
+                                            @unknown default:
+                                                // Since the AsyncImagePhase enum isn't frozen,
+                                                // we need to add this currently unused fallback
+                                                // to handle any new cases that might be added
+                                                // in the future:
+                                                EmptyView()
+                                            }
                                         }
-                                        
                                     }
                                 }
                             }

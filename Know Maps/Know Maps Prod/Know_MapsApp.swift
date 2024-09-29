@@ -35,8 +35,10 @@ struct Know_MapsApp: App {
             GeometryReader { geometry in
                 
             if showSplashScreen{
-                ZStack {
-                    VStack{
+                HStack(alignment: .center){
+                    Spacer()
+                    VStack(alignment: .center) {
+                        Spacer()
                         Text("Welcome to Know Maps").bold().padding()
                         Image("logo_macOS_512")
                             .resizable()
@@ -51,10 +53,13 @@ struct Know_MapsApp: App {
                                 Label("Allow Access", systemImage: "arrow.2.circlepath.circle")
                             })
                         }
+                        Spacer()
                         ProgressView("Refreshing Lists", value: chatModel.cacheFetchProgress)
-                            .frame(maxWidth:geometry.size.width / 3)
+                            .frame(maxWidth:geometry.size.width / 2)
                             .padding()
+                        Spacer()
                     }
+                    Spacer()
                 }
 
 #if os(visionOS) || os(macOS)

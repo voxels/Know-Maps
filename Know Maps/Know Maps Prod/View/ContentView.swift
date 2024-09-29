@@ -71,15 +71,12 @@ struct ContentView: View {
                 } header: {
                     Text("Select a category:")
                 }
-                .navigationTitle("Category")
             } content: {
                 SearchView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, columnVisibility: $columnVisibility, contentViewDetail: $contentViewDetail)
-                    .navigationTitle("Prompt")
             } detail: {
                 switch contentViewDetail {
                 case .places:
                     PlacesList(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, resultId: $chatModel.selectedPlaceChatResult)
-                        .navigationTitle("Place")
                         .alert("Unknown Place", isPresented: $didError) {
                             Button(action: {
                                 chatModel.selectedPlaceChatResult = nil

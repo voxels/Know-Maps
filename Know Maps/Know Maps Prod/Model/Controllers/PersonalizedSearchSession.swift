@@ -17,7 +17,7 @@ public enum PersonalizedSearchSessionError : Error {
     case NoTasteFound
 }
 
-public enum PersonalizedSearchSection : String, CaseIterable {
+public enum PersonalizedSearchSection : String, Hashable, CaseIterable {
     case food = "Food"
     case drinks = "Drinks"
     case coffee = "Coffee"
