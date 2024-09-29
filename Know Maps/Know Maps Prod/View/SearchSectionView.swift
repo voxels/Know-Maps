@@ -23,6 +23,7 @@ struct SearchSectionView: View {
                 return
             }
             chatModel.selectedPersonalizedSearchSection = newValue
+            
         }
     }
 }

@@ -18,6 +18,7 @@ public struct RecommendedPlaceSearchRequest {
     let nearLocation:String?
     var limit:Int = 50
     var offset:Int = 0
+    var section:PersonalizedSearchSection = .none
     var tags:AssistiveChatHostTaggedWord
     
     mutating func updateOffset(with offset:Int){

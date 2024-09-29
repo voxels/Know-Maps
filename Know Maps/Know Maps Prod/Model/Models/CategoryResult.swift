@@ -20,15 +20,17 @@ public class CategoryResult : Identifiable, Equatable, Hashable {
     public let id = UUID()
     var parentCategory:String
     var list:String?
+    var section:PersonalizedSearchSection?
     private(set) var categoricalChatResults:[ChatResult] = [ChatResult]()
     public var children:[CategoryResult] = [CategoryResult]()
     public var isExpanded:Bool = false
     
-    public init(parentCategory: String, list:String? = nil, categoricalChatResults: [ChatResult]) {
+    public init(parentCategory: String, list:String? = nil, categoricalChatResults: [ChatResult], section:PersonalizedSearchSection? = nil) {
         self.parentCategory = parentCategory
         self.list = list
         self.categoricalChatResults = categoricalChatResults
         self.children = children(with: self.categoricalChatResults)
+        self.section = section
     }
     
     func replaceChatResults(with results:[ChatResult]) {

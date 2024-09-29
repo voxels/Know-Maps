@@ -70,7 +70,10 @@ struct SearchTasteView: View {
                                     model.analytics?.track(name: "error \(error)")
                                 }
                             }
-                        }.padding()
+                        }
+                        .textFieldStyle(.roundedBorder)
+                        .textInputAutocapitalization(.never)
+                        .padding()
                 }
             })
     }

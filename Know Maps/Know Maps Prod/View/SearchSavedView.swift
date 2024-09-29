@@ -7,41 +7,21 @@ struct SearchSavedView: View {
     @ObservedObject public var locationProvider: LocationProvider
     @Binding public var columnVisibility: NavigationSplitViewVisibility
     @Binding public var contentViewDetail:ContentDetailView
-    @State private var showPopover: Bool = false
-    @State private var sectionSelection: String = "Industry"
+    @Binding public var settingsPresented: Bool
     
     var body: some View {
         Section {
-            if showPopover {
-                AddPromptView(
-                    chatHost: chatHost,
-                    chatModel: chatModel,
-                    locationProvider: locationProvider,
-                    sectionSelection: $sectionSelection, contentViewDetail: $contentViewDetail
-                )
+            SavedListView(chatModel: chatModel, contentViewDetail: $contentViewDetail)
                 .toolbar {
                     ToolbarItemGroup(placement: .automatic) {
-                        AddPromptToolbarView(
+                        SavedListToolbarView(
                             chatModel: chatModel,
-                            sectionSelection: $sectionSelection,
-                            showPopover: $showPopover, contentViewDetail: $contentViewDetail
-                        )
+                            settingsPresented: $settingsPresented, contentViewDetail: $contentViewDetail, columnVisibility: $columnVisibility)
+                        
                     }
                 }
-            } else {
-                SavedListView(chatModel: chatModel, contentViewDetail: $contentViewDetail)
-                    .toolbar {
-                        ToolbarItemGroup(placement: .automatic) {
-                            SavedListToolbarView(
-                                chatModel: chatModel,
-                                showPopover: $showPopover,
-                                columnVisibility: $columnVisibility
-                            )
-                        }
-                    }
-            }
         } header: {
-            Text(showPopover ? "Save a prompt:" : "Search by prompt:")
+            Text("Select a prompt:")
         }
     }
 }
@@ -55,38 +35,20 @@ struct AddPromptView: View {
     
     var body: some View {
         TabView(selection: $sectionSelection) {
+            SearchTasteView(model: chatModel)
+                .tag("Feature")
+                .tabItem {
+                    Label("Feature", systemImage: "heart")
+                }
             SearchCategoryView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider)
                 .tag("Industry")
                 .tabItem {
                     Label("Industry", systemImage: "building")
                 }
-                .onAppear() {
-                    contentViewDetail = .places
-                }
-            SearchTasteView(model: chatModel)
-                .tag("Taste")
-                .tabItem {
-                    Label("Feature", systemImage: "heart")
-                }
-                .onAppear() {
-                    contentViewDetail = .places
-                }
-            
             SearchPlacesView(model: chatModel)
                 .tag("Place")
                 .tabItem {
                     Label("Place", systemImage: "mappin")
-                }
-                .onAppear() {
-                    contentViewDetail = .places
-                }
-            SearchEditView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, contentViewDetail: $contentViewDetail)
-                .tag("AI")
-                .tabItem {
-                    Label("AI", systemImage: "atom")
-                }
-                .onAppear() {
-                    contentViewDetail = .lists
                 }
         }
     }
@@ -95,8 +57,8 @@ struct AddPromptView: View {
 struct AddPromptToolbarView: View {
     @ObservedObject public var chatModel: ChatResultViewModel
     @Binding public var sectionSelection: String
-    @Binding public var showPopover: Bool
     @Binding public var contentViewDetail:ContentDetailView
+    @Binding public var columnVisibility:NavigationSplitViewVisibility
     
     var body: some View {
         if sectionSelection == "Industry",
@@ -117,7 +79,7 @@ struct AddPromptToolbarView: View {
             }
         }
         
-        if sectionSelection == "Taste",
+        if sectionSelection == "Feature",
            let parentID = chatModel.selectedTasteCategoryResult,
            let parent = chatModel.tasteResult(for: parentID) {
             let isSaved = chatModel.cachedTastes(contains: parent.parentCategory)
@@ -133,7 +95,8 @@ struct AddPromptToolbarView: View {
         }
         
         Button(action: {
-            showPopover = false
+            columnVisibility = .all
+            contentViewDetail = .places
         }) {
             Label("Done", systemImage: "checkmark.circle")
         }
@@ -241,40 +204,95 @@ struct SavedListView: View {
     }
     
     private func deleteItem(at offsets: IndexSet) {
-        for index in offsets {
-            chatModel.allCachedResults.remove(at: index)
+        removeSelectedItem()
+    }
+    
+    private func removeSelectedItem() {
+        guard let parentID = chatModel.selectedSavedResult,
+              let parent = chatModel.allCachedResults.first(where: { $0.id == parentID }) else { return }
+        
+        Task {
+            await withTaskGroup(of: Void.self) { group in
+                group.addTask {
+                    await removeCachedResults(group: "Category", identity: parent.parentCategory)
+                }
+                group.addTask {
+                    await removeCachedResults(group: "Taste", identity: parent.parentCategory)
+                }
+                group.addTask {
+                    await removeCachedResults(group: "Place", identity: parent.parentCategory)
+                }
+                group.addTask {
+                    await removeCachedResults(group: "List", identity: parent.parentCategory)
+                }
+            }
+        }
+    }
+    
+    private func removeCachedResults(group: String, identity: String) async {
+        if let cachedResults = chatModel.cachedResults(for: group, identity: identity) {
+            await withTaskGroup(of: Void.self) { group in
+                for result in cachedResults {
+                    group.addTask { @MainActor in
+                        do {
+                            try await chatModel.cloudCache.deleteUserCachedRecord(for: result)
+                            try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
+                        } catch {
+                            chatModel.analytics?.track(name: "error \(error)")
+                            print(error)
+                        }
+                    }
+                }
+            }
         }
     }
 }
 
 struct SavedListToolbarView: View {
     @ObservedObject public var chatModel: ChatResultViewModel
-    @Binding public var showPopover: Bool
-    @Binding public var columnVisibility: NavigationSplitViewVisibility
-    
+    @Binding public var settingsPresented: Bool
+    @Binding public var contentViewDetail:ContentDetailView
+    @Binding public var columnVisibility:NavigationSplitViewVisibility
     var body: some View {
-#if os(visionOS)
-        Button(action: {
-            columnVisibility = .all
-        }) {
-            Label("Mood", systemImage: "sidebar.left")
-        }
-        .labelStyle(.iconOnly)
-        .padding()
-#endif
-        if !showPopover {
+        if contentViewDetail == .places {
             Button(action: {
-                showPopover = true
+                columnVisibility = .detailOnly
+                contentViewDetail = .add
             }) {
                 Label("Add Prompt", systemImage: "plus.circle")
             }
         }
         
-        if chatModel.selectedSavedResult != nil {
+        if let selectedSavedResult = chatModel.selectedSavedResult, let categoricalResult = chatModel.allCachedResults.first(where: { result in
+            result.id == selectedSavedResult
+        }), categoricalResult.section == nil {
             Button(action: removeSelectedItem) {
                 Label("Delete", systemImage: "minus.circle")
             }
         }
+        if contentViewDetail == .places{
+            Button(action: {
+                contentViewDetail = .order
+            }, label: {
+                Label("Reorder Lists", systemImage: "list.bullet.indent")
+            })
+        } else if contentViewDetail == .order || contentViewDetail == .add {
+            Button(action: {
+                contentViewDetail = .places
+            }, label: {
+                Label("Reorder Lists", systemImage: "list.bullet")
+            })
+        }
+        Button {
+#if os(iOS) || os(visionOS)
+            settingsPresented.toggle()
+#else
+            openWindow(id: "SettingsView")
+#endif
+        } label: {
+            Label("Account Settings", systemImage: "gear")
+        }
+        
     }
     
     private func removeSelectedItem() {

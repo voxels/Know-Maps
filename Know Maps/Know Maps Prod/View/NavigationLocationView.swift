@@ -15,8 +15,6 @@ struct NavigationLocationView: View {
     @ObservedObject public var locationProvider:LocationProvider
     @State private var searchText:String = ""
     
-    @State private var showPopover:Bool = false
-    
     var body: some View {
         GeometryReader { geo in
             Section {

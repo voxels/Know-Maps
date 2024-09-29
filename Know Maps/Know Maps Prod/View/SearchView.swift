@@ -14,12 +14,12 @@ struct SearchView: View {
     @ObservedObject public var locationProvider:LocationProvider
     @Binding public var columnVisibility:NavigationSplitViewVisibility
     @Binding public var contentViewDetail:ContentDetailView
-
+    @Binding public var settingsPresented:Bool
     @State private var savedSectionSelection = 1
     @State private var didError = false
     
     var body: some View {
-        SearchSavedView(chatHost:chatHost, chatModel: chatModel, locationProvider: locationProvider, columnVisibility: $columnVisibility, contentViewDetail: $contentViewDetail)
+        SearchSavedView(chatHost:chatHost, chatModel: chatModel, locationProvider: locationProvider, columnVisibility: $columnVisibility, contentViewDetail: $contentViewDetail, settingsPresented: $settingsPresented )
         .onChange(of: chatModel.selectedSavedResult) { oldValue, newValue in
             chatModel.resetPlaceModel()
             

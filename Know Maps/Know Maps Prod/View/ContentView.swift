@@ -12,67 +12,46 @@ import MapKit
 
 public enum ContentDetailView {
     case places
-    case lists
+    case order
+    case add
 }
 
 struct ContentView: View {
-    
-    @EnvironmentObject public var cloudCache:CloudCache
-    @EnvironmentObject public var settingsModel:SettingsModel
-    @EnvironmentObject public var featureFlags:FeatureFlags
-    @State private var showImmersiveSpace = false
-    @State private var immersiveSpaceIsShown = false
-    @State private var columnVisibility =
-    NavigationSplitViewVisibility.all
-    
-    @ObservedObject public var chatHost:AssistiveChatHost
-    @ObservedObject public var chatModel:ChatResultViewModel
-    @ObservedObject public var locationProvider:LocationProvider
-    @State private var selectedItem: String?
     @Environment(\.openWindow) private var openWindow
 #if os(visionOS)
     @Environment(\.openImmersiveSpace) var openImmersiveSpace
     @Environment(\.dismissImmersiveSpace) var dismissImmersiveSpace
 #endif
+
+    @EnvironmentObject public var cloudCache:CloudCache
+    @EnvironmentObject public var settingsModel:SettingsModel
+    @EnvironmentObject public var featureFlags:FeatureFlags
+
+    @ObservedObject public var chatHost:AssistiveChatHost
+    @ObservedObject public var chatModel:ChatResultViewModel
+    @ObservedObject public var locationProvider:LocationProvider
     @Binding public var isOnboarded:Bool
     @Binding public var showOnboarding:Bool
-    
+
+    @State private var selectedItem: String?
+    @State private var showImmersiveSpace = false
+    @State private var immersiveSpaceIsShown = false
+    @State private var columnVisibility =
+    NavigationSplitViewVisibility.all
+    @State private var sectionSelection: String = "Feature"
     @State private var settingsPresented:Bool = false
     @State private var didError = false
     @State private var contentViewDetail:ContentDetailView = .places
     
-    
-    
-    
     var body: some View {
         GeometryReader() { geometry in
             NavigationSplitView(columnVisibility: $columnVisibility) {
-                Section {
-                    SearchSectionView(chatModel:chatModel)
-                        .toolbar {
-                            ToolbarItem(placement: .automatic) {
-                                
-                                Button {
-        #if os(iOS) || os(visionOS)
-                                    settingsPresented.toggle()
-        #else
-                                    openWindow(id: "SettingsView")
-        #endif
-                                } label: {
-                                    Label("Account Settings", systemImage: "gear")
-                                }
-                            }
-                        }
-        #if os(iOS) || os(visionOS)
-                        .popover(isPresented: $settingsPresented) {
-                            SettingsView(chatModel: chatModel, isOnboarded: $isOnboarded, showOnboarding: $showOnboarding)
-                        }
-        #endif
-                } header: {
-                    Text("Select a category:")
-                }
-            } content: {
-                SearchView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, columnVisibility: $columnVisibility, contentViewDetail: $contentViewDetail)
+                SearchView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, columnVisibility: $columnVisibility, contentViewDetail: $contentViewDetail, settingsPresented: $settingsPresented)
+#if os(iOS) || os(visionOS)
+        .sheet(isPresented: $settingsPresented) {
+            SettingsView(chatModel: chatModel, isOnboarded: $isOnboarded, showOnboarding: $showOnboarding)
+        }
+#endif
             } detail: {
                 switch contentViewDetail {
                 case .places:
@@ -86,12 +65,40 @@ struct ContentView: View {
                         } message: {
                             Text("We don't know much about this place.")
                         }
-                case .lists:
+                case .order:
                     PromptRankingView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, contentViewDetail: $contentViewDetail)
+                case .add:
+                    HStack {
+                        AddPromptView(
+                            chatHost: chatHost,
+                            chatModel: chatModel,
+                            locationProvider: locationProvider,
+                            sectionSelection: $sectionSelection, contentViewDetail: $contentViewDetail
+                        )
+                        .toolbar {
+                            ToolbarItemGroup(placement: .automatic) {
+                                AddPromptToolbarView(
+                                    chatModel: chatModel,
+                                    sectionSelection: $sectionSelection,
+                                    contentViewDetail: $contentViewDetail, columnVisibility: $columnVisibility
+                                )
+                            }
+                        }
+                        .frame(maxWidth:geometry.size.width / 3)
+                        PlacesList(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, resultId: $chatModel.selectedPlaceChatResult)
+                            .alert("Unknown Place", isPresented: $didError) {
+                                Button(action: {
+                                    chatModel.selectedPlaceChatResult = nil
+                                }, label: {
+                                    Text("Go Back")
+                                })
+                            } message: {
+                                Text("We don't know much about this place.")
+                            }
+                    }
                 }
             }
         }
-        .navigationSplitViewStyle(.balanced)
         .onAppear(perform: {
             chatModel.analytics?.screen(title: "NavigationSplitView")
         })
@@ -125,6 +132,11 @@ struct ContentView: View {
                 }
             }
         })
+        .onChange(of: columnVisibility) { oldValue, newValue in
+            if newValue == .all {
+                contentViewDetail = .places
+            }
+        }
     }
 }
 

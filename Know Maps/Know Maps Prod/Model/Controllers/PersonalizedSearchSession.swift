@@ -29,6 +29,39 @@ public enum PersonalizedSearchSection : String, Hashable, CaseIterable {
     case nextVenues = "Where to go next"
     case topPicks = "Popular places"
     case none = "All categories"
+    
+    public func key()->String {
+        switch self {
+        case .food:
+            return "food"
+        case .drinks:
+            return "drinks"
+        case .coffee:
+            return "coffee"
+        case .shops:
+            return "shops"
+        case .arts:
+            return "arts"
+        case .outdoors:
+            return "outdoors"
+        case .sights:
+            return "sights"
+        case .trending:
+            return "trending"
+        case .nextVenues:
+            return "nextVenues"
+        case .topPicks:
+            return "topPicks"
+        default:
+            return "none"
+        }
+    }
+    
+    public func categoryResult()->CategoryResult {
+        let chatResult = ChatResult(title: rawValue, placeResponse: nil, recommendedPlaceResponse: nil)
+        let categoryResult = CategoryResult(parentCategory: rawValue, categoricalChatResults: [chatResult], section:self)
+        return categoryResult
+    }
 }
 
 open class PersonalizedSearchSession {
@@ -358,6 +391,11 @@ open class PersonalizedSearchSession {
         
         let offsetQueryItem = URLQueryItem(name: "offset", value: "\(request.offset)")
         components?.queryItems?.append(offsetQueryItem)
+        
+        if request.section != .none {
+            let sectionQueryItem = URLQueryItem(name: "section", value: request.section.key())
+            components?.queryItems?.append(sectionQueryItem)
+        }
         
         guard let url = components?.url else {
             throw PersonalizedSearchSessionError.UnsupportedRequest

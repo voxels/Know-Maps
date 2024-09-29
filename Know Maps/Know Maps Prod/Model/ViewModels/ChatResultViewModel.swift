@@ -589,7 +589,8 @@ final class ChatResultViewModel: ObservableObject {
     }
     
     private func allSavedResults() -> [CategoryResult] {
-        var results = cachedCategoryResults + cachedTasteResults.filter({$0.list == nil}) + cachedListResults
+        var results = cachedCategoryResults + cachedTasteResults.filter({$0.list == nil}) + cachedListResults + PersonalizedSearchSection.allCases.map({$0.categoryResult()})
+        
         results.sort { $0.parentCategory.lowercased() < $1.parentCategory.lowercased() }
         return results
     }
@@ -1395,7 +1396,7 @@ final class ChatResultViewModel: ObservableObject {
            
            query = query.trimmingCharacters(in: .whitespacesAndNewlines)
            
-           let request = RecommendedPlaceSearchRequest(query: query, ll: ll, radius: radius, categories: categories, minPrice:minPrice, maxPrice:maxPrice, openNow: openNow, nearLocation: nearLocation, limit: limit, tags:tags)
+           let request = RecommendedPlaceSearchRequest(query: query, ll: ll, radius: radius, categories: categories, minPrice:minPrice, maxPrice:maxPrice, openNow: openNow, nearLocation: nearLocation, limit: limit, section:selectedPersonalizedSearchSection, tags:tags)
            
            return request
        }
