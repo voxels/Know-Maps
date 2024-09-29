@@ -69,7 +69,7 @@ final class ChatResultViewModel: ObservableObject {
     @Published public var recommendedPlaceResults = [ChatResult]()
     @Published public var relatedPlaceResults = [ChatResult]()
     @Published public var locationResults = [LocationResult]()
-    @Published public var currentLocationResult = LocationResult(locationName: "Current Location", location: nil)
+    @Published public var currentLocationResult:LocationResult = LocationResult(locationName: "Current Location", location: nil)
     @Published public var lastFetchedTastePage: Int = 0
     @Published public var cacheFetchProgress:Double = 0
 
@@ -167,6 +167,8 @@ final class ChatResultViewModel: ObservableObject {
         }
         
         results.formUnion(locationResults)
+        
+        results.formUnion([currentLocationResult])
         
         return results.sorted { $0.locationName <= $1.locationName }
     }
@@ -431,6 +433,10 @@ final class ChatResultViewModel: ObservableObject {
             if let recommendedResult = recommendedPlaceResults.first(where: { $0.id == id }) {
                 return placeResults.first { $0.placeResponse?.fsqID == recommendedResult.placeResponse?.fsqID }
             }
+        }
+        
+        if currentLocationResult.id == id {
+            return ChatResult(title: currentLocationResult.locationName, placeResponse: nil, recommendedPlaceResponse: nil)
         }
         
         return placeResults.first { $0.id == id }

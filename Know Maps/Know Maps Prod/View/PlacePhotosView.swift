@@ -14,8 +14,8 @@ struct PlacePhotosView: View {
                 if let resultId = resultId, let placeChatResult = chatModel.placeChatResult(for: resultId), let placeDetailsResponse = placeChatResult.placeDetailsResponse, let photoResponses = placeDetailsResponse.photoResponses {
                     if photoResponses.count > 0 {
                         ScrollView(.vertical) {
-                            let sizeWidth:CGFloat = sizeClass == .compact ? 1 : 2
-                            let columns = Array(repeating: GridItem(.adaptive(minimum: geo.size.width / sizeWidth)),  count:Int(sizeWidth))
+                           
+                            let columns = Array(repeating: GridItem(.adaptive(minimum: geo.size.width)),  count:1)
                             LazyVGrid(columns: columns, spacing: 16) {
                                 ForEach(photoResponses) { response in
                                     if let url = response.photoUrl() {

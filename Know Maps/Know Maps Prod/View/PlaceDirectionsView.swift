@@ -32,7 +32,7 @@ struct PlaceDirectionsView: View {
         formatter.allowedUnits = [.hour, .minute]
         return formatter.string(from: route.expectedTravelTime)
     }
-    
+
     var body: some View {
         if let resultId = resultId, let result = chatModel.placeChatResult(for: resultId), let placeResponse = result.placeResponse {
             let placeCoordinate = CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude)
@@ -76,15 +76,13 @@ struct PlaceDirectionsView: View {
                             } else {
                                 HStack {
                                     Text("Route start:")
-                                    Picker("Route Start Location", selection:$model.rawLocationIdent) {
-                                        Text("Select a location")
+                                    Picker("", selection:$model.rawLocationIdent) {
                                         ForEach(chatModel.filteredLocationResults, id:\.self) { result in
                                             Text(result.locationName).tag(result.id.uuidString)
                                         }
                                     }.foregroundStyle(.primary)
                                         .pickerStyle(.menu)
-                                }
-                                
+                                }.padding(.horizontal, 16)
                                 Map(initialPosition: .automatic, bounds: MapCameraBounds(minimumDistance: 1500, maximumDistance:250000)) {
                                     Marker(title, coordinate: placeCoordinate.coordinate)
                                     
@@ -127,13 +125,6 @@ struct PlaceDirectionsView: View {
                                     }
                                     
                                 }
-                                .onAppear {
-                                    if let destination = model.destination {
-                                        Task {
-                                            try await getLookAroundScene(mapItem:destination)
-                                        }
-                                    }
-                                }
                             }
                             if !showLookAroundScene {
                                 Picker("Transport Type", selection: $model.rawTransportType) {
@@ -150,6 +141,24 @@ struct PlaceDirectionsView: View {
                                 }
                             }.padding(16)
                         }
+                    }
+                }
+                .task {
+                    guard let selectedDestinationLocationChatResult = chatModel.selectedDestinationLocationChatResult, let sourceLocationResult = chatModel.locationChatResult(for: selectedDestinationLocationChatResult), let sourceLocation = sourceLocationResult.location, let response = result.placeResponse  else {
+                        return
+                    }
+                    
+                    let destinationLocation = CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude)
+                    
+                    do {
+                        try await refreshDirections(with: sourceLocation, destination:destinationLocation)
+                        if let destination = model.destination {
+                            try await getLookAroundScene(mapItem:destination)
+                        }
+
+                    } catch {
+                        chatModel.analytics?.track(name: "error \(error)")
+                        print(error)
                     }
                 }
             }
@@ -172,19 +181,14 @@ struct PlaceDirectionsView: View {
                 }
             }
             .onChange(of: model.rawLocationIdent, { oldValue, newValue in
-                guard newValue != oldValue, newValue != "Select a location" else {
-                    return
-                }
-                
                 if let ident = UUID(uuidString: newValue) {
-                    guard let placeChatResult = chatModel.placeChatResult(for: resultId), let placeResponse = placeChatResult.placeResponse else {
+                    guard let sourceLocation = chatModel.locationChatResult(for: ident)?.location, let result = chatModel.placeChatResult(for: resultId), let placeResponse = result.placeResponse else {
                         return
                     }
                     
-                    chatModel.selectedSourceLocationChatResult = ident
-                    let _ = Task{
+                    Task{
                         do {
-                            try await refreshDirections(with: placeResponse)
+                            try await refreshDirections(with: sourceLocation, destination:CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude))
                         } catch {
                             chatModel.analytics?.track(name: "error \(error)")
                             print(error)
@@ -203,91 +207,50 @@ struct PlaceDirectionsView: View {
                 }
             }
             .onChange(of: model.transportType) { oldValue, newValue in
-                guard let placeChatResult = chatModel.placeChatResult(for: resultId), let placeResponse = placeChatResult.placeResponse else {
-                    return
-                }
-                
-                if newValue == oldValue {
-                    return
-                }
-                
-                let _ = Task{
-                    do {
-                        try await refreshDirections(with: placeResponse)
-                    } catch {
-                        chatModel.analytics?.track(name: "error \(error)")
-                        print(error)
+                if let ident = UUID(uuidString: model.rawLocationIdent) {
+                    guard let sourceLocation = chatModel.locationChatResult(for: ident)?.location, let result = chatModel.placeChatResult(for: resultId), let placeResponse = result.placeResponse else {
+                        return
                     }
-                }
-            }
-            .onChange(of: model.source) { oldValue, newValue in
-                guard let placeChatResult = chatModel.placeChatResult(for: resultId), let placeResponse = placeChatResult.placeResponse else {
-                    return
-                }
-                
-                if newValue == oldValue {
-                    return
-                }
-                
-                
-                let _ = Task{
-                    do {
-                        try await refreshDirections(with: placeResponse)
-                    } catch {
-                        chatModel.analytics?.track(name: "error \(error)")
-                        print(error)
-                    }
-                }
-            }
-            .onChange(of: model.destination) { oldValue, newValue in
-                if let newValue = newValue {
-                    Task {
+                    
+                    Task{
                         do {
-                            try await getLookAroundScene(mapItem:newValue)
+                            try await refreshDirections(with: sourceLocation, destination:CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude))
                         } catch {
                             chatModel.analytics?.track(name: "error \(error)")
                             print(error)
                         }
                     }
                 }
-                
-                let _ = Task{
-                    do {
-                        try await refreshDirections(with: placeResponse)
-                    } catch {
-                        chatModel.analytics?.track(name: "error \(error)")
-                        print(error)
+            }
+            .onChange(of: model.source) { oldValue, newValue in
+                if let ident = UUID(uuidString: model.rawLocationIdent) {
+                    guard let sourceLocation = chatModel.locationChatResult(for: ident)?.location, let result = chatModel.placeChatResult(for: resultId), let placeResponse = result.placeResponse else {
+                        return
+                    }
+                    
+                    Task{
+                        do {
+                            try await refreshDirections(with: sourceLocation, destination:CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude))
+                        } catch {
+                            chatModel.analytics?.track(name: "error \(error)")
+                            print(error)
+                        }
                     }
                 }
             }
-            .task {
-                if let destination = model.destination  {
-                    do {
-                        try await getLookAroundScene(mapItem:destination)
-                        if chatModel.selectedSourceLocationChatResult == nil {
-                            chatModel.selectedSourceLocationChatResult = chatHost.lastLocationIntent()?.selectedDestinationLocationID
-                            if let selectedSourceLocationChatResult = chatModel.selectedSourceLocationChatResult {
-                                model.rawLocationIdent = selectedSourceLocationChatResult.uuidString
-                            }
+            .onChange(of: model.destination) { oldValue, newValue in
+                if let ident = UUID(uuidString:model.rawLocationIdent) {
+                    guard let sourceLocation = chatModel.locationChatResult(for: ident)?.location, let result = chatModel.placeChatResult(for: resultId), let placeResponse = result.placeResponse else {
+                        return
+                    }
+                    
+                    Task{
+                        do {
+                            try await refreshDirections(with: sourceLocation, destination:CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude))
+                        } catch {
+                            chatModel.analytics?.track(name: "error \(error)")
+                            print(error)
                         }
-                        try await refreshDirections(with: placeResponse)
-                    } catch {
-                        chatModel.analytics?.track(name: "error \(error)")
-                        print(error)
-                    }
-                }
-                if chatModel.selectedDestinationLocationChatResult == nil {
-                    chatModel.selectedSourceLocationChatResult = chatHost.lastLocationIntent()?.selectedDestinationLocationID
-                    if let selectedSourceLocationChatResult = chatModel.selectedSourceLocationChatResult {
-                        model.rawLocationIdent = selectedSourceLocationChatResult.uuidString
-                    }
-                }
-                let _ = Task{
-                    do {
-                        try await refreshDirections(with: placeResponse)
-                    } catch {
-                        chatModel.analytics?.track(name: "error \(error)")
-                        print(error)
                     }
                 }
             }
@@ -297,8 +260,8 @@ struct PlaceDirectionsView: View {
         }
     }
     
-    func refreshDirections(with placeResponse:PlaceSearchResponse) async throws {
-        if let currentLocationID = chatModel.selectedSourceLocationChatResult, let locationResult = chatModel.locationChatResult(for: currentLocationID), let currentLocation = locationResult.location, let sourceMapItem = mapItem(for: currentLocation, name:locationResult.locationName), let destinationMapItem = mapItem(for: CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude), name:placeResponse.name) {
+    func refreshDirections(with source:CLLocation, destination:CLLocation) async throws {
+        if let sourceMapItem = mapItem(for: source), let destinationMapItem = mapItem(for:destination) {
             Task {
                 do {
                     try await getDirections(source:sourceMapItem, destination:destinationMapItem, model:model)
@@ -306,7 +269,6 @@ struct PlaceDirectionsView: View {
                     chatModel.analytics?.track(name: "error \(error)")
                     print(error)
                 }
-                
             }
         }
     }

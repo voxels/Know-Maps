@@ -94,7 +94,7 @@ struct PlacesList: View {
                                     }
                                 }
                             })
-                            .background()
+                            .background(.thinMaterial)
                             .cornerRadius(16)
                             .onTapGesture {
                                 chatModel.selectedPlaceChatResult = result.id
