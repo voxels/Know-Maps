@@ -22,24 +22,22 @@ struct PlaceView: View {
                 switch sectionSelection {
                 case 0:
                     PlaceAboutView(chatHost:chatHost,chatModel: chatModel, locationProvider: locationProvider, resultId: $resultId, sectionSelection: $sectionSelection)
-                            .tabItem {
-                                Label("About", systemImage: "target")
-                            }
-                            .tag("About")
-                            .onAppear(perform: {
-                                chatModel.analytics?.screen(title: "PlaceAboutView")
-                            })
-                        .compositingGroup()
+                        .tabItem {
+                            Label("About", systemImage: "target")
+                        }
+                        .tag("About")
+                        .onAppear(perform: {
+                            chatModel.analytics?.screen(title: "PlaceAboutView")
+                        })
                 case 1:
                     PlaceDirectionsView(chatHost:chatHost, chatModel: chatModel, locationProvider: locationProvider, model: placeDirectionsViewModel, resultId: $resultId)
-                            .tabItem {
-                                Label("Directions", systemImage: "map")
-                            }
-                            .tag("Directions")
-                            .onAppear(perform: {
-                                chatModel.analytics?.screen(title: "PlaceDirectionsView")
-                            })
-                        .compositingGroup()
+                        .tabItem {
+                            Label("Directions", systemImage: "map")
+                        }
+                        .tag("Directions")
+                        .onAppear(perform: {
+                            chatModel.analytics?.screen(title: "PlaceDirectionsView")
+                        })
                 case 2:
                     if let detailsResponses = placeChatResult.placeDetailsResponse {
                         if let photoResponses = detailsResponses.photoResponses, photoResponses.count > 0 {
@@ -51,7 +49,6 @@ struct PlaceView: View {
                                 .onAppear(perform: {
                                     chatModel.analytics?.screen(title: "PlacePhotosView")
                                 })
-                                .compositingGroup()
                         }
                     }
                 case 3:
@@ -65,7 +62,6 @@ struct PlaceView: View {
                                 .onAppear(perform: {
                                     chatModel.analytics?.screen(title: "PlaceTipsView")
                                 })
-                                .compositingGroup()
                         }
                     }
                 default:
@@ -76,37 +72,24 @@ struct PlaceView: View {
                     }
                 }
             }
-            .navigationTitle(placeChatResult.title)
-            .navigationBarBackButtonHidden(true)
-            .toolbarRole(.automatic)
-                .toolbar(content: {
-                    #if os(iOS) || os(visionOS)
-                    ToolbarItem(placement: .navigationBarLeading) {
-                        Button("Back", systemImage: "chevron.left") {
-                            chatModel.selectedPlaceChatResult = nil
+            .toolbar(content: {
+                ToolbarItemGroup(placement: .automatic) {
+                    Button("Back", systemImage: "chevron.left") {
+                        chatModel.selectedPlaceChatResult = nil
+                    }
+                    Picker("Section", selection: $sectionSelection) {
+                        Text("About").tag(0)
+                        Text("Directions").tag(1)
+                        if let detailsResponses = placeChatResult.placeDetailsResponse, let photoResponses = detailsResponses.photoResponses, photoResponses.count > 0 {
+                            Text("Photos").tag(2)
+                        }
+                        if let detailsResponses = placeChatResult.placeDetailsResponse, let tipsResponses = detailsResponses.tipsResponses, tipsResponses.count > 0 {
+                            Text("Tips").tag(3)
                         }
                     }
-                    #else
-                    ToolbarItem(placement: .automatic) {
-                        Button("Back", systemImage: "chevron.left") {
-                            chatModel.selectedPlaceChatResult = nil
-                        }
-                    }
-                    #endif
-                    ToolbarItem(placement: .principal) {
-                        Picker("Section", selection: $sectionSelection) {
-                            Text("About").tag(0)
-                            Text("Directions").tag(1)
-                            if let detailsResponses = placeChatResult.placeDetailsResponse, let photoResponses = detailsResponses.photoResponses, photoResponses.count > 0 {
-                                Text("Photos").tag(2)
-                            }
-                            if let detailsResponses = placeChatResult.placeDetailsResponse, let tipsResponses = detailsResponses.tipsResponses, tipsResponses.count > 0 {
-                                Text("Tips").tag(3)
-                            }
-                        }
-                        .pickerStyle(.palette)
-                    }
-                })
+                    .pickerStyle(.palette)
+                }
+            })
         } else {
             VStack {
                 Spacer()
@@ -118,15 +101,15 @@ struct PlaceView: View {
 }
 
 #Preview {
-
+    
     let locationProvider = LocationProvider()
-
+    
     let chatHost = AssistiveChatHost()
     let cloudCache = CloudCache()
     let featureFlags = FeatureFlags()
-
+    
     let chatModel = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cloudCache, featureFlags: featureFlags)
-
+    
     chatModel.assistiveHostDelegate = chatHost
     chatHost.messagesDelegate = chatModel
     let placeDirectionViewModel = PlaceDirectionsViewModel(rawLocationIdent: "")

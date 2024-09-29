@@ -17,6 +17,20 @@ public enum PersonalizedSearchSessionError : Error {
     case NoTasteFound
 }
 
+public enum PersonalizedSearchSection : String, CaseIterable {
+    case food = "Food"
+    case drinks = "Drinks"
+    case coffee = "Coffee"
+    case shops = "Shopping"
+    case arts = "Art"
+    case outdoors = "Outdoors"
+    case sights = "Sightseeing"
+    case trending = "Trending places"
+    case nextVenues = "Where to go next"
+    case topPicks = "Popular places"
+    case none = "All categories"
+}
+
 open class PersonalizedSearchSession {
     public let cloudCache:CloudCache
     public var fsqIdentity:String?

@@ -9,42 +9,44 @@ struct SearchSavedView: View {
     @Binding public var contentViewDetail:ContentDetailView
     @State private var showPopover: Bool = false
     @State private var sectionSelection: String = "Industry"
-
+    
     var body: some View {
-        if showPopover {
-            PopoverContentView(
-                chatHost: chatHost,
-                chatModel: chatModel,
-                locationProvider: locationProvider,
-                sectionSelection: $sectionSelection, contentViewDetail: $contentViewDetail
-            )
-            .toolbar {
-                ToolbarItemGroup(placement: .automatic) {
-                    PopoverToolbarView(
-                        chatModel: chatModel,
-                        sectionSelection: $sectionSelection,
-                        showPopover: $showPopover, contentViewDetail: $contentViewDetail
-                    )
+        Section {
+            if showPopover {
+                AddPromptView(
+                    chatHost: chatHost,
+                    chatModel: chatModel,
+                    locationProvider: locationProvider,
+                    sectionSelection: $sectionSelection, contentViewDetail: $contentViewDetail
+                )
+                .toolbar {
+                    ToolbarItemGroup(placement: .automatic) {
+                        AddPromptToolbarView(
+                            chatModel: chatModel,
+                            sectionSelection: $sectionSelection,
+                            showPopover: $showPopover, contentViewDetail: $contentViewDetail
+                        )
+                    }
                 }
-            }
-        } else {
-            Section {
+            } else {
                 SavedListView(chatModel: chatModel, contentViewDetail: $contentViewDetail)
+                    .toolbar {
+                        ToolbarItemGroup(placement: .automatic) {
+                            SavedListToolbarView(
+                                chatModel: chatModel,
+                                showPopover: $showPopover,
+                                columnVisibility: $columnVisibility
+                            )
+                        }
+                    }
             }
-            .toolbar {
-                ToolbarItemGroup(placement: .automatic) {
-                    SavedListToolbarView(
-                        chatModel: chatModel,
-                        showPopover: $showPopover,
-                        columnVisibility: $columnVisibility
-                    )
-                }
-            }
+        } header: {
+            Text(showPopover ? "Save a prompt:" : "Search by prompt:")
         }
     }
 }
 
-struct PopoverContentView: View {
+struct AddPromptView: View {
     @ObservedObject public var chatHost: AssistiveChatHost
     @ObservedObject public var chatModel: ChatResultViewModel
     @ObservedObject public var locationProvider: LocationProvider
@@ -52,95 +54,89 @@ struct PopoverContentView: View {
     @Binding public var contentViewDetail:ContentDetailView
     
     var body: some View {
-        Section {
-            TabView(selection: $sectionSelection) {
-                SearchCategoryView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider)
-                    .tag("Industry")
-                    .tabItem {
-                        Label("Industry", systemImage: "building")
-                    }
-                    .onAppear() {
-                        contentViewDetail = .places
-                    }
-                SearchTasteView(model: chatModel)
-                    .tag("Taste")
-                    .tabItem {
-                        Label("Taste", systemImage: "heart")
-                    }
-                    .onAppear() {
-                        contentViewDetail = .places
-                    }
-
-                SearchPlacesView(model: chatModel)
-                    .tag("Place")
-                    .tabItem {
-                        Label("Place", systemImage: "mappin")
-                    }
-                    .onAppear() {
-                        contentViewDetail = .places
-                    }
-                SearchEditView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, contentViewDetail: $contentViewDetail)
-                    .tag("AI")
-                    .tabItem {
-                        Label("AI", systemImage: "atom")
-                    }
-                    .onAppear() {
-                        contentViewDetail = .lists
-                    }
-            }
+        TabView(selection: $sectionSelection) {
+            SearchCategoryView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider)
+                .tag("Industry")
+                .tabItem {
+                    Label("Industry", systemImage: "building")
+                }
+                .onAppear() {
+                    contentViewDetail = .places
+                }
+            SearchTasteView(model: chatModel)
+                .tag("Taste")
+                .tabItem {
+                    Label("Feature", systemImage: "heart")
+                }
+                .onAppear() {
+                    contentViewDetail = .places
+                }
+            
+            SearchPlacesView(model: chatModel)
+                .tag("Place")
+                .tabItem {
+                    Label("Place", systemImage: "mappin")
+                }
+                .onAppear() {
+                    contentViewDetail = .places
+                }
+            SearchEditView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, contentViewDetail: $contentViewDetail)
+                .tag("AI")
+                .tabItem {
+                    Label("AI", systemImage: "atom")
+                }
+                .onAppear() {
+                    contentViewDetail = .lists
+                }
         }
     }
 }
 
-struct PopoverToolbarView: View {
+struct AddPromptToolbarView: View {
     @ObservedObject public var chatModel: ChatResultViewModel
     @Binding public var sectionSelection: String
     @Binding public var showPopover: Bool
     @Binding public var contentViewDetail:ContentDetailView
-
+    
     var body: some View {
-            if sectionSelection == "Industry",
-               let parentID = chatModel.selectedCategoryResult,
-               let parent = chatModel.categoricalResult(for: parentID) {
-                if chatModel.cachedCategories(contains: parent.parentCategory) {
-                    Button(action: removeCategory(parent: parent)) {
-                        Label("Remove", systemImage: "minus")
-                    }
-                    .labelStyle(.iconOnly)
-                    .padding()
-                } else {
-                    Button(action: addCategory(parent: parent)) {
-                        Label("Add", systemImage: "plus")
-                    }
-                    .labelStyle(.iconOnly)
-                    .padding()
+        if sectionSelection == "Industry",
+           let parentID = chatModel.selectedCategoryResult,
+           let parent = chatModel.categoricalResult(for: parentID) {
+            if chatModel.cachedCategories(contains: parent.parentCategory) {
+                Button(action: removeCategory(parent: parent)) {
+                    Label("Delete", systemImage: "minus.cicle")
+                }
+                .labelStyle(.iconOnly)
+                .padding()
+            } else {
+                Button(action: addCategory(parent: parent)) {
+                    Label("Save", systemImage: "square.and.arrow.down")
+                }
+                .labelStyle(.iconOnly)
+                .padding()
+            }
+        }
+        
+        if sectionSelection == "Taste",
+           let parentID = chatModel.selectedTasteCategoryResult,
+           let parent = chatModel.tasteResult(for: parentID) {
+            let isSaved = chatModel.cachedTastes(contains: parent.parentCategory)
+            if isSaved {
+                Button(action: removeTaste(parent: parent)) {
+                    Label("Delete", systemImage: "minus.circle")
+                }
+            } else {
+                Button(action: addTaste(parent: parent)) {
+                    Label("Save", systemImage: "square.and.arrow.down")
                 }
             }
-            
-            if sectionSelection == "Taste",
-               let parentID = chatModel.selectedTasteCategoryResult,
-               let parent = chatModel.tasteResult(for: parentID) {
-                let isSaved = chatModel.cachedTastes(contains: parent.parentCategory)
-                if isSaved {
-                    Button(action: removeTaste(parent: parent)) {
-                        Label("Remove", systemImage: "minus")
-                    }
-                } else {
-                    Button(action: addTaste(parent: parent)) {
-                        Label("Add", systemImage: "plus")
-                    }
-                }
-            }
-            
-            Button(action: {
-                chatModel.refreshCachedResults()
-                contentViewDetail = .places
-                showPopover = false
-            }) {
-                Label("Done", systemImage: "checkmark")
-            }
-            .labelStyle(.titleOnly)
-            .padding()
+        }
+        
+        Button(action: {
+            showPopover = false
+        }) {
+            Label("Done", systemImage: "checkmark.circle")
+        }
     }
     
     private func removeCategory(parent: CategoryResult) -> () -> Void {
@@ -200,26 +196,17 @@ struct SavedListView: View {
         List(selection: $chatModel.selectedSavedResult) {
             ForEach(chatModel.allCachedResults, id: \.id) { parent in
                 if parent.children.isEmpty {
-                    HStack {
-                        Text(parent.parentCategory)
-                        Spacer()
-                    }
+                    Text(parent.parentCategory)
                 } else {
                     DisclosureGroup(isExpanded: Binding(
                         get: { parent.isExpanded },
                         set: { parent.isExpanded = $0 }
                     )) {
                         ForEach(parent.children, id: \.id) { child in
-                            HStack {
-                                Text(child.parentCategory)
-                                Spacer()
-                            }
+                            Text(child.parentCategory)
                         }
                     } label: {
-                        HStack {
-                            Text(parent.parentCategory)
-                            Spacer()
-                        }
+                        Text(parent.parentCategory)
                     }
                 }
             }
@@ -264,69 +251,69 @@ struct SavedListToolbarView: View {
     @ObservedObject public var chatModel: ChatResultViewModel
     @Binding public var showPopover: Bool
     @Binding public var columnVisibility: NavigationSplitViewVisibility
-
+    
     var body: some View {
+#if os(visionOS)
+        Button(action: {
+            columnVisibility = .all
+        }) {
+            Label("Mood", systemImage: "sidebar.left")
+        }
+        .labelStyle(.iconOnly)
+        .padding()
+#endif
+        if !showPopover {
             Button(action: {
-                chatModel.locationSearchText = ""
                 showPopover = true
             }) {
-                Label("Add", systemImage: "plus")
+                Label("Add Prompt", systemImage: "plus.circle")
             }
-            .labelStyle(.iconOnly)
-            .padding()
-            
+        }
+        
+        if chatModel.selectedSavedResult != nil {
             Button(action: removeSelectedItem) {
-                Label("Remove", systemImage: "minus")
+                Label("Delete", systemImage: "minus.circle")
             }
-            
-            #if os(visionOS)
-            Button(action: {
-                columnVisibility = .all
-            }) {
-                Label("Location", systemImage: "sidebar.left")
-            }
-            .labelStyle(.iconOnly)
-            .padding()
-            #endif
+        }
     }
     
     private func removeSelectedItem() {
-           guard let parentID = chatModel.selectedSavedResult,
-                 let parent = chatModel.allCachedResults.first(where: { $0.id == parentID }) else { return }
-
-           Task {
-               await withTaskGroup(of: Void.self) { group in
-                   group.addTask {
-                       await removeCachedResults(group: "Category", identity: parent.parentCategory)
-                   }
-                   group.addTask {
-                       await removeCachedResults(group: "Taste", identity: parent.parentCategory)
-                   }
-                   group.addTask {
-                       await removeCachedResults(group: "Place", identity: parent.parentCategory)
-                   }
-                   group.addTask {
-                       await removeCachedResults(group: "List", identity: parent.parentCategory)
-                   }
-               }
-           }
-       }
-
-       private func removeCachedResults(group: String, identity: String) async {
-           if let cachedResults = chatModel.cachedResults(for: group, identity: identity) {
-               await withTaskGroup(of: Void.self) { group in
-                   for result in cachedResults {
-                       group.addTask { @MainActor in
-                           do {
-                               try await chatModel.cloudCache.deleteUserCachedRecord(for: result)
-                               try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
-                           } catch {
-                               chatModel.analytics?.track(name: "error \(error)")
-                               print(error)
-                           }
-                       }
-                   }
-               }
-           }
-       }
+        guard let parentID = chatModel.selectedSavedResult,
+              let parent = chatModel.allCachedResults.first(where: { $0.id == parentID }) else { return }
+        
+        Task {
+            await withTaskGroup(of: Void.self) { group in
+                group.addTask {
+                    await removeCachedResults(group: "Category", identity: parent.parentCategory)
+                }
+                group.addTask {
+                    await removeCachedResults(group: "Taste", identity: parent.parentCategory)
+                }
+                group.addTask {
+                    await removeCachedResults(group: "Place", identity: parent.parentCategory)
+                }
+                group.addTask {
+                    await removeCachedResults(group: "List", identity: parent.parentCategory)
+                }
+            }
+        }
+    }
+    
+    private func removeCachedResults(group: String, identity: String) async {
+        if let cachedResults = chatModel.cachedResults(for: group, identity: identity) {
+            await withTaskGroup(of: Void.self) { group in
+                for result in cachedResults {
+                    group.addTask { @MainActor in
+                        do {
+                            try await chatModel.cloudCache.deleteUserCachedRecord(for: result)
+                            try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
+                        } catch {
+                            chatModel.analytics?.track(name: "error \(error)")
+                            print(error)
+                        }
+                    }
+                }
+            }
+        }
+    }
 }

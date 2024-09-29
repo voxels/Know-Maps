@@ -23,8 +23,8 @@ struct ContentView: View {
     @State private var showImmersiveSpace = false
     @State private var immersiveSpaceIsShown = false
     @State private var columnVisibility =
-    NavigationSplitViewVisibility.doubleColumn
- 
+    NavigationSplitViewVisibility.all
+    
     @ObservedObject public var chatHost:AssistiveChatHost
     @ObservedObject public var chatModel:ChatResultViewModel
     @ObservedObject public var locationProvider:LocationProvider
@@ -37,38 +37,41 @@ struct ContentView: View {
     @Binding public var isOnboarded:Bool
     @Binding public var showOnboarding:Bool
     
-    @State private var popoverPresented:Bool = false
+    @State private var settingsPresented:Bool = false
     @State private var didError = false
     @State private var contentViewDetail:ContentDetailView = .places
     
-
+    
     
     
     var body: some View {
-        GeometryReader() { geo in
+        GeometryReader() { geometry in
             NavigationSplitView(columnVisibility: $columnVisibility) {
-                VStack() {
-                    NavigationLocationView(columnVisibility: $columnVisibility, chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, resultId: $chatModel.selectedPlaceChatResult)
-                        .navigationTitle("Destination")
-                }
-                .toolbar {
-                    ToolbarItem(placement: .automatic) {
-                        Button {
-#if os(iOS) || os(visionOS)
-                            popoverPresented.toggle()
-#else
-                            openWindow(id: "SettingsView")
-#endif
-                        } label: {
-                            Image(systemName: "gear")
+                Section {
+                    SearchSectionView(chatModel:chatModel)
+                        .toolbar {
+                            ToolbarItem(placement: .automatic) {
+                                
+                                Button {
+        #if os(iOS) || os(visionOS)
+                                    settingsPresented.toggle()
+        #else
+                                    openWindow(id: "SettingsView")
+        #endif
+                                } label: {
+                                    Label("Account Settings", systemImage: "gear")
+                                }
+                            }
                         }
-                    }
+        #if os(iOS) || os(visionOS)
+                        .popover(isPresented: $settingsPresented) {
+                            SettingsView(chatModel: chatModel, isOnboarded: $isOnboarded, showOnboarding: $showOnboarding)
+                        }
+        #endif
+                } header: {
+                    Text("Select a category:")
                 }
-#if os(iOS) || os(visionOS)
-                .popover(isPresented: $popoverPresented) {
-                    SettingsView(chatModel: chatModel, isOnboarded: $isOnboarded, showOnboarding: $showOnboarding)
-                }
-#endif
+                .navigationTitle("Category")
             } content: {
                 SearchView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, columnVisibility: $columnVisibility, contentViewDetail: $contentViewDetail)
                     .navigationTitle("Prompt")
@@ -90,45 +93,41 @@ struct ContentView: View {
                     PromptRankingView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, contentViewDetail: $contentViewDetail)
                 }
             }
-            .navigationSplitViewStyle(.balanced)
-            .onAppear(perform: {
-                chatModel.analytics?.screen(title: "NavigationSplitView")
-            })
-            .onChange(of: selectedItem, { oldValue, newValue in
-                Task {
-                    try await chatModel.didTapMarker(with: newValue)
-                }
-            })
-            .onChange(of: chatModel.selectedPlaceChatResult, { oldValue, newValue in
-                guard let newValue = newValue else {
-                    
-                    return
-                }
-                
-                let _ = Task { @MainActor in
-                    do {
-                        if newValue != oldValue, let placeChatResult = chatModel.placeChatResult(for: newValue) {
-                            try await chatModel.didTap(placeChatResult: placeChatResult)
-                        }
-                    } catch {
-                        chatModel.analytics?.track(name: "error \(error)")
-                        print(error)
-                        didError.toggle()
-                    }
-                }
-            })
-            .onChange(of: settingsModel.appleUserId, { oldValue, newValue in
-                if !newValue.isEmpty {
-                    Task { @MainActor in
-                        cloudCache.hasPrivateCloudAccess = true
-                    }
-                }
-            })
-            .tag("Search")
-#if os(visionOS) || os(iOS)
-            .toolbarColorScheme(
-                .dark, for: .navigationBar, .tabBar)
-#endif
         }
+        .navigationSplitViewStyle(.balanced)
+        .onAppear(perform: {
+            chatModel.analytics?.screen(title: "NavigationSplitView")
+        })
+        .onChange(of: selectedItem, { oldValue, newValue in
+            Task {
+                try await chatModel.didTapMarker(with: newValue)
+            }
+        })
+        .onChange(of: chatModel.selectedPlaceChatResult, { oldValue, newValue in
+            guard let newValue = newValue else {
+                
+                return
+            }
+            
+            let _ = Task { @MainActor in
+                do {
+                    if newValue != oldValue, let placeChatResult = chatModel.placeChatResult(for: newValue) {
+                        try await chatModel.didTap(placeChatResult: placeChatResult)
+                    }
+                } catch {
+                    chatModel.analytics?.track(name: "error \(error)")
+                    print(error)
+                    didError.toggle()
+                }
+            }
+        })
+        .onChange(of: settingsModel.appleUserId, { oldValue, newValue in
+            if !newValue.isEmpty {
+                Task { @MainActor in
+                    cloudCache.hasPrivateCloudAccess = true
+                }
+            }
+        })
     }
 }
+

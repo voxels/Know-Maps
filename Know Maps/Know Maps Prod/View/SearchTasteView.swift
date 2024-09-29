@@ -59,7 +59,7 @@ struct SearchTasteView: View {
             .padding(.top, 64)
             .overlay(alignment: .top, content: {
                 VStack(alignment: .center) {
-                    TextField("", text: $tasteSearchText, prompt:Text("Search for a taste"))
+                    TextField("", text: $tasteSearchText, prompt:Text("Search for a feature"))
                         .onSubmit() {
                             Task {
                                 model.tasteResults.removeAll()

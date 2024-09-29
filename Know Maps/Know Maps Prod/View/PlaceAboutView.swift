@@ -284,7 +284,7 @@ struct PlaceAboutView: View {
 #endif
                                                     
                                                     let isSaved = chatModel.cachedTastes(contains: taste)
-                                                    Label("Save", systemImage: isSaved ? "minus" : "plus")
+                                                    Label("Save", systemImage: isSaved ? "minus.circle" : "square.and.arrow.down")
                                                         .labelStyle(.iconOnly)
                                                         .foregroundStyle(.white)
                                                 }

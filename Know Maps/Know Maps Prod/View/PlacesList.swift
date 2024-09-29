@@ -10,17 +10,18 @@ import CoreLocation
 import MapKit
 
 struct PlacesList: View {
-    @Environment(\.verticalSizeClass) var sizeClass
+    @Environment(\.horizontalSizeClass) var sizeClass
     @StateObject public var placeDirectionsChatViewModel = PlaceDirectionsViewModel(rawLocationIdent: "")
     @ObservedObject public var chatHost:AssistiveChatHost
     @ObservedObject public var chatModel:ChatResultViewModel
     @ObservedObject public var locationProvider:LocationProvider
-    @State private var selectedItem: String?
-    @State private var sheetIsPresented:Bool = false
-    
     @Binding public var resultId:ChatResult.ID?
     @State private var showingPopover:Bool = false
     @State private var cameraPosition:MapCameraPosition = .automatic
+    @State private var selectedItem: String?
+    @State private var sheetIsPresented:Bool = false
+    @State private var showNavigationLocationSheet:Bool = false
+    @State private var searchText:String = ""
     
     static var formatter:NumberFormatter {
         let retval = NumberFormatter()
@@ -30,200 +31,85 @@ struct PlacesList: View {
     
     var body: some View {
         GeometryReader { geo in
-            if let _ = chatModel.selectedPlaceChatResult {
+            if let resultId = chatModel.selectedPlaceChatResult, let placeChatResult = chatModel.placeChatResult(for: resultId) {
                 PlaceView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, placeDirectionsViewModel: placeDirectionsChatViewModel, resultId: $resultId)
+                    .navigationTitle(placeChatResult.title)
+                    .navigationBarBackButtonHidden(true)
             } else {
-                VStack{
-                    if chatModel.filteredRecommendedPlaceResults.count > 0 {
-                        let threeColumn = Array(repeating: GridItem(.flexible(), spacing: PlaceAboutView.defaultPadding), count:sizeClass == .compact ? 1 : 2)
-                        ScrollView(.horizontal) {
-                            LazyHGrid(rows: threeColumn, spacing: 16) {
-                                ForEach(chatModel.filteredRecommendedPlaceResults){ result in
-                                    ZStack(alignment: .bottom, content: {
-                                        if let photo = result.recommendedPlaceResponse?.photo, !photo.isEmpty, let url = URL(string: photo) {
-                                            AsyncImage(url: url) { phase in
-                                                switch phase {
-                                                case .empty:
-                                                    ProgressView()
-                                                case .success(let image):
-                                                    image.resizable()
-                                                        .aspectRatio(contentMode: .fit)
-                                                        .clipped()
-                                                case .failure:
-                                                    EmptyView()
-                                                @unknown default:
-                                                    // Since the AsyncImagePhase enum isn't frozen,
-                                                    // we need to add this currently unused fallback
-                                                    // to handle any new cases that might be added
-                                                    // in the future:
-                                                    EmptyView()
-                                                }
-                                            }
-                                            .padding(.bottom,  128)
-                                            Rectangle().foregroundStyle(.regularMaterial).frame( height:128)
-                                            VStack {
+                ScrollView{
+                    if !chatModel.filteredRecommendedPlaceResults.isEmpty {
+                        let sizeWidth:CGFloat = sizeClass == .compact ? 1 : 2
+                        let columns = Array(repeating: GridItem(.adaptive(minimum: geo.size.width / sizeWidth)),  count:Int(sizeWidth))
+                        LazyVGrid(columns: columns, spacing: 16) {
+                            ForEach(chatModel.filteredRecommendedPlaceResults){ result in
+                                VStack(alignment:.leading, content: {
+                                    ZStack {
+                                        VStack(alignment: .leading) {
+                                            if let neighborhood = result.recommendedPlaceResponse?.neighborhood, !neighborhood.isEmpty {
                                                 
-                                                if let neighborhood = result.recommendedPlaceResponse?.neighborhood, !neighborhood.isEmpty {
-                                                    Spacer()
-                                                    Text(result.title).bold()
-                                                        .lineLimit(2)
-                                                        .multilineTextAlignment(.center)
-                                                        .padding(.horizontal, 8)
-                                                    Text(neighborhood).italic()
-                                                        .padding(.horizontal, 8)
-                                                } else{
-                                                    Spacer()
-                                                    Text(result.title).bold().lineLimit(2)
-                                                        .padding(.horizontal, 8)
-                                                    Text("")
-                                                }
-                                                HStack {
-                                                    if let placeResponse = result.recommendedPlaceResponse {
-                                                        Text(!placeResponse.address.isEmpty ?
-                                                             placeResponse.address : placeResponse.formattedAddress )
-                                                        .lineLimit(2)
-                                                        .italic()
-                                                        .padding(.horizontal, 8)                                                    }
-                                                }
-                                            }.padding(EdgeInsets(top: 0, leading: 0, bottom: 16, trailing: 0))
-                                        } else {
-                                            RoundedRectangle(cornerSize: CGSize(width: 16, height: 16)).foregroundStyle(.regularMaterial)
-                                            VStack {
-                                                Spacer()
-                                                Text(result.title).bold().lineLimit(2).padding(.horizontal, 8)
-                                                if let neighborhood = result.recommendedPlaceResponse?.neighborhood, !neighborhood.isEmpty {
-                                                    
-                                                    Text(neighborhood).italic()
-                                                        .padding(.horizontal, 8)
-                                                } else{
-                                                    Text("")
-                                                }
-                                                HStack {
-                                                    if let placeResponse = result.recommendedPlaceResponse {
-                                                        Text(!placeResponse.address.isEmpty ?
-                                                             placeResponse.address : placeResponse.formattedAddress )
-                                                        .lineLimit(2)
-                                                        .italic()
-                                                        .padding(.horizontal, 8)
-                                                    }
-                                                }
-                                            }.padding(EdgeInsets(top: 0, leading: 0, bottom: 16, trailing: 0))
-                                        }
-                                        
-                                    })
-                                    .background(.ultraThinMaterial)
-                                    .frame(maxWidth: geo.size.width - 32, maxHeight:geo.size.height/2 - 16)
-                                    .contentShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-                                    .cornerRadius(16)
-                                    .onTapGesture {
-                                        chatModel.selectedPlaceChatResult = result.id
-                                    }
-                                }
-                            }
-                        }.padding(.horizontal, 16)
-                            .background(.black)
-                    } else if chatModel.recommendedPlaceResults.isEmpty && chatModel.placeResults.count > 0 {
-                        let threeColumn = Array(repeating: GridItem(.flexible(), spacing: PlaceAboutView.defaultPadding), count:sizeClass == .compact ? 1 : 2)
-                        ScrollView {
-                            LazyHGrid(rows: threeColumn, spacing: 16) {
-                                ForEach(chatModel.filteredPlaceResults){ result in
-                                    ZStack(alignment: .bottom, content: {
-                                        if let response = result.placeDetailsResponse, let photoResponses = response.photoResponses, let photo = photoResponses.first, let url = photo.photoUrl() {
-                                            AsyncImage(url: url) { phase in
-                                                switch phase {
-                                                case .empty:
-                                                    ProgressView()
-                                                case .success(let image):
-                                                    image.resizable()
-                                                        .aspectRatio(contentMode: .fit)
-                                                case .failure:
-                                                    Image(systemName: "photo")
-                                                @unknown default:
-                                                    // Since the AsyncImagePhase enum isn't frozen,
-                                                    // we need to add this currently unused fallback
-                                                    // to handle any new cases that might be added
-                                                    // in the future:
-                                                    EmptyView()
-                                                }
+                                                Text(result.title).bold()
+                                                Text(neighborhood).italic()
+                                                
+                                            } else{
+                                                Text(result.title).bold()
                                             }
-                                            .padding(.bottom, 128)
-                                            .frame(maxWidth:sizeClass == .compact ? geo.size.width - 32 : geo.size.width / 2 - 40, maxHeight:geo.size.height/2 - 16)
-                                            Rectangle().foregroundStyle(.regularMaterial).frame( height:128)
-                                            VStack(alignment: .center) {
-                                                Spacer()
-                                                if let neighborhood = result.placeResponse?.locality, !neighborhood.isEmpty {
-                                                    Spacer()
-                                                    Text(result.title).bold().lineLimit(2).padding(.horizontal, 8)
-                                                    Text(neighborhood).italic().padding(.horizontal, 8)
-                                                    
-                                                } else{
-                                                    Spacer()
-                                                    Text(result.title).bold().lineLimit(2)
-                                                        .padding(.horizontal, 8)
-                                                }
-                                                HStack {
-                                                    if let placeResponse = result.placeResponse {
-                                                        Text(!placeResponse.address.isEmpty ?
-                                                             placeResponse.address : placeResponse.formattedAddress )
-                                                        .lineLimit(2)
-                                                        .italic()
-                                                        .padding(.horizontal, 8)
-                                                    }
-                                                }
-                                                Spacer()
-                                            }.padding(EdgeInsets(top: 0, leading: 0, bottom: 16, trailing: 0))
-                                            
-                                        } else {
-                                            RoundedRectangle(cornerSize: CGSize(width: 16, height: 16)).foregroundStyle(.regularMaterial)
-                                            VStack(alignment:.center) {
-                                                Spacer()
-                                                Text(result.title).bold().lineLimit(2).padding(8)
-                                                if let neighborhood = result.placeResponse?.locality, !neighborhood.isEmpty {
-                                                    
-                                                    Text(neighborhood).italic()
-                                                } else{
-                                                    Text("")
-                                                }
-                                                HStack {
-                                                    if let placeResponse = result.placeResponse {
-                                                        Text(!placeResponse.address.isEmpty ?
-                                                             placeResponse.address : placeResponse.formattedAddress )
-                                                        .lineLimit(2)
-                                                        .italic()
-                                                        .padding(EdgeInsets(top: 0, leading: 8, bottom: 0, trailing: 0))
-                                                    }
-                                                }
-                                                Spacer()
-                                            }.padding(EdgeInsets(top: 0, leading: 0, bottom: 16, trailing: 0))
-                                        }
-                                        
-                                    })
-                                    .frame(maxWidth: geo.size.width - 32, maxHeight: geo.size.height / 2 - 16)
-                                    .background(.ultraThinMaterial)
-                                    .contentShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-                                    .cornerRadius(16)
-                                    .onTapGesture {
-                                        chatModel.selectedPlaceChatResult = result.id
+                                            if let placeResponse = result.recommendedPlaceResponse, !placeResponse.address.isEmpty {
+                                                Text(placeResponse.address)
+                                                Text(placeResponse.city)
+                                            }
+                                        }.padding()
                                     }
-                                }
-                            }
-                        }.padding(16)
-                            .background(.black)
-                    } else {
-                        List(chatModel.filteredPlaceResults,selection: $resultId){ result in
-                            VStack(alignment: .center) {
-                                HStack {
-                                    Text(result.title)
-                                    Spacer()
-                                }
-                                if let placeResponse = result.placeResponse {
-                                    Text(placeResponse.formattedAddress).italic()
+                                    if let photo = result.recommendedPlaceResponse?.photo, !photo.isEmpty, let url = URL(string: photo) {
+                                        AsyncImage(url: url) { phase in
+                                            switch phase {
+                                            case .empty:
+                                                ProgressView()
+                                            case .success(let image):
+                                                image.resizable()
+                                                    .aspectRatio(contentMode: .fit)
+                                                    .clipped()
+                                            case .failure:
+                                                EmptyView()
+                                            @unknown default:
+                                                // Since the AsyncImagePhase enum isn't frozen,
+                                                // we need to add this currently unused fallback
+                                                // to handle any new cases that might be added
+                                                // in the future:
+                                                EmptyView()
+                                            }
+                                        }
+                                    } else if let response = result.placeDetailsResponse, let photoResponses = response.photoResponses, let photo = photoResponses.first, let url = photo.photoUrl() {
+                                        AsyncImage(url: url) { phase in
+                                            switch phase {
+                                            case .empty:
+                                                ProgressView()
+                                            case .success(let image):
+                                                image.resizable()
+                                                    .aspectRatio(contentMode: .fit)
+                                            case .failure:
+                                                Image(systemName: "photo")
+                                            @unknown default:
+                                                // Since the AsyncImagePhase enum isn't frozen,
+                                                // we need to add this currently unused fallback
+                                                // to handle any new cases that might be added
+                                                // in the future:
+                                                EmptyView()
+                                            }
+                                        }
+                                    }
+                                })
+                                .background()
+                                .cornerRadius(16)
+                                .onTapGesture {
+                                    chatModel.selectedPlaceChatResult = result.id
                                 }
                             }
                         }
-                        .padding(16)
+                    } else {
+                        Text("No results found")
                     }
-                }.sheet(isPresented: $sheetIsPresented) {
+                }
+                .sheet(isPresented: $sheetIsPresented) {
                     VStack(alignment: .center, spacing: 0) {
                         HStack(alignment: .bottom, spacing: 0) {
                             Spacer()
@@ -232,24 +118,121 @@ struct PlacesList: View {
                             }, label:{
                                 Label("List", systemImage: "list.bullet").labelStyle(.iconOnly)
                             })
-                        }.padding()
+                        }.padding(.horizontal, 16)
+                            .padding(.top, 16)
                         MapResultsView(chatHost: chatHost, model: chatModel, locationProvider: locationProvider, selectedMapItem: $selectedItem, cameraPosition:$cameraPosition)
                             .onChange(of: selectedItem) { oldValue, newValue in
                                 if let newValue, let placeResponse = chatModel.filteredPlaceResults.first(where: { $0.placeResponse?.fsqID == newValue }) {
                                     chatModel.selectedPlaceChatResult = placeResponse.id
                                 }
                             }
-                            .frame(width: geo.size.width, height: geo.size.height - 44)
+                            .frame(width: geo.size.width, height: geo.size.height)
                     }
                 }
+                .sheet(isPresented:$showNavigationLocationSheet) {
+                    VStack {
+                        HStack {
+                            Button(action: {
+                                showNavigationLocationSheet.toggle()
+                            }, label: {
+                                Label("Done", systemImage: "chevron.backward").labelStyle(.iconOnly)
+                            })
+                            
+                            TextField("New York, NY", text: $searchText)
+                                .padding()
+                                .onSubmit {
+                                    search()
+                                }
+                            
+                            Button("Current Location", systemImage:"location") {
+                                Task {
+                                    do {
+                                        if let currentLocationName = try await chatModel.currentLocationName() {
+                                            try await chatModel.didSearch(caption:currentLocationName, selectedDestinationChatResultID:nil, intent:.Location)
+                                        } else {
+                                            showNavigationLocationSheet.toggle()
+                                        }
+                                    } catch {
+                                        chatModel.analytics?.track(name: "error \(error)")
+                                        print(error)
+                                    }
+                                }
+                            }.labelStyle(.iconOnly)
+                            
+                            if let selectedDestinationLocationChatResult = chatModel.selectedDestinationLocationChatResult,
+                               let parent = chatModel.locationChatResult(for: selectedDestinationLocationChatResult)
+                            {
+                                
+                                let isSaved = chatModel.cachedLocation(contains:parent.locationName)
+                                if isSaved {
+                                    Button("Delete", systemImage:"minus.circle") {
+                                        if let location = parent.location, let cachedLocationResults = chatModel.cachedResults(for: "Location", identity:chatModel.cachedLocationIdentity(for: location)) {
+                                            Task {
+                                                for cachedLocationResult in cachedLocationResults {
+                                                    try await chatModel.cloudCache.deleteUserCachedRecord(for: cachedLocationResult)
+                                                }
+                                                try await chatModel.refreshCachedLocations(cloudCache: chatModel.cloudCache)
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    Button("Save", systemImage:"square.and.arrow.down") {
+                                        Task(priority: .userInitiated) {
+                                            if let location = parent.location {
+                                                var userRecord = UserCachedRecord(recordId: "", group: "Location", identity: chatModel.cachedLocationIdentity(for: location), title: parent.locationName, icons: "", list: nil)
+                                                let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title)
+                                                userRecord.setRecordId(to:record)
+                                                chatModel.appendCachedLocation(with: userRecord)
+                                                try await chatModel.refreshCachedLocations(cloudCache: chatModel.cloudCache)
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }.padding()
+                        NavigationLocationView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider)
+                    }.frame(maxWidth: geo.size.width / 2, minHeight:geo.size.height, maxHeight: .infinity)
+                }
+                .padding()
                 .toolbar {
-                    ToolbarItem {
+                    ToolbarItemGroup {
                         Button {
                             sheetIsPresented.toggle()
                         } label: {
                             Label("Show Map", systemImage: "map")
                         }
+                        Button("Search Location", systemImage:"location.magnifyingglass") {
+                            chatModel.locationSearchText.removeAll()
+                            showNavigationLocationSheet.toggle()
+                        }
                     }
+                }
+            }
+        }
+    }
+    
+    func search() {
+        if !searchText.isEmpty {
+            Task {
+                do {
+                    try await chatModel.didSearch(caption:searchText, selectedDestinationChatResultID:nil, intent:.Location)
+                    if let selectedDestinationLocationChatResult = chatModel.selectedDestinationLocationChatResult,
+                       let parent = chatModel.locationChatResult(for: selectedDestinationLocationChatResult)
+                    {
+                        
+                        Task(priority: .userInitiated) {
+                            if let location = parent.location {
+                                var userRecord = UserCachedRecord(recordId: "", group: "Location", identity: chatModel.cachedLocationIdentity(for: location), title: parent.locationName, icons: "", list: nil)
+                                let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title)
+                                userRecord.setRecordId(to:record)
+                                chatModel.appendCachedLocation(with: userRecord)
+                                try await chatModel.refreshCachedLocations(cloudCache: chatModel.cloudCache)
+                            }
+                        }
+                    }
+                } catch {
+                    chatModel.analytics?.track(name: "error \(error)")
+                    print(error)
                 }
             }
         }

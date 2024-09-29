@@ -47,6 +47,7 @@ final class ChatResultViewModel: ObservableObject {
     @Published public var cachedLocationResults = [LocationResult]()
     
     // Selection States
+    @Published public var selectedPersonalizedSearchSection:PersonalizedSearchSection = .none
     @Published public var selectedCategoryResult: CategoryResult.ID?
     @Published public var selectedSavedResult: CategoryResult.ID?
     @Published public var selectedTasteCategoryResult: CategoryResult.ID?
@@ -70,6 +71,7 @@ final class ChatResultViewModel: ObservableObject {
     @Published public var locationResults = [LocationResult]()
     @Published public var currentLocationResult = LocationResult(locationName: "Current Location", location: nil)
     @Published public var lastFetchedTastePage: Int = 0
+    @Published public var cacheFetchProgress:Double = 0
 
     
     // MARK: - Private Properties
@@ -152,19 +154,9 @@ final class ChatResultViewModel: ObservableObject {
     // MARK: - Filtered Results
     
     public var filteredRecommendedPlaceResults: [ChatResult] {
-        var results = recommendedPlaceResults.filter { $0.placeDetailsResponse?.dateClosed?.isEmpty ?? true }
-        
-        if let tasteCategoryID = selectedTasteCategoryResult,
-           let tasteCategory = tasteChatResult(for: tasteCategoryID) {
-            results = results.filter { $0.recommendedPlaceResponse?.tastes.contains(tasteCategory.title) ?? false }
-        }
-        
-        if let savedResultID = selectedSavedResult,
-           let savedResult = cachedChatResult(for: savedResultID) {
-            results = results.filter { $0.recommendedPlaceResponse?.tastes.contains(savedResult.title.lowercased()) ?? false }
-        }
-        
-        return results.isEmpty ? recommendedPlaceResults : results
+        let results = recommendedPlaceResults.filter { $0.placeDetailsResponse?.dateClosed?.isEmpty ?? true }
+                
+        return !results.isEmpty ? results : filteredPlaceResults
     }
     
     public var filteredLocationResults: [LocationResult] {
@@ -205,16 +197,85 @@ final class ChatResultViewModel: ObservableObject {
     @MainActor
     public func refreshCache(cloudCache: CloudCache) async throws {
         isRefreshingCache = true
-        
-        await withTaskGroup(of: Void.self) { group in
-            group.addTask { await self.refreshCachedCategories(cloudCache: cloudCache) }
-            group.addTask { await self.refreshCachedTastes(cloudCache: cloudCache) }
-            group.addTask { await self.refreshCachedPlaces(cloudCache: cloudCache) }
+
+        // Initialize progress variables
+        let totalTasks = 3
+        var completedTasks = 0
+
+        // Define the timeout duration in seconds
+        let timeoutInSeconds: UInt64 = 10
+
+        // Create a task that encapsulates the entire operation
+        let operationTask = Task {
+            // Use a throwing task group to manage tasks and handle cancellations
+            try await withThrowingTaskGroup(of: Void.self) { group in
+                // Define tasks with progress updates
+                group.addTask {
+                    try Task.checkCancellation()
+                    await self.refreshCachedCategories(cloudCache: cloudCache)
+                    try Task.checkCancellation()
+                    await MainActor.run {
+                        completedTasks += 1
+                        let progress = Double(completedTasks) / Double(totalTasks)
+                        self.cacheFetchProgress = progress
+                    }
+                }
+                group.addTask {
+                    try Task.checkCancellation()
+                    await self.refreshCachedTastes(cloudCache: cloudCache)
+                    try Task.checkCancellation()
+                    await MainActor.run {
+                        completedTasks += 1
+                        let progress = Double(completedTasks) / Double(totalTasks)
+                        self.cacheFetchProgress = progress
+                    }
+                }
+                group.addTask {
+                    try Task.checkCancellation()
+                    await self.refreshCachedPlaces(cloudCache: cloudCache)
+                    try Task.checkCancellation()
+                    await MainActor.run {
+                        completedTasks += 1
+                        let progress = Double(completedTasks) / Double(totalTasks)
+                        self.cacheFetchProgress = progress
+                    }
+                }
+
+                // Wait for all tasks to complete or handle cancellation
+                try await group.waitForAll()
+            }
+
+            // Proceed with remaining tasks after the group tasks are done
+            await self.refreshCachedLists(cloudCache: cloudCache)
+            self.refreshCachedResults()
         }
-        
-        await self.refreshCachedLists(cloudCache: cloudCache)
-        refreshCachedResults()
-        
+
+        // Wait for the operation task to complete or cancel it after the timeout
+        do {
+            try await withThrowingTaskGroup(of: Void.self) { group in
+                // Add the main operation task
+                group.addTask {
+                    try await operationTask.value
+                }
+                // Add a timeout task
+                group.addTask {
+                    try await Task.sleep(nanoseconds: timeoutInSeconds * 1_000_000_000)
+                    operationTask.cancel()
+                    throw CancellationError()
+                }
+                // Wait for the first task to finish (either the operation or the timeout)
+                try await group.next()
+                // Cancel all remaining tasks
+                group.cancelAll()
+            }
+        } catch is CancellationError {
+            // Handle timeout or cancellation
+            print("Refresh cache operation timed out or was cancelled")
+        } catch {
+            // Handle other errors
+            print("An unexpected error occurred: \(error)")
+        }
+
         isRefreshingCache = false
     }
     
@@ -240,6 +301,7 @@ final class ChatResultViewModel: ObservableObject {
         }
     }
     
+    @MainActor
     private func refreshCachedPlaces(cloudCache:CloudCache) async {
         do {
             self.cachedPlaceRecords = try await cloudCache.fetchGroupedUserCachedRecords(for: "Place")
@@ -843,9 +905,7 @@ final class ChatResultViewModel: ObservableObject {
                         name = "\(neighborhood), \(locality)"
                     }
                     let newLocationResult = LocationResult(locationName: name, location: queryPlacemark.location)
-                    if !existingLocationNames.contains(name) {
-                        locationResults.append(newLocationResult)
-                    }
+                    locationResults.append(newLocationResult)
                 }
             }
         }

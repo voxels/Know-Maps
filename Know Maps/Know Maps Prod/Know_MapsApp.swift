@@ -30,9 +30,10 @@ struct Know_MapsApp: App {
     
     public var analytics:Analytics? = Analytics(configuration: Know_MapsApp.config)
     
-    
     var body: some Scene {
         WindowGroup(id:"ContentView") {
+            GeometryReader { geometry in
+                
             if showSplashScreen{
                 ZStack {
                     VStack{
@@ -50,22 +51,18 @@ struct Know_MapsApp: App {
                                 Label("Allow Access", systemImage: "arrow.2.circlepath.circle")
                             })
                         }
+                        ProgressView("Refreshing Lists", value: chatModel.cacheFetchProgress)
+                            .frame(maxWidth:geometry.size.width / 3)
+                            .padding()
                     }
                 }
+
 #if os(visionOS) || os(macOS)
                 .frame(minWidth: 1280, minHeight: 720)
 #endif
                 .task {
                     do {
                         try await startup(chatModel: chatModel)
-                        try await chatModel.refreshSessions()
-                        if !chatModel.cloudCache.hasPrivateCloudAccess {
-                            let userRecord = try await chatModel.cloudCache.fetchCloudKitUserRecordID()
-                            settingsModel.keychainId = userRecord?.recordName
-                            chatModel.cloudCache.hasPrivateCloudAccess =  try await chatModel.retrieveFsqUser()
-                            let customerInfo = try await Purchases.shared.customerInfo()
-                            chatModel.featureFlags.updateFlags(with: customerInfo)
-                        }
                     } catch {
                         analytics?.track(name: "error \(error)")
                         print(error)
@@ -80,56 +77,16 @@ struct Know_MapsApp: App {
                         .environmentObject(chatModel.cloudCache)
                         .environmentObject(settingsModel)
                         .environmentObject(chatModel.featureFlags)
-                        .task { @MainActor in
-                            do {
-                                try await chatModel.retrieveFsqUser()
-                            } catch {
-                                chatModel.analytics?.track(name: "error \(error)")
-                                print(error)
-                            }
-                            
-                            do {
-                                try await chatModel.refreshCachedLocations(cloudCache: chatModel.cloudCache)
-                            } catch {
-                                chatModel.analytics?.track(name: "error \(error)")
-                                print(error)
-                            }
-                        }
                 } else {
                     ContentView(chatHost: chatHost, chatModel: chatModel, locationProvider: chatModel.locationProvider, isOnboarded: $isOnboarded, showOnboarding: $showOnboarding)
 #if os(visionOS) || os(macOS)
-                        .frame(minWidth: 1280, minHeight: 720)                    #endif
+                        .frame(minWidth: 1280, minHeight: 720)
+#endif
                         .environmentObject(chatModel.cloudCache)
                         .environmentObject(settingsModel)
                         .environmentObject(chatModel.featureFlags)
-                        .task { @MainActor in
-                            do {
-                                try await chatModel.retrieveFsqUser()
-                            } catch {
-                                chatModel.analytics?.track(name: "error \(error)")
-                                print(error)
-                            }
-                                                        
-                            do {
-                                try await chatModel.refreshCachedLocations(cloudCache: chatModel.cloudCache)
-                                var uuid = UUID()
-                                var minDistance = Double.greatestFiniteMagnitude
-                                for cachedLocation in chatModel.cachedLocationResults {
-                                    if let currentLocation = chatModel.locationProvider.currentLocation(), let location = cachedLocation.location {
-                                        if location.distance(from: currentLocation) < minDistance {
-                                            uuid = cachedLocation.id
-                                            minDistance = location.distance(from:currentLocation)
-                                        }
-                                    }
-                                }
-                                chatModel.selectedDestinationLocationChatResult = uuid
-                            } catch {
-                                chatModel.analytics?.track(name: "error \(error)")
-                                print(error)
-                            }
-                            
-                        }
                 }
+            }
             }
         }.windowResizability(.contentSize)
         
@@ -165,9 +122,11 @@ struct Know_MapsApp: App {
             chatHost.messagesDelegate = chatModel
             chatModel.cloudCache.analytics = analytics
             try? chatHost.organizeCategoryCodeList()
-            let userRecord = try await chatModel.cloudCache.fetchCloudKitUserRecordID()
-            settingsModel.keychainId = userRecord?.recordName
-            chatModel.cloudCache.hasPrivateCloudAccess =  try await chatModel.retrieveFsqUser()
+            if !chatModel.cloudCache.hasPrivateCloudAccess {
+                let userRecord = try await chatModel.cloudCache.fetchCloudKitUserRecordID()
+                settingsModel.keychainId = userRecord?.recordName
+                chatModel.cloudCache.hasPrivateCloudAccess =  try await chatModel.retrieveFsqUser()
+            }
 #if DEBUG
             Purchases.logLevel = .debug
 #endif
@@ -175,11 +134,19 @@ struct Know_MapsApp: App {
             let revenuecatAPIKey = try await chatModel.cloudCache.apiKey(for: .revenuecat)
             Purchases.configure(withAPIKey: revenuecatAPIKey, appUserID: purchasesId)
             Purchases.shared.delegate = chatModel.featureFlags
+            
             let customerInfo = try await Purchases.shared.customerInfo()
             chatModel.featureFlags.updateFlags(with: customerInfo)
             isAuthorized = chatModel.locationProvider.isAuthorized()
-            settingsModel.fetchSubscriptionOfferings()
+            if isAuthorized, let location = chatModel.locationProvider.currentLocation() {
+                let placemarkName = try await chatHost.languageDelegate.lookUpLocation(location: location)?.first?.name ?? "Current Location"
+                chatModel.currentLocationResult.replaceLocation(with: location, name: placemarkName)
+                chatModel.selectedDestinationLocationChatResult = chatModel.currentLocationResult.id
+            }
             
+            settingsModel.fetchSubscriptionOfferings()
+
+            try await chatModel.refreshCachedLocations(cloudCache: chatModel.cloudCache)
             try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
             
             isOnboarded = !chatModel.cachedTasteResults.isEmpty

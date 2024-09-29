@@ -14,50 +14,50 @@ struct SearchCategoryView: View {
     @State private var didError = false
     
     var body: some View {
-        List( selection:$chatModel.selectedCategoryResult) {
-            ForEach(chatModel.categoryResults, id:\.id){ parent in
-                DisclosureGroup(isExpanded: Binding(
-                    get: { parent.isExpanded },
-                    set: { parent.isExpanded = $0 }
-                )){
-                    ForEach(parent.children, id:\.id) { child in
-                        let isSaved = chatModel.cachedCategories(contains: child.parentCategory)
+            List(selection:$chatModel.selectedCategoryResult) {
+                ForEach(chatModel.categoryResults, id:\.id){ parent in
+                    DisclosureGroup(isExpanded: Binding(
+                        get: { parent.isExpanded },
+                        set: { parent.isExpanded = $0 }
+                    )){
+                        ForEach(parent.children, id:\.id) { child in
+                            let isSaved = chatModel.cachedCategories(contains: child.parentCategory)
+                            HStack {
+                                Text("\(child.parentCategory)")
+                                Spacer()
+                                isSaved ? Image(systemName: "checkmark.circle.fill") : Image(systemName: "circle")
+                            }
+                        }
+                    } label: {
                         HStack {
-                            Text("\(child.parentCategory)")
+                            Text("\(parent.parentCategory)")
                             Spacer()
-                            isSaved ? Image(systemName: "checkmark.circle.fill") : Image(systemName: "circle")
                         }
                     }
-                } label: {
-                    HStack {
-                        Text("\(parent.parentCategory)")
-                        Spacer()
+                }
+            }
+            .listStyle(.sidebar)
+            .refreshable {
+                chatModel.isRefreshingCache = false
+                Task {
+                    do{
+                        try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
+                    } catch {
+                        chatModel.analytics?.track(name: "error \(error)")
+                        print(error)
+                    }
+                }
+            }.task {
+                Task {
+                    do {
+                        await chatModel.categoricalSearchModel()
+                        try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
+                    } catch {
+                        print(error)
+                        chatModel.analytics?.track(name: "error \(error)")
                     }
                 }
             }
-        }
-        .listStyle(.sidebar)
-        .refreshable {
-            chatModel.isRefreshingCache = false
-            Task {
-                do{
-                    try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
-                } catch {
-                    chatModel.analytics?.track(name: "error \(error)")
-                    print(error)
-                }
-            }
-        }.task {
-            Task {
-                do {
-                    await chatModel.categoricalSearchModel()
-                    try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
-                } catch {
-                    print(error)
-                    chatModel.analytics?.track(name: "error \(error)")
-                }
-            }
-        }
         
     }
 }

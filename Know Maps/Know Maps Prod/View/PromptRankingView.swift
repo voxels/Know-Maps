@@ -86,16 +86,16 @@ struct PromptRankingView: View {
                             if let index = chatModel.cachedTasteResults.firstIndex(where: { $0.id == uuid }) {
                                 let draggedCategoryResult = chatModel.cachedTasteResults[index]
                                 
-//                                if let cachedTasteResults = chatModel.cachedResults(for: "Taste", identity: draggedCategoryResult.parentCategory) {
-//                                    for cachedTasteResult in cachedTasteResults {
-//                                        do {
-//                                            try await chatModel.cloudCache.deleteUserCachedRecord(for: cachedTasteResult)
-//                                        } catch {
-//                                            chatModel.analytics?.track(name: "error \(error)")
-//                                            print(error)
-//                                        }
-//                                    }
-//                                }
+                                if let cachedTasteResults = chatModel.cachedResults(for: "Taste", identity: draggedCategoryResult.parentCategory) {
+                                    for cachedTasteResult in cachedTasteResults {
+                                        do {
+                                            try await chatModel.cloudCache.deleteUserCachedRecord(for: cachedTasteResult)
+                                        } catch {
+                                            chatModel.analytics?.track(name: "error \(error)")
+                                            print(error)
+                                        }
+                                    }
+                                }
                                 
                                 do {
                                     var userRecord = UserCachedRecord(recordId: "", group: "Taste", identity:draggedCategoryResult.parentCategory, title:draggedCategoryResult.parentCategory, icons: "", list:targetCategoryResult.parentCategory)

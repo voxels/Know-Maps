@@ -19,9 +19,7 @@ struct SearchView: View {
     @State private var didError = false
     
     var body: some View {
-        VStack {
-            SearchSavedView(chatHost:chatHost, chatModel: chatModel, locationProvider: locationProvider, columnVisibility: $columnVisibility, contentViewDetail: $contentViewDetail)
-        }
+        SearchSavedView(chatHost:chatHost, chatModel: chatModel, locationProvider: locationProvider, columnVisibility: $columnVisibility, contentViewDetail: $contentViewDetail)
         .onChange(of: chatModel.selectedSavedResult) { oldValue, newValue in
             chatModel.resetPlaceModel()
             

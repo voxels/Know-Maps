@@ -14,65 +14,70 @@ struct SettingsView: View {
     @EnvironmentObject public var cloudCache:CloudCache
     @State private var popoverPresented:Bool = false
     @State private var signInErrorMessage:String = "Error"
+    @State private var isAuthenticated = false
     @ObservedObject public var chatModel:ChatResultViewModel
     @Binding public var isOnboarded:Bool
     @Binding public var showOnboarding:Bool
     var body: some View {
         VStack {
-            if model.appleUserId.isEmpty {
-                    SignInWithAppleButton { request in
-                        if !model.appleUserId.isEmpty {
-                            request.user = model.appleUserId
-                        }
-                        request.requestedScopes = [.fullName]
-                    } onCompletion: { result in
-                        switch result {
-                        case .success(let authResults):
-                            Task { @MainActor in
-                                if let appleIDCredential = authResults.credential as? ASAuthorizationAppleIDCredential {
-                                    await MainActor.run {
-                                        model.appleUserId = appleIDCredential.user
-                                        model.fullName = "\(appleIDCredential.fullName?.givenName ?? "") \(appleIDCredential.fullName?.familyName ?? "")"
-                                        cloudCache.hasPrivateCloudAccess = true
-                                        #if os(visionOS)
-                                        openWindow(id: "ContentView")
-                                        #endif
-                                    }
-                                    print("Authorization successful.")
-                                    Task {
-                                        let key =  model.appleUserId.data(using: .utf8)
-                                        let addquery: [String: Any] = [kSecClass as String: kSecClassKey,
-                                                                       kSecAttrApplicationTag as String: SettingsModel.tag,
-                                                                       kSecValueData as String: key as AnyObject]
-                                        let status = SecItemAdd(addquery as CFDictionary, nil)
-                                        guard status == errSecSuccess else {
-                                            print(status)
-                                            return
-                                        }
-                                        print("Storing Apple ID successful.")
-                                    }
-                                }
-                            }
-                        case .failure(let error):
-                            signInErrorMessage = String(describing: error)
-                            print("Authorization failed: " + String(describing: error))
-                            popoverPresented.toggle()
-                        }
-                    }
-                    .signInWithAppleButtonStyle(.whiteOutline)
-                    .frame(maxWidth: 360, maxHeight: 60)
-                    .popover(isPresented: $popoverPresented, content: {
-                        Text(signInErrorMessage).padding()
-                    })
-                    .padding()
-            }
-            else {
+            if isAuthenticated {
                 if let fullName = model.fullName?.trimmingCharacters(in: .whitespaces), !fullName.isEmpty {
                     Label("Welcome \(fullName)", systemImage:"apple.logo").padding()
                 } else {
                     Label("Signed in with Apple ID", systemImage:"apple.logo").padding()
                 }
+            } else {
+                SignInWithAppleButton { request in
+                    if !model.appleUserId.isEmpty {
+                        request.user = model.appleUserId
+                    }
+                    request.requestedScopes = [.fullName]
+                } onCompletion: { result in
+                    switch result {
+                    case .success(let authResults):
+                        Task { @MainActor in
+                            if let appleIDCredential = authResults.credential as? ASAuthorizationAppleIDCredential {
+                                await MainActor.run {
+                                    model.appleUserId = appleIDCredential.user
+                                    model.fullName = "\(appleIDCredential.fullName?.givenName ?? "") \(appleIDCredential.fullName?.familyName ?? "")"
+                                    cloudCache.hasPrivateCloudAccess = true
+                                    #if os(visionOS)
+                                    openWindow(id: "ContentView")
+                                    #endif
+                                }
+                                print("Authorization successful.")
+                                Task {
+                                    let key =  model.appleUserId.data(using: .utf8)
+                                    let addquery: [String: Any] = [kSecClass as String: kSecClassKey,
+                                                                   kSecAttrApplicationTag as String: SettingsModel.tag,
+                                                                   kSecValueData as String: key as AnyObject]
+                                    let status = SecItemAdd(addquery as CFDictionary, nil)
+                                    guard status == errSecSuccess else {
+                                        print(status)
+                                        return
+                                    }
+                                    print("Storing Apple ID successful.")
+                                }
+                            }
+                        }
+                    case .failure(let error):
+                        signInErrorMessage = String(describing: error)
+                        print("Authorization failed: " + String(describing: error))
+                        popoverPresented.toggle()
+                    }
+                }
+                .signInWithAppleButtonStyle(.whiteOutline)
+                .popover(isPresented: $popoverPresented, content: {
+                    Text(signInErrorMessage).padding()
+                })
+                .padding()
+                .task {
+                    checkIfSignedInWithApple(completion: { isAuthenticated in
+                        self.isAuthenticated = isAuthenticated
+                     })
+                }
             }
+                
             Button(action:{
                 Task {
                     do {
@@ -94,5 +99,26 @@ struct SettingsView: View {
         #else
         .navigationBarTitle("Settings")
         #endif
+    }
+    
+    func checkIfSignedInWithApple(completion:@escaping (Bool)->Void) {
+        guard !model.appleUserId.isEmpty else {
+            completion(false)
+            return
+        }
+        
+        let appleIDProvider = ASAuthorizationAppleIDProvider()
+        
+        // Retrieve the credential state for the Apple ID credential
+        appleIDProvider.getCredentialState(forUserID: model.appleUserId) { (credentialState, error) in
+            switch credentialState {
+            case .authorized:
+                completion(true)
+            case .revoked, .notFound:
+                fallthrough
+            default:
+                completion(false)
+            }
+        }
     }
 }
