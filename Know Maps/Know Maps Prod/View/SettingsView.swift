@@ -67,6 +67,7 @@ struct SettingsView: View {
                     }
                 }
                 .signInWithAppleButtonStyle(.whiteOutline)
+                .frame(maxHeight:60)
                 .popover(isPresented: $popoverPresented, content: {
                     Text(signInErrorMessage).padding()
                 })
@@ -103,7 +104,7 @@ struct SettingsView: View {
     
     func checkIfSignedInWithApple(completion:@escaping (Bool)->Void) {
         guard !model.appleUserId.isEmpty else {
-            completion(false)
+            completion(true)
             return
         }
         

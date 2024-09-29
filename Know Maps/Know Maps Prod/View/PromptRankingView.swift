@@ -2,6 +2,8 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 struct PromptRankingView: View {
+    @Environment(\.horizontalSizeClass) var sizeClass
+
     @EnvironmentObject var cloudCache: CloudCache
     @ObservedObject var chatHost: AssistiveChatHost
     @ObservedObject var chatModel: ChatResultViewModel
@@ -11,16 +13,20 @@ struct PromptRankingView: View {
     
     var body: some View {
         GeometryReader { geometry in
-            HStack(spacing: 64) {
-                // Second ScrollView (Drag Source)
+            HStack(spacing:0) {
                 ScrollView {
+                    let columns = sizeClass == .compact ?
+                    [
+                        GridItem(.adaptive(minimum: geometry.size.width / 2))
+                    ] :
+                    [
+                        GridItem(.adaptive(minimum: geometry.size.width / 4)),
+                        GridItem(.adaptive(minimum: geometry.size.width / 4))
+                    ]
                     LazyVGrid(
-                        columns: [
-                            GridItem(.adaptive(minimum: geometry.size.width / 4)),
-                            GridItem(.adaptive(minimum: geometry.size.width / 4))
-                        ],
+                        columns:columns,
                         alignment: .leading,
-                        spacing: 32
+                        spacing: 16
                     ) {
                         ForEach(chatModel.allCachedResults) { result in
                             Text(result.parentCategory)
@@ -39,29 +45,19 @@ struct PromptRankingView: View {
                 ScrollView {
                     LazyVGrid(
                         columns: [GridItem(.fixed(geometry.size.width / 2))],
-                        alignment: .center,
+                        alignment: .leading,
                         spacing: 32
                     ) {
                         ForEach(chatModel.cachedListResults) { result in
-                            VStack(spacing: 8) {
-                                HStack {
-                                    Spacer()
-                                    Text(result.parentCategory)
-                                        .padding()
-                                        .font(.title)
-                                    Spacer()
-                                }
-                                .foregroundStyle(.primary)
-                                // Enable dropping onto each cachedListResult
-                               
-                                
+                            VStack(alignment:.leading ,spacing: 8) {
+                                Text(result.parentCategory)
+                                    .padding()
+                                    .font(.title2)
                                 ForEach(result.children) { categoryResult in
                                     ForEach(categoryResult.categoricalChatResults) { chatResult in
-                                        if chatResult.placeResponse != nil {
-                                            Text(chatResult.title)
-                                                .foregroundStyle(.secondary)
-                                                .font(.title2)
-                                        }
+                                        Text(chatResult.title)
+                                            .foregroundStyle(.secondary)
+                                            .font(.title3)
                                     }
                                 }
                             }.onDrop(of: [UTType.text], isTargeted: nil) { providers in
@@ -70,7 +66,6 @@ struct PromptRankingView: View {
                         }
                     }
                 }
-                
             }
         }
     }
@@ -101,7 +96,7 @@ struct PromptRankingView: View {
                                     var userRecord = UserCachedRecord(recordId: "", group: "Taste", identity:draggedCategoryResult.parentCategory, title:draggedCategoryResult.parentCategory, icons: "", list:targetCategoryResult.parentCategory)
                                     let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, list:userRecord.list)
                                     userRecord.setRecordId(to: record)
-                                    try await chatModel.refreshCache(cloudCache: cloudCache )
+                                    chatModel.refreshCachedResults()
                                 }
                                 catch {
                                     print(error)

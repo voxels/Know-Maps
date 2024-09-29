@@ -47,7 +47,7 @@ final class ChatResultViewModel: ObservableObject {
     @Published public var cachedLocationResults = [LocationResult]()
     
     // Selection States
-    @Published public var selectedPersonalizedSearchSection:PersonalizedSearchSection = .none
+    @Published public var selectedPersonalizedSearchSection:PersonalizedSearchSection?
     @Published public var selectedCategoryResult: CategoryResult.ID?
     @Published public var selectedSavedResult: CategoryResult.ID?
     @Published public var selectedTasteCategoryResult: CategoryResult.ID?
@@ -459,7 +459,11 @@ final class ChatResultViewModel: ObservableObject {
     
     public func cachedChatResult(for id: CategoryResult.ID) -> ChatResult? {
         guard let parentCategory = allCachedResults.first(where: { $0.id == id }) else { return nil }
-        return parentCategory.categoricalChatResults.first
+        if parentCategory.list != nil {
+            return nil
+        } else {
+            return parentCategory.categoricalChatResults.first
+        }
     }
     
     public func cachedTasteResult(for id: CategoryResult.ID) -> CategoryResult? {

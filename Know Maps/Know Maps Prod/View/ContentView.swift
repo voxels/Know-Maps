@@ -17,27 +17,30 @@ public enum ContentDetailView {
 }
 
 struct ContentView: View {
+    @Environment(\.horizontalSizeClass) var sizeClass
     @Environment(\.openWindow) private var openWindow
 #if os(visionOS)
     @Environment(\.openImmersiveSpace) var openImmersiveSpace
     @Environment(\.dismissImmersiveSpace) var dismissImmersiveSpace
 #endif
-
+    
     @EnvironmentObject public var cloudCache:CloudCache
     @EnvironmentObject public var settingsModel:SettingsModel
     @EnvironmentObject public var featureFlags:FeatureFlags
-
+    
     @ObservedObject public var chatHost:AssistiveChatHost
     @ObservedObject public var chatModel:ChatResultViewModel
     @ObservedObject public var locationProvider:LocationProvider
     @Binding public var isOnboarded:Bool
     @Binding public var showOnboarding:Bool
-
+    
     @State private var selectedItem: String?
     @State private var showImmersiveSpace = false
     @State private var immersiveSpaceIsShown = false
     @State private var columnVisibility =
     NavigationSplitViewVisibility.all
+    @State private var preferredColumn =
+    NavigationSplitViewColumn.sidebar
     @State private var sectionSelection: String = "Feature"
     @State private var settingsPresented:Bool = false
     @State private var didError = false
@@ -45,12 +48,16 @@ struct ContentView: View {
     
     var body: some View {
         GeometryReader() { geometry in
-            NavigationSplitView(columnVisibility: $columnVisibility) {
+            NavigationSplitView(columnVisibility: $columnVisibility, preferredCompactColumn: $preferredColumn) {
                 SearchView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, columnVisibility: $columnVisibility, contentViewDetail: $contentViewDetail, settingsPresented: $settingsPresented)
 #if os(iOS) || os(visionOS)
-        .sheet(isPresented: $settingsPresented) {
-            SettingsView(chatModel: chatModel, isOnboarded: $isOnboarded, showOnboarding: $showOnboarding)
-        }
+                    .sheet(isPresented: $settingsPresented) {
+                        SettingsView(chatModel: chatModel, isOnboarded: $isOnboarded, showOnboarding: $showOnboarding)
+                    }
+                    .onAppear {
+                        contentViewDetail = .places
+                        columnVisibility = .all
+                    }
 #endif
             } detail: {
                 switch contentViewDetail {
@@ -68,7 +75,7 @@ struct ContentView: View {
                 case .order:
                     PromptRankingView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, contentViewDetail: $contentViewDetail)
                 case .add:
-                    HStack {
+                    if sizeClass == .compact {
                         AddPromptView(
                             chatHost: chatHost,
                             chatModel: chatModel,
@@ -84,21 +91,40 @@ struct ContentView: View {
                                 )
                             }
                         }
-                        .frame(maxWidth:geometry.size.width / 3)
-                        PlacesList(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, resultId: $chatModel.selectedPlaceChatResult)
-                            .alert("Unknown Place", isPresented: $didError) {
-                                Button(action: {
-                                    chatModel.selectedPlaceChatResult = nil
-                                }, label: {
-                                    Text("Go Back")
-                                })
-                            } message: {
-                                Text("We don't know much about this place.")
+                    } else {
+                        HStack {
+                            AddPromptView(
+                                chatHost: chatHost,
+                                chatModel: chatModel,
+                                locationProvider: locationProvider,
+                                sectionSelection: $sectionSelection, contentViewDetail: $contentViewDetail
+                            )
+                            .toolbar {
+                                ToolbarItemGroup(placement: .automatic) {
+                                    AddPromptToolbarView(
+                                        chatModel: chatModel,
+                                        sectionSelection: $sectionSelection,
+                                        contentViewDetail: $contentViewDetail, columnVisibility: $columnVisibility
+                                    )
+                                }
                             }
+                            .frame(maxWidth:geometry.size.width / 3)
+                            PlacesList(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, resultId: $chatModel.selectedPlaceChatResult)
+                                .alert("Unknown Place", isPresented: $didError) {
+                                    Button(action: {
+                                        chatModel.selectedPlaceChatResult = nil
+                                    }, label: {
+                                        Text("Go Back")
+                                    })
+                                } message: {
+                                    Text("We don't know much about this place.")
+                                }
+                        }
                     }
                 }
             }
         }
+        .navigationSplitViewStyle(.prominentDetail)
         .onAppear(perform: {
             chatModel.analytics?.screen(title: "NavigationSplitView")
         })
@@ -134,7 +160,10 @@ struct ContentView: View {
         })
         .onChange(of: columnVisibility) { oldValue, newValue in
             if newValue == .all {
+                preferredColumn = .sidebar
                 contentViewDetail = .places
+            } else {
+                preferredColumn = .detail
             }
         }
     }

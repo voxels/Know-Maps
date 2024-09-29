@@ -10,23 +10,20 @@ struct SearchSavedView: View {
     @Binding public var settingsPresented: Bool
     
     var body: some View {
-        Section {
-            SavedListView(chatModel: chatModel, contentViewDetail: $contentViewDetail)
-                .toolbar {
-                    ToolbarItemGroup(placement: .automatic) {
-                        SavedListToolbarView(
-                            chatModel: chatModel,
-                            settingsPresented: $settingsPresented, contentViewDetail: $contentViewDetail, columnVisibility: $columnVisibility)
-                        
-                    }
+        SavedListView(chatModel: chatModel, contentViewDetail: $contentViewDetail)
+            .toolbar {
+                ToolbarItemGroup(placement: .automatic) {
+                    SavedListToolbarView(
+                        chatModel: chatModel,
+                        settingsPresented: $settingsPresented, contentViewDetail: $contentViewDetail, columnVisibility: $columnVisibility)
+                    
                 }
-        } header: {
-            Text("Select a prompt:")
-        }
+            }
     }
 }
 
 struct AddPromptView: View {
+
     @ObservedObject public var chatHost: AssistiveChatHost
     @ObservedObject public var chatModel: ChatResultViewModel
     @ObservedObject public var locationProvider: LocationProvider
@@ -96,7 +93,6 @@ struct AddPromptToolbarView: View {
         
         Button(action: {
             columnVisibility = .all
-            contentViewDetail = .places
         }) {
             Label("Done", systemImage: "checkmark.circle")
         }
@@ -273,12 +269,14 @@ struct SavedListToolbarView: View {
         if contentViewDetail == .places{
             Button(action: {
                 contentViewDetail = .order
+                columnVisibility = .detailOnly
             }, label: {
                 Label("Reorder Lists", systemImage: "list.bullet.indent")
             })
         } else if contentViewDetail == .order || contentViewDetail == .add {
             Button(action: {
                 contentViewDetail = .places
+                columnVisibility = .all
             }, label: {
                 Label("Reorder Lists", systemImage: "list.bullet")
             })

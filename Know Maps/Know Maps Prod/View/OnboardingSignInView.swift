@@ -63,6 +63,7 @@ struct OnboardingSignInView: View {
                         popoverPresented.toggle()
                     }
                 }
+                .frame(maxHeight:44)
                 .signInWithAppleButtonStyle(.whiteOutline)
                 .popover(isPresented: $popoverPresented, content: {
                     Text(signInErrorMessage).padding()

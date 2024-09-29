@@ -63,4 +63,10 @@ public class CategoryResult : Identifiable, Equatable, Hashable {
             result.title.lowercased() == title.lowercased().trimmingCharacters(in: .whitespaces)
         }.first
     }
+    
+    func listResult()->ChatResult {
+        var searchTerm = categoricalChatResults.filter({$0.placeResponse == nil}) .compactMap(\.title).joined(separator: ", ")
+                
+        return ChatResult(title: searchTerm, placeResponse: nil, recommendedPlaceResponse: nil)
+    }
 }

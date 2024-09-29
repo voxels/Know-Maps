@@ -26,9 +26,7 @@ public enum PersonalizedSearchSection : String, Hashable, CaseIterable {
     case outdoors = "Outdoors"
     case sights = "Sightseeing"
     case trending = "Trending places"
-    case nextVenues = "Where to go next"
     case topPicks = "Popular places"
-    case none = "All categories"
     
     public func key()->String {
         switch self {
@@ -48,12 +46,8 @@ public enum PersonalizedSearchSection : String, Hashable, CaseIterable {
             return "sights"
         case .trending:
             return "trending"
-        case .nextVenues:
-            return "nextVenues"
         case .topPicks:
             return "topPicks"
-        default:
-            return "none"
         }
     }
     
@@ -392,8 +386,8 @@ open class PersonalizedSearchSession {
         let offsetQueryItem = URLQueryItem(name: "offset", value: "\(request.offset)")
         components?.queryItems?.append(offsetQueryItem)
         
-        if request.section != .none {
-            let sectionQueryItem = URLQueryItem(name: "section", value: request.section.key())
+        if let section = request.section {
+            let sectionQueryItem = URLQueryItem(name: "section", value: section.key())
             components?.queryItems?.append(sectionQueryItem)
         }
         
