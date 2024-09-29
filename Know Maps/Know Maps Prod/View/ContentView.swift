@@ -124,7 +124,7 @@ struct ContentView: View {
                 }
             }
         }
-        .navigationSplitViewStyle(.prominentDetail)
+        .navigationSplitViewStyle(.automatic)
         .onAppear(perform: {
             chatModel.analytics?.screen(title: "NavigationSplitView")
         })

@@ -458,11 +458,15 @@ final class ChatResultViewModel: ObservableObject {
     // MARK: Cached Chat Result Methods
     
     public func cachedChatResult(for id: CategoryResult.ID) -> ChatResult? {
-        guard let parentCategory = allCachedResults.first(where: { $0.id == id }) else { return nil }
-        if parentCategory.list != nil {
-            return nil
-        } else {
+        if let parentCategory = allCachedResults.first(where: { $0.id == id }) {
             return parentCategory.categoricalChatResults.first
+        } else {
+            for allCachedResult in allCachedResults {
+                if let result = allCachedResult.children.first(where: { $0.id == id }) {
+                    return result.categoricalChatResults.first
+                }
+            }
+            return nil
         }
     }
     

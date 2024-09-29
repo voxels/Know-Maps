@@ -102,7 +102,7 @@ struct PlacesList: View {
                         }
                     }
                 } else {
-                    Text("No results found")
+                    EmptyView()
                 }
             }
             .onChange(of: chatModel.selectedPlaceChatResult, { oldValue, newValue in
@@ -134,7 +134,7 @@ struct PlacesList: View {
             }
             .sheet(isPresented: $showPlaceViewSheet, content: {
                 PlaceView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, placeDirectionsViewModel: placeDirectionsChatViewModel, resultId: $resultId)
-                    .frame(minWidth:0, maxWidth: .infinity, idealHeight: geo.size.height, maxHeight: .infinity)
+                    .frame(width:geo.size.width, height:geo.size.height)
             })
             .sheet(isPresented:$showNavigationLocationSheet) {
                 VStack {
@@ -193,12 +193,12 @@ struct PlacesList: View {
                                             try await chatModel.refreshCachedLocations(cloudCache: chatModel.cloudCache)
                                         }
                                     }
-                                }
+                                }.labelStyle(.iconOnly)
                             }
                         }
                     }.padding()
                     NavigationLocationView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider)
-                }.frame(maxWidth: geo.size.width / 2, minHeight:geo.size.height, maxHeight: .infinity)
+                }.frame(width: geo.size.width / 2, height: geo.size.height)
             }
             .padding()
             .toolbar {

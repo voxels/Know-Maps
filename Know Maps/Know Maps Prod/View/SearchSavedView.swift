@@ -245,6 +245,8 @@ struct SavedListView: View {
 }
 
 struct SavedListToolbarView: View {
+    @Environment(\.openWindow) private var openWindow
+
     @ObservedObject public var chatModel: ChatResultViewModel
     @Binding public var settingsPresented: Bool
     @Binding public var contentViewDetail:ContentDetailView

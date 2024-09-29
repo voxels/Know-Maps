@@ -72,7 +72,6 @@ struct SearchTasteView: View {
                             }
                         }
                         .textFieldStyle(.roundedBorder)
-                        .textInputAutocapitalization(.never)
                         .padding()
                 }
             })
