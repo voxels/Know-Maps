@@ -93,12 +93,13 @@ struct PromptRankingView: View {
                                 }
                                 
                                 do {
-                                    var userRecord = UserCachedRecord(recordId: "", group: "Taste", identity:draggedCategoryResult.parentCategory, title:draggedCategoryResult.parentCategory, icons: "", list:targetCategoryResult.parentCategory)
-                                    let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, list:userRecord.list)
+                                    var userRecord = UserCachedRecord(recordId: "", group: "Taste", identity:draggedCategoryResult.parentCategory, title:draggedCategoryResult.parentCategory, icons: "", list:draggedCategoryResult.list, section:draggedCategoryResult.section.rawValue)
+                                    let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, list:userRecord.list, section: userRecord.section)
                                     userRecord.setRecordId(to: record)
-                                    chatModel.refreshCachedResults()
+                                    try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
                                 }
                                 catch {
+                                    chatModel.analytics?.track(name: "error \(error)")
                                     print(error)
                                 }
                             }

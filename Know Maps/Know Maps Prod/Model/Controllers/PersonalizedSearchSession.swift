@@ -27,6 +27,8 @@ public enum PersonalizedSearchSection : String, Hashable, CaseIterable {
     case sights = "Sightseeing"
     case trending = "Trending places"
     case topPicks = "Popular places"
+    case location = "Location"
+    case none = "none"
     
     public func key()->String {
         switch self {
@@ -48,12 +50,14 @@ public enum PersonalizedSearchSection : String, Hashable, CaseIterable {
             return "trending"
         case .topPicks:
             return "topPicks"
+        default:
+            return "none"
         }
     }
     
     public func categoryResult()->CategoryResult {
-        let chatResult = ChatResult(title: rawValue, placeResponse: nil, recommendedPlaceResponse: nil)
-        let categoryResult = CategoryResult(parentCategory: rawValue, categoricalChatResults: [chatResult], section:self)
+        let chatResult = ChatResult(title: rawValue, list:self.rawValue, section:self,  placeResponse: nil, recommendedPlaceResponse: nil)
+        let categoryResult = CategoryResult(parentCategory: rawValue, list:self.rawValue, section:self, categoricalChatResults: [chatResult])
         return categoryResult
     }
 }
@@ -346,19 +350,7 @@ open class PersonalizedSearchSession {
             let locationQueryItem = URLQueryItem(name: "ll", value: rawLocation)
             components?.queryItems?.append(locationQueryItem)
         }
-        
-        var value = request.radius
-        if let nearLocation = request.nearLocation, !nearLocation.isEmpty {
-            value = 25000
-        }
-        
-        if let ll = request.ll, !ll.isEmpty {
-            value = 25000
-        }
-        
-        let radiusQueryItem = URLQueryItem(name: "radius", value: "\(value)")
-        components?.queryItems?.append(radiusQueryItem)
-        
+                
         if let categories = request.categories {
             let categoriesQueryItem = URLQueryItem(name:"categoryId", value:categories)
             components?.queryItems?.append(categoriesQueryItem)
@@ -386,7 +378,7 @@ open class PersonalizedSearchSession {
         let offsetQueryItem = URLQueryItem(name: "offset", value: "\(request.offset)")
         components?.queryItems?.append(offsetQueryItem)
         
-        if let section = request.section {
+        if let section = request.section, section != .none {
             let sectionQueryItem = URLQueryItem(name: "section", value: section.key())
             components?.queryItems?.append(sectionQueryItem)
         }

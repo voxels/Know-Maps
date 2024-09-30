@@ -19,15 +19,16 @@ public class CategoryResult : Identifiable, Equatable, Hashable {
     
     public let id = UUID()
     var parentCategory:String
-    var list:String?
-    var section:PersonalizedSearchSection?
+    var list:String
+    var section:PersonalizedSearchSection
     private(set) var categoricalChatResults:[ChatResult] = [ChatResult]()
     public var children:[CategoryResult] = [CategoryResult]()
     public var isExpanded:Bool = false
     
-    public init(parentCategory: String, list:String? = nil, categoricalChatResults: [ChatResult], section:PersonalizedSearchSection? = nil) {
+    public init(parentCategory: String, list:String, section:PersonalizedSearchSection, categoricalChatResults: [ChatResult]) {
         self.parentCategory = parentCategory
         self.list = list
+        self.section = section
         self.categoricalChatResults = categoricalChatResults
         self.children = children(with: self.categoricalChatResults)
         self.section = section
@@ -45,7 +46,7 @@ public class CategoryResult : Identifiable, Equatable, Hashable {
         }
         for chatResult in chatResults {
             if chatResult.title != parentCategory {
-                let newCategoryResult = CategoryResult(parentCategory: chatResult.title, categoricalChatResults: [chatResult])
+                let newCategoryResult = CategoryResult(parentCategory: chatResult.title, list:chatResult.list, section:chatResult.section, categoricalChatResults: [chatResult])
                 retval.append(newCategoryResult)
             }
         }
@@ -62,11 +63,5 @@ public class CategoryResult : Identifiable, Equatable, Hashable {
         return categoricalChatResults.filter { result in
             result.title.lowercased() == title.lowercased().trimmingCharacters(in: .whitespaces)
         }.first
-    }
-    
-    func listResult()->ChatResult {
-        var searchTerm = categoricalChatResults.filter({$0.placeResponse == nil}) .compactMap(\.title).joined(separator: ", ")
-                
-        return ChatResult(title: searchTerm, placeResponse: nil, recommendedPlaceResponse: nil)
     }
 }

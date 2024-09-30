@@ -105,7 +105,7 @@ struct PlaceAboutView: View {
                                             presentingPopover.toggle()
                                         }
                                         .popover(isPresented: $presentingPopover) {
-                                            AddListItemView(chatModel: chatModel, presentingPopover:$presentingPopover)
+                                            AddListItemView(chatModel: chatModel, chatHost:chatHost, presentingPopover:$presentingPopover)
                                                 .frame(width:300, height:600)
                                                 .presentationCompactAdaptation(.automatic)
                                         }
@@ -306,19 +306,19 @@ struct PlaceAboutView: View {
                                                             }
                                                         }
                                                     } else {
-                                                        Task {
-                                                            do {
-                                                                var userRecord = UserCachedRecord(recordId: "", group: "Taste", identity: taste, title: taste, icons: "", list: nil)
-                                                                let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title)
-                                                                
-                                                                userRecord.setRecordId(to:record)
-                                                                chatModel.appendCachedTaste(with: userRecord)
-                                                                chatModel.refreshCachedResults()
-                                                            } catch {
-                                                                chatModel.analytics?.track(name: "error \(error)")
-                                                                print(error)
-                                                            }
-                                                        }
+//                                                        Task {
+//                                                            do {
+//                                                                var userRecord = UserCachedRecord(recordId: "", group: "Taste", identity: taste, title: taste, icons: "", list: )
+//                                                                let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title)
+//                                                                
+//                                                                userRecord.setRecordId(to:record)
+//                                                                chatModel.appendCachedTaste(with: userRecord)
+//                                                                chatModel.refreshCachedResults()
+//                                                            } catch {
+//                                                                chatModel.analytics?.track(name: "error \(error)")
+//                                                                print(error)
+//                                                            }
+//                                                        }
                                                     }
                                                 }
 #if os(iOS) || os(visionOS)

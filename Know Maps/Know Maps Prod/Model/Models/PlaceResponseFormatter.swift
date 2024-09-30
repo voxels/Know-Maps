@@ -858,92 +858,14 @@ open class PlaceResponseFormatter {
         }
         return retVal
     }
-    
-    public class func placeDetailsChatResults(for place:PlaceSearchResponse, details:PlaceDetailsResponse, photos:[PlacePhotoResponse], tips:[PlaceTipsResponse],  results:[PlaceSearchResponse] )->[ChatResult] {
-        print("Showing details chat results for \(place.name))")
-        var placeResults = [ChatResult]()
-        if let description = details.description {
-            let placeResultDescription = PlaceResponseFormatter.chatResult(title:"Share:  \(description)",  placeResponse: place, placeDetailsResponse: details, recommendedPlaceResponse: nil)
-            placeResults.append(placeResultDescription)
-        }
         
-        let placeResultAddress = PlaceResponseFormatter.chatResult(title: "Share the address:\n\(details.searchResponse.address)", placeResponse: place, placeDetailsResponse: details)
-        placeResults.append(placeResultAddress)
-        
-        if let tel = details.tel {
-            let placeResultTel = PlaceResponseFormatter.chatResult(title: "Share the phone number: \(tel)" , placeResponse: place, placeDetailsResponse: details)
-            placeResults.append(placeResultTel)
-        }
-        
-        if let price = details.price {
-            var description = "Share the price: "
-            switch price {
-            case 1:
-                description.append("Cheap")
-            case 2:
-                description.append("Moderately Priced")
-            case 3:
-                description.append("Expensive")
-            case 4:
-                description.append("Very Expensive")
-            default:
-                description = "Price Not Listed"
-            }
-            
-            let placeResultPrice = PlaceResponseFormatter.chatResult(title: description , placeResponse: place, placeDetailsResponse: details)
-            placeResults.append(placeResultPrice)
-        }
-        
-        let placeResultDirections = PlaceResponseFormatter.chatResult(title: "How do I get to \(place.name)?", placeResponse: place, placeDetailsResponse: details)
-        placeResults.append(placeResultDirections)
-        if photos.count > 0{
-            let placeResultPhotos = PlaceResponseFormatter.chatResult(title: "Show me the photos for \(place.name)",  placeResponse: place, placeDetailsResponse: details)
-            placeResults.append(placeResultPhotos)
-        }
-        if details.tipsResponses != nil {
-            let placeResultTips = PlaceResponseFormatter.chatResult(title: "What do people say about \(place.name)?",  placeResponse: place, placeDetailsResponse: nil)
-            placeResults.append(placeResultTips)
-        }
-        if let socialMedia = details.socialMedia, socialMedia.keys.contains("instagram"){
-            let placeResultInstagram = PlaceResponseFormatter.chatResult(title: "Show me \(place.name)'s Instagram account",  placeResponse: place, placeDetailsResponse: details)
-            placeResults.append(placeResultInstagram)
-        }
-        if let _ = details.hours {
-            let placeResultOpenHours = PlaceResponseFormatter.chatResult(title: "When is \(place.name) open?", placeResponse: place, placeDetailsResponse: details)
-            placeResults.append(placeResultOpenHours)
-            
-        }
-        if let _ = details.hoursPopular {
-            let placeResultBusyHours = PlaceResponseFormatter.chatResult(title: "When is it busy at \(place.name)?",  placeResponse: place, placeDetailsResponse: details)
-            placeResults.append(placeResultBusyHours)
-        }
-        if details.popularity > 0 {
-            let placeResultPopularity =  PlaceResponseFormatter.chatResult(title: "How popular is \(place.name)?", placeResponse: place, placeDetailsResponse: details)
-            placeResults.append(placeResultPopularity)
-        }
-        
-        if let _ = details.menu  as? NSDictionary {
-            let placeResultMenu = PlaceResponseFormatter.chatResult(title: "What's does \(place.name) have?", placeResponse: place, placeDetailsResponse: details)
-            placeResults.append(placeResultMenu)
-        }
-        
-        if let _ = details.tel {
-            let placeResultPhone = PlaceResponseFormatter.chatResult(title: "Call \(place.name)", placeResponse: place, placeDetailsResponse: details)
-            placeResults.append(placeResultPhone)
-        }
-        
-        return placeResults
-    }
-        
-    public class func placeChatResults(for intent:AssistiveChatHostIntent, place:PlaceSearchResponse, details:PlaceDetailsResponse?, recommendedPlaceResponse:RecommendedPlaceSearchResponse? = nil)->[ChatResult] {
-        return [PlaceResponseFormatter.chatResult(title: place.name, placeResponse: place, placeDetailsResponse: details, recommendedPlaceResponse: recommendedPlaceResponse)]
+    public class func placeChatResults(for intent:AssistiveChatHostIntent, place:PlaceSearchResponse, section:PersonalizedSearchSection, list:String, details:PlaceDetailsResponse?, recommendedPlaceResponse:RecommendedPlaceSearchResponse? = nil)->[ChatResult] {
+        return [PlaceResponseFormatter.chatResult(title: place.name, section:section, list:list, placeResponse: place, placeDetailsResponse: details, recommendedPlaceResponse: recommendedPlaceResponse)]
     }
     
-    public class func chatResult(title:String, placeResponse:PlaceSearchResponse?, placeDetailsResponse:PlaceDetailsResponse?, recommendedPlaceResponse:RecommendedPlaceSearchResponse? = nil)->ChatResult {
-        let result = ChatResult(title:title,  placeResponse: placeResponse, recommendedPlaceResponse: recommendedPlaceResponse, placeDetailsResponse:placeDetailsResponse)
-                
-        let imageResult = ChatResult(title: result.title, placeResponse: placeResponse, recommendedPlaceResponse:recommendedPlaceResponse, placeDetailsResponse: placeDetailsResponse)
-        
-        return imageResult
+    public class func chatResult(title:String, section:PersonalizedSearchSection, list:String, placeResponse:PlaceSearchResponse?, placeDetailsResponse:PlaceDetailsResponse?, recommendedPlaceResponse:RecommendedPlaceSearchResponse? = nil)->ChatResult {
+        let result = ChatResult(title:title, list:list, section:section, placeResponse: placeResponse, recommendedPlaceResponse: recommendedPlaceResponse, placeDetailsResponse:placeDetailsResponse)
+                        
+        return result
     }
 }

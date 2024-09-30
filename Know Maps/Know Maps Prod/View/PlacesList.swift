@@ -186,8 +186,8 @@ struct PlacesList: View {
                                 Button("Save", systemImage:"square.and.arrow.down") {
                                     Task(priority: .userInitiated) {
                                         if let location = parent.location {
-                                            var userRecord = UserCachedRecord(recordId: "", group: "Location", identity: chatModel.cachedLocationIdentity(for: location), title: parent.locationName, icons: "", list: nil)
-                                            let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title)
+                                            var userRecord = UserCachedRecord(recordId: "", group: "Location", identity: chatModel.cachedLocationIdentity(for: location), title: parent.locationName, icons: "", list:"Places", section:chatHost.section(place: parent.locationName).rawValue)
+                                            let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, list:userRecord.list, section:userRecord.section)
                                             userRecord.setRecordId(to:record)
                                             chatModel.appendCachedLocation(with: userRecord)
                                             try await chatModel.refreshCachedLocations(cloudCache: chatModel.cloudCache)
@@ -198,7 +198,7 @@ struct PlacesList: View {
                         }
                     }.padding()
                     NavigationLocationView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider)
-                }.frame(width: geo.size.width / 2, height: geo.size.height)
+                }.frame(width: geo.size.width, height: geo.size.height)
             }
             .padding()
             .toolbar {
@@ -229,8 +229,8 @@ struct PlacesList: View {
                         
                         Task(priority: .userInitiated) {
                             if let location = parent.location {
-                                var userRecord = UserCachedRecord(recordId: "", group: "Location", identity: chatModel.cachedLocationIdentity(for: location), title: parent.locationName, icons: "", list: nil)
-                                let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title)
+                                var userRecord = UserCachedRecord(recordId: "", group: "Location", identity: chatModel.cachedLocationIdentity(for: location), title: parent.locationName, icons: "", list:"Places", section:chatHost.section(place: parent.locationName).rawValue)
+                                let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, list:userRecord.list, section:userRecord.section)
                                 userRecord.setRecordId(to:record)
                                 chatModel.appendCachedLocation(with: userRecord)
                                 try await chatModel.refreshCachedLocations(cloudCache: chatModel.cloudCache)

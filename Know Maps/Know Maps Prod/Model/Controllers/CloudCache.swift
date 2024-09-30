@@ -373,7 +373,7 @@ open class CloudCache : NSObject, ObservableObject {
         let query = CKQuery(recordType: "UserCachedRecord", predicate: predicate)
         query.sortDescriptors = [NSSortDescriptor(key: "modificationDate", ascending: false)]
         let operation = CKQueryOperation(query: query)
-        operation.desiredKeys = ["Group", "Icons", "Identity", "Title", "List"]
+        operation.desiredKeys = ["Group", "Icons", "Identity", "Title", "List", "Section"]
         operation.qualityOfService = .default
         operation.recordMatchedBlock = { recordId, result in
             do {
@@ -383,6 +383,8 @@ open class CloudCache : NSObject, ObservableObject {
                 var rawTitle = ""
                 var rawIcons = ""
                 var rawList = ""
+                var rawSection = ""
+                
                 if let group = record["Group"] as? String {
                     rawGroup = group
                 }
@@ -400,8 +402,12 @@ open class CloudCache : NSObject, ObservableObject {
                     rawList = list
                 }
                 
+                if let section = record["Section"] as? String {
+                    rawSection = section
+                }
+                
                 if !rawGroup.isEmpty && !rawIdentity.isEmpty && !rawTitle.isEmpty {
-                    let cachedRecord = UserCachedRecord(recordId: recordId.recordName, group: rawGroup, identity: rawIdentity, title: rawTitle, icons: rawIcons, list: rawList.isEmpty ? nil : rawList)
+                    let cachedRecord = UserCachedRecord(recordId: recordId.recordName, group: rawGroup, identity: rawIdentity, title: rawTitle, icons: rawIcons, list: rawList, section:PersonalizedSearchSection(rawValue: rawSection)?.rawValue ?? PersonalizedSearchSection.none.rawValue)
                     retval.append(cachedRecord)
                 }
                 
@@ -435,21 +441,19 @@ open class CloudCache : NSObject, ObservableObject {
 
     
     @discardableResult
-    public func storeUserCachedRecord(for group:String, identity:String, title:String, icons:String? = nil, list:String? = nil) async throws -> String {
+    public func storeUserCachedRecord(for group:String, identity:String, title:String, icons:String? = nil, list:String, section:String) async throws -> String {
         
         let record = CKRecord(recordType:"UserCachedRecord")
         record.setObject(group as NSString, forKey: "Group")
         record.setObject(identity as NSString, forKey: "Identity")
         record.setObject(title as NSString, forKey: "Title")
+        record.setObject(list as NSString, forKey:"List")
+        record.setObject(section as NSString, forKey:"Section")
+        
         if let icons = icons {
             record.setObject(icons as NSString, forKey: "Icons")
         } else {
             record.setObject("" as NSString, forKey: "Icons")
-        }
-        if let list = list {
-            record.setObject(list as NSString, forKey:"List")
-        } else {
-            record.setObject("" as NSString, forKey:"List")
         }
         let result = try await cacheContainer.privateCloudDatabase.modifyRecords(saving: [record], deleting:[], atomically: false)
         if let resultName = result.saveResults.keys.first?.recordName {

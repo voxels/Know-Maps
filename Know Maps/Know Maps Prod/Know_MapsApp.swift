@@ -164,8 +164,7 @@ struct Know_MapsApp: App {
                 showSplashScreen = false
             } else if chatModel.cloudCache.hasPrivateCloudAccess,
                       !isAuthorized, !isOnboarded {
-                chatModel.locationProvider.authorize()
-                selectedOnboardingTab = "Saving"
+                selectedOnboardingTab = "Location"
                 showSplashScreen = false
             }
         } catch {

@@ -27,11 +27,9 @@ struct SearchView: View {
                 return
             }
             
-            if let categoryResult = chatModel.allCachedResults.first(where: { $0.id == newValue }), let list = categoryResult.list, !list.isEmpty {
+            if let categoryResult = chatModel.allCachedResults.first(where: { $0.id == newValue }), categoryResult.categoricalChatResults.count > 1 {
                 categoryResult.isExpanded.toggle()
-                return
             }
-
             
             Task { @MainActor in
                 if let selectedDestinationLocationChatResult = chatModel.selectedDestinationLocationChatResult {

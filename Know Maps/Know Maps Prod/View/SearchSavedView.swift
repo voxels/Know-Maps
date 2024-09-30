@@ -113,8 +113,8 @@ struct AddPromptToolbarView: View {
     private func addCategory(parent: CategoryResult) -> () -> Void {
         return {
             Task {
-                var userRecord = UserCachedRecord(recordId: "", group: "Category", identity: parent.parentCategory, title: parent.parentCategory, icons: "", list: nil)
-                let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title)
+                var userRecord = UserCachedRecord(recordId: "", group: "Category", identity: parent.parentCategory, title: parent.parentCategory, icons: "", list: parent.list, section: parent.section.rawValue)
+                let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, list:userRecord.list, section:userRecord.section)
                 userRecord.setRecordId(to: record)
                 chatModel.appendCachedCategory(with: userRecord)
                 chatModel.refreshCachedResults()
@@ -137,8 +137,8 @@ struct AddPromptToolbarView: View {
     private func addTaste(parent: CategoryResult) -> () -> Void {
         return {
             Task {
-                var userRecord = UserCachedRecord(recordId: "", group: "Taste", identity: parent.parentCategory, title: parent.parentCategory, icons: "", list: nil)
-                let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title)
+                var userRecord = UserCachedRecord(recordId: "", group: "Taste", identity: parent.parentCategory, title: parent.parentCategory, icons: "", list: parent.list, section: parent.section.rawValue)
+                let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, list:userRecord.list, section:userRecord.section)
                 userRecord.setRecordId(to: record)
                 chatModel.appendCachedTaste(with: userRecord)
                 chatModel.refreshCachedResults()

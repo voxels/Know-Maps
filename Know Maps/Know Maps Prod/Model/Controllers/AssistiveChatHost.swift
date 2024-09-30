@@ -231,8 +231,12 @@ open class AssistiveChatHost : @preconcurrency AssistiveChatHostDelegate, ChatHo
                 if let categories = categoryCodes(for: query, tags: tags) {
                     rawParameters["categories"] = categories
                 }
+
+                let section = section(for: query).rawValue
+                rawParameters["section"] = section
                 
                 encodedParameters["query"] = parsedQuery(for: query, tags: tags)
+                
                 encodedParameters["parameters"] = rawParameters
                 print("Parsed Default Parameters:")
                 print(encodedParameters)
@@ -405,9 +409,43 @@ open class AssistiveChatHost : @preconcurrency AssistiveChatHostDelegate, ChatHo
         
         return nil
     }
+
     
-    @objc func fireTimer() {
-        print("Timer fired!")
+    public func section(for title: String) -> PersonalizedSearchSection {
+        var retval = PersonalizedSearchSection(rawValue: title)
+        if let retval = retval {
+            return retval
+        }
+        
+        var predictedSection: String = ""
+        
+        do {
+            // Load the Core ML model
+            let model = try FoursquareSectionClassifier(configuration: MLModelConfiguration())
+            
+            // Prepare the input for the model
+            // Assuming your model accepts 'title' as an input feature
+            let input = FoursquareSectionClassifierInput(text: title)
+            
+            // Make a prediction using the model
+            let output = try model.prediction(input: input)
+            
+            predictedSection = output.label
+            // Extract the predicted section from the model's output
+            
+        } catch {
+            print(error)
+            analytics?.track(name: "Error: \(error)")
+            return .none
+        }
+        
+        retval = PersonalizedSearchSection(rawValue: predictedSection) ?? PersonalizedSearchSection.none
+        
+        return retval!
+    }
+    
+    public func section(place:String)->PersonalizedSearchSection {
+        return .location
     }
 }
 
@@ -567,8 +605,15 @@ extension AssistiveChatHost {
                 
                 for subcategory in subcategories {
                     if let category = subcategory["category"] {
-                        if query.contains(category.lowercased()) || category.lowercased().contains(query) {
-                            return true
+                        // Load the sentence embedding for English
+                        if let embedding = NLEmbedding.sentenceEmbedding(for: .english) {
+                            // Calculate cosine similarity between two sentences
+                            let similarity = embedding.distance(between: query, and: category)
+                            if similarity <= 1 {
+                                return true
+                            }
+                        } else {
+                            print("Sentence embedding not available for the specified language.")
                         }
                     }
                 }

@@ -34,4 +34,5 @@ public protocol AssistiveChatHostDelegate:AnyObject {
     func nearLocation(for rawQuery:String, tags:AssistiveChatHostTaggedWord?) async throws -> String?
     func nearLocationCoordinate(for rawQuery:String, tags:AssistiveChatHostTaggedWord?) async throws -> [CLPlacemark]?
     func tags(for rawQuery:String) throws ->AssistiveChatHostTaggedWord?
+    func section(for title:String)->PersonalizedSearchSection
 }

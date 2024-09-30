@@ -10,6 +10,7 @@ import SwiftUI
 struct AddListItemView: View {
     @EnvironmentObject public var cloudCache:CloudCache
     @ObservedObject public var chatModel:ChatResultViewModel
+    @ObservedObject public var chatHost:AssistiveChatHost
     @Binding public var presentingPopover:Bool
 
     @State private var textFieldData:String = ""
@@ -34,8 +35,8 @@ struct AddListItemView: View {
                         Task {
                             if let newValue = newValue, let selectedPlaceChatResult = chatModel.selectedPlaceChatResult, let chatResult = chatModel.placeChatResult(for: selectedPlaceChatResult), let placeResponse = chatResult.placeResponse, let cachedListResult = chatModel.cachedListResult(for: newValue) {
                                 
-                                var userRecord = UserCachedRecord(recordId: "", group: "Place", identity:placeResponse.fsqID, title: placeResponse.name, icons: "", list:cachedListResult.list)
-                                let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, list:userRecord.list)
+                                var userRecord = UserCachedRecord(recordId: "", group: "Place", identity:placeResponse.fsqID, title: placeResponse.name, icons: "", list:cachedListResult.list, section:chatResult.section.rawValue)
+                                let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, list:userRecord.list, section:userRecord.section)
                                 userRecord.setRecordId(to: record)
                                 chatModel.appendCachedCategory(with: userRecord)
                                 chatModel.refreshCachedResults()
@@ -54,8 +55,8 @@ struct AddListItemView: View {
                                 }
                                 
                                 Task {
-                                    var userRecord = UserCachedRecord(recordId: "", group: "List", identity: textFieldData, title: textFieldData, icons: "", list: textFieldData)
-                                    let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, list:userRecord.list)
+                                    var userRecord = UserCachedRecord(recordId: "", group: "List", identity: textFieldData, title: textFieldData, icons: "", list: textFieldData, section:chatHost.section(for: textFieldData).rawValue)
+                                    let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, list:userRecord.list, section: userRecord.section)
                                     userRecord.setRecordId(to: record)
                                     chatModel.appendCachedList(with: userRecord)
                                     chatModel.refreshCachedResults()
@@ -69,8 +70,8 @@ struct AddListItemView: View {
                             }
                             
                             Task { 
-                                var userRecord = UserCachedRecord(recordId: "", group: "List", identity: textFieldData, title: textFieldData, icons: "", list: textFieldData)
-                                let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, list:userRecord.list)
+                                var userRecord = UserCachedRecord(recordId: "", group: "List", identity: textFieldData, title: textFieldData, icons: "", list: textFieldData, section:chatHost.section(for: textFieldData).rawValue)
+                                let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, list:userRecord.list, section:userRecord.section)
                                 userRecord.setRecordId(to: record)
                                 chatModel.appendCachedList(with: userRecord)
                                 chatModel.refreshCachedResults()
@@ -87,14 +88,4 @@ struct AddListItemView: View {
             }
             .padding(20)
         }
-}
-
-#Preview {
-    let locationProvider = LocationProvider()
-    let cloudCache = CloudCache()
-    let featureFlags = FeatureFlags()
-
-    let chatModel = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cloudCache, featureFlags: featureFlags)
-
-    return AddListItemView(chatModel: chatModel, presentingPopover: .constant(true))
 }

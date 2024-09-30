@@ -22,7 +22,7 @@ struct OnboardingView: View {
     @Binding public var isOnboarded:Bool
 
     var body: some View {
-        if selectedTab != "Saving" {
+        if selectedTab == "Saving" {
             OnboardingTemplateView(selectedTab: $selectedTab, showOnboarding: $showOnboarding, isOnboarded: $isOnboarded, chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider).tag("Saving")
         } else {
         TabView(selection: $selectedTab,
