@@ -158,9 +158,7 @@ final class ChatResultViewModel: ObservableObject {
     // MARK: - Filtered Results
     
     public var filteredRecommendedPlaceResults: [ChatResult] {
-        let results = recommendedPlaceResults.filter { $0.placeDetailsResponse?.dateClosed?.isEmpty ?? true }
-                
-        return !results.isEmpty ? results : filteredPlaceResults
+        return recommendedPlaceResults
     }
     
     public var filteredLocationResults: [LocationResult] {
