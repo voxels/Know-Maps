@@ -105,18 +105,3 @@ struct PlaceView: View {
     }
 }
 
-#Preview {
-    
-    let locationProvider = LocationProvider()
-    
-    let chatHost = AssistiveChatHost()
-    let cloudCache = CloudCache()
-    let featureFlags = FeatureFlags()
-    
-    let chatModel = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cloudCache, featureFlags: featureFlags)
-    
-    chatModel.assistiveHostDelegate = chatHost
-    chatHost.messagesDelegate = chatModel
-    let placeDirectionViewModel = PlaceDirectionsViewModel(rawLocationIdent: "")
-    return PlaceView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, placeDirectionsViewModel: placeDirectionViewModel, resultId: .constant(nil))
-}

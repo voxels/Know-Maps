@@ -10,7 +10,7 @@ import CoreLocation
 
 public struct LocationResult : Identifiable, Equatable, Hashable {
     public static func == (lhs: LocationResult, rhs: LocationResult) -> Bool {
-        lhs.id == rhs.id
+        lhs.locationName == rhs.locationName && lhs.location == rhs.location
     }
     
     public let id = UUID()

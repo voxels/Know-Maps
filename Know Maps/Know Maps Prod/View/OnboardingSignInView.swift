@@ -27,19 +27,18 @@ struct OnboardingSignInView: View {
                 .multilineTextAlignment(.leading)
                 .padding()
             
-            if !model.appleUserId.isEmpty {
+            if model.appleUserId.isEmpty {
                 SignInWithAppleButton { request in
                     request.user = model.appleUserId
                     request.requestedScopes = [.fullName]
                 } onCompletion: { result in
                     switch result {
                     case .success(let authResults):
-                        Task { @MainActor in
+                        Task {
                             if let appleIDCredential = authResults.credential as? ASAuthorizationAppleIDCredential {
                                 await MainActor.run {
                                     model.appleUserId = appleIDCredential.user
                                     model.fullName = "\(appleIDCredential.fullName?.givenName ?? "") \(appleIDCredential.fullName?.familyName ?? "")"
-                                    cloudCache.hasPrivateCloudAccess = true
                                 }
                                 print("Authorization successful.")
                                 Task {
@@ -54,13 +53,19 @@ struct OnboardingSignInView: View {
                                     }
                                     print("Storing Apple ID successful.")
                                 }
-                                selectedTab = "Location"
+                                await MainActor.run {
+                                    selectedTab = "Location"
+                                }
                             }
                         }
                     case .failure(let error):
-                        signInErrorMessage = String(describing: error)
-                        print("Authorization failed: " + String(describing: error))
-                        popoverPresented.toggle()
+                        Task {
+                            await MainActor.run {
+                                signInErrorMessage = String(describing: error)
+                                print("Authorization failed: " + String(describing: error))
+                                popoverPresented.toggle()
+                            }
+                        }
                     }
                 }
                 .frame(maxHeight:44)
@@ -68,6 +73,7 @@ struct OnboardingSignInView: View {
                 .popover(isPresented: $popoverPresented, content: {
                     Text(signInErrorMessage).padding()
                 })
+                .padding()
             } else {
                 Button(action: {
                     openSettingsPreferences()

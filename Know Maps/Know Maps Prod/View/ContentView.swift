@@ -31,7 +31,7 @@ struct ContentView: View {
     @ObservedObject public var chatHost:AssistiveChatHost
     @ObservedObject public var chatModel:ChatResultViewModel
     @ObservedObject public var locationProvider:LocationProvider
-    @Binding public var isOnboarded:Bool
+    
     @Binding public var showOnboarding:Bool
     
     @State private var selectedItem: String?
@@ -46,13 +46,18 @@ struct ContentView: View {
     @State private var didError = false
     @State private var contentViewDetail:ContentDetailView = .places
     
+    @State private var showMapsResultViewSheet:Bool = false
+    @State private var showPlaceViewSheet:Bool = false
+    @State private var cameraPosition:MapCameraPosition = .automatic
+    @StateObject public var placeDirectionsChatViewModel = PlaceDirectionsViewModel(rawLocationIdent: "")
+
     var body: some View {
         GeometryReader() { geometry in
             NavigationSplitView(columnVisibility: $columnVisibility, preferredCompactColumn: $preferredColumn) {
-                SearchView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, columnVisibility: $columnVisibility, contentViewDetail: $contentViewDetail, settingsPresented: $settingsPresented)
+                SearchView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, columnVisibility: $columnVisibility, preferredColumn: $preferredColumn, contentViewDetail: $contentViewDetail, settingsPresented: $settingsPresented)
 #if os(iOS) || os(visionOS)
                     .sheet(isPresented: $settingsPresented) {
-                        SettingsView(chatModel: chatModel, isOnboarded: $isOnboarded, showOnboarding: $showOnboarding)
+                        SettingsView(chatModel: chatModel, showOnboarding: $showOnboarding)
                     }
                     .onAppear {
                         contentViewDetail = .places
@@ -62,7 +67,7 @@ struct ContentView: View {
             } detail: {
                 switch contentViewDetail {
                 case .places:
-                    PlacesList(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, resultId: $chatModel.selectedPlaceChatResult)
+                    PlacesList(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, resultId: $chatModel.selectedPlaceChatResult, showMapsResultViewSheet: $showMapsResultViewSheet)
                         .alert("Unknown Place", isPresented: $didError) {
                             Button(action: {
                                 chatModel.selectedPlaceChatResult = nil
@@ -72,6 +77,28 @@ struct ContentView: View {
                         } message: {
                             Text("We don't know much about this place.")
                         }
+                    
+                    .sheet(isPresented: $showMapsResultViewSheet) {
+                        MapResultsView(chatHost: chatHost, model: chatModel, locationProvider: locationProvider, selectedMapItem: $selectedItem, cameraPosition:$cameraPosition)
+                            .onChange(of: selectedItem) { oldValue, newValue in
+                                if let newValue, let placeResponse = chatModel.filteredPlaceResults.first(where: { $0.placeResponse?.fsqID == newValue }) {
+                                    chatModel.selectedPlaceChatResult = placeResponse.id
+                                }
+                            }
+                            .toolbar(content: {
+                                ToolbarItem {
+                                    Button(action:{
+                                        showMapsResultViewSheet.toggle()
+                                    }, label:{
+                                        Label("List", systemImage: "list.bullet")
+                                    })
+                                }
+                            })
+                    }
+                    .popover(isPresented: $showPlaceViewSheet, content: {
+                        PlaceView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, placeDirectionsViewModel: placeDirectionsChatViewModel, resultId: $chatModel.selectedPlaceChatResult)
+                    })
+        
                 case .order:
                     PromptRankingView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, contentViewDetail: $contentViewDetail)
                 case .add:
@@ -109,16 +136,7 @@ struct ContentView: View {
                                 }
                             }
                             .frame(maxWidth:geometry.size.width / 3)
-                            PlacesList(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, resultId: $chatModel.selectedPlaceChatResult)
-                                .alert("Unknown Place", isPresented: $didError) {
-                                    Button(action: {
-                                        chatModel.selectedPlaceChatResult = nil
-                                    }, label: {
-                                        Text("Go Back")
-                                    })
-                                } message: {
-                                    Text("We don't know much about this place.")
-                                }
+                            PlacesList(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, resultId: $chatModel.selectedPlaceChatResult, showMapsResultViewSheet: $showMapsResultViewSheet)
                         }
                     }
                 }
@@ -135,26 +153,24 @@ struct ContentView: View {
         })
         .onChange(of: chatModel.selectedPlaceChatResult, { oldValue, newValue in
             guard let newValue = newValue else {
-                
                 return
             }
             
-            let _ = Task { @MainActor in
-                do {
-                    if newValue != oldValue, let placeChatResult = chatModel.placeChatResult(for: newValue) {
+            if let placeChatResult = chatModel.placeChatResult(for: newValue) {
+                Task {
+                    do {
                         try await chatModel.didTap(placeChatResult: placeChatResult)
+                        await MainActor.run {
+                            showMapsResultViewSheet = false
+                            showPlaceViewSheet = true
+                        }
+                    } catch {
+                        chatModel.analytics?.track(name: "error \(error)")
+                        print(error)
+                        await MainActor.run {
+                            didError.toggle()
+                        }
                     }
-                } catch {
-                    chatModel.analytics?.track(name: "error \(error)")
-                    print(error)
-                    didError.toggle()
-                }
-            }
-        })
-        .onChange(of: settingsModel.appleUserId, { oldValue, newValue in
-            if !newValue.isEmpty {
-                Task { @MainActor in
-                    cloudCache.hasPrivateCloudAccess = true
                 }
             }
         })

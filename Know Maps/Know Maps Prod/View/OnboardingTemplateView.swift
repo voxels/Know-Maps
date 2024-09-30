@@ -15,7 +15,6 @@ struct OnboardingTemplateView: View {
     
     @Binding public var selectedTab:String
     @Binding public var showOnboarding:Bool
-    @Binding public var isOnboarded:Bool
     @ObservedObject public var chatHost:AssistiveChatHost
     @ObservedObject public var chatModel:ChatResultViewModel
     @ObservedObject public var locationProvider:LocationProvider
@@ -92,7 +91,7 @@ struct OnboardingTemplateView: View {
                 }
                 HStack {
                     Button(action:{
-                        Task(priority:.userInitiated) { @MainActor in
+                        Task {
                             try await chatModel.refreshCache(cloudCache: cloudCache)
                         }
                     }, label:{
@@ -107,7 +106,6 @@ struct OnboardingTemplateView: View {
                     HStack {
                         Spacer()
                         Button {
-                            isOnboarded = true
                             showOnboarding = false
                         } label: {
                             Text("Done")
@@ -125,7 +123,7 @@ struct OnboardingTemplateView: View {
                     if isSaved {
                         if let cachedTasteResults = chatModel.cachedResults(for: "Taste", identity: result.parentCategory) {
                             for cachedTasteResult in cachedTasteResults {
-                                Task(priority: .userInitiated) {
+                                Task {
                                     do {
                                         try await chatModel.cloudCache.deleteUserCachedRecord(for: cachedTasteResult)
                                         try await chatModel.refreshCache(cloudCache: cloudCache)
@@ -139,12 +137,12 @@ struct OnboardingTemplateView: View {
                         }
                     }
                 } else if let result = chatModel.tasteChatResult(for: newValue) {
-                    Task(priority: .userInitiated) {
+                    Task {
                         do {
                             var userRecord = UserCachedRecord(recordId: "", group: "Taste", identity: result.title, title:result.title, icons: "", list:result.list, section:result.section.rawValue )
                             userRecord.recordId = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, list:userRecord.list, section:userRecord.section)
-                            chatModel.appendCachedTaste(with: userRecord)
-                            chatModel.refreshCachedResults()
+                            await chatModel.appendCachedTaste(with: userRecord)
+                            await chatModel.refreshCachedResults()
                         } catch {
                             chatModel.analytics?.track(name: "error \(error)")
                             print(error)

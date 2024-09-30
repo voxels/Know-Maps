@@ -37,18 +37,3 @@ struct NavigationLocationView: View {
         }
     }
 }
-
-#Preview {
-    let locationProvider = LocationProvider()
-    
-    let chatHost = AssistiveChatHost()
-    let cloudCache = CloudCache()
-    let featureFlags = FeatureFlags()
-    
-    let chatModel = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cloudCache, featureFlags:featureFlags)
-    
-    chatModel.assistiveHostDelegate = chatHost
-    chatHost.messagesDelegate = chatModel
-    
-    return NavigationLocationView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider)
-}

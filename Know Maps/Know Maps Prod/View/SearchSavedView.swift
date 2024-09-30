@@ -6,13 +6,14 @@ struct SearchSavedView: View {
     @ObservedObject public var chatModel: ChatResultViewModel
     @ObservedObject public var locationProvider: LocationProvider
     @Binding public var columnVisibility: NavigationSplitViewVisibility
+    @Binding public var preferredColumn:NavigationSplitViewColumn
     @Binding public var contentViewDetail:ContentDetailView
     @Binding public var settingsPresented: Bool
     @State private var showNavigationLocationSheet:Bool = false
     @State private var searchText:String = ""
 
     var body: some View {
-        SavedListView(chatModel: chatModel, contentViewDetail: $contentViewDetail)
+        SavedListView(chatModel: chatModel, contentViewDetail: $contentViewDetail, preferredColumn: $preferredColumn)
             .toolbar {
                 ToolbarItemGroup(placement: .automatic) {
                     SavedListToolbarView(
@@ -69,12 +70,12 @@ struct SearchSavedView: View {
                                 }
                             } else {
                                 Button("Save", systemImage:"square.and.arrow.down") {
-                                    Task(priority: .userInitiated) {
+                                    Task{
                                         if let location = parent.location {
                                             var userRecord = UserCachedRecord(recordId: "", group: "Location", identity: chatModel.cachedLocationIdentity(for: location), title: parent.locationName, icons: "", list:"Places", section:chatHost.section(place: parent.locationName).rawValue)
                                             let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, list:userRecord.list, section:userRecord.section)
                                             userRecord.setRecordId(to:record)
-                                            chatModel.appendCachedLocation(with: userRecord)
+                                            await chatModel.appendCachedLocation(with: userRecord)
                                             try await chatModel.refreshCachedLocations(cloudCache: chatModel.cloudCache)
                                         }
                                     }
@@ -95,12 +96,12 @@ struct SearchSavedView: View {
                        let parent = chatModel.locationChatResult(for: selectedDestinationLocationChatResult)
                     {
                         
-                        Task(priority: .userInitiated) {
+                        Task{
                             if let location = parent.location {
                                 var userRecord = UserCachedRecord(recordId: "", group: "Location", identity: chatModel.cachedLocationIdentity(for: location), title: parent.locationName, icons: "", list:"Places", section:chatHost.section(place: parent.locationName).rawValue)
                                 let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, list:userRecord.list, section:userRecord.section)
                                 userRecord.setRecordId(to:record)
-                                chatModel.appendCachedLocation(with: userRecord)
+                                await chatModel.appendCachedLocation(with: userRecord)
                                 try await chatModel.refreshCachedLocations(cloudCache: chatModel.cloudCache)
                             }
                         }
@@ -208,8 +209,8 @@ struct AddPromptToolbarView: View {
                 var userRecord = UserCachedRecord(recordId: "", group: "Category", identity: parent.parentCategory, title: parent.parentCategory, icons: "", list: parent.list, section: parent.section.rawValue)
                 let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, list:userRecord.list, section:userRecord.section)
                 userRecord.setRecordId(to: record)
-                chatModel.appendCachedCategory(with: userRecord)
-                chatModel.refreshCachedResults()
+                await chatModel.appendCachedCategory(with: userRecord)
+                await chatModel.refreshCachedResults()
             }
         }
     }
@@ -232,8 +233,8 @@ struct AddPromptToolbarView: View {
                 var userRecord = UserCachedRecord(recordId: "", group: "Taste", identity: parent.parentCategory, title: parent.parentCategory, icons: "", list: parent.list, section: parent.section.rawValue)
                 let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, list:userRecord.list, section:userRecord.section)
                 userRecord.setRecordId(to: record)
-                chatModel.appendCachedTaste(with: userRecord)
-                chatModel.refreshCachedResults()
+                await chatModel.appendCachedTaste(with: userRecord)
+                await chatModel.refreshCachedResults()
             }
         }
     }
@@ -242,9 +243,10 @@ struct AddPromptToolbarView: View {
 struct SavedListView: View {
     @ObservedObject public var chatModel: ChatResultViewModel
     @Binding public var contentViewDetail:ContentDetailView
-    
+    @Binding public var preferredColumn:NavigationSplitViewColumn
+    @State private var selectedResult:CategoryResult.ID?
     var body: some View {
-        List(selection: $chatModel.selectedSavedResult) {
+        List(selection: $selectedResult) {
             ForEach(chatModel.allCachedResults, id: \.id) { parent in
                 if parent.children.isEmpty {
                     Text(parent.parentCategory)
@@ -259,23 +261,28 @@ struct SavedListView: View {
                     } label: {
                         Text(parent.parentCategory)
                     }
+                    .disclosureGroupStyle(.automatic)
                 }
             }
             .onDelete(perform: deleteItem)
         }
-        .listStyle(.sidebar)
-        .refreshable {
-            Task(priority: .userInitiated) {
-                do {
-                    try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
-                } catch {
-                    chatModel.analytics?.track(name: "error \(error)")
-                    print(error)
-                }
+        .onChange(of:selectedResult) { oldValue, newValue in
+            guard let newValue = newValue else {
+                preferredColumn = .sidebar
+                return
+            }
+            
+            if let listResult = chatModel.cachedListResults.first(where: { $0.id == newValue }){
+                preferredColumn = .sidebar
+                listResult.isExpanded.toggle()
+            } else {
+                preferredColumn = .detail
+                chatModel.selectedSavedResult = newValue
             }
         }
-        .task {
-            Task(priority: .userInitiated) {
+        .listStyle(.sidebar)
+        .refreshable {
+            Task {
                 do {
                     try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
                 } catch {
@@ -321,12 +328,12 @@ struct SavedListView: View {
         if let cachedResults = chatModel.cachedResults(for: group, identity: identity) {
             await withTaskGroup(of: Void.self) { group in
                 for result in cachedResults {
-                    group.addTask { @MainActor in
+                    group.addTask {
                         do {
                             try await chatModel.cloudCache.deleteUserCachedRecord(for: result)
                             try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
                         } catch {
-                            chatModel.analytics?.track(name: "error \(error)")
+                            await chatModel.analytics?.track(name: "error \(error)")
                             print(error)
                         }
                     }
@@ -424,12 +431,12 @@ struct SavedListToolbarView: View {
         if let cachedResults = chatModel.cachedResults(for: group, identity: identity) {
             await withTaskGroup(of: Void.self) { group in
                 for result in cachedResults {
-                    group.addTask { @MainActor in
+                    group.addTask {
                         do {
                             try await chatModel.cloudCache.deleteUserCachedRecord(for: result)
                             try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
                         } catch {
-                            chatModel.analytics?.track(name: "error \(error)")
+                            await chatModel.analytics?.track(name: "error \(error)")
                             print(error)
                         }
                     }

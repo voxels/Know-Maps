@@ -77,16 +77,16 @@ struct PromptRankingView: View {
                 provider.loadObject(ofClass: NSString.self) { (object, error) in
                     if let idString = object as? String,
                        let uuid = UUID(uuidString: idString) {
-                        Task(priority:.userInitiated) { @MainActor in
-                            if let index = chatModel.cachedTasteResults.firstIndex(where: { $0.id == uuid }) {
-                                let draggedCategoryResult = chatModel.cachedTasteResults[index]
+                        Task {
+                            if let index = await chatModel.cachedTasteResults.firstIndex(where: { $0.id == uuid }) {
+                                let draggedCategoryResult = await chatModel.cachedTasteResults[index]
                                 
-                                if let cachedTasteResults = chatModel.cachedResults(for: "Taste", identity: draggedCategoryResult.parentCategory) {
+                                if let cachedTasteResults = await chatModel.cachedResults(for: "Taste", identity: draggedCategoryResult.parentCategory) {
                                     for cachedTasteResult in cachedTasteResults {
                                         do {
                                             try await chatModel.cloudCache.deleteUserCachedRecord(for: cachedTasteResult)
                                         } catch {
-                                            chatModel.analytics?.track(name: "error \(error)")
+                                            await chatModel.analytics?.track(name: "error \(error)")
                                             print(error)
                                         }
                                     }
@@ -99,7 +99,7 @@ struct PromptRankingView: View {
                                     try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
                                 }
                                 catch {
-                                    chatModel.analytics?.track(name: "error \(error)")
+                                    await chatModel.analytics?.track(name: "error \(error)")
                                     print(error)
                                 }
                             }

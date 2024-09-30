@@ -84,7 +84,7 @@ struct PlaceAboutView: View {
                                 }
                                 
                                 HStack {
-                                    if chatModel.cloudCache.hasPrivateCloudAccess {
+                                    if chatModel.cloudCache.hasFsqAccess {
                                         ZStack {
                                             Capsule().frame(height: PlaceAboutView.buttonHeight, alignment: .center)
 #if os(macOS)
@@ -256,12 +256,12 @@ struct PlaceAboutView: View {
                             }
                         }
                         
-                        if chatModel.cloudCache.hasPrivateCloudAccess {
+                        if chatModel.cloudCache.hasFsqAccess {
                             PlaceDescriptionView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, resultId: $resultId)
                                 .padding(PlaceAboutView.defaultPadding * 2)
                             
                         }
-                        if chatModel.cloudCache.hasPrivateCloudAccess {
+                        if chatModel.cloudCache.hasFsqAccess {
                             if let tastes = placeDetailsResponse.tastes, tastes.count > 0 {
                                 Section("Tastes") {
                                     let gridItems = Array(repeating: GridItem(.flexible(), spacing: PlaceAboutView.defaultPadding), count: sizeClass == .compact ? 2 : 3)
@@ -400,20 +400,4 @@ struct PlaceAboutView: View {
         }
     }
 #endif
-}
-
-#Preview {
-    
-    let locationProvider = LocationProvider()
-    
-    let chatHost = AssistiveChatHost()
-    let cloudCache = CloudCache()
-    let featureFlags = FeatureFlags()
-    
-    let chatModel = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cloudCache, featureFlags: featureFlags)
-    
-    chatModel.assistiveHostDelegate = chatHost
-    chatHost.messagesDelegate = chatModel
-    
-    return PlaceAboutView(chatHost:chatHost,chatModel: chatModel, locationProvider: locationProvider, resultId: .constant(nil), sectionSelection:.constant(0))
 }

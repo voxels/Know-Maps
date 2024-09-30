@@ -77,13 +77,3 @@ struct SearchTasteView: View {
             })
     }
 }
-
-#Preview {
-    let locationProvider = LocationProvider()
-    let cloudCache = CloudCache()
-    let featureFlags = FeatureFlags()
-    
-    let chatModel = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cloudCache, featureFlags: featureFlags)
-    
-    return SearchTasteView(model: chatModel)
-}

@@ -14,7 +14,7 @@ import Segment
 
 public typealias AssistiveChatHostTaggedWord = [String: [String]]
 
-open class AssistiveChatHost : @preconcurrency AssistiveChatHostDelegate, ChatHostingViewControllerDelegate, ObservableObject {
+open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControllerDelegate, ObservableObject {
     
     public enum Intent : String {
         case Search
@@ -27,23 +27,22 @@ open class AssistiveChatHost : @preconcurrency AssistiveChatHostDelegate, ChatHo
     weak public var messagesDelegate:AssistiveChatHostMessagesDelegate?
     public var languageDelegate:LanguageGeneratorDelegate = LanguageGenerator()
     public var placeSearchSession = PlaceSearchSession()
-    public var analytics:Analytics?
+    public let analytics:Analytics
+
     @Published public var queryIntentParameters:AssistiveChatHostQueryParameters?
-    public var cloudCache:CloudCache = CloudCache()
     public var categoryCodes:[[String:[[String:String]]]] = [[String:[[String:String]]]]()
     
     let geocoder = CLGeocoder()
     public var lastGeocodedPlacemarks:[CLPlacemark]?
     
-    required public init(messagesDelegate: AssistiveChatHostMessagesDelegate? = nil, analytics: Analytics? = nil, lastGeocodedPlacemarks: [CLPlacemark]? = nil) {
+    required public init(messagesDelegate: AssistiveChatHostMessagesDelegate? = nil, analytics: Analytics, lastGeocodedPlacemarks: [CLPlacemark]? = nil) {
         self.messagesDelegate = messagesDelegate
         self.analytics = analytics
         self.lastGeocodedPlacemarks = lastGeocodedPlacemarks
         self.queryIntentParameters = AssistiveChatHostQueryParameters()
     }
     
-    @MainActor
-    public func organizeCategoryCodeList() throws {
+    public func organizeCategoryCodeList() async throws {
         if let path = Bundle.main.path(forResource: "integrated_category_taxonomy", ofType: "json")
         {
             var retval = Set<[String:[[String:String]]]>()
@@ -90,7 +89,7 @@ open class AssistiveChatHost : @preconcurrency AssistiveChatHostDelegate, ChatHo
                     }
                 }
             }
-        
+            
             var retvalArray = Array(retval)
             
             retvalArray = retvalArray.sorted(by: { codes, checkCodes in
@@ -123,7 +122,6 @@ open class AssistiveChatHost : @preconcurrency AssistiveChatHostDelegate, ChatHo
                     }
                 }
             }
-            
             categoryCodes = finalArray
         }
     }
@@ -228,7 +226,7 @@ open class AssistiveChatHost : @preconcurrency AssistiveChatHostDelegate, ChatHo
                     rawParameters["open_now"] = openNow
                 }
                 
-                if let categories = categoryCodes(for: query, tags: tags) {
+                if let categories = await categoryCodes(for: query, tags: tags) {
                     rawParameters["categories"] = categories
                 }
 
@@ -246,13 +244,12 @@ open class AssistiveChatHost : @preconcurrency AssistiveChatHostDelegate, ChatHo
                 return nil
             }
         } catch {
-            analytics?.track(name: "error \(error)")
+            analytics.track(name: "error \(error)")
             print(error)
             return nil
         }
     }
     
-    @MainActor
     public func updateLastIntent(caption:String, selectedDestinationLocationID:LocationResult.ID) async throws {
         if let queryIntentParameters = queryIntentParameters, let lastIntent = queryIntentParameters.queryIntents.last {
             let queryParamters = try await defaultParameters(for: caption)
@@ -262,7 +259,6 @@ open class AssistiveChatHost : @preconcurrency AssistiveChatHostDelegate, ChatHo
         }
     }
     
-    @MainActor
     public func updateLastIntentParameters(intent:AssistiveChatHostIntent) {
         guard let queryIntentParameters = queryIntentParameters else {
             return
@@ -275,7 +271,6 @@ open class AssistiveChatHost : @preconcurrency AssistiveChatHostDelegate, ChatHo
         messagesDelegate?.updateQueryParametersHistory(with:queryIntentParameters)
     }
     
-    @MainActor
     public func appendIntentParameters(intent:AssistiveChatHostIntent) {
         guard let queryIntentParameters = queryIntentParameters else {
             return
@@ -286,7 +281,6 @@ open class AssistiveChatHost : @preconcurrency AssistiveChatHostDelegate, ChatHo
         messagesDelegate?.updateQueryParametersHistory(with:queryIntentParameters)
     }
     
-    @MainActor
     public func resetIntentParameters() {
         guard let queryIntentParameters = queryIntentParameters else {
             return
@@ -329,7 +323,6 @@ open class AssistiveChatHost : @preconcurrency AssistiveChatHostDelegate, ChatHo
         return nil
     }
     
-    @MainActor
     public func nearLocationCoordinate(for rawQuery:String, tags:AssistiveChatHostTaggedWord? = nil) async throws -> [CLPlacemark]? {
         
         if geocoder.isGeocoding {
@@ -435,7 +428,7 @@ open class AssistiveChatHost : @preconcurrency AssistiveChatHostDelegate, ChatHo
             
         } catch {
             print(error)
-            analytics?.track(name: "Error: \(error)")
+            analytics.track(name: "Error: \(error)")
             return .none
         }
         
@@ -454,17 +447,17 @@ extension AssistiveChatHost {
         return try await languageDelegate.searchQueryDescription(nearLocation:nearLocation)
     }
     
-    public func placeDescription(chatResult:ChatResult, delegate:AssistiveChatHostStreamResponseDelegate) async throws {
-        if let fsqid = chatResult.placeResponse?.fsqID {
-            let desc = try await cloudCache.fetchGeneratedDescription(for: fsqid)
-            if desc.isEmpty {
-                try await languageDelegate.placeDescription(chatResult: chatResult, delegate: delegate)
-            } else {
-                await languageDelegate.placeDescription(with: desc, chatResult: chatResult, delegate: delegate)
-                analytics?.track(name: "usingCachedGPTDescription")
-            }
-        }
-    }
+//    public func placeDescription(chatResult:ChatResult, delegate:AssistiveChatHostStreamResponseDelegate) async throws {
+//        if let fsqid = chatResult.placeResponse?.fsqID {
+//            let desc = try await cloudCache.fetchGeneratedDescription(for: fsqid)
+//            if desc.isEmpty {
+//                try await languageDelegate.placeDescription(chatResult: chatResult, delegate: delegate)
+//            } else {
+//                await languageDelegate.placeDescription(with: desc, chatResult: chatResult, delegate: delegate)
+//                analytics.track(name: "usingCachedGPTDescription")
+//            }
+//        }
+//    }
 }
 
 extension AssistiveChatHost {
@@ -586,52 +579,69 @@ extension AssistiveChatHost {
     }
     
     
-    internal func categoryCodes(for rawQuery:String, tags:AssistiveChatHostTaggedWord? = nil)->[String]? {
-        
-        var query = rawQuery
-        
+    internal func categoryCodes(for rawQuery: String, tags: AssistiveChatHostTaggedWord? = nil) async -> [String]? {
+        let query = rawQuery.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
         var NAICSCodes = [String]()
-        
-        query = rawQuery.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
-        
-        for categoryCode in self.categoryCodes {
-            let candidates = categoryCode.filter { categoryDict in
-                let key = categoryDict.key.lowercased()
-                let subcategories = categoryDict.value
-                
-                if query == key {
-                    return true
+
+
+        // Use a task group to process categories concurrently
+        return await withTaskGroup(of: [String].self, returning: [String]?.self) { taskGroup in
+            for categoryCode in self.categoryCodes {
+                taskGroup.addTask {
+                    let codes = await self.checkCategoriesAndSubcategories(categoryCode: categoryCode, query: query, embedding: NLEmbedding.sentenceEmbedding(for: .english)!)
+                    return codes
                 }
-                
-                for subcategory in subcategories {
-                    if let category = subcategory["category"] {
-                        // Load the sentence embedding for English
-                        if let embedding = NLEmbedding.sentenceEmbedding(for: .english) {
-                            // Calculate cosine similarity between two sentences
-                            let similarity = embedding.distance(between: query, and: category)
-                            if similarity <= 1 {
-                                return true
+            }
+
+            for await codes in taskGroup {
+                NAICSCodes.append(contentsOf: codes)
+            }
+
+            // Remove duplicates
+            NAICSCodes = Array(Set(NAICSCodes))
+
+            return NAICSCodes.isEmpty ? nil : NAICSCodes
+        }
+    }
+    
+    func checkCategoriesAndSubcategories(categoryCode: [String: [[String: String]]], query: String, embedding: NLEmbedding) async -> [String] {
+        var codes = [String]()
+
+        await withTaskGroup(of: [String].self) { taskGroup in
+            for (categoryName, subcategories) in categoryCode {
+                // Check main category
+                taskGroup.addTask {
+                    var localCodes = [String]()
+                    let categorySimilarity = embedding.distance(between: query, and: categoryName.lowercased())
+                    if categorySimilarity <= 0.25 {
+                        // Add all subcategory codes if main category matches
+                        for subcategory in subcategories {
+                            if let code = subcategory["code"] {
+                                localCodes.append(code)
                             }
-                        } else {
-                            print("Sentence embedding not available for the specified language.")
+                        }
+                    } else {
+                        // Check subcategories
+                        for subcategory in subcategories {
+                            if let subcategoryName = subcategory["category"]?.lowercased() {
+                                let subcategorySimilarity = embedding.distance(between: query, and: subcategoryName)
+                                if subcategorySimilarity <= 0.25, let code = subcategory["code"] {
+                                    print("Adding subcategory:\(subcategoryName)\t\(subcategorySimilarity)")
+                                    localCodes.append(code)
+                                }
+                            }
                         }
                     }
+                    return localCodes
                 }
-                
-                return false
             }
-            
-            for candidate in candidates.values {
-                for values in candidate {
-                    if let checkCategory = values["category"], checkCategory.lowercased().contains(query), let code = values["code"] {
-                        NAICSCodes.append(code)
-                    }
-                }
+
+            // Collect results from all tasks
+            for await result in taskGroup {
+                codes.append(contentsOf: result)
             }
         }
-        
-        NAICSCodes = NAICSCodes.count > 1 ? Array(NAICSCodes.dropFirst()) : NAICSCodes
-        
-        return NAICSCodes
+
+        return codes
     }
 }

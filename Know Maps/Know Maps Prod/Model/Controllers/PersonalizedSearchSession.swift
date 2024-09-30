@@ -101,11 +101,11 @@ open class PersonalizedSearchSession {
     
     @discardableResult
     public func fetchManagedUserAccessToken() async throws ->String {
-        guard cloudCache.hasPrivateCloudAccess else {
+        guard cloudCache.hasFsqAccess else {
             return ""
         }
         
-        if fsqIdentity == nil, cloudCache.hasPrivateCloudAccess {
+        if fsqIdentity == nil, cloudCache.hasFsqAccess {
             try await fetchManagedUserIdentity()
         }
         
@@ -351,9 +351,12 @@ open class PersonalizedSearchSession {
             components?.queryItems?.append(locationQueryItem)
         }
                 
-        if let categories = request.categories {
+        if let categories = request.categories, !categories.isEmpty {
             let categoriesQueryItem = URLQueryItem(name:"categoryId", value:categories)
             components?.queryItems?.append(categoriesQueryItem)
+        } else if let section = request.section, section != .none {
+            let sectionQueryItem = URLQueryItem(name: "section", value: section.key())
+            components?.queryItems?.append(sectionQueryItem)
         }
         
         if request.minPrice > 1 {
@@ -377,12 +380,7 @@ open class PersonalizedSearchSession {
         
         let offsetQueryItem = URLQueryItem(name: "offset", value: "\(request.offset)")
         components?.queryItems?.append(offsetQueryItem)
-        
-        if let section = request.section, section != .none {
-            let sectionQueryItem = URLQueryItem(name: "section", value: section.key())
-            components?.queryItems?.append(sectionQueryItem)
-        }
-        
+                
         guard let url = components?.url else {
             throw PersonalizedSearchSessionError.UnsupportedRequest
         }

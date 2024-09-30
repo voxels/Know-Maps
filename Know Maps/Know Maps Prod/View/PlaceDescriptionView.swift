@@ -14,7 +14,7 @@ struct PlaceDescriptionView: View {
     @Binding public var resultId:ChatResult.ID?
     
     var body: some View {
-        if let resultId = resultId, let placeChatResult = chatModel.placeChatResult(for: resultId), let placeDetailsResponse = placeChatResult.placeDetailsResponse, let tips = placeDetailsResponse.tipsResponses {
+        if let resultId = resultId, let placeChatResult = chatModel.placeChatResult(for: resultId), let placeDetailsResponse = placeChatResult.placeDetailsResponse, let _ = placeDetailsResponse.tipsResponses {
             if let description = placeDetailsResponse.description, !description.isEmpty {
                 ZStack() {
                     Rectangle().foregroundStyle(.thickMaterial)
@@ -26,18 +26,3 @@ struct PlaceDescriptionView: View {
     }
 }
 
-#Preview {
-    
-    let locationProvider = LocationProvider()
-    
-    let chatHost = AssistiveChatHost()
-    let cloudCache = CloudCache()
-    let featureFlags = FeatureFlags()
-
-    let chatModel = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cloudCache, featureFlags: featureFlags)
-    
-    chatModel.assistiveHostDelegate = chatHost
-    chatHost.messagesDelegate = chatModel
-    
-    return PlaceDescriptionView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, resultId: .constant(nil))
-}

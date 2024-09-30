@@ -9,16 +9,16 @@ import SwiftUI
 import Segment
 import RevenueCat
 import CoreLocation
+import AuthenticationServices
 
 @main
 struct Know_MapsApp: App {
     @StateObject public var settingsModel = SettingsModel(userId: "")
-    @StateObject public var chatHost:AssistiveChatHost = AssistiveChatHost()
-    @StateObject public var chatModel:ChatResultViewModel = ChatResultViewModel(locationProvider: LocationProvider(), cloudCache: CloudCache(), featureFlags: FeatureFlags())
+    @StateObject public var chatHost:AssistiveChatHost = AssistiveChatHost( analytics: Analytics(configuration: Know_MapsApp.config))
+    @StateObject public var chatModel:ChatResultViewModel = ChatResultViewModel(locationProvider: LocationProvider(), cloudCache: CloudCache(analytics:Analytics(configuration: Know_MapsApp.config)), featureFlags: FeatureFlags())
+    
     
     @State private var showOnboarding:Bool = true
-    @State private var isAuthorized:Bool = false
-    @State private var isOnboarded:Bool = false
     @State private var showSplashScreen:Bool = true
     @State private var selectedOnboardingTab:String = "Sign In"
     static let config = Configuration(writeKey: "igx8ZOr5NLbaBsab5j5juFECMzqulFla")
@@ -27,82 +27,97 @@ struct Know_MapsApp: App {
         .flushAt(3)
         .flushInterval(10)
     
-    
-    public var analytics:Analytics? = Analytics(configuration: Know_MapsApp.config)
+    public let analytics = Analytics(configuration: Know_MapsApp.config)
     
     var body: some Scene {
         WindowGroup(id:"ContentView") {
             GeometryReader { geometry in
                 
-            if showSplashScreen{
-                HStack(alignment: .center){
-                    Spacer()
-                    VStack(alignment: .center) {
+                if showSplashScreen{
+                    HStack(alignment: .center){
                         Spacer()
-                        Text("Welcome to Know Maps").bold().padding()
-                        Image("logo_macOS_512")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width:100 , height: 100)
-                        
-                        if !chatModel.locationProvider.isAuthorized() {
-                            Text("Know Maps requires access to your location. Please allow access to your location in System Preferences.")
-                            Button(action: {
-                                openLocationPreferences()
-                            }, label: {
-                                Label("Allow Access", systemImage: "arrow.2.circlepath.circle")
-                            })
+                        VStack(alignment: .center) {
+                            Spacer()
+                            Text("Welcome to Know Maps").bold().padding()
+                            Image("logo_macOS_512")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width:100 , height: 100)
+                                .padding()
+                            Spacer()
+                            ProgressView("Refreshing Lists", value: chatModel.cacheFetchProgress)
+                                .frame(maxWidth:geometry.size.width / 2)
+                                .padding()
+                            Spacer()
                         }
                         Spacer()
-                        ProgressView("Refreshing Lists", value: chatModel.cacheFetchProgress)
-                            .frame(maxWidth:geometry.size.width / 2)
-                            .padding()
-                        Spacer()
                     }
-                    Spacer()
-                }
-
-#if os(visionOS) || os(macOS)
-                .frame(minWidth: 1280, minHeight: 720)
-#endif
-                .task {
-                    do {
-                        try await startup(chatModel: chatModel)
-                    } catch {
-                        analytics?.track(name: "error \(error)")
-                        print(error)
+                    .onAppear() {
+                        settingsModel.authCompletion = { result in
+                            if case .success = result {
+                                Task {
+                                    do {
+                                        try await startup(chatModel: chatModel)
+                                    } catch {
+                                        print(error)
+                                        analytics.track(name: "Error during startup", properties: ["error":error.localizedDescription])
+                                    }
+                                }
+                            } else if case .failure = result {
+                                print(result)
+                                analytics.track(name: "Error during startup", properties: ["error":result])
+                            }
+                        }
+                        
+                        let cloudAuth = settingsModel.isAuthorized
+                        
+                        if cloudAuth {
+                            Task {
+                                do {
+                                    try await startup(chatModel: chatModel)
+                                } catch {
+                                    print(error)
+                                    analytics.track(name: "Error during startup", properties: ["error":error.localizedDescription])
+                                }
+                            }
+                        } else {
+                            performExistingAccountSetupFlows()
+                        }
                     }
-                }
-            } else {
-                if showOnboarding {
-                    OnboardingView(chatHost: chatHost, chatModel: chatModel, locationProvider: chatModel.locationProvider, selectedTab: $selectedOnboardingTab, showOnboarding: $showOnboarding, isAuthorized: $isAuthorized, isOnboarded: $isOnboarded)
+                    
 #if os(visionOS) || os(macOS)
-                        .frame(minWidth: 1280, minHeight: 720)
+                    .frame(minWidth: 1280, minHeight: 720)
 #endif
-                        .environmentObject(chatModel.cloudCache)
-                        .environmentObject(settingsModel)
-                        .environmentObject(chatModel.featureFlags)
                 } else {
-                    ContentView(chatHost: chatHost, chatModel: chatModel, locationProvider: chatModel.locationProvider, isOnboarded: $isOnboarded, showOnboarding: $showOnboarding)
+                    if showOnboarding {
+                        OnboardingView(chatHost: chatHost, chatModel: chatModel, locationProvider: chatModel.locationProvider, selectedTab: $selectedOnboardingTab, showOnboarding: $showOnboarding)
 #if os(visionOS) || os(macOS)
-                        .frame(minWidth: 1280, minHeight: 720)
+                            .frame(minWidth: 1280, minHeight: 720)
 #endif
-                        .environmentObject(chatModel.cloudCache)
-                        .environmentObject(settingsModel)
-                        .environmentObject(chatModel.featureFlags)
+                            .environmentObject(chatModel.cloudCache)
+                            .environmentObject(settingsModel)
+                            .environmentObject(chatModel.featureFlags)
+                    } else {
+                        ContentView(chatHost: chatHost, chatModel: chatModel, locationProvider: chatModel.locationProvider, showOnboarding: $showOnboarding)
+#if os(visionOS) || os(macOS)
+                            .frame(minWidth: 1280, minHeight: 720)
+#endif
+                            .environmentObject(chatModel.cloudCache)
+                            .environmentObject(settingsModel)
+                            .environmentObject(chatModel.featureFlags)
+                    }
                 }
-            }
             }
         }.windowResizability(.contentSize)
         
         WindowGroup(id:"SettingsView"){
-            SettingsView(chatModel:chatModel, isOnboarded: $isOnboarded, showOnboarding: $showOnboarding)
+            SettingsView(chatModel:chatModel, showOnboarding: $showOnboarding)
                 .tag("Settings")
                 .onChange(of: settingsModel.appleUserId, { oldValue, newValue in
                     
 #if os(visionOS) || os(iOS)
                     if !newValue.isEmpty, let vendorId = UIDevice().identifierForVendor {
-                        analytics?.identify(userId: vendorId.uuidString)
+                        analytics.identify(userId: vendorId.uuidString)
                     }
 #endif
 #if os(macOS)
@@ -120,17 +135,30 @@ struct Know_MapsApp: App {
 #endif
     }
     
-    @MainActor
-    private func startup(chatModel:ChatResultViewModel)async throws{
+    func performExistingAccountSetupFlows() {
+        let requests = [ASAuthorizationAppleIDProvider().createRequest()]
+        let authorizationController = ASAuthorizationController(authorizationRequests: requests)
+        authorizationController.delegate = settingsModel
+        authorizationController.performRequests()
+    }
+    
+    private func startup(chatModel:ChatResultViewModel) async throws{
         do {
             chatModel.assistiveHostDelegate = chatHost
             chatHost.messagesDelegate = chatModel
-            chatModel.cloudCache.analytics = analytics
-            try? chatHost.organizeCategoryCodeList()
-            if !chatModel.cloudCache.hasPrivateCloudAccess {
-                let userRecord = try await chatModel.cloudCache.fetchCloudKitUserRecordID()
+            let cloudAuth = settingsModel.isAuthorized
+            
+            if !cloudAuth {
+                return
+            }
+            
+            let userRecord = try await chatModel.cloudCache.fetchCloudKitUserRecordID()
+            await MainActor.run {
                 settingsModel.keychainId = userRecord?.recordName
-                chatModel.cloudCache.hasPrivateCloudAccess =  try await chatModel.retrieveFsqUser()
+            }
+            
+            if !chatModel.cloudCache.hasFsqAccess {
+                try await chatModel.retrieveFsqUser()
             }
 #if DEBUG
             Purchases.logLevel = .debug
@@ -142,59 +170,71 @@ struct Know_MapsApp: App {
             
             let customerInfo = try await Purchases.shared.customerInfo()
             chatModel.featureFlags.updateFlags(with: customerInfo)
-            isAuthorized = chatModel.locationProvider.isAuthorized()
-            if isAuthorized, let location = chatModel.locationProvider.currentLocation() {
-                let placemarkName = try await chatHost.languageDelegate.lookUpLocation(location: location)?.first?.name ?? "Current Location"
-                chatModel.currentLocationResult.replaceLocation(with: location, name: placemarkName)
-                chatModel.selectedDestinationLocationChatResult = chatModel.currentLocationResult.id
+            let isLocationAuthorized = chatModel.locationProvider.isAuthorized()
+            
+            if isLocationAuthorized, let location = chatModel.locationProvider.currentLocation() {
+                chatModel.currentLocationResult.replaceLocation(with: location, name: "Current Location")
+                await MainActor.run {
+                    chatModel.selectedDestinationLocationChatResult = chatModel.currentLocationResult.id
+                }
             }
             
             settingsModel.fetchSubscriptionOfferings()
-
+            
             try await chatModel.refreshCachedLocations(cloudCache: chatModel.cloudCache)
+            try await chatHost.organizeCategoryCodeList()
             try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
             
-            isOnboarded = !chatModel.cachedTasteResults.isEmpty
+            let isOnboarded = !chatModel.cachedTasteResults.isEmpty
             
-            if chatModel.cloudCache.hasPrivateCloudAccess, isAuthorized, isOnboarded {
-                showOnboarding = false
-                showSplashScreen = false
-            } else if chatModel.cloudCache.hasPrivateCloudAccess, isAuthorized, !isOnboarded {
-                selectedOnboardingTab = "Saving"
-                showSplashScreen = false
-            } else if chatModel.cloudCache.hasPrivateCloudAccess,
-                      !isAuthorized, !isOnboarded {
-                selectedOnboardingTab = "Location"
-                showSplashScreen = false
+            if cloudAuth, chatModel.cloudCache.hasFsqAccess, isLocationAuthorized, isOnboarded {
+                await MainActor.run {
+                    showOnboarding = false
+                    showSplashScreen = false
+                }
+            } else if cloudAuth, chatModel.cloudCache.hasFsqAccess, isLocationAuthorized, !isOnboarded {
+                await MainActor.run {
+                    selectedOnboardingTab = "Saving"
+                    showSplashScreen = false
+                }
+            } else if cloudAuth, chatModel.cloudCache.hasFsqAccess,
+                      !isLocationAuthorized, !isOnboarded {
+                await MainActor.run {
+                    selectedOnboardingTab = "Location"
+                    showSplashScreen = false
+                }
             }
         } catch {
             switch error {
             case PersonalizedSearchSessionError.NoTokenFound:
-                analytics?.track(name: "error \(error)")
+                analytics.track(name: "error \(error)")
                 print(error)
             default:
-                settingsModel.keychainId = nil
-                chatModel.cloudCache.hasPrivateCloudAccess =  false
-                analytics?.track(name: "error \(error)")
+                await MainActor.run {
+                    settingsModel.keychainId = nil
+                }
+                analytics.track(name: "error \(error)")
                 print(error)
             }
-            showSplashScreen = false
+            await MainActor.run {
+                showSplashScreen = false
+            }
         }
     }
     
 #if os(macOS)
-public func openLocationPreferences() {
-    if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_LocationServices") {
-        NSWorkspace.shared.open(url)
-    }
-}
-#else
-func openLocationPreferences() {
-    if let url = URL(string: UIApplication.openSettingsURLString) {
-        if UIApplication.shared.canOpenURL(url) {
-            UIApplication.shared.open(url, options: [:], completionHandler: nil)
+    public func openLocationPreferences() {
+        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_LocationServices") {
+            NSWorkspace.shared.open(url)
         }
     }
-}
+#else
+    func openLocationPreferences() {
+        if let url = URL(string: UIApplication.openSettingsURLString) {
+            if UIApplication.shared.canOpenURL(url) {
+                UIApplication.shared.open(url, options: [:], completionHandler: nil)
+            }
+        }
+    }
 #endif
 }

@@ -144,7 +144,7 @@ struct PlaceDirectionsView: View {
                     }
                 }
                 .task {
-                    guard let selectedDestinationLocationChatResult = chatModel.selectedDestinationLocationChatResult, let sourceLocationResult = chatModel.locationChatResult(for: selectedDestinationLocationChatResult), let sourceLocation = sourceLocationResult.location, let response = result.placeResponse  else {
+                    guard let selectedDestinationLocationChatResult = chatModel.selectedDestinationLocationChatResult, let sourceLocationResult = chatModel.locationChatResult(for: selectedDestinationLocationChatResult), let sourceLocation = sourceLocationResult.location  else {
                         return
                     }
                     
@@ -291,7 +291,6 @@ struct PlaceDirectionsView: View {
         return MKPlacemark(coordinate: location.coordinate)
     }
     
-    @MainActor
     func getDirections(source:MKMapItem?, destination:MKMapItem?, model:PlaceDirectionsViewModel) async throws {
         
         guard let source = source, let destination = destination else {
@@ -332,32 +331,19 @@ struct PlaceDirectionsView: View {
         }
     }
     
-    @MainActor
     func getLookAroundScene (mapItem:MKMapItem) async throws {
         if let request = lookAroundSceneRequest, request.isLoading {
             return
         }
         
-        lookAroundSceneRequest = MKLookAroundSceneRequest(coordinate: mapItem.placemark.coordinate)
+        let request = MKLookAroundSceneRequest(coordinate: mapItem.placemark.coordinate)
+        await MainActor.run {
+            lookAroundSceneRequest = request
+        }
         
         let scene = try await lookAroundSceneRequest?.scene
-        lookAroundScene = scene
+        await MainActor.run {
+            lookAroundScene = scene
+        }
     }
-}
-
-#Preview {
-    
-    let locationProvider = LocationProvider()
-    
-    let chatHost = AssistiveChatHost()
-    let cloudCache = CloudCache()
-    let featureFlags = FeatureFlags()
-    
-    let chatModel = ChatResultViewModel(locationProvider: locationProvider, cloudCache: cloudCache, featureFlags: featureFlags)
-    
-    chatModel.assistiveHostDelegate = chatHost
-    chatHost.messagesDelegate = chatModel
-    let model = PlaceDirectionsViewModel(rawLocationIdent: "Select a location")
-    
-    return PlaceDirectionsView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, model: model, resultId: .constant(nil))
 }

@@ -22,10 +22,12 @@ open class FeatureFlags : NSObject, ObservableObject {
         return features[flag] == true
     }
     
+    @MainActor
     public func update(flag:FeatureFlags.Flag, allowed:Bool){
         features[flag] = allowed
     }
     
+    @MainActor
     public func updateFlags(with customerInfo:CustomerInfo) {
         if customerInfo.entitlements["limited"]?.isActive == true {
             update(flag: .hasLimitedSubscription, allowed: true)
@@ -39,6 +41,7 @@ open class FeatureFlags : NSObject, ObservableObject {
         }
     }
     
+    @MainActor
     public func updateFlags(with selectedSubscription:SubscriptionPlan) {
 
         switch selectedSubscription.plan {
@@ -52,8 +55,8 @@ open class FeatureFlags : NSObject, ObservableObject {
     }
 }
 
-extension FeatureFlags : PurchasesDelegate {
-    public func purchases(_ purchases: Purchases, receivedUpdated customerInfo: CustomerInfo) {
+extension FeatureFlags : @preconcurrency PurchasesDelegate {
+    @MainActor public func purchases(_ purchases: Purchases, receivedUpdated customerInfo: CustomerInfo) {
         updateFlags(with: customerInfo)
     }
 }

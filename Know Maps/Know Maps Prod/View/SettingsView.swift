@@ -16,7 +16,6 @@ struct SettingsView: View {
     @State private var signInErrorMessage:String = "Error"
     @State private var isAuthenticated = false
     @ObservedObject public var chatModel:ChatResultViewModel
-    @Binding public var isOnboarded:Bool
     @Binding public var showOnboarding:Bool
     var body: some View {
         VStack {
@@ -35,12 +34,11 @@ struct SettingsView: View {
                 } onCompletion: { result in
                     switch result {
                     case .success(let authResults):
-                        Task { @MainActor in
+                        Task {
                             if let appleIDCredential = authResults.credential as? ASAuthorizationAppleIDCredential {
                                 await MainActor.run {
                                     model.appleUserId = appleIDCredential.user
                                     model.fullName = "\(appleIDCredential.fullName?.givenName ?? "") \(appleIDCredential.fullName?.familyName ?? "")"
-                                    cloudCache.hasPrivateCloudAccess = true
                                     #if os(visionOS)
                                     openWindow(id: "ContentView")
                                     #endif
@@ -61,9 +59,13 @@ struct SettingsView: View {
                             }
                         }
                     case .failure(let error):
-                        signInErrorMessage = String(describing: error)
-                        print("Authorization failed: " + String(describing: error))
-                        popoverPresented.toggle()
+                        Task {
+                            await MainActor.run {
+                                signInErrorMessage = String(describing: error)
+                                print("Authorization failed: " + String(describing: error))
+                                popoverPresented.toggle()
+                            }
+                        }
                     }
                 }
                 .signInWithAppleButtonStyle(.whiteOutline)
@@ -74,7 +76,9 @@ struct SettingsView: View {
                 .padding()
                 .task {
                     checkIfSignedInWithApple(completion: { isAuthenticated in
-                        self.isAuthenticated = isAuthenticated
+                        Task { @MainActor in
+                            self.isAuthenticated = isAuthenticated
+                        }
                      })
                 }
             }
@@ -85,8 +89,9 @@ struct SettingsView: View {
                         try await cloudCache.deleteAllUserCachedGroups()
                         chatModel.removeCachedResults()
                         try await chatModel.refreshCache(cloudCache: cloudCache)
-                        isOnboarded = false
-                        showOnboarding = true
+                        await MainActor.run {
+                            showOnboarding = true
+                        }
                     } catch {
                         print(error)
                     }
@@ -102,9 +107,9 @@ struct SettingsView: View {
         #endif
     }
     
-    func checkIfSignedInWithApple(completion:@escaping (Bool)->Void) {
-        guard !model.appleUserId.isEmpty else {
-            completion(true)
+    public func checkIfSignedInWithApple(completion:@escaping (Bool)->Void) {
+        guard model.appleUserId.isEmpty else {
+            completion(false)
             return
         }
         

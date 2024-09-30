@@ -38,8 +38,8 @@ struct AddListItemView: View {
                                 var userRecord = UserCachedRecord(recordId: "", group: "Place", identity:placeResponse.fsqID, title: placeResponse.name, icons: "", list:cachedListResult.list, section:chatResult.section.rawValue)
                                 let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, list:userRecord.list, section:userRecord.section)
                                 userRecord.setRecordId(to: record)
-                                chatModel.appendCachedCategory(with: userRecord)
-                                chatModel.refreshCachedResults()
+                                await chatModel.appendCachedCategory(with: userRecord)
+                                await chatModel.refreshCachedResults()
                             }
                         }
                     })
@@ -58,8 +58,8 @@ struct AddListItemView: View {
                                     var userRecord = UserCachedRecord(recordId: "", group: "List", identity: textFieldData, title: textFieldData, icons: "", list: textFieldData, section:chatHost.section(for: textFieldData).rawValue)
                                     let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, list:userRecord.list, section: userRecord.section)
                                     userRecord.setRecordId(to: record)
-                                    chatModel.appendCachedList(with: userRecord)
-                                    chatModel.refreshCachedResults()
+                                    await chatModel.appendCachedList(with: userRecord)
+                                    await chatModel.refreshCachedResults()
                                 }
                             }
                         Spacer()
@@ -73,8 +73,8 @@ struct AddListItemView: View {
                                 var userRecord = UserCachedRecord(recordId: "", group: "List", identity: textFieldData, title: textFieldData, icons: "", list: textFieldData, section:chatHost.section(for: textFieldData).rawValue)
                                 let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, list:userRecord.list, section:userRecord.section)
                                 userRecord.setRecordId(to: record)
-                                chatModel.appendCachedList(with: userRecord)
-                                chatModel.refreshCachedResults()
+                                await chatModel.appendCachedList(with: userRecord)
+                                await chatModel.refreshCachedResults()
                             }
                         }.labelStyle(.iconOnly)
                         Button("Done") {

@@ -14,7 +14,7 @@ import AppKit
 
 struct OnboardingLocationView: View {
     @ObservedObject public var locationProvider:LocationProvider
-    @Binding public var isAuthorized:Bool
+    @State private var isAuthorized:Bool = false
     @Binding public var selectedTab:String
     var body: some View {
         VStack{
@@ -57,9 +57,4 @@ func openLocationPreferences() {
     }
 }
 #endif
-}
-
-#Preview {
-    let locationProvider = LocationProvider()
-    OnboardingLocationView(locationProvider: locationProvider, isAuthorized: .constant(false), selectedTab: .constant("Location"))
 }

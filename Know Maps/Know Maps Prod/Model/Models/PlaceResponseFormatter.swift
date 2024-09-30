@@ -18,8 +18,7 @@ open class PlaceResponseFormatter {
     public class func autocompleteTastesResponses(with response:[String:Any]) throws ->[TasteAutocompleteResponse] {
         var retval = [TasteAutocompleteResponse]()
         
-        if let resultsDict = response as? NSDictionary {
-            if let results = resultsDict["tastes"] as? [NSDictionary] {
+            if let results = response["tastes"] as? [NSDictionary] {
                 for result in results {
                     var id:String = ""
                     var text:String = ""
@@ -35,7 +34,6 @@ open class PlaceResponseFormatter {
                     let taste = TasteAutocompleteResponse(id:id, text:text)
                     retval.append(taste)
                 }
-            }
         }
         
         return retval
@@ -671,7 +669,7 @@ open class PlaceResponseFormatter {
             }
         }
         
-        var description:String? = try await cloudCache?.fetchGeneratedDescription(for: searchResponse.fsqID)
+        var description:String?
         
         if let rawDescription = response["description"] as? String {
             print(rawDescription)
