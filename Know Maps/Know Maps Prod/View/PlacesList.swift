@@ -20,9 +20,7 @@ struct PlacesList: View {
     @State private var cameraPosition:MapCameraPosition = .automatic
     @State private var selectedItem: String?
     @State private var showMapsResultViewSheet:Bool = false
-    @State private var showNavigationLocationSheet:Bool = false
     @State private var showPlaceViewSheet:Bool = false
-    @State private var searchText:String = ""
     
     static var formatter:NumberFormatter {
         let retval = NumberFormatter()
@@ -107,7 +105,6 @@ struct PlacesList: View {
             }
             .onChange(of: chatModel.selectedPlaceChatResult, { oldValue, newValue in
                 showMapsResultViewSheet = false
-                showNavigationLocationSheet = false
                 if let _ = newValue {
                     showPlaceViewSheet = true
                 } else {
@@ -136,70 +133,6 @@ struct PlacesList: View {
                 PlaceView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, placeDirectionsViewModel: placeDirectionsChatViewModel, resultId: $resultId)
                     .frame(width:geo.size.width, height:geo.size.height)
             })
-            .sheet(isPresented:$showNavigationLocationSheet) {
-                VStack {
-                    HStack {
-                        Button(action: {
-                            showNavigationLocationSheet.toggle()
-                        }, label: {
-                            Label("Done", systemImage: "chevron.backward").labelStyle(.iconOnly)
-                        })
-                        
-                        TextField("New York, NY", text: $searchText)
-                            .padding()
-                            .onSubmit {
-                                search()
-                            }
-                        
-                        Button("Current Location", systemImage:"location") {
-                            Task {
-                                do {
-                                    if let currentLocationName = try await chatModel.currentLocationName() {
-                                        try await chatModel.didSearch(caption:currentLocationName, selectedDestinationChatResultID:nil, intent:.Location)
-                                    } else {
-                                        showNavigationLocationSheet.toggle()
-                                    }
-                                } catch {
-                                    chatModel.analytics?.track(name: "error \(error)")
-                                    print(error)
-                                }
-                            }
-                        }.labelStyle(.iconOnly)
-                        
-                        if let selectedDestinationLocationChatResult = chatModel.selectedDestinationLocationChatResult,
-                           let parent = chatModel.locationChatResult(for: selectedDestinationLocationChatResult)
-                        {
-                            
-                            let isSaved = chatModel.cachedLocation(contains:parent.locationName)
-                            if isSaved {
-                                Button("Delete", systemImage:"minus.circle") {
-                                    if let location = parent.location, let cachedLocationResults = chatModel.cachedResults(for: "Location", identity:chatModel.cachedLocationIdentity(for: location)) {
-                                        Task {
-                                            for cachedLocationResult in cachedLocationResults {
-                                                try await chatModel.cloudCache.deleteUserCachedRecord(for: cachedLocationResult)
-                                            }
-                                            try await chatModel.refreshCachedLocations(cloudCache: chatModel.cloudCache)
-                                        }
-                                    }
-                                }
-                            } else {
-                                Button("Save", systemImage:"square.and.arrow.down") {
-                                    Task(priority: .userInitiated) {
-                                        if let location = parent.location {
-                                            var userRecord = UserCachedRecord(recordId: "", group: "Location", identity: chatModel.cachedLocationIdentity(for: location), title: parent.locationName, icons: "", list:"Places", section:chatHost.section(place: parent.locationName).rawValue)
-                                            let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, list:userRecord.list, section:userRecord.section)
-                                            userRecord.setRecordId(to:record)
-                                            chatModel.appendCachedLocation(with: userRecord)
-                                            try await chatModel.refreshCachedLocations(cloudCache: chatModel.cloudCache)
-                                        }
-                                    }
-                                }.labelStyle(.iconOnly)
-                            }
-                        }
-                    }.padding()
-                    NavigationLocationView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider)
-                }.frame(width: geo.size.width, height: geo.size.height)
-            }
             .padding()
             .toolbar {
                 ToolbarItemGroup {
@@ -208,42 +141,13 @@ struct PlacesList: View {
                     } label: {
                         Label("Show Map", systemImage: "map")
                     }
-                    Button("Search Location", systemImage:"location.magnifyingglass") {
-                        chatModel.locationSearchText.removeAll()
-                        showNavigationLocationSheet.toggle()
-                    }
                 }
             }
             
         }
     }
     
-    func search() {
-        if !searchText.isEmpty {
-            Task {
-                do {
-                    try await chatModel.didSearch(caption:searchText, selectedDestinationChatResultID:nil, intent:.Location)
-                    if let selectedDestinationLocationChatResult = chatModel.selectedDestinationLocationChatResult,
-                       let parent = chatModel.locationChatResult(for: selectedDestinationLocationChatResult)
-                    {
-                        
-                        Task(priority: .userInitiated) {
-                            if let location = parent.location {
-                                var userRecord = UserCachedRecord(recordId: "", group: "Location", identity: chatModel.cachedLocationIdentity(for: location), title: parent.locationName, icons: "", list:"Places", section:chatHost.section(place: parent.locationName).rawValue)
-                                let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, list:userRecord.list, section:userRecord.section)
-                                userRecord.setRecordId(to:record)
-                                chatModel.appendCachedLocation(with: userRecord)
-                                try await chatModel.refreshCachedLocations(cloudCache: chatModel.cloudCache)
-                            }
-                        }
-                    }
-                } catch {
-                    chatModel.analytics?.track(name: "error \(error)")
-                    print(error)
-                }
-            }
-        }
-    }
+    
 }
 
 #Preview {

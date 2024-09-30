@@ -106,8 +106,6 @@ struct PlaceAboutView: View {
                                         }
                                         .popover(isPresented: $presentingPopover) {
                                             AddListItemView(chatModel: chatModel, chatHost:chatHost, presentingPopover:$presentingPopover)
-                                                .frame(width:300, height:600)
-                                                .presentationCompactAdaptation(.automatic)
                                         }
                                     }
                                     

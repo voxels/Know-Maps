@@ -376,7 +376,7 @@ final class ChatResultViewModel: ObservableObject {
     @MainActor
     public func appendCachedPlace(with record: UserCachedRecord) {
         cachedPlaceRecords?.append(record)
-        cachedPlaceResults = savedListResults()
+        cachedPlaceResults = savedPlaceResults()
     }
     
     // MARK: Cached Records Methods
@@ -550,6 +550,9 @@ final class ChatResultViewModel: ObservableObject {
                     childIDs: [],
                     parentIDs: []
                 )
+                
+                chatResults = [ChatResult(title: record.title, list: record.list, section:PersonalizedSearchSection(rawValue:record.section) ?? .none, placeResponse: placeResponse, recommendedPlaceResponse: nil)]
+
                 return CategoryResult(parentCategory:record.title, list: record.list, section:PersonalizedSearchSection(rawValue:record.section) ?? .none, categoricalChatResults: chatResults)
             } else {
                 chatResults = [ChatResult(title: record.title, list: record.list, section:PersonalizedSearchSection(rawValue:record.section) ?? .none, placeResponse: nil, recommendedPlaceResponse: nil)]
@@ -580,7 +583,7 @@ final class ChatResultViewModel: ObservableObject {
                         existing.2.append(contentsOf: tasteResult.categoricalChatResults)
                         temp[record.title] = existing
                     } else {
-                        temp[record.title] = (list, tasteResult.section, tasteResult.categoricalChatResults)
+                        temp[record.title] = (list, .none, tasteResult.categoricalChatResults)
                     }
                 }
             }
@@ -590,11 +593,17 @@ final class ChatResultViewModel: ObservableObject {
             }
         }
  
-        return temp.map {
+       let retval = temp.map {
             CategoryResult(parentCategory: $0.key, list: $0.value.0, section: $0.value.1, categoricalChatResults: $0.value.2)
         }.sorted {
             $0.parentCategory.lowercased() < $1.parentCategory.lowercased()
         }
+        
+        for returnvalue in retval {
+            returnvalue.isExpanded = true
+        }
+        
+        return retval
     }
     
     private func allSavedResults() -> [CategoryResult] {

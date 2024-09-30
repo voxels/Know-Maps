@@ -43,7 +43,7 @@ struct AddListItemView: View {
                             }
                         }
                     })
-                    .padding(10)
+                    .padding()
                 } header: {
                     HStack {
                         TextField("Create new list", text: $textFieldData)
@@ -86,6 +86,6 @@ struct AddListItemView: View {
                     }
                 }
             }
-            .padding(20)
+            .padding()
         }
 }
