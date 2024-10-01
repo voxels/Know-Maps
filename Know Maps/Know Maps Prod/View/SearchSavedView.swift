@@ -11,82 +11,88 @@ struct SearchSavedView: View {
     @Binding public var settingsPresented: Bool
     @State private var showNavigationLocationSheet:Bool = false
     @State private var searchText:String = ""
-
+    
     var body: some View {
-        SavedListView(chatModel: chatModel, contentViewDetail: $contentViewDetail, preferredColumn: $preferredColumn)
-            .toolbar {
-                ToolbarItemGroup(placement: .automatic) {
-                    SavedListToolbarView(
-                        chatModel: chatModel,
-                        settingsPresented: $settingsPresented, contentViewDetail: $contentViewDetail, columnVisibility: $columnVisibility, showNavigationLocationSheet: $showNavigationLocationSheet)
-                    
+        GeometryReader { geometry in
+            SavedListView(chatModel: chatModel, contentViewDetail: $contentViewDetail, preferredColumn: $preferredColumn)
+                .toolbar {
+                    ToolbarItemGroup(placement: .automatic) {
+                        SavedListToolbarView(
+                            chatModel: chatModel,
+                            settingsPresented: $settingsPresented, contentViewDetail: $contentViewDetail, columnVisibility: $columnVisibility, showNavigationLocationSheet: $showNavigationLocationSheet)
+                        
+                    }
                 }
-            }
-            .sheet(isPresented:$showNavigationLocationSheet) {
-                VStack {
-                    HStack {
-                        Button(action: {
-                            showNavigationLocationSheet.toggle()
-                        }, label: {
-                            Label("Done", systemImage: "chevron.backward").labelStyle(.iconOnly)
-                        })
-                        
-                        TextField("New York, NY", text: $searchText)
-                            .padding()
-                            .onSubmit {
-                                search()
-                            }
-                        
-                        Button("Current Location", systemImage:"location") {
-                            Task {
-                                do {
-                                    if let currentLocationName = try await chatModel.currentLocationName() {
-                                        try await chatModel.didSearch(caption:currentLocationName, selectedDestinationChatResultID:nil, intent:.Location)
-                                    } else {
-                                        showNavigationLocationSheet.toggle()
-                                    }
-                                } catch {
-                                    chatModel.analytics?.track(name: "error \(error)")
-                                    print(error)
-                                }
-                            }
-                        }.labelStyle(.iconOnly)
-                        
-                        if let selectedDestinationLocationChatResult = chatModel.selectedDestinationLocationChatResult,
-                           let parent = chatModel.locationChatResult(for: selectedDestinationLocationChatResult)
-                        {
+                .sheet(isPresented:$showNavigationLocationSheet) {
+                    VStack {
+                        HStack {
+                            Button(action: {
+                                showNavigationLocationSheet.toggle()
+                            }, label: {
+                                Label("Done", systemImage: "chevron.backward").labelStyle(.iconOnly)
+                            })
                             
-                            let isSaved = chatModel.cachedLocation(contains:parent.locationName)
-                            if isSaved {
-                                Button("Delete", systemImage:"minus.circle") {
-                                    if let location = parent.location, let cachedLocationResults = chatModel.cachedResults(for: "Location", identity:chatModel.cachedLocationIdentity(for: location)) {
-                                        Task {
-                                            for cachedLocationResult in cachedLocationResults {
-                                                try await chatModel.cloudCache.deleteUserCachedRecord(for: cachedLocationResult)
-                                            }
-                                            try await chatModel.refreshCachedLocations(cloudCache: chatModel.cloudCache)
+                            TextField("New York, NY", text: $searchText)
+                                .padding()
+                                .onSubmit {
+                                    search()
+                                }
+                            
+                            Button("Current Location", systemImage:"location") {
+                                Task {
+                                    do {
+                                        if let currentLocationName = try await chatModel.currentLocationName() {
+                                            try await chatModel.didSearch(caption:currentLocationName, selectedDestinationChatResultID:nil, intent:.Location)
+                                        } else {
+                                            showNavigationLocationSheet.toggle()
                                         }
+                                    } catch {
+                                        chatModel.analytics?.track(name: "error \(error)")
+                                        print(error)
                                     }
                                 }
-                            } else {
-                                Button("Save", systemImage:"square.and.arrow.down") {
-                                    Task{
-                                        if let location = parent.location {
-                                            var userRecord = UserCachedRecord(recordId: "", group: "Location", identity: chatModel.cachedLocationIdentity(for: location), title: parent.locationName, icons: "", list:"Places", section:chatHost.section(place: parent.locationName).rawValue)
-                                            let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, list:userRecord.list, section:userRecord.section)
-                                            userRecord.setRecordId(to:record)
-                                            await chatModel.appendCachedLocation(with: userRecord)
-                                            try await chatModel.refreshCachedLocations(cloudCache: chatModel.cloudCache)
+                            }.labelStyle(.iconOnly)
+                            
+                            if let selectedDestinationLocationChatResult = chatModel.selectedDestinationLocationChatResult,
+                               let parent = chatModel.locationChatResult(for: selectedDestinationLocationChatResult)
+                            {
+                                
+                                let isSaved = chatModel.cachedLocation(contains:parent.locationName)
+                                if isSaved {
+                                    Button("Delete", systemImage:"minus.circle") {
+                                        if let location = parent.location, let cachedLocationResults = chatModel.cachedResults(for: "Location", identity:chatModel.cachedLocationIdentity(for: location)) {
+                                            Task {
+                                                for cachedLocationResult in cachedLocationResults {
+                                                    try await chatModel.cloudCache.deleteUserCachedRecord(for: cachedLocationResult)
+                                                }
+                                                try await chatModel.refreshCachedLocations(cloudCache: chatModel.cloudCache)
+                                            }
                                         }
                                     }
-                                }.labelStyle(.iconOnly)
+                                } else {
+                                    Button("Save", systemImage:"square.and.arrow.down") {
+                                        Task{
+                                            if let location = parent.location {
+                                                var userRecord = UserCachedRecord(recordId: "", group: "Location", identity: chatModel.cachedLocationIdentity(for: location), title: parent.locationName, icons: "", list:"Places", section:chatHost.section(place: parent.locationName).rawValue)
+                                                let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, list:userRecord.list, section:userRecord.section)
+                                                userRecord.setRecordId(to:record)
+                                                await chatModel.appendCachedLocation(with: userRecord)
+                                                try await chatModel.refreshCachedLocations(cloudCache: chatModel.cloudCache)
+                                            }
+                                        }
+                                    }.labelStyle(.iconOnly)
+                                }
                             }
-                        }
-                    }.padding()
-                    NavigationLocationView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider)
+                        }.padding()
+                        NavigationLocationView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider)
+                            .frame(maxWidth: .infinity, minHeight:geometry.size.height, maxHeight: .infinity)
+                    }
+                    .presentationDetents([.large])
+                    .presentationDragIndicator(.visible)
                 }
-            }
+        }
     }
+    
     func search() {
         if !searchText.isEmpty {
             Task {

@@ -363,17 +363,19 @@ open class PlaceSearchSession : ObservableObject {
     }
     
     
-    internal func fetch(url:URL, apiKey:String) async throws -> Any {
+    private let sessionQueue = DispatchQueue(label: "com.secretatomics.knowmaps.sessionQueue")
+
+    func fetch(url: URL, apiKey: String) async throws -> Any {
         print("Requesting URL: \(url)")
-        var request = URLRequest(url:url)
-        request.setValue(apiKey, forHTTPHeaderField: "Authorization")
-        let responseAny:Any = try await withCheckedThrowingContinuation({checkedContinuation in
-            let dataTask = searchSession?.dataTask(with: request, completionHandler: { data, response, error in
-                if let e = error {
-                    print(e)
-                    checkedContinuation.resume(throwing:e)
-                } else {
-                    if let d = data {
+
+        return try await withCheckedThrowingContinuation { checkedContinuation in
+            sessionQueue.async {
+                var request = URLRequest(url: url)
+                request.setValue(apiKey, forHTTPHeaderField: "Authorization")
+                self.searchSession?.dataTask(with: request) { data, response, error in
+                    if let error = error {
+                        checkedContinuation.resume(throwing: error)
+                    } else if let d = data {
                         do {
                             let json = try JSONSerialization.jsonObject(with: d, options: [.fragmentsAllowed])
                             if let checkDict = json as? NSDictionary, let message = checkDict["message"] as? String, message.hasPrefix("Foursquare servers")  {
@@ -392,13 +394,9 @@ open class PlaceSearchSession : ObservableObject {
                             checkedContinuation.resume(throwing: PlaceSearchSessionError.ServerErrorMessage)
                         }
                     }
-                }
-            })
-            
-            dataTask?.resume()
-        })
-        
-        return responseAny
+                }.resume()
+            }
+        }
     }
     
     public func invalidateSession() async throws {

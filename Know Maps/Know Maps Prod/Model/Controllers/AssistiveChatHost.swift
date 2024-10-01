@@ -432,7 +432,7 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
             return .none
         }
         
-        retval = PersonalizedSearchSection(rawValue: predictedSection) ?? PersonalizedSearchSection.none
+        retval = PersonalizedSearchSection(rawValue: predictedSection.capitalized) ?? PersonalizedSearchSection.none
         
         return retval!
     }

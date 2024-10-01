@@ -17,8 +17,8 @@ struct SearchView: View {
     @Binding public var contentViewDetail:ContentDetailView
     @Binding public var settingsPresented:Bool
     @Binding public var showPlaceViewSheet:Bool
+    @Binding public var didError:Bool
     @State private var savedSectionSelection = 1
-    @State private var didError = false
     
     var body: some View {
         SearchSavedView(chatHost:chatHost, chatModel: chatModel, locationProvider: locationProvider, columnVisibility: $columnVisibility, preferredColumn: $preferredColumn, contentViewDetail: $contentViewDetail, settingsPresented: $settingsPresented )

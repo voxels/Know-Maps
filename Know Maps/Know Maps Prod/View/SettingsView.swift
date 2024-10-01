@@ -19,7 +19,7 @@ struct SettingsView: View {
     @Binding public var showOnboarding:Bool
     var body: some View {
         VStack {
-            if isAuthenticated {
+            if model.isAuthorized {
                 if let fullName = model.fullName?.trimmingCharacters(in: .whitespaces), !fullName.isEmpty {
                     Label("Welcome \(fullName)", systemImage:"apple.logo").padding()
                 } else {
@@ -72,15 +72,9 @@ struct SettingsView: View {
                 .frame(maxHeight:60)
                 .popover(isPresented: $popoverPresented, content: {
                     Text(signInErrorMessage).padding()
+                        .presentationCompactAdaptation(.popover)
                 })
                 .padding()
-                .task {
-                    checkIfSignedInWithApple(completion: { isAuthenticated in
-                        Task { @MainActor in
-                            self.isAuthenticated = isAuthenticated
-                        }
-                     })
-                }
             }
                 
             Button(action:{
@@ -99,12 +93,8 @@ struct SettingsView: View {
             }, label:{
               Text("Delete all of my saved groups")
             }).padding()
-        }.padding()
-        #if os(macOS)
-            .navigationTitle("Settings")
-        #else
-        .navigationBarTitle("Settings")
-        #endif
+        }
+        .padding()
     }
     
     public func checkIfSignedInWithApple(completion:@escaping (Bool)->Void) {

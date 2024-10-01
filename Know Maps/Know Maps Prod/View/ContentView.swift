@@ -54,10 +54,12 @@ struct ContentView: View {
     var body: some View {
         GeometryReader() { geometry in
             NavigationSplitView(columnVisibility: $columnVisibility, preferredCompactColumn: $preferredColumn) {
-                SearchView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, columnVisibility: $columnVisibility, preferredColumn: $preferredColumn, contentViewDetail: $contentViewDetail, settingsPresented: $settingsPresented, showPlaceViewSheet: $showPlaceViewSheet)
+                SearchView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, columnVisibility: $columnVisibility, preferredColumn: $preferredColumn, contentViewDetail: $contentViewDetail, settingsPresented: $settingsPresented, showPlaceViewSheet: $showPlaceViewSheet, didError: $didError)
 #if os(iOS) || os(visionOS)
                     .sheet(isPresented: $settingsPresented) {
                         SettingsView(chatModel: chatModel, showOnboarding: $showOnboarding)
+                            .presentationDetents([.large])
+                            .presentationDragIndicator(.visible)
                     }
                     .onAppear {
                         contentViewDetail = .places
@@ -71,15 +73,21 @@ struct ContentView: View {
                         .alert("Unknown Place", isPresented: $didError) {
                             Button(action: {
                                 chatModel.selectedPlaceChatResult = nil
+                                chatModel.isFetchingResults = false
                             }, label: {
                                 Text("Go Back")
                             })
                         } message: {
                             Text("We don't know much about this place.")
                         }
+                        .onDisappear {
+                            chatModel.resetPlaceModel()
+                            chatModel.selectedSavedResult = nil
+                        }
                     
                     .sheet(isPresented: $showMapsResultViewSheet) {
                         MapResultsView(chatHost: chatHost, model: chatModel, locationProvider: locationProvider, selectedMapItem: $selectedItem, cameraPosition:$cameraPosition)
+                            .frame(minWidth:geometry.size.width, maxWidth: .infinity, minHeight: geometry.size.height, maxHeight: .infinity)
                             .onChange(of: selectedItem) { oldValue, newValue in
                                 if let newValue, let placeResponse = chatModel.filteredPlaceResults.first(where: { $0.placeResponse?.fsqID == newValue }) {
                                     chatModel.selectedPlaceChatResult = placeResponse.id
@@ -94,9 +102,13 @@ struct ContentView: View {
                                     })
                                 }
                             })
+                            .presentationDetents([.large])
+                            .presentationDragIndicator(.visible)
                     }
                     .popover(isPresented: $showPlaceViewSheet, content: {
                         PlaceView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, placeDirectionsViewModel: placeDirectionsChatViewModel, resultId: $chatModel.selectedPlaceChatResult)
+                            .frame(minWidth:geometry.size.width, maxWidth: .infinity, minHeight: geometry.size.height, maxHeight: .infinity)
+                            .presentationCompactAdaptation(.popover)
                     })
         
                 case .order:

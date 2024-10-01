@@ -33,7 +33,7 @@ struct OnboardingView: View {
             OnboardingLocationView(locationProvider: locationProvider, selectedTab: $selectedTab)
                 .tag("Location")
                 .tabItem({
-                    Label("Sign In", systemImage: "map" )
+                    Label("Location", systemImage: "map" )
                 })
             OnboardingSubscriptionView(selectedTab: $selectedTab, showOnboarding: $showOnboarding)
                 .tag("Subscription")

@@ -106,6 +106,7 @@ struct PlaceAboutView: View {
                                         }
                                         .popover(isPresented: $presentingPopover) {
                                             AddListItemView(chatModel: chatModel, chatHost:chatHost, presentingPopover:$presentingPopover)
+                                                .presentationCompactAdaptation(.popover)
                                         }
                                     }
                                     
@@ -252,6 +253,7 @@ struct PlaceAboutView: View {
                                 let items:[Any] = [placeDetailsResponse.website ?? placeDetailsResponse.searchResponse.address]
 #if os(visionOS) || os(iOS)
                                 ActivityViewController(activityItems:items, applicationActivities:[UIActivity](), isPresentingShareSheet: $isPresentingShareSheet)
+                                    .presentationCompactAdaptation(.popover)
 #endif
                             }
                         }

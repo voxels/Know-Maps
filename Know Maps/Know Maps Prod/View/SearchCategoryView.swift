@@ -11,7 +11,6 @@ struct SearchCategoryView: View {
     @ObservedObject public var chatHost:AssistiveChatHost
     @ObservedObject public var chatModel:ChatResultViewModel
     @ObservedObject public var locationProvider:LocationProvider
-    @State private var didError = false
     
     var body: some View {
         List(selection:$chatModel.selectedCategoryResult) {
@@ -38,7 +37,6 @@ struct SearchCategoryView: View {
         }
         .listStyle(.sidebar)
         .refreshable {
-            chatModel.isRefreshingCache = false
             Task {
                 do{
                     try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)

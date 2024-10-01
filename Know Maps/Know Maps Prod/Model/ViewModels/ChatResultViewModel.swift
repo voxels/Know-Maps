@@ -480,7 +480,7 @@ final class ChatResultViewModel: ObservableObject {
         return placeResults.first(where:{ $0.id == id })
     }
     
-    public func placeChatResult(for fsqID: String) -> ChatResult? {        
+    public func placeChatResult(for fsqID: String) -> ChatResult? {
         return placeResults.first { $0.placeResponse?.fsqID == fsqID }
     }
     
@@ -686,19 +686,39 @@ final class ChatResultViewModel: ObservableObject {
                         tastes: true,
                         features: false
                     )
-                    let rawDetailsResponse = try await self.placeSearchSession.details(for: request)
-                    self.analytics?.track(name: "fetchDetails")
+                    
+                    var rawDetailsResponse: Any?
+                    var tipsData: Any?
+                    var photosData: Any?
+                    
+                    try await withThrowingTaskGroup(of: Void.self) { innerGroup in
+                        // Fetch details
+                        innerGroup.addTask {
+                            rawDetailsResponse = try await self.placeSearchSession.details(for: request)
+                            self.analytics?.track(name: "fetchDetails")
+                        }
+                        
+                        if self.cloudCache.hasFsqAccess {
+                            // Fetch tips in parallel
+                            innerGroup.addTask {
+                                tipsData = try await self.placeSearchSession.tips(for: response.fsqID)
+                            }
+                            // Fetch photos in parallel
+                            innerGroup.addTask {
+                                photosData = try await self.placeSearchSession.photos(for: response.fsqID)
+                            }
+                        }
+                        
+                        // Wait for all tasks to complete
+                        try await innerGroup.waitForAll()
+                    }
                     
                     if self.cloudCache.hasFsqAccess {
-                        async let tipsRawResponse = self.placeSearchSession.tips(for: response.fsqID)
-                        async let photosRawResponse = self.placeSearchSession.photos(for: response.fsqID)
-                        
-                        let (tipsData, photosData) = try await (tipsRawResponse, photosRawResponse)
-                        let tipsResponses = try PlaceResponseFormatter.placeTipsResponses(with: tipsData, for: response.fsqID)
-                        let photoResponses = try PlaceResponseFormatter.placePhotoResponses(with: photosData, for: response.fsqID)
+                        let tipsResponses = try PlaceResponseFormatter.placeTipsResponses(with: tipsData!, for: response.fsqID)
+                        let photoResponses = try PlaceResponseFormatter.placePhotoResponses(with: photosData!, for: response.fsqID)
                         
                         return try await PlaceResponseFormatter.placeDetailsResponse(
-                            with: rawDetailsResponse,
+                            with: rawDetailsResponse!,
                             for: response,
                             placePhotosResponses: photoResponses,
                             placeTipsResponses: tipsResponses,
@@ -707,7 +727,7 @@ final class ChatResultViewModel: ObservableObject {
                         )
                     } else {
                         return try await PlaceResponseFormatter.placeDetailsResponse(
-                            with: rawDetailsResponse,
+                            with: rawDetailsResponse!,
                             for: response,
                             previousDetails: self.assistiveHostDelegate?.queryIntentParameters?.queryIntents.last?.placeDetailsResponses,
                             cloudCache: self.cloudCache
@@ -1579,7 +1599,7 @@ extension ChatResultViewModel : @preconcurrency AssistiveChatHostMessagesDelegat
         let newIntent = AssistiveChatHostIntent(caption: placeChatResult.title, intent: .Place, selectedPlaceSearchResponse: placeChatResult.placeResponse, selectedPlaceSearchDetails:placeChatResult.placeDetailsResponse, placeSearchResponses: lastIntent.placeSearchResponses, selectedDestinationLocationID: selectedDestinationChatResultID, placeDetailsResponses: nil, recommendedPlaceSearchResponses: lastIntent.recommendedPlaceSearchResponses, queryParameters: queryParameters)
         
         
-        guard let tappedResultPlaceResponse = placeChatResult.placeResponse else {
+        guard placeChatResult.placeResponse != nil else {
             chatHost.updateLastIntentParameters(intent: newIntent)
             try await chatHost.receiveMessage(caption: newIntent.caption, isLocalParticipant: true)
             return
