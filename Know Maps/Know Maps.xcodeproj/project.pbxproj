@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1E60F4502CAC149F00891250 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1E60F44F2CAC149F00891250 /* StoreKit.framework */; };
 		1E6570D42C9B42B600FEE9F8 /* OnboardingTemplateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E6570D32C9B42B600FEE9F8 /* OnboardingTemplateView.swift */; };
 		1E6570D62C9B516400FEE9F8 /* TasteAutocompleteResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E6570D52C9B516400FEE9F8 /* TasteAutocompleteResponse.swift */; };
 		1E6570D82C9B7DB900FEE9F8 /* SearchEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E6570D72C9B7DB900FEE9F8 /* SearchEditView.swift */; };
@@ -120,6 +121,7 @@
 		1E26C7B32B2C79150050EC6A /* NavigationLocationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationLocationView.swift; sourceTree = "<group>"; };
 		1E4481DD2B499D3F00FD2EEF /* AddListItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddListItemView.swift; sourceTree = "<group>"; };
 		1E583F7C2B1671F300B2EC26 /* SettingsModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsModel.swift; sourceTree = "<group>"; };
+		1E60F44F2CAC149F00891250 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.0.sdk/System/Library/Frameworks/StoreKit.framework; sourceTree = DEVELOPER_DIR; };
 		1E630C832B1636E400A57CCB /* ActivityViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityViewController.swift; sourceTree = "<group>"; };
 		1E630C852B16440100A57CCB /* CloudCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudCache.swift; sourceTree = "<group>"; };
 		1E6570D32C9B42B600FEE9F8 /* OnboardingTemplateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingTemplateView.swift; sourceTree = "<group>"; };
@@ -196,6 +198,7 @@
 			files = (
 				1E9039752B8B5F3B00C3BA42 /* RevenueCatUI in Frameworks */,
 				1E90396F2B8B5F1700C3BA42 /* Segment in Frameworks */,
+				1E60F4502CAC149F00891250 /* StoreKit.framework in Frameworks */,
 				1E9039732B8B5F2100C3BA42 /* RevenueCat in Frameworks */,
 				1E9039772B8B5F4100C3BA42 /* ReceiptParser in Frameworks */,
 			);
@@ -251,6 +254,7 @@
 		1E6F4AFE2B20F538001E701B /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				1E60F44F2CAC149F00891250 /* StoreKit.framework */,
 				1E095B252B778EAE00147119 /* StoreKit.framework */,
 			);
 			name = Frameworks;

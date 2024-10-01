@@ -22,11 +22,16 @@ struct PlacePhotosView: View {
                                         AsyncImage(url: url) { phase in
                                             switch phase {
                                             case .empty:
-                                                ProgressView()
+                                                HStack {
+                                                    Spacer()
+                                                    ProgressView()
+                                                    Spacer()
+                                                }
                                             case .success(let image):
                                                 image.resizable()
                                                     .aspectRatio(contentMode: .fit)
                                                     .cornerRadius(16)
+                                                    .scaledToFit()
                                             case .failure:
                                                 EmptyView()
                                             @unknown default:

@@ -163,13 +163,17 @@ struct Know_MapsApp: App {
 #if DEBUG
             Purchases.logLevel = .debug
 #endif
-            let purchasesId = settingsModel.purchasesId
-            let revenuecatAPIKey = try await chatModel.cloudCache.apiKey(for: .revenuecat)
-            Purchases.configure(withAPIKey: revenuecatAPIKey, appUserID: purchasesId)
-            Purchases.shared.delegate = chatModel.featureFlags
+            Task.detached {
+                let purchasesId = await settingsModel.purchasesId
+                let revenuecatAPIKey = try await chatModel.cloudCache.apiKey(for: .revenuecat)
+                Purchases.configure(withAPIKey: revenuecatAPIKey, appUserID: purchasesId)
+                Purchases.shared.delegate = chatModel.featureFlags
+                
+                await settingsModel.fetchSubscriptionOfferings()
+                let customerInfo = try await Purchases.shared.customerInfo()
+                await chatModel.featureFlags.updateFlags(with: customerInfo)
+            }
             
-            let customerInfo = try await Purchases.shared.customerInfo()
-            chatModel.featureFlags.updateFlags(with: customerInfo)
             let isLocationAuthorized = chatModel.locationProvider.isAuthorized()
             
             if isLocationAuthorized, let location = chatModel.locationProvider.currentLocation() {
@@ -179,10 +183,10 @@ struct Know_MapsApp: App {
                 }
             }
             
-            settingsModel.fetchSubscriptionOfferings()
+            Task {
+                try await chatHost.organizeCategoryCodeList()
+            }
             
-            try await chatModel.refreshCachedLocations(cloudCache: chatModel.cloudCache)
-            try await chatHost.organizeCategoryCodeList()
             try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
             
             let isOnboarded = !chatModel.cachedTasteResults.isEmpty
@@ -205,20 +209,11 @@ struct Know_MapsApp: App {
                 }
             }
         } catch {
-            switch error {
-            case PersonalizedSearchSessionError.NoTokenFound:
-                analytics.track(name: "error \(error)")
-                print(error)
-            default:
-                await MainActor.run {
-                    settingsModel.keychainId = nil
-                }
-                analytics.track(name: "error \(error)")
-                print(error)
-            }
-            await MainActor.run {
-                showSplashScreen = false
-            }
+            analytics.track(name: "error \(error)")
+            print(error)
+        }
+        await MainActor.run {
+            showSplashScreen = false
         }
     }
     

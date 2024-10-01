@@ -24,7 +24,9 @@ open class FeatureFlags : NSObject, ObservableObject {
     
     @MainActor
     public func update(flag:FeatureFlags.Flag, allowed:Bool){
-        features[flag] = allowed
+        Task { @MainActor in
+            features[flag] = allowed
+        }
     }
     
     @MainActor

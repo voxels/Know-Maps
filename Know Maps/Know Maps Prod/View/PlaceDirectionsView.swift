@@ -167,7 +167,7 @@ struct PlaceDirectionsView: View {
                     return
                 }
                 
-                if oldValue != newValue, let currentLocationID = chatModel.selectedSourceLocationChatResult, let locationResult = chatModel.locationChatResult(for: currentLocationID), let currentLocation = locationResult.location, let sourceMapItem = mapItem(for: currentLocation, name:locationResult.locationName), let destinationMapItem = mapItem(for: CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude), name:placeResponse.name) {
+                if oldValue != newValue, let currentLocationID = chatModel.selectedDestinationLocationChatResult, let locationResult = chatModel.locationChatResult(for: currentLocationID), let currentLocation = locationResult.location, let sourceMapItem = mapItem(for: currentLocation, name:locationResult.locationName), let destinationMapItem = mapItem(for: CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude), name:placeResponse.name) {
                     Task {
                         do {
                             try await getDirections(source:sourceMapItem, destination:destinationMapItem, model:model)

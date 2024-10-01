@@ -15,7 +15,6 @@ struct PlacesList: View {
     @ObservedObject public var chatModel:ChatResultViewModel
     @ObservedObject public var locationProvider:LocationProvider
     @Binding public var resultId:ChatResult.ID?
-    @State private var showingPopover:Bool = false
     @State private var selectedItem: String?
     
     @Binding public var showMapsResultViewSheet:Bool
@@ -31,90 +30,124 @@ struct PlacesList: View {
             ZStack {
                 ProgressView("Fetching results")
             }
-        } else {
-            if !chatModel.filteredRecommendedPlaceResults.isEmpty {
-                ScrollView{
-                    let sizeWidth:CGFloat = sizeClass == .compact ? 1 : 2
-                    let columns = Array(repeating: GridItem(.adaptive(minimum: UIScreen.main.bounds.size.width / sizeWidth)),  count:Int(sizeWidth))
-                    LazyVGrid(columns: columns, spacing: 16) {
-                        ForEach(chatModel.filteredRecommendedPlaceResults){ result in
-                            VStack(alignment:.leading, content: {
-                                ZStack {
-                                    VStack(alignment: .leading) {
-                                        if let neighborhood = result.recommendedPlaceResponse?.neighborhood, !neighborhood.isEmpty {
-                                            
-                                            Text(result.title).bold()
-                                            Text(neighborhood).italic()
-                                            
-                                        } else{
-                                            Text(result.title).bold()
-                                        }
-                                        if let placeResponse = result.recommendedPlaceResponse, !placeResponse.address.isEmpty {
-                                            Text(placeResponse.address)
-                                            Text(placeResponse.city)
-                                        }
-                                    }.padding()
-                                }
-                                if let photo = result.recommendedPlaceResponse?.photo, !photo.isEmpty, let url = URL(string: photo) {
-                                    AsyncImage(url: url) { phase in
-                                        switch phase {
-                                        case .empty:
-                                            ProgressView()
-                                        case .success(let image):
-                                            image.resizable()
-                                                .aspectRatio(contentMode: .fit)
-                                                .clipped()
-                                        case .failure:
-                                            EmptyView()
-                                        @unknown default:
-                                            // Since the AsyncImagePhase enum isn't frozen,
-                                            // we need to add this currently unused fallback
-                                            // to handle any new cases that might be added
-                                            // in the future:
-                                            EmptyView()
-                                        }
+        } else if chatModel.recommendedPlaceResults.count != 0 {
+            ScrollView{
+                let sizeWidth:CGFloat = sizeClass == .compact ? 1 : 2
+                let columns = Array(repeating: GridItem(.adaptive(minimum: UIScreen.main.bounds.size.width / sizeWidth)),  count:Int(sizeWidth))
+                LazyVGrid(columns: columns, spacing: 16) {
+                    ForEach(chatModel.filteredRecommendedPlaceResults){ result in
+                        VStack(alignment:.leading, content: {
+                            ZStack {
+                                VStack(alignment: .leading) {
+                                    if let neighborhood = result.recommendedPlaceResponse?.neighborhood, !neighborhood.isEmpty {
+                                        
+                                        Text(result.title).bold()
+                                        Text(neighborhood).italic()
+                                        
+                                    } else{
+                                        Text(result.title).bold()
                                     }
-                                } else if let response = result.placeDetailsResponse, let photoResponses = response.photoResponses, let photo = photoResponses.first, let url = photo.photoUrl() {
-                                    AsyncImage(url: url) { phase in
-                                        switch phase {
-                                        case .empty:
-                                            ProgressView()
-                                        case .success(let image):
-                                            image.resizable()
-                                                .aspectRatio(contentMode: .fit)
-                                        case .failure:
-                                            Image(systemName: "photo")
-                                        @unknown default:
-                                            // Since the AsyncImagePhase enum isn't frozen,
-                                            // we need to add this currently unused fallback
-                                            // to handle any new cases that might be added
-                                            // in the future:
-                                            EmptyView()
-                                        }
+                                    if let placeResponse = result.recommendedPlaceResponse, !placeResponse.address.isEmpty {
+                                        Text(placeResponse.address)
+                                        Text(placeResponse.city)
                                     }
-                                }
-                            })
-                            .background(.thinMaterial)
-                            .cornerRadius(16)
-                            .onTapGesture {
-                                chatModel.selectedPlaceChatResult = result.id
+                                }.padding()
                             }
+                            if let photo = result.recommendedPlaceResponse?.photo, !photo.isEmpty, let url = URL(string: photo) {
+                                AsyncImage(url: url) { phase in
+                                    switch phase {
+                                    case .empty:
+                                        HStack {
+                                            Spacer()
+                                            ProgressView()
+                                            Spacer()
+                                        }
+
+                                    case .success(let image):
+                                        image.resizable()
+                                            .aspectRatio(contentMode: .fit)
+                                            .scaledToFit()
+                                    case .failure:
+                                        EmptyView()
+                                    @unknown default:
+                                        // Since the AsyncImagePhase enum isn't frozen,
+                                        // we need to add this currently unused fallback
+                                        // to handle any new cases that might be added
+                                        // in the future:
+                                        EmptyView()
+                                    }
+                                }
+                            }
+                        })
+                        .background(.thinMaterial)
+                        .cornerRadius(16)
+                        .onTapGesture {
+                            chatModel.selectedPlaceChatResult = result.id
                         }
                     }
                 }
-                .padding()
-                .toolbar {
-                    ToolbarItemGroup {
-                        Button {
-                            showMapsResultViewSheet.toggle()
-                        } label: {
-                            Label("Show Map", systemImage: "map")
-                        }
-                    }
-                }
-            } else {
-                EmptyView()
             }
+            .padding()
+            .toolbar {
+                ToolbarItemGroup {
+                    Button {
+                        showMapsResultViewSheet.toggle()
+                    } label: {
+                        Label("Show Map", systemImage: "map")
+                    }
+                }
+            }
+        } else if chatModel.placeResults.count != 0 {
+            ScrollView{
+                let sizeWidth:CGFloat = sizeClass == .compact ? 1 : 2
+                let columns = Array(repeating: GridItem(.adaptive(minimum: UIScreen.main.bounds.size.width / sizeWidth)),  count:Int(sizeWidth))
+                LazyVGrid(columns: columns, spacing: 16) {
+                    ForEach(chatModel.filteredPlaceResults) { result in
+                        VStack(alignment:.leading, content: {
+                            ZStack {
+                                VStack(alignment: .leading) {
+                                    Text(result.title).bold()
+                                    if let placeResponse = result.placeResponse, !placeResponse.address.isEmpty {
+                                        Text(placeResponse.address)
+                                        Text(placeResponse.locality)
+                                    }
+                                }.padding()
+                            }
+                            if let url = result.placeDetailsResponse?.photoResponses?.first?.photoUrl() {
+                                AsyncImage(url: url) { phase in
+                                    switch phase {
+                                    case .empty:
+                                        HStack {
+                                            Spacer()
+                                            ProgressView()
+                                            Spacer()
+                                        }
+                                    case .success(let image):
+                                        image.resizable()
+                                            .aspectRatio(contentMode: .fit)
+                                            .scaledToFit()
+                                    case .failure:
+                                        EmptyView()
+                                    @unknown default:
+                                        // Since the AsyncImagePhase enum isn't frozen,
+                                        // we need to add this currently unused fallback
+                                        // to handle any new cases that might be added
+                                        // in the future:
+                                        EmptyView()
+                                    }
+                                }
+                            }
+                        })
+                        .background(.thinMaterial)
+                        .cornerRadius(16)
+                        .onTapGesture {
+                            chatModel.selectedPlaceChatResult = result.id
+                        }
+                    }
+                }
+            }
+        } else {
+            EmptyView()
         }
     }
 }

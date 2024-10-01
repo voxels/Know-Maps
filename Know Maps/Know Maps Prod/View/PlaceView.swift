@@ -84,6 +84,9 @@ struct PlaceView: View {
                     }
                 }
             }
+            .onDisappear {
+                chatModel.selectedPlaceChatResult = nil
+            }
             #if os(macOS)
             .toolbar(content: {
                 ToolbarItemGroup {

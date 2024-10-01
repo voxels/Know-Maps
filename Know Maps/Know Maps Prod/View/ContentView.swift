@@ -54,7 +54,7 @@ struct ContentView: View {
     var body: some View {
         GeometryReader() { geometry in
             NavigationSplitView(columnVisibility: $columnVisibility, preferredCompactColumn: $preferredColumn) {
-                SearchView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, columnVisibility: $columnVisibility, preferredColumn: $preferredColumn, contentViewDetail: $contentViewDetail, settingsPresented: $settingsPresented)
+                SearchView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, columnVisibility: $columnVisibility, preferredColumn: $preferredColumn, contentViewDetail: $contentViewDetail, settingsPresented: $settingsPresented, showPlaceViewSheet: $showPlaceViewSheet)
 #if os(iOS) || os(visionOS)
                     .sheet(isPresented: $settingsPresented) {
                         SettingsView(chatModel: chatModel, showOnboarding: $showOnboarding)
@@ -149,29 +149,6 @@ struct ContentView: View {
         .onChange(of: selectedItem, { oldValue, newValue in
             Task {
                 try await chatModel.didTapMarker(with: newValue)
-            }
-        })
-        .onChange(of: chatModel.selectedPlaceChatResult, { oldValue, newValue in
-            guard let newValue = newValue else {
-                return
-            }
-            
-            if let placeChatResult = chatModel.placeChatResult(for: newValue) {
-                Task {
-                    do {
-                        try await chatModel.didTap(placeChatResult: placeChatResult)
-                        await MainActor.run {
-                            showMapsResultViewSheet = false
-                            showPlaceViewSheet = true
-                        }
-                    } catch {
-                        chatModel.analytics?.track(name: "error \(error)")
-                        print(error)
-                        await MainActor.run {
-                            didError.toggle()
-                        }
-                    }
-                }
             }
         })
         .onChange(of: columnVisibility) { oldValue, newValue in
