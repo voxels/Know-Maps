@@ -97,6 +97,7 @@ struct PlaceAboutView: View {
                                             }
                                             .sheet(isPresented: $presentingPopover) {
                                                 AddListItemView(chatModel: chatModel, chatHost:chatHost, presentingPopover:$presentingPopover)
+                                                    .frame(minHeight: geo.size.height, maxHeight: .infinity)
                                                     .presentationDetents([.large])
                                                     .presentationDragIndicator(.visible)
                                                     .presentationCompactAdaptation(.sheet)

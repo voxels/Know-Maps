@@ -91,6 +91,7 @@ struct SearchSavedView: View {
                             .padding()
                     }
                     .padding()
+                    .frame(minHeight: geometry.size.height, maxHeight: .infinity)
                     .presentationDetents([.large])
                     .presentationDragIndicator(.visible)
                     .presentationCompactAdaptation(.sheet)

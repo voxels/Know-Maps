@@ -102,6 +102,7 @@ struct ContentView: View {
                                     })
                                 }
                             })
+                            .frame(minHeight: geometry.size.height, maxHeight: .infinity)
                             .presentationDetents([.large])
                             .presentationDragIndicator(.visible)
                             .presentationCompactAdaptation(.sheet)
@@ -109,6 +110,7 @@ struct ContentView: View {
                     }
                     .sheet(isPresented: $showPlaceViewSheet, content: {
                         PlaceView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, placeDirectionsViewModel: placeDirectionsChatViewModel, resultId: $chatModel.selectedPlaceChatResult)
+                            .frame(minHeight: geometry.size.height, maxHeight: .infinity)
                             .presentationDetents([.large])
                             .presentationDragIndicator(.visible)
                             .presentationCompactAdaptation(.sheet)
