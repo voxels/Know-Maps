@@ -22,7 +22,6 @@ open class SettingsModel : NSObject, ASAuthorizationControllerDelegate,  Observa
     }
     
     public var appleUserId:String
-    public var keychainId:String?
     public var fullName:String?
     public var authCompletion:((Result<ASAuthorization, Error>) -> Void)?
     public var offerings:Offerings?
@@ -33,14 +32,13 @@ open class SettingsModel : NSObject, ASAuthorizationControllerDelegate,  Observa
 #endif
 
 #if os(macOS)
-            return keychainId
+            return DeviceIdentifier.getDeviceIdentifier()
             #endif
         }
     }
     
-    public init(userId: String, keychainId: String? = nil, fullName: String? = nil ) {
+    public init(userId: String, fullName: String? = nil ) {
         self.appleUserId = userId
-        self.keychainId = keychainId
         self.fullName = fullName
     }
     
@@ -123,5 +121,57 @@ open class SettingsModel : NSObject, ASAuthorizationControllerDelegate,  Observa
                 self?.offerings = offerings
             }
         }
+    }
+}
+
+class DeviceIdentifier {
+
+    static let key = "com.secretatomics.knowmaps.unique_device_id"
+
+    // Generate or fetch the identifier
+    static func getDeviceIdentifier() -> String {
+        if let existingIdentifier = loadIdentifierFromKeychain() {
+            return existingIdentifier
+        } else {
+            let newIdentifier = UUID().uuidString
+            saveIdentifierToKeychain(identifier: newIdentifier)
+            return newIdentifier
+        }
+    }
+
+    // Load the identifier from Keychain
+    private static func loadIdentifierFromKeychain() -> String? {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrAccount as String: key,
+            kSecReturnData as String: true,
+            kSecMatchLimit as String: kSecMatchLimitOne
+        ]
+
+        var dataTypeRef: AnyObject? = nil
+        let status = SecItemCopyMatching(query as CFDictionary, &dataTypeRef)
+
+        if status == errSecSuccess {
+            if let data = dataTypeRef as? Data,
+               let identifier = String(data: data, encoding: .utf8) {
+                return identifier
+            }
+        }
+        return nil
+    }
+
+    // Save the identifier to Keychain
+    private static func saveIdentifierToKeychain(identifier: String) {
+        let data = identifier.data(using: .utf8)!
+
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrAccount as String: key,
+            kSecValueData as String: data
+        ]
+
+        // Delete any existing item before adding a new one
+        SecItemDelete(query as CFDictionary)
+        SecItemAdd(query as CFDictionary, nil)
     }
 }

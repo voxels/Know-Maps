@@ -182,12 +182,7 @@ struct Know_MapsApp: App {
             let cloudAuth = settingsModel.isAuthorized
             
             if !cloudAuth {
-                return
-            }
-            
-            let userRecord = try await chatModel.cloudCache.fetchCloudKitUserRecordID()
-            await MainActor.run {
-                settingsModel.keychainId = userRecord?.recordName
+                performExistingAccountSetupFlows()
             }
             
             if !chatModel.cloudCache.hasFsqAccess {
@@ -206,29 +201,32 @@ struct Know_MapsApp: App {
                 }
             }
             
-            try await chatHost.organizeCategoryCodeList()
-            await chatModel.categoricalSearchModel()
-            try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
-            
-            let isOnboarded = !chatModel.cachedTasteResults.isEmpty
-            
-            if cloudAuth, chatModel.cloudCache.hasFsqAccess, isLocationAuthorized, isOnboarded {
-                await MainActor.run {
-                    showOnboarding = false
-                    showSplashScreen = false
-                }
-            } else if cloudAuth, chatModel.cloudCache.hasFsqAccess, isLocationAuthorized, !isOnboarded {
-                await MainActor.run {
-                    selectedOnboardingTab = "Saving"
-                    showSplashScreen = false
-                }
-            } else if cloudAuth, chatModel.cloudCache.hasFsqAccess,
-                      !isLocationAuthorized, !isOnboarded {
-                await MainActor.run {
-                    selectedOnboardingTab = "Location"
-                    showSplashScreen = false
-                }
+            Task {
+                try await chatHost.organizeCategoryCodeList()
+                await chatModel.categoricalSearchModel()
             }
+            
+                try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
+                
+                let isOnboarded = !chatModel.cachedTasteResults.isEmpty
+                
+                if cloudAuth, chatModel.cloudCache.hasFsqAccess, isLocationAuthorized, isOnboarded {
+                    await MainActor.run {
+                        showOnboarding = false
+                        showSplashScreen = false
+                    }
+                } else if cloudAuth, chatModel.cloudCache.hasFsqAccess, isLocationAuthorized, !isOnboarded {
+                    await MainActor.run {
+                        selectedOnboardingTab = "Saving"
+                        showSplashScreen = false
+                    }
+                } else if cloudAuth, chatModel.cloudCache.hasFsqAccess,
+                          !isLocationAuthorized, !isOnboarded {
+                    await MainActor.run {
+                        selectedOnboardingTab = "Location"
+                        showSplashScreen = false
+                    }
+                }
         } catch {
             chatModel.analytics?.track(name: "error \(error)")
             print(error)
