@@ -17,7 +17,7 @@ public enum CloudCacheError: Error {
 }
 
 open class CloudCache: NSObject, ObservableObject {
-    public var analytics: Analytics
+    public var analytics:Analytics?
     var hasFsqAccess: Bool {
         fsqUserId.isEmpty ? false : true
     }
@@ -33,10 +33,6 @@ open class CloudCache: NSObject, ObservableObject {
 
     public enum CloudCacheService: String {
         case revenuecat
-    }
-
-    public init(analytics: Analytics) {
-        self.analytics = analytics
     }
 
     public func clearCache() {
@@ -194,7 +190,7 @@ open class CloudCache: NSObject, ObservableObject {
                 }
             } catch {
                 print(error)
-                self.analytics.track(name: "error \(error)")
+                self.analytics?.track(name: "error \(error)")
             }
         }
 
@@ -241,7 +237,7 @@ open class CloudCache: NSObject, ObservableObject {
                 }
             } catch {
                 print(error)
-                self.analytics.track(name: "error \(error)")
+                self.analytics?.track(name: "error \(error)")
             }
         }
 
@@ -316,7 +312,7 @@ open class CloudCache: NSObject, ObservableObject {
                 retval.append(cachedRecord)
             } catch {
                 print(error)
-                self.analytics.track(name: "error \(error)")
+                self.analytics?.track(name: "error \(error)")
             }
         }
 

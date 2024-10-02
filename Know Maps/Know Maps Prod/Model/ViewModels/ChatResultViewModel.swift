@@ -210,7 +210,7 @@ final class ChatResultViewModel: ObservableObject {
         }
 
         // Initialize progress variables
-        let totalTasks = 5
+        let totalTasks = 6
         
         // Define the timeout duration in seconds
         let timeoutInSeconds: UInt64 = 10

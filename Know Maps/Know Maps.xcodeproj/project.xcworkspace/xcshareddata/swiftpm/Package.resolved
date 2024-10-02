@@ -1,30 +1,31 @@
 {
+  "originHash" : "607b5e1385b26eb4f630b828b1891c03866fc7fabf229a93b35693dd4938c265",
   "pins" : [
     {
       "identity" : "analytics-swift",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/segmentio/analytics-swift",
       "state" : {
-        "revision" : "266c374bd9c55a3101e0b5f04a9f8cab4eee747a",
-        "version" : "1.5.0"
+        "revision" : "41df3103293bbed6f17489fcc28e16a6e495168d",
+        "version" : "1.6.1"
       }
     },
     {
-      "identity" : "jsonsafeencoder-swift",
+      "identity" : "jsonsafeencoding-swift",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/segmentio/jsonsafeencoder-swift.git",
+      "location" : "https://github.com/segmentio/jsonsafeencoding-swift.git",
       "state" : {
-        "revision" : "8b70dc8c01b7b041912e30e29d2b488a43f782ac",
-        "version" : "1.0.1"
+        "revision" : "af6a8b360984085e36c6341b21ecb35c12f47ebd",
+        "version" : "2.0.0"
       }
     },
     {
-      "identity" : "purchases-ios",
+      "identity" : "purchases-ios-spm",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/RevenueCat/purchases-ios.git",
+      "location" : "https://github.com/RevenueCat/purchases-ios-spm.git",
       "state" : {
-        "revision" : "d9e79db5109789a71a3a677af3151fc9b663ca85",
-        "version" : "4.36.1"
+        "revision" : "c7058bfd80d7f42ca6aa392bf1fab769d1158bf1",
+        "version" : "5.5.0"
       }
     },
     {
@@ -32,10 +33,10 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/segmentio/sovran-swift.git",
       "state" : {
-        "revision" : "64f3b5150c282a34af4578188dce2fd597e600e3",
-        "version" : "1.1.0"
+        "revision" : "24867f3e4ac62027db9827112135e6531b6f4051",
+        "version" : "1.1.2"
       }
     }
   ],
-  "version" : 2
+  "version" : 3
 }

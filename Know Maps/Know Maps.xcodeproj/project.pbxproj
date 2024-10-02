@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1E213E172CAD81F600B93697 /* Segment in Frameworks */ = {isa = PBXBuildFile; productRef = 1E213E162CAD81F600B93697 /* Segment */; };
+		1E213E1A2CAD82A500B93697 /* ReceiptParser in Frameworks */ = {isa = PBXBuildFile; productRef = 1E213E192CAD82A500B93697 /* ReceiptParser */; };
+		1E213E1C2CAD82A500B93697 /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = 1E213E1B2CAD82A500B93697 /* RevenueCat */; };
+		1E213E1E2CAD82A500B93697 /* RevenueCatUI in Frameworks */ = {isa = PBXBuildFile; productRef = 1E213E1D2CAD82A500B93697 /* RevenueCatUI */; };
 		1E24EE642CAC78250087F724 /* FoursquareSectionClassifier.mlmodel in Sources */ = {isa = PBXBuildFile; fileRef = 1E24EE632CAC78250087F724 /* FoursquareSectionClassifier.mlmodel */; };
 		1E60F4502CAC149F00891250 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1E60F44F2CAC149F00891250 /* StoreKit.framework */; };
 		1E6570D42C9B42B600FEE9F8 /* OnboardingTemplateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E6570D32C9B42B600FEE9F8 /* OnboardingTemplateView.swift */; };
@@ -14,10 +18,6 @@
 		1E6570D82C9B7DB900FEE9F8 /* SearchEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E6570D72C9B7DB900FEE9F8 /* SearchEditView.swift */; };
 		1E8E5AFB2CA03D8F00B37E6A /* SearchPlacesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E8E5AFA2CA03D8600B37E6A /* SearchPlacesView.swift */; };
 		1E8E6DDA2C99BA230048DBAC /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1E095AFE2B778AF000147119 /* Assets.xcassets */; };
-		1E90396F2B8B5F1700C3BA42 /* Segment in Frameworks */ = {isa = PBXBuildFile; productRef = 1E90396E2B8B5F1700C3BA42 /* Segment */; };
-		1E9039732B8B5F2100C3BA42 /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = 1E9039722B8B5F2100C3BA42 /* RevenueCat */; };
-		1E9039752B8B5F3B00C3BA42 /* RevenueCatUI in Frameworks */ = {isa = PBXBuildFile; productRef = 1E9039742B8B5F3B00C3BA42 /* RevenueCatUI */; };
-		1E9039772B8B5F4100C3BA42 /* ReceiptParser in Frameworks */ = {isa = PBXBuildFile; productRef = 1E9039762B8B5F4100C3BA42 /* ReceiptParser */; };
 		1E91AA1F2CA6F40E00F63C3A /* PromptRankingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E91AA1E2CA6F40E00F63C3A /* PromptRankingView.swift */; };
 		1E91AA222CA83AAF00F63C3A /* SearchSectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E91AA212CA83AAF00F63C3A /* SearchSectionView.swift */; };
 		1EF378E22C986EE7001C5E39 /* Know_MapsApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EA7F74C2B03FA71002AE371 /* Know_MapsApp.swift */; };
@@ -196,11 +196,11 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				1E9039752B8B5F3B00C3BA42 /* RevenueCatUI in Frameworks */,
-				1E90396F2B8B5F1700C3BA42 /* Segment in Frameworks */,
+				1E213E1C2CAD82A500B93697 /* RevenueCat in Frameworks */,
+				1E213E1A2CAD82A500B93697 /* ReceiptParser in Frameworks */,
+				1E213E172CAD81F600B93697 /* Segment in Frameworks */,
+				1E213E1E2CAD82A500B93697 /* RevenueCatUI in Frameworks */,
 				1E60F4502CAC149F00891250 /* StoreKit.framework in Frameworks */,
-				1E9039732B8B5F2100C3BA42 /* RevenueCat in Frameworks */,
-				1E9039772B8B5F4100C3BA42 /* ReceiptParser in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -410,10 +410,10 @@
 			);
 			name = "Know Maps";
 			packageProductDependencies = (
-				1E90396E2B8B5F1700C3BA42 /* Segment */,
-				1E9039722B8B5F2100C3BA42 /* RevenueCat */,
-				1E9039742B8B5F3B00C3BA42 /* RevenueCatUI */,
-				1E9039762B8B5F4100C3BA42 /* ReceiptParser */,
+				1E213E162CAD81F600B93697 /* Segment */,
+				1E213E192CAD82A500B93697 /* ReceiptParser */,
+				1E213E1B2CAD82A500B93697 /* RevenueCat */,
+				1E213E1D2CAD82A500B93697 /* RevenueCatUI */,
 			);
 			productName = "Know Maps Prod";
 			productReference = 1E095AF82B778AEF00147119 /* Know Maps.app */;
@@ -515,8 +515,8 @@
 			);
 			mainGroup = 1EA7F73C2B03FA70002AE371;
 			packageReferences = (
-				1E98C7CB2B18B5F400283E92 /* XCRemoteSwiftPackageReference "analytics-swift" */,
-				1E7DFC612B76B7B8005E061E /* XCRemoteSwiftPackageReference "purchases-ios" */,
+				1E213E152CAD81F600B93697 /* XCRemoteSwiftPackageReference "analytics-swift" */,
+				1E213E182CAD82A500B93697 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */,
 			);
 			productRefGroup = 1EA7F7462B03FA70002AE371 /* Products */;
 			projectDirPath = "";
@@ -1075,44 +1075,44 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		1E7DFC612B76B7B8005E061E /* XCRemoteSwiftPackageReference "purchases-ios" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/RevenueCat/purchases-ios.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 4.36.1;
-			};
-		};
-		1E98C7CB2B18B5F400283E92 /* XCRemoteSwiftPackageReference "analytics-swift" */ = {
+		1E213E152CAD81F600B93697 /* XCRemoteSwiftPackageReference "analytics-swift" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/segmentio/analytics-swift";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 1.5.0;
+				minimumVersion = 1.6.1;
+			};
+		};
+		1E213E182CAD82A500B93697 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/RevenueCat/purchases-ios-spm.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.5.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		1E90396E2B8B5F1700C3BA42 /* Segment */ = {
+		1E213E162CAD81F600B93697 /* Segment */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 1E98C7CB2B18B5F400283E92 /* XCRemoteSwiftPackageReference "analytics-swift" */;
+			package = 1E213E152CAD81F600B93697 /* XCRemoteSwiftPackageReference "analytics-swift" */;
 			productName = Segment;
 		};
-		1E9039722B8B5F2100C3BA42 /* RevenueCat */ = {
+		1E213E192CAD82A500B93697 /* ReceiptParser */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 1E7DFC612B76B7B8005E061E /* XCRemoteSwiftPackageReference "purchases-ios" */;
+			package = 1E213E182CAD82A500B93697 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */;
+			productName = ReceiptParser;
+		};
+		1E213E1B2CAD82A500B93697 /* RevenueCat */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 1E213E182CAD82A500B93697 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */;
 			productName = RevenueCat;
 		};
-		1E9039742B8B5F3B00C3BA42 /* RevenueCatUI */ = {
+		1E213E1D2CAD82A500B93697 /* RevenueCatUI */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 1E7DFC612B76B7B8005E061E /* XCRemoteSwiftPackageReference "purchases-ios" */;
+			package = 1E213E182CAD82A500B93697 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */;
 			productName = RevenueCatUI;
-		};
-		1E9039762B8B5F4100C3BA42 /* ReceiptParser */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 1E7DFC612B76B7B8005E061E /* XCRemoteSwiftPackageReference "purchases-ios" */;
-			productName = ReceiptParser;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

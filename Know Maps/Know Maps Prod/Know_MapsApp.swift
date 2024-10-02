@@ -14,9 +14,9 @@ import AuthenticationServices
 @main
 struct Know_MapsApp: App {
     @StateObject public var settingsModel = SettingsModel(userId: "")
-    @StateObject public var chatHost:AssistiveChatHost = AssistiveChatHost( analytics: Analytics(configuration: Know_MapsApp.config))
-    @StateObject public var chatModel:ChatResultViewModel = ChatResultViewModel(locationProvider: LocationProvider(), cloudCache: CloudCache(analytics:Analytics(configuration: Know_MapsApp.config)), featureFlags: FeatureFlags())
-    
+    @StateObject public var chatHost:AssistiveChatHost = AssistiveChatHost()
+    @StateObject public var chatModel:ChatResultViewModel = ChatResultViewModel(locationProvider: LocationProvider(), cloudCache: CloudCache(), featureFlags: FeatureFlags())
+    public var analytics: Analytics = Analytics(configuration: Know_MapsApp.config)
     
     @State private var showOnboarding:Bool = true
     @State private var showSplashScreen:Bool = true
@@ -26,8 +26,6 @@ struct Know_MapsApp: App {
         .trackApplicationLifecycleEvents(true)
         .flushAt(3)
         .flushInterval(10)
-    
-    public let analytics = Analytics(configuration: Know_MapsApp.config)
     
     var body: some Scene {
         WindowGroup(id:"ContentView") {
@@ -52,7 +50,7 @@ struct Know_MapsApp: App {
                         }
                         Spacer()
                     }
-                    .task {
+                    .task { @MainActor in
                         do {
                             let purchasesId =  settingsModel.purchasesId
                             let revenuecatAPIKey = try await chatModel.cloudCache.apiKey(for: .revenuecat)
@@ -62,9 +60,15 @@ struct Know_MapsApp: App {
                             settingsModel.fetchSubscriptionOfferings()
                             let customerInfo = try await Purchases.shared.customerInfo()
                             chatModel.featureFlags.updateFlags(with: customerInfo)
+                            
+                            await MainActor.run { [self] in
+                                chatModel.completedTasks += 1
+                                let progress = Double(chatModel.completedTasks) / Double(6)
+                                chatModel.cacheFetchProgress = progress
+                            }
                         } catch {
                             print(error)
-                            analytics.track(name: "Error during setup", properties: ["error":error.localizedDescription])
+                            chatModel.analytics?.track(name: "Error during setup", properties: ["error":error.localizedDescription])
                         }
                     }
                     .task {
@@ -75,12 +79,12 @@ struct Know_MapsApp: App {
                                         try await startup(chatModel: chatModel)
                                     } catch {
                                         print(error)
-                                        analytics.track(name: "Error during startup", properties: ["error":error.localizedDescription])
+                                        chatModel.analytics?.track(name: "Error during startup", properties: ["error":error.localizedDescription])
                                     }
                                 }
                             } else if case .failure = result {
                                 print(result)
-                                analytics.track(name: "Error during startup", properties: ["error":result])
+                                chatModel.analytics?.track(name: "Error during startup", properties: ["error":result])
                             }
                         }
                         
@@ -92,7 +96,7 @@ struct Know_MapsApp: App {
                                     try await startup(chatModel: chatModel)
                                 } catch {
                                     print(error)
-                                    analytics.track(name: "Error during startup", properties: ["error":error.localizedDescription])
+                                    chatModel.analytics?.track(name: "Error during startup", properties: ["error":error.localizedDescription])
                                 }
                             }
                         } else {
@@ -170,8 +174,11 @@ struct Know_MapsApp: App {
     
     private func startup(chatModel:ChatResultViewModel) async throws{
         do {
+            chatModel.cloudCache.analytics = chatModel.analytics
+            chatHost.analytics = chatModel.analytics
             chatModel.assistiveHostDelegate = chatHost
             chatHost.messagesDelegate = chatModel
+            
             let cloudAuth = settingsModel.isAuthorized
             
             if !cloudAuth {
@@ -223,7 +230,7 @@ struct Know_MapsApp: App {
                 }
             }
         } catch {
-            analytics.track(name: "error \(error)")
+            chatModel.analytics?.track(name: "error \(error)")
             print(error)
         }
         await MainActor.run {

@@ -46,10 +46,6 @@ open class PlaceSearchSession : ObservableObject {
     }
     
     public func query(request:PlaceSearchRequest, location:CLLocation?) async throws ->[String:Any] {
-        if searchSession == nil {
-            searchSession = try await session()
-        }
-        
         var components = URLComponents(string:"\(PlaceSearchSession.serverUrl)\(PlaceSearchSession.placeSearchAPIUrl)")
         components?.queryItems = [URLQueryItem]()
         if request.query.count > 0 {
@@ -130,10 +126,6 @@ open class PlaceSearchSession : ObservableObject {
     }
     
     public func details(for request:PlaceDetailsRequest) async throws -> Any {
-        if searchSession == nil {
-            searchSession = try await session()
-        }
-        
         var components = URLComponents(string:"\(PlaceSearchSession.serverUrl)\(PlaceSearchSession.placeDetailsAPIUrl)\(request.fsqID)")
         var detailsString = ""
         
@@ -218,10 +210,6 @@ open class PlaceSearchSession : ObservableObject {
     }
     
     public func photos(for fsqID:String) async throws -> Any {
-        if searchSession == nil {
-            searchSession = try await session()
-        }
-        
         let components = URLComponents(string:"\(PlaceSearchSession.serverUrl)\(PlaceSearchSession.placeDetailsAPIUrl)\(fsqID)\(PlaceSearchSession.placePhotosAPIUrl)")
         
         guard let url = components?.url else {
@@ -232,10 +220,6 @@ open class PlaceSearchSession : ObservableObject {
     }
     
     public func tips(for fsqID:String) async throws -> Any {
-        if searchSession == nil {
-            searchSession = try await session()
-        }
-        
         let components = URLComponents(string:"\(PlaceSearchSession.serverUrl)\(PlaceSearchSession.placeDetailsAPIUrl)\(fsqID)\(PlaceSearchSession.placeTipsAPIUrl)")
         
         guard let url = components?.url else {
@@ -246,10 +230,6 @@ open class PlaceSearchSession : ObservableObject {
     }
     
     public func autocomplete(caption:String, parameters:[String:Any]?, location:CLLocation) async throws -> [String:Any] {
-        if searchSession == nil {
-            searchSession = try await session()
-        }
-        
         let ll = "\(location.coordinate.latitude),\(location.coordinate.longitude)"
         var limit = 50
         var nameString:String = ""
@@ -367,6 +347,10 @@ open class PlaceSearchSession : ObservableObject {
 
     func fetch(url: URL, apiKey: String) async throws -> Any {
         print("Requesting URL: \(url)")
+
+        if searchSession == nil {
+            searchSession = try await session()
+        }
 
         return try await withCheckedThrowingContinuation { checkedContinuation in
             sessionQueue.async {

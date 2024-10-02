@@ -18,7 +18,7 @@ public protocol AssistiveChatHostDelegate:AnyObject {
     var categoryCodes:[[String:[[String:String]]]] { get }
     var lastGeocodedPlacemarks:[CLPlacemark]? { get }
     
-    init(messagesDelegate: AssistiveChatHostMessagesDelegate?, analytics: Analytics, lastGeocodedPlacemarks: [CLPlacemark]?)
+    init(messagesDelegate: AssistiveChatHostMessagesDelegate?, lastGeocodedPlacemarks: [CLPlacemark]?)
     func organizeCategoryCodeList() async throws
     
     func didTap(chatResult: ChatResult, selectedDestinationChatResultID:UUID?) async

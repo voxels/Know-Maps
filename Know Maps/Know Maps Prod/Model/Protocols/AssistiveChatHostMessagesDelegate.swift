@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Segment
 
 public protocol AssistiveChatHostMessagesDelegate : AnyObject {
     func didSearch(caption: String, selectedDestinationChatResultID:LocationResult.ID?, intent: AssistiveChatHost.Intent?) async throws

@@ -15,7 +15,7 @@ import Segment
 public typealias AssistiveChatHostTaggedWord = [String: [String]]
 
 open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControllerDelegate, ObservableObject {
-    
+    public var analytics:Analytics?
     public enum Intent : String {
         case Search
         case Place
@@ -27,7 +27,6 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
     weak public var messagesDelegate:AssistiveChatHostMessagesDelegate?
     public var languageDelegate:LanguageGeneratorDelegate = LanguageGenerator()
     public var placeSearchSession = PlaceSearchSession()
-    public let analytics:Analytics
 
     @Published public var queryIntentParameters:AssistiveChatHostQueryParameters?
     public var categoryCodes:[[String:[[String:String]]]] = [[String:[[String:String]]]]()
@@ -35,9 +34,8 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
     let geocoder = CLGeocoder()
     public var lastGeocodedPlacemarks:[CLPlacemark]?
     
-    required public init(messagesDelegate: AssistiveChatHostMessagesDelegate? = nil, analytics: Analytics, lastGeocodedPlacemarks: [CLPlacemark]? = nil) {
+    required public init(messagesDelegate: AssistiveChatHostMessagesDelegate? = nil, lastGeocodedPlacemarks: [CLPlacemark]? = nil) {
         self.messagesDelegate = messagesDelegate
-        self.analytics = analytics
         self.lastGeocodedPlacemarks = lastGeocodedPlacemarks
         self.queryIntentParameters = AssistiveChatHostQueryParameters()
     }
@@ -244,7 +242,7 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
                 return nil
             }
         } catch {
-            analytics.track(name: "error \(error)")
+            analytics?.track(name: "error \(error)")
             print(error)
             return nil
         }
@@ -428,7 +426,7 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
             
         } catch {
             print(error)
-            analytics.track(name: "Error: \(error)")
+            analytics?.track(name: "Error: \(error)")
             return .none
         }
         
