@@ -33,10 +33,10 @@ struct SearchSavedView: View {
                             })
                             
                             TextField("New York, NY", text: $searchText)
-                                .padding()
                                 .onSubmit {
                                     search()
                                 }
+                                .textFieldStyle(.roundedBorder)
                             
                             Button("Current Location", systemImage:"location") {
                                 Task {
@@ -52,6 +52,7 @@ struct SearchSavedView: View {
                                     }
                                 }
                             }.labelStyle(.iconOnly)
+                                .padding()
                             
                             if let selectedDestinationLocationChatResult = chatModel.selectedDestinationLocationChatResult,
                                let parent = chatModel.locationChatResult(for: selectedDestinationLocationChatResult)
@@ -68,7 +69,8 @@ struct SearchSavedView: View {
                                                 try await chatModel.refreshCachedLocations(cloudCache: chatModel.cloudCache)
                                             }
                                         }
-                                    }
+                                    }.labelStyle(.iconOnly)
+                                        .padding()
                                 } else {
                                     Button("Save", systemImage:"square.and.arrow.down") {
                                         Task{
@@ -81,14 +83,17 @@ struct SearchSavedView: View {
                                             }
                                         }
                                     }.labelStyle(.iconOnly)
+                                        .padding()
                                 }
                             }
                         }.padding()
                         NavigationLocationView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider)
-                            .frame(maxWidth: .infinity, minHeight:geometry.size.height, maxHeight: .infinity)
+                            .padding()
                     }
+                    .padding()
                     .presentationDetents([.large])
                     .presentationDragIndicator(.visible)
+                    .presentationCompactAdaptation(.sheet)
                 }
         }
     }

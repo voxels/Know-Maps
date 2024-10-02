@@ -49,7 +49,9 @@ struct OnboardingTemplateView: View {
                                 }
                             }
                         }
-                    }.padding(.vertical, 16)
+                    }
+                    .textFieldStyle(.roundedBorder)
+                    .padding(.vertical, 16)
                 if sizeClass != .compact {
                     HStack(spacing:0) {
                         VStack (alignment: .leading, spacing: 0) {

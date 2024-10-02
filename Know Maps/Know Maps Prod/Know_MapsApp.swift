@@ -45,14 +45,29 @@ struct Know_MapsApp: App {
                                 .frame(width:100 , height: 100)
                                 .padding()
                             Spacer()
-                            ProgressView("Refreshing Lists", value: chatModel.cacheFetchProgress)
+                            ProgressView(value: chatModel.cacheFetchProgress)
                                 .frame(maxWidth:geometry.size.width / 2)
                                 .padding()
                             Spacer()
                         }
                         Spacer()
                     }
-                    .onAppear() {
+                    .task {
+                        do {
+                            let purchasesId =  settingsModel.purchasesId
+                            let revenuecatAPIKey = try await chatModel.cloudCache.apiKey(for: .revenuecat)
+                            Purchases.configure(withAPIKey: revenuecatAPIKey, appUserID: purchasesId)
+                            Purchases.shared.delegate = chatModel.featureFlags
+                            
+                            settingsModel.fetchSubscriptionOfferings()
+                            let customerInfo = try await Purchases.shared.customerInfo()
+                            chatModel.featureFlags.updateFlags(with: customerInfo)
+                        } catch {
+                            print(error)
+                            analytics.track(name: "Error during setup", properties: ["error":error.localizedDescription])
+                        }
+                    }
+                    .task {
                         settingsModel.authCompletion = { result in
                             if case .success = result {
                                 Task {
@@ -142,6 +157,17 @@ struct Know_MapsApp: App {
         authorizationController.performRequests()
     }
     
+    private func loadPurchases() async throws {
+        let purchasesId =  settingsModel.purchasesId
+        let revenuecatAPIKey = try await chatModel.cloudCache.apiKey(for: .revenuecat)
+        Purchases.configure(withAPIKey: revenuecatAPIKey, appUserID: purchasesId)
+        Purchases.shared.delegate = chatModel.featureFlags
+        
+        settingsModel.fetchSubscriptionOfferings()
+        let customerInfo = try await Purchases.shared.customerInfo()
+        chatModel.featureFlags.updateFlags(with: customerInfo)
+    }
+    
     private func startup(chatModel:ChatResultViewModel) async throws{
         do {
             chatModel.assistiveHostDelegate = chatHost
@@ -163,16 +189,6 @@ struct Know_MapsApp: App {
 #if DEBUG
             Purchases.logLevel = .debug
 #endif
-            Task.detached {
-                let purchasesId = await settingsModel.purchasesId
-                let revenuecatAPIKey = try await chatModel.cloudCache.apiKey(for: .revenuecat)
-                Purchases.configure(withAPIKey: revenuecatAPIKey, appUserID: purchasesId)
-                Purchases.shared.delegate = chatModel.featureFlags
-                
-                await settingsModel.fetchSubscriptionOfferings()
-                let customerInfo = try await Purchases.shared.customerInfo()
-                await chatModel.featureFlags.updateFlags(with: customerInfo)
-            }
             
             let isLocationAuthorized = chatModel.locationProvider.isAuthorized()
             
@@ -183,10 +199,8 @@ struct Know_MapsApp: App {
                 }
             }
             
-            Task {
-                try await chatHost.organizeCategoryCodeList()
-            }
-            
+            try await chatHost.organizeCategoryCodeList()
+            await chatModel.categoricalSearchModel()
             try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
             
             let isOnboarded = !chatModel.cachedTasteResults.isEmpty

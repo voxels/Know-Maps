@@ -354,10 +354,11 @@ open class PersonalizedSearchSession {
         if let categories = request.categories, !categories.isEmpty {
             let categoriesQueryItem = URLQueryItem(name:"categoryId", value:categories)
             components?.queryItems?.append(categoriesQueryItem)
-        } else if let section = request.section, section != .none {
+        }
+        /*else if let section = request.section, section != .none {
             let sectionQueryItem = URLQueryItem(name: "section", value: section.key())
             components?.queryItems?.append(sectionQueryItem)
-        }
+        }*/
         
         if request.minPrice > 1 {
             let minPriceQueryItem = URLQueryItem(name: "price", value: "\(request.minPrice)")

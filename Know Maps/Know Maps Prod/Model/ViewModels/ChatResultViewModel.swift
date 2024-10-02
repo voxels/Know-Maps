@@ -604,7 +604,7 @@ final class ChatResultViewModel: ObservableObject {
                         existing.2.append(contentsOf: placeResult.categoricalChatResults)
                         temp[record.title] = existing
                     } else {
-                        temp[record.title] = (list, placeResult.section, placeResult.categoricalChatResults)
+                        temp[record.title] = (list, PersonalizedSearchSection(rawValue: record.section)!, placeResult.categoricalChatResults)
                     }
                 }
             }
@@ -616,20 +616,26 @@ final class ChatResultViewModel: ObservableObject {
                         existing.2.append(contentsOf: tasteResult.categoricalChatResults)
                         temp[record.title] = existing
                     } else {
-                        temp[record.title] = (list, .none, tasteResult.categoricalChatResults)
+                        temp[record.title] = (list, PersonalizedSearchSection(rawValue: record.section)!, tasteResult.categoricalChatResults)
                     }
                 }
             }
             
             if temp[record.title] == nil {
-                temp[record.title] = (record.identity, .none, [])
+                temp[record.title] = (record.identity, PersonalizedSearchSection(rawValue: record.section)!, [])
             }
         }
  
        let retval = temp.map {
             CategoryResult(parentCategory: $0.key, list: $0.value.0, section: $0.value.1, categoricalChatResults: $0.value.2)
         }.sorted {
-            $0.parentCategory.lowercased() < $1.parentCategory.lowercased()
+            if $0.section == $1.section {
+                // If sections are equal, compare by parentCategory
+                return $0.parentCategory.lowercased() < $1.parentCategory.lowercased()
+            } else {
+                // Otherwise, compare by section
+                return $0.section.rawValue < $1.section.rawValue
+            }
         }
         
         for returnvalue in retval {

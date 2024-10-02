@@ -60,6 +60,7 @@ struct ContentView: View {
                         SettingsView(chatModel: chatModel, showOnboarding: $showOnboarding)
                             .presentationDetents([.large])
                             .presentationDragIndicator(.visible)
+                            .presentationCompactAdaptation(.sheet)
                     }
                     .onAppear {
                         contentViewDetail = .places
@@ -87,7 +88,6 @@ struct ContentView: View {
                     
                     .sheet(isPresented: $showMapsResultViewSheet) {
                         MapResultsView(chatHost: chatHost, model: chatModel, locationProvider: locationProvider, selectedMapItem: $selectedItem, cameraPosition:$cameraPosition)
-                            .frame(minWidth:geometry.size.width, maxWidth: .infinity, minHeight: geometry.size.height, maxHeight: .infinity)
                             .onChange(of: selectedItem) { oldValue, newValue in
                                 if let newValue, let placeResponse = chatModel.filteredPlaceResults.first(where: { $0.placeResponse?.fsqID == newValue }) {
                                     chatModel.selectedPlaceChatResult = placeResponse.id
@@ -104,11 +104,14 @@ struct ContentView: View {
                             })
                             .presentationDetents([.large])
                             .presentationDragIndicator(.visible)
+                            .presentationCompactAdaptation(.sheet)
+
                     }
-                    .popover(isPresented: $showPlaceViewSheet, content: {
+                    .sheet(isPresented: $showPlaceViewSheet, content: {
                         PlaceView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, placeDirectionsViewModel: placeDirectionsChatViewModel, resultId: $chatModel.selectedPlaceChatResult)
-                            .frame(minWidth:geometry.size.width, maxWidth: .infinity, minHeight: geometry.size.height, maxHeight: .infinity)
-                            .presentationCompactAdaptation(.popover)
+                            .presentationDetents([.large])
+                            .presentationDragIndicator(.visible)
+                            .presentationCompactAdaptation(.sheet)
                     })
         
                 case .order:
