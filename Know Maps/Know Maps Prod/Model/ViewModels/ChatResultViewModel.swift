@@ -547,6 +547,10 @@ final class ChatResultViewModel: ObservableObject {
         return categoryResults.flatMap { [$0] + $0.children }.first { $0.id == id }
     }
     
+    public func cachedCategoricalResult(for id:CategoryResult.ID)->CategoryResult? {
+        return cachedCategoryResults.first { $0.id == id }
+    }
+    
     public func categoricalChatResult(for id: CategoryResult.ID) -> ChatResult? {
         if let parentCategory = categoryResults.flatMap({ [$0] + $0.children }).first(where: { $0.id == id }) {
             return parentCategory.categoricalChatResults.last

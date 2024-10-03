@@ -47,9 +47,9 @@ struct SearchSavedView: View {
                                     Button("Delete", systemImage:"minus.circle") {
                                         if let location = parent.location, let cachedLocationResults = chatModel.cachedResults(for: "Location", identity:chatModel.cachedLocationIdentity(for: location)), let cachedLocationResult = cachedLocationResults.first {
                                             Task {
-                                            
+                                                
                                                 try await chatModel.cloudCache.deleteUserCachedRecord(for: cachedLocationResult)
-                                            
+                                                
                                                 try await chatModel.refreshCachedLocations(cloudCache: chatModel.cloudCache)
                                             }
                                         }
@@ -121,7 +121,7 @@ struct SearchSavedView: View {
 }
 
 struct AddPromptView: View {
-
+    
     @ObservedObject public var chatHost: AssistiveChatHost
     @ObservedObject public var chatModel: ChatResultViewModel
     @ObservedObject public var locationProvider: LocationProvider
@@ -270,7 +270,7 @@ struct SavedListView: View {
                         .disclosureGroupStyle(.automatic)
                     }
                 }
-                .onDelete(perform: deleteItem)
+                .onDelete(perform: deleteListItem)
             }
             
             
@@ -278,14 +278,14 @@ struct SavedListView: View {
                 ForEach(chatModel.cachedTasteResults, id:\.id) { parent in
                     Text(parent.parentCategory)
                 }
-                .onDelete(perform: deleteItem)
+                .onDelete(perform: deleteTasteItem)
             }
             
             Section("Industries") {
                 ForEach(chatModel.cachedCategoryResults, id:\.id) { parent in
                     Text(parent.parentCategory)
                 }
-                .onDelete(perform: deleteItem)
+                .onDelete(perform: deleteCategoryItem)
             }
             
             Section("Mood") {
@@ -370,32 +370,6 @@ struct SavedListView: View {
         }
     }
     
-    private func deleteItem(at offsets: IndexSet) {
-        removeSelectedItem()
-    }
-    
-    private func removeSelectedItem() {
-        guard let parentID = chatModel.selectedSavedResult,
-              let parent = chatModel.allCachedResults.first(where: { $0.id == parentID }) else { return }
-        
-        Task {
-            await withTaskGroup(of: Void.self) { group in
-                group.addTask {
-                    await removeCachedResults(group: "Category", identity: parent.parentCategory)
-                }
-                group.addTask {
-                    await removeCachedResults(group: "Taste", identity: parent.parentCategory)
-                }
-                group.addTask {
-                    await removeCachedResults(group: "Place", identity: parent.parentCategory)
-                }
-                group.addTask {
-                    await removeCachedResults(group: "List", identity: parent.parentCategory)
-                }
-            }
-        }
-    }
-    
     private func removeCachedResults(group: String, identity: String) async {
         if let cachedResults = chatModel.cachedResults(for: group, identity: identity) {
             await withTaskGroup(of: Void.self) { group in
@@ -417,16 +391,14 @@ struct SavedListView: View {
 
 struct SavedListToolbarView: View {
     @Environment(\.openWindow) private var openWindow
-
+    
     @ObservedObject public var chatModel: ChatResultViewModel
     @Binding public var settingsPresented: Bool
     @Binding public var contentViewDetail:ContentDetailView
     @Binding public var columnVisibility:NavigationSplitViewVisibility
     @Binding public var showNavigationLocationSheet:Bool
-
+    
     var body: some View {
-        
-        
         if contentViewDetail == .places {
             Button(action: {
                 columnVisibility = .detailOnly
@@ -439,9 +411,18 @@ struct SavedListToolbarView: View {
         if let selectedSavedResult = chatModel.selectedSavedResult, let categoricalResult = chatModel.allCachedResults.first(where: { result in
             result.id == selectedSavedResult
         }), PersonalizedSearchSection(rawValue: categoricalResult.parentCategory) == nil {
-            Button(action: removeSelectedItem) {
+            Button(action: {
+                Task {
+                    do {
+                        try await removeSelectedItem()
+                    } catch {
+                        print(error)
+                        chatModel.analytics?.track(name: "Error removing saved item", properties: ["error": error.localizedDescription])
+                    }
+                }
+            }, label: {
                 Label("Delete", systemImage: "minus.circle")
-            }
+            })
         }
         
         Button("Search Location", systemImage:"location.magnifyingglass") {
@@ -449,21 +430,21 @@ struct SavedListToolbarView: View {
         }
         
         /*
-        if contentViewDetail == .places{
-            Button(action: {
-                contentViewDetail = .order
-                columnVisibility = .detailOnly
-            }, label: {
-                Label("Reorder Lists", systemImage: "list.bullet.indent")
-            })
-        } else if contentViewDetail == .order || contentViewDetail == .add {
-            Button(action: {
-                contentViewDetail = .places
-                columnVisibility = .all
-            }, label: {
-                Label("Reorder Lists", systemImage: "list.bullet")
-            })
-        }
+         if contentViewDetail == .places{
+         Button(action: {
+         contentViewDetail = .order
+         columnVisibility = .detailOnly
+         }, label: {
+         Label("Reorder Lists", systemImage: "list.bullet.indent")
+         })
+         } else if contentViewDetail == .order || contentViewDetail == .add {
+         Button(action: {
+         contentViewDetail = .places
+         columnVisibility = .all
+         }, label: {
+         Label("Reorder Lists", systemImage: "list.bullet")
+         })
+         }
          */
         Button {
 #if os(iOS) || os(visionOS)
@@ -477,23 +458,66 @@ struct SavedListToolbarView: View {
         
     }
     
-    private func removeSelectedItem() {
-        guard let parentID = chatModel.selectedSavedResult,
-              let parent = chatModel.allCachedResults.first(where: { $0.id == parentID }) else { return }
+    private func removeSelectedItem() async throws {
+        if let selectedSavedResult = chatModel.selectedSavedResult, let selectedListItem = chatModel.cachedListResult(for: selectedSavedResult) {
+            let idsToDelete: [UUID] = [selectedListItem.id]
+            deleteListItem(at: idsToDelete)
+        } else if let selectedSavedResult = chatModel.selectedSavedResult, let selectedTasteItem = chatModel.cachedTasteResult(for: selectedSavedResult) {
+            let idsToDelete: [UUID] = [selectedTasteItem.id]
+            deleteTasteItem(at: idsToDelete)
+        } else if let selectedSavedResult = chatModel.selectedSavedResult, let selectedCategoryItem = chatModel.cachedCategoricalResult(for: selectedSavedResult){
+            let idsToDelete: [UUID] = [selectedCategoryItem.id]
+            deleteCategoryItem(at: idsToDelete)
+        } else if let selectedSavedResult = chatModel.selectedSavedResult, let selectedPlaceItem = chatModel.cachedPlaceResult(for: selectedSavedResult) {
+            let idsToDelete: [UUID] = [selectedPlaceItem.id]
+            deleteCategoryItem(at: idsToDelete)
+        }
         
-        Task {
-            await withTaskGroup(of: Void.self) { group in
-                group.addTask {
-                    await removeCachedResults(group: "Category", identity: parent.parentCategory)
-                }
-                group.addTask {
+        try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
+    }
+    
+    private func deleteTasteItem(at idsToDelete: [UUID]) {
+        // Loop through the IDs and delete each one
+        for id in idsToDelete {
+            Task {
+                if let parent = chatModel.cachedTasteResult(for: id) {
                     await removeCachedResults(group: "Taste", identity: parent.parentCategory)
                 }
-                group.addTask {
+            }
+        }
+    }
+    
+    private func deleteListItem(at idsToDelete: [UUID]) {
+        // Loop through the IDs and delete each one
+        for id in idsToDelete {
+            Task {
+                if let parent = chatModel.cachedListResult(for: id) {
+                    await removeCachedResults(group: "List", identity: parent.parentCategory)
+                }
+                
+                if let parent = chatModel.cachedPlaceResult(for: id) {
                     await removeCachedResults(group: "Place", identity: parent.parentCategory)
                 }
-                group.addTask {
-                    await removeCachedResults(group: "List", identity: parent.parentCategory)
+            }
+        }
+    }
+    
+    private func deleteCategoryItem(at idsToDelete: [UUID]) {
+        // Loop through the IDs and delete each one
+        for id in idsToDelete {
+            Task {
+                if let parent = chatModel.cachedCategoricalResult(for: id) {
+                    await removeCachedResults(group: "Category", identity: parent.parentCategory)
+                }
+            }
+        }
+    }
+    
+    private func deletePlaceItem(at idsToDelete:[UUID]) {
+        for id in idsToDelete {
+            Task {
+                if let parent = chatModel.cachedPlaceResult(for: id) {
+                    await removeCachedResults(group: "Place", identity: parent.parentCategory)
                 }
             }
         }

@@ -228,7 +228,7 @@ struct Know_MapsApp: App {
         }
 
         do {
-            try await withTimeout(seconds: 5) {
+            try await withTimeout(seconds: 10) {
                 try await cacheRefreshTask.value
             }
         } catch {
