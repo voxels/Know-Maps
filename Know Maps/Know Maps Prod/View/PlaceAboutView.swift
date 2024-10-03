@@ -71,12 +71,12 @@ struct PlaceAboutView: View {
                                     .labelStyle(.titleOnly)
                                     .padding()
 #if os(iOS) || os(visionOS)
-                                .hoverEffect(.lift)
+                                    .hoverEffect(.lift)
 #endif
-                                .padding(PlaceAboutView.defaultPadding)
-                                .onTapGesture {
-                                    sectionSelection = 1
-                                }
+                                    .padding(PlaceAboutView.defaultPadding)
+                                    .onTapGesture {
+                                        sectionSelection = 1
+                                    }
                                 
                                 
                                 
@@ -90,17 +90,39 @@ struct PlaceAboutView: View {
                                                 .foregroundColor(Color(uiColor:.systemFill))
 #endif
                                                 .frame(height: PlaceAboutView.buttonHeight, alignment: .center)
-                                            Label("Add to List", systemImage: "square.and.arrow.down")
-                                                    .labelStyle(.iconOnly).foregroundStyle(.primary)
-                                            .onTapGesture {
-                                                presentingPopover.toggle()
-                                            }
-                                            .sheet(isPresented: $presentingPopover) {
-                                                AddListItemView(chatModel: chatModel, chatHost:chatHost, presentingPopover:$presentingPopover)
-                                                    .frame(minHeight: geo.size.height, maxHeight: .infinity)
-                                                    .presentationDetents([.large])
-                                                    .presentationDragIndicator(.visible)
-                                                    .presentationCompactAdaptation(.sheet)
+                                            if let parent = chatModel.placeChatResult(for: resultId), let placeResponse = parent.placeResponse{
+                                                
+                                                let isSaved = chatModel.cachedPlaces(contains:parent.title)
+                                                
+                                                if !isSaved {
+                                                    Label("Add to List", systemImage: "square.and.arrow.down")
+                                                        .labelStyle(.iconOnly).foregroundStyle(.primary)
+                                                        .onTapGesture {
+                                                            Task {
+                                                                var userRecord = UserCachedRecord(recordId: "", group: "Place", identity:placeResponse.fsqID, title: parent.title, icons: "", list: parent.list, section: parent.section.rawValue)
+                                                                let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, list:userRecord.list, section:userRecord.section)
+                                                                userRecord.setRecordId(to: record)
+                                                                await chatModel.appendCachedPlace(with: userRecord)
+                                                                await chatModel.refreshCachedResults()
+                                                            }
+                                                        }
+                                                } else {
+                                                    Label("Delete", systemImage: "minus.circle")
+                                                        .labelStyle(.iconOnly).foregroundStyle(.primary)
+                                                        .onTapGesture {
+                                                            Task {
+                                                                let identity = placeResponse.fsqID
+                                                                if let cachedPlaceResults = chatModel.cachedResults(for: "Place", identity:identity), let cachedPlaceResult = cachedPlaceResults.first {
+                                                                    Task {
+                                                                        
+                                                                        try await chatModel.cloudCache.deleteUserCachedRecord(for: cachedPlaceResult)
+                                                                        try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
+                                                                    }
+                                                                }
+                                                                
+                                                        }
+                                                    }
+                                                }
                                             }
                                         }
 #if os(iOS) || os(visionOS)
@@ -273,40 +295,40 @@ struct PlaceAboutView: View {
                                                 Label("Save", systemImage: isSaved ? "minus.circle" : "square.and.arrow.down")
                                                     .labelStyle(.iconOnly)
                                                     .padding()
-                                                .onTapGesture {
-                                                    let isSaved = chatModel.cachedTastes(contains: taste)
-                                                    if isSaved {
-                                                        if let cachedTasteResults = chatModel.cachedResults(for: "Taste", identity: taste) {
-                                                            for cachedTasteResult in cachedTasteResults {
-                                                                Task {
-                                                                    do {
-                                                                        try await chatModel.cloudCache.deleteUserCachedRecord(for: cachedTasteResult)
-                                                                        try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
-                                                                    } catch {
-                                                                        chatModel.analytics?.track(name: "error \(error)")
-                                                                        print(error)
+                                                    .onTapGesture {
+                                                        let isSaved = chatModel.cachedTastes(contains: taste)
+                                                        if isSaved {
+                                                            if let cachedTasteResults = chatModel.cachedResults(for: "Taste", identity: taste) {
+                                                                for cachedTasteResult in cachedTasteResults {
+                                                                    Task {
+                                                                        do {
+                                                                            try await chatModel.cloudCache.deleteUserCachedRecord(for: cachedTasteResult)
+                                                                            try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
+                                                                        } catch {
+                                                                            chatModel.analytics?.track(name: "error \(error)")
+                                                                            print(error)
+                                                                        }
                                                                     }
                                                                 }
                                                             }
-                                                        }
-                                                    } else {
-                                                        Task {
-                                                            do {
-                                                                var userRecord = UserCachedRecord(recordId: "", group: "Taste", identity: taste, title: taste, icons: "", list:"Feature", section:chatHost.section(place: taste).rawValue )
-                                                                let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, list:userRecord.list, section: userRecord.section)
-                                                                
-                                                                userRecord.setRecordId(to:record)
-                                                                await chatModel.appendCachedTaste(with: userRecord)
-                                                                await chatModel.refreshCachedResults()
-                                                            } catch {
-                                                                chatModel.analytics?.track(name: "error \(error)")
-                                                                print(error)
+                                                        } else {
+                                                            Task {
+                                                                do {
+                                                                    var userRecord = UserCachedRecord(recordId: "", group: "Taste", identity: taste, title: taste, icons: "", list:"Feature", section:chatHost.section(place: taste).rawValue )
+                                                                    let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, list:userRecord.list, section: userRecord.section)
+                                                                    
+                                                                    userRecord.setRecordId(to:record)
+                                                                    await chatModel.appendCachedTaste(with: userRecord)
+                                                                    await chatModel.refreshCachedResults()
+                                                                } catch {
+                                                                    chatModel.analytics?.track(name: "error \(error)")
+                                                                    print(error)
+                                                                }
                                                             }
                                                         }
                                                     }
-                                                }
 #if os(iOS) || os(visionOS)
-                                                .hoverEffect(.lift)
+                                                    .hoverEffect(.lift)
 #endif
                                                 Text(taste)
                                                 Spacer()
@@ -327,7 +349,7 @@ struct PlaceAboutView: View {
                                                 ZStack(alignment: .center, content: {
                                                     
                                                     RoundedRectangle(cornerSize: CGSize(width: 16, height: 16))
-                                                       .foregroundStyle(.regularMaterial)
+                                                        .foregroundStyle(.regularMaterial)
                                                     VStack {
                                                         Text(result.title).bold().padding(8)
                                                         if let neighborhood = result.recommendedPlaceResponse?.neighborhood, !neighborhood.isEmpty {

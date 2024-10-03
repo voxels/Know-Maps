@@ -252,25 +252,11 @@ struct SavedListView: View {
     @State private var selectedResult:CategoryResult.ID?
     var body: some View {
         List(selection: $selectedResult) {
-            Section("Lists") {
-                ForEach(chatModel.cachedListResults, id:\.id) { parent in
-                    if parent.children.isEmpty {
-                        Text(parent.parentCategory)
-                    } else {
-                        DisclosureGroup(isExpanded: Binding(
-                            get: { parent.isExpanded },
-                            set: { parent.isExpanded = $0 }
-                        )) {
-                            ForEach(parent.children, id: \.id) { child in
-                                Text(child.parentCategory)
-                            }
-                        } label: {
-                            Text(parent.parentCategory)
-                        }
-                        .disclosureGroupStyle(.automatic)
-                    }
+            Section("Places") {
+                ForEach(chatModel.cachedPlaceResults, id:\.id) { parent in
+                    Text(parent.parentCategory)
                 }
-                .onDelete(perform: deleteListItem)
+                .onDelete(perform: deletePlaceItem)
             }
             
             
@@ -301,13 +287,8 @@ struct SavedListView: View {
                 return
             }
             
-            if let listResult = chatModel.cachedListResults.first(where: { $0.id == newValue }){
-                preferredColumn = .sidebar
-                listResult.isExpanded.toggle()
-            } else {
-                preferredColumn = .detail
-                chatModel.selectedSavedResult = newValue
-            }
+            preferredColumn = .detail
+            chatModel.selectedSavedResult = newValue
         }
         .listStyle(.sidebar)
         .refreshable {
@@ -327,7 +308,7 @@ struct SavedListView: View {
         print("Moving from: \(source) to: \(destination)")
     }
     
-    private func deleteListItem(at offsets: IndexSet) {
+    private func deleteTasteItem(at offsets: IndexSet) {
         let idsToDelete = offsets.map { chatModel.cachedTasteResults[$0].id }
         
         // Loop through the IDs and delete each one
@@ -340,7 +321,21 @@ struct SavedListView: View {
         }
     }
     
-    private func deleteTasteItem(at offsets: IndexSet) {
+    private func deletePlaceItem(at offsets: IndexSet) {
+        let idsToDelete = offsets.map { chatModel.cachedPlaceResults[$0].id }
+        
+        // Loop through the IDs and delete each one
+        for id in idsToDelete {
+            Task {
+                if let parent = chatModel.cachedPlaceResult(for: id), let fsqID = parent.categoricalChatResults.first?.placeResponse?.fsqID  {
+                    await removeCachedResults(group: "Place", identity:fsqID)
+                }
+            }
+        }
+    }
+
+    
+    private func deleteListItem(at offsets: IndexSet) {
         let idsToDelete = offsets.map { chatModel.cachedListResults[$0].id }
         
         // Loop through the IDs and delete each one
@@ -348,10 +343,6 @@ struct SavedListView: View {
             Task {
                 if let parent = chatModel.cachedListResult(for: id) {
                     await removeCachedResults(group: "List", identity: parent.parentCategory)
-                }
-                
-                if let parent = chatModel.cachedPlaceResult(for: id) {
-                    await removeCachedResults(group: "Place", identity: parent.parentCategory)
                 }
             }
         }
@@ -408,7 +399,7 @@ struct SavedListToolbarView: View {
             }
         }
         
-        if let selectedSavedResult = chatModel.selectedSavedResult {
+        if let _ = chatModel.selectedSavedResult {
             Button(action: {
                 Task {
                     do {
@@ -470,8 +461,6 @@ struct SavedListToolbarView: View {
             let idsToDelete: [UUID] = [selectedPlaceItem.id]
             deletePlaceItem(at: idsToDelete)
         }
-        
-        try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
     }
     
     private func deleteTasteItem(at idsToDelete: [UUID]) {

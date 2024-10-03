@@ -244,7 +244,7 @@ struct Know_MapsApp: App {
     private func handleOnboarding(_ chatModel: ChatResultViewModel) async {
         let cloudAuth = settingsModel.isAuthorized
         let isLocationAuthorized = chatModel.locationProvider.isAuthorized()
-        let isOnboarded = !chatModel.cachedTasteResults.isEmpty
+        let isOnboarded = !chatModel.cachedTasteResults.isEmpty || !chatModel.cachedPlaceResults.isEmpty || !chatModel.cachedCategoryResults.isEmpty
 
         await MainActor.run {
             if cloudAuth, chatModel.cloudCache.hasFsqAccess, isLocationAuthorized, isOnboarded {

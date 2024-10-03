@@ -353,10 +353,14 @@ public actor PlaceSearchSession : ObservableObject {
         }
 
         return try await withCheckedThrowingContinuation { checkedContinuation in
-            sessionQueue.async { [self] in
+            let apiKey = foursquareApiKey
+            guard let session = searchSession else {
+                return
+            }
+            sessionQueue.async {
                 var request = URLRequest(url: url)
-                request.setValue(self.foursquareApiKey, forHTTPHeaderField: "Authorization")
-                self.searchSession?.dataTask(with: request) { data, response, error in
+                request.setValue(apiKey, forHTTPHeaderField: "Authorization")
+                session.dataTask(with: request) { data, response, error in
                     if let error = error {
                         checkedContinuation.resume(throwing: error)
                     } else if let d = data {

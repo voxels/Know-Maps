@@ -454,6 +454,10 @@ final class ChatResultViewModel: ObservableObject {
         return cachedLocationResults.contains { $0.locationName == location }
     }
     
+    public func cachedPlaces(contains place:String) -> Bool {
+        return cachedPlaceResults.contains { $0.parentCategory == place }
+    }
+    
     public func cachedLocationIdentity(for location: CLLocation) -> String {
         return "\(location.coordinate.latitude),\(location.coordinate.longitude)"
     }
@@ -510,21 +514,11 @@ final class ChatResultViewModel: ObservableObject {
     }
 
     public func cachedChatResult(for id: CategoryResult.ID) -> ChatResult? {
-        if cachedListResults.first(where: { $0.id == id }) != nil {
-            return nil
-        } 
-        else if let parentCategory = allCachedResults.first(where: { $0.id == id }) {
+        if let parentCategory = allCachedResults.first(where: { $0.id == id }) {
             return parentCategory.categoricalChatResults.first
-        } else {
-            for cachedListResult in cachedListResults {
-                if !cachedListResult.children.isEmpty {
-                    return cachedListResult.children.first(where: { $0.id == id })?.categoricalChatResults.first
-                } else {
-                    return nil
-                }
-            }
-            return nil
         }
+        
+        return nil
     }
     
     public func cachedTasteResult(for id: CategoryResult.ID) -> CategoryResult? {
@@ -662,7 +656,7 @@ final class ChatResultViewModel: ObservableObject {
     }
     
     private func allSavedResults() -> [CategoryResult] {
-        var results = cachedCategoryResults + cachedTasteResults + cachedListResults + cachedDefaultResults
+        var results = cachedCategoryResults + cachedTasteResults + cachedPlaceResults + cachedDefaultResults
         
         results.sort { $0.parentCategory.lowercased() < $1.parentCategory.lowercased() }
         return results
