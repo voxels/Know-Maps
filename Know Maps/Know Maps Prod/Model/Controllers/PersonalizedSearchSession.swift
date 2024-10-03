@@ -62,7 +62,7 @@ public enum PersonalizedSearchSection : String, Hashable, CaseIterable {
     }
 }
 
-open class PersonalizedSearchSession {
+public actor PersonalizedSearchSession {
     public let cloudCache:CloudCache
     public var fsqIdentity:String?
     public var fsqAccessToken:String?
@@ -470,50 +470,60 @@ open class PersonalizedSearchSession {
 
         return retval
     }
-
+    
     private func fetchFoursquareServiceAPIKey() async throws -> String? {
-        let task = Task.init { () -> Bool in
-            let predicate = NSPredicate(format: "service == %@", "foursquareService")
-            let query = CKQuery(recordType: "KeyString", predicate: predicate)
-            let operation = CKQueryOperation(query: query)
-            operation.desiredKeys = ["value", "service"]
-            operation.resultsLimit = 1
-            operation.recordMatchedBlock = { [weak self] recordId, result in
-                guard let strongSelf = self else { return }
+        let predicate = NSPredicate(format: "service == %@", "foursquareService")
+        let query = CKQuery(recordType: "KeyString", predicate: predicate)
+        let operation = CKQueryOperation(query: query)
+        operation.desiredKeys = ["value", "service"]
+        operation.resultsLimit = 1
 
-                do {
-                    let record = try result.get()
-                    if let apiKey = record["value"] as? String {
-                        print("\(String(describing: record["service"]))")
-                        strongSelf.fsqServiceAPIKey = apiKey
-                    } else {
-                        print("Did not find API Key")
-                    }
-                } catch {
-                    print(error)
+        // Use a continuation to wait for the async operation to complete
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            operation.recordMatchedBlock = { [weak self] recordId, result in
+                guard let self = self else { return }
+                Task { [weak self] in
+                    guard let self = self else { return }
+                    await self.handleRecordMatched(result: result)
                 }
             }
-            
-            let success = try await withCheckedThrowingContinuation { checkedContinuation in
-                operation.queryResultBlock = { result in
-                    if self.fsqServiceAPIKey == nil {
-                        checkedContinuation.resume(with: .success(false))
-                    } else if let apiKey = self.fsqServiceAPIKey, !apiKey.isEmpty {
-                        checkedContinuation.resume(with: .success(true))
-                    } else {
-                        checkedContinuation.resume(with: .success(false))
-                    }
+
+            operation.queryResultBlock = { [weak self] result in
+                guard let self = self else { return }
+                Task { [weak self] in
+                    guard let self = self else { return }
+                    await self.handleQueryResult(result: result, continuation: continuation)
                 }
-                
-                keysContainer.publicCloudDatabase.add(operation)
             }
-            
-            return success
+
+            keysContainer.publicCloudDatabase.add(operation)
         }
-        
-        
-        let _ = try await task.value
+
         return fsqServiceAPIKey
+    }
+
+    private func handleRecordMatched(result: Result<CKRecord, Error>) async {
+        do {
+            let record = try result.get()
+            if let apiKey = record["value"] as? String {
+                print("\(String(describing: record["service"]))")
+                // Safely update the actor-isolated property
+                self.fsqServiceAPIKey = apiKey
+            } else {
+                print("Did not find API Key")
+            }
+        } catch {
+            print(error)
+        }
+    }
+
+    private func handleQueryResult(result: Result<CKQueryOperation.Cursor?, Error>, continuation: CheckedContinuation<Void, Error>) async {
+        switch result {
+        case .success:
+            continuation.resume()
+        case .failure(let error):
+            continuation.resume(throwing: error)
+        }
     }
     
     internal func fetch(url:URL, apiKey:String, urlQueryItems:[URLQueryItem]? = nil, httpMethod:String = "GET") async throws -> Any {

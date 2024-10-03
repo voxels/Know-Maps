@@ -22,6 +22,7 @@ enum ChatResultViewModelError: Error {
 
 // MARK: - ChatResultViewModel
 
+@MainActor
 final class ChatResultViewModel: ObservableObject {
     // MARK: - Dependencies
     
@@ -515,6 +516,13 @@ final class ChatResultViewModel: ObservableObject {
         else if let parentCategory = allCachedResults.first(where: { $0.id == id }) {
             return parentCategory.categoricalChatResults.first
         } else {
+            for cachedListResult in cachedListResults {
+                if !cachedListResult.children.isEmpty {
+                    return cachedListResult.children.first(where: { $0.id == id })?.categoricalChatResults.first
+                } else {
+                    return nil
+                }
+            }
             return nil
         }
     }
@@ -704,10 +712,10 @@ final class ChatResultViewModel: ObservableObject {
                         // Fetch details
                         innerGroup.addTask {
                             rawDetailsResponse = try await self.placeSearchSession.details(for: request)
-                            self.analytics?.track(name: "fetchDetails")
+                            await self.analytics?.track(name: "fetchDetails")
                         }
                         
-                        if self.cloudCache.hasFsqAccess {
+                        if await self.cloudCache.hasFsqAccess {
                             // Fetch tips in parallel
                             innerGroup.addTask {
                                 tipsData = try await self.placeSearchSession.tips(for: response.fsqID)
@@ -722,7 +730,7 @@ final class ChatResultViewModel: ObservableObject {
                         try await innerGroup.waitForAll()
                     }
                     
-                    if self.cloudCache.hasFsqAccess {
+                    if await self.cloudCache.hasFsqAccess {
                         let tipsResponses = try PlaceResponseFormatter.placeTipsResponses(with: tipsData!, for: response.fsqID)
                         let photoResponses = try PlaceResponseFormatter.placePhotoResponses(with: photosData!, for: response.fsqID)
                         
@@ -757,16 +765,15 @@ final class ChatResultViewModel: ObservableObject {
         return try PlaceResponseFormatter.relatedPlaceSearchResponses(with: rawRelatedVenuesResponse)
     }
     
-    @discardableResult
-    public func retrieveFsqUser() async throws -> Bool {
-        personalizedSearchSession.fsqIdentity = try await personalizedSearchSession.fetchManagedUserIdentity()
-        personalizedSearchSession.fsqAccessToken = try await personalizedSearchSession.fetchManagedUserAccessToken()
-        
-        if personalizedSearchSession.fsqIdentity == nil {
-            return try await personalizedSearchSession.addFoursquareManagedUserIdentity()
+    public func retrieveFsqUser() async throws {
+        Task {
+            try await personalizedSearchSession.fetchManagedUserIdentity()
+            try await personalizedSearchSession.fetchManagedUserAccessToken()
+            
+            if await personalizedSearchSession.fsqIdentity == nil {
+                try await personalizedSearchSession.addFoursquareManagedUserIdentity()
+            }
         }
-
-        return true
     }
     
     // MARK: - Model Building and Query Handling

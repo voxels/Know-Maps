@@ -17,7 +17,7 @@ public enum PlaceSearchSessionError : Error {
     case InvalidSession
 }
 
-open class PlaceSearchSession : ObservableObject {
+public actor PlaceSearchSession : ObservableObject {
     private var foursquareApiKey = ""
     private var searchSession:URLSession?
     let keysContainer = CKContainer(identifier:"iCloud.com.secretatomics.knowmaps.Keys")
@@ -413,51 +413,65 @@ open class PlaceSearchSession : ObservableObject {
         }
     }
     
-    public func session(service:String = PlaceSearchService.foursquare.rawValue) async throws -> URLSession {
-            let predicate = NSPredicate(format: "service == %@", service)
-            let query = CKQuery(recordType: "KeyString", predicate: predicate)
-            let operation = CKQueryOperation(query: query)
-            operation.desiredKeys = ["value", "service"]
-            operation.resultsLimit = 1
-            operation.recordMatchedBlock = { [weak self] recordId, result in
-                guard let strongSelf = self else { return }
+    public func session(service: String = PlaceSearchService.foursquare.rawValue) async throws -> URLSession {
+        let predicate = NSPredicate(format: "service == %@", service)
+        let query = CKQuery(recordType: "KeyString", predicate: predicate)
+        let operation = CKQueryOperation(query: query)
+        operation.desiredKeys = ["value", "service"]
+        operation.resultsLimit = 1
 
-                do {
-                    let record = try result.get()
-                    if let apiKey = record["value"] as? String {
-                        print("\(String(describing: record["service"]))")
-                        strongSelf.foursquareApiKey = apiKey
-                    } else {
-                        print("Did not find API Key")
-                    }
-                } catch {
-                    print(error)
+        operation.recordMatchedBlock = { [weak self] recordId, result in
+            guard let self = self else { return }
+            Task { [weak self] in
+                guard let self = self else { return }
+                await self.handleRecordMatched(result: result)
+            }
+        }
+
+        operation.queuePriority = .veryHigh
+        operation.qualityOfService = .userInitiated
+
+        let success = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Bool, Error>) in
+            operation.queryResultBlock = { [weak self] result in
+                guard let self = self else { return }
+                Task { [weak self] in
+                    guard let self = self else { return }
+                    await self.handleQueryResult(result: result, continuation: continuation)
                 }
             }
-            
-            operation.queuePriority = .veryHigh
-            operation.qualityOfService = .userInitiated
-        
-        
-        let success = try await withCheckedThrowingContinuation { checkedContinuation in
-            operation.queryResultBlock = { result in
-                
-                switch result {
-                case .success(_):
-                    checkedContinuation.resume(with: .success(true))
-                case .failure(let error):
-                    print(error)
-                    checkedContinuation.resume(with: .success(false))
-                }
-            }
-            
+
             keysContainer.publicCloudDatabase.add(operation)
         }
-        
+
         if success {
             return configuredSession()
         } else {
             throw PlaceSearchSessionError.ServiceNotFound
+        }
+    }
+    
+    private func handleRecordMatched(result: Result<CKRecord, Error>) async {
+        do {
+            let record = try result.get()
+            if let apiKey = record["value"] as? String {
+                print("\(String(describing: record["service"]))")
+                // Now safely modify the actor-isolated property
+                self.foursquareApiKey = apiKey
+            } else {
+                print("Did not find API Key")
+            }
+        } catch {
+            print(error)
+        }
+    }
+    
+    private func handleQueryResult(result: Result<CKQueryOperation.Cursor?, Error>, continuation: CheckedContinuation<Bool, Error>) async {
+        switch result {
+        case .success(_):
+            continuation.resume(returning: true)
+        case .failure(let error):
+            print(error)
+            continuation.resume(returning: false)
         }
     }
 }

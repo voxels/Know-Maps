@@ -93,6 +93,7 @@ struct ContentView: View {
                                     chatModel.selectedPlaceChatResult = placeResponse.id
                                 }
                             }
+                        #if os(macOS)
                             .toolbar(content: {
                                 ToolbarItem {
                                     Button(action:{
@@ -102,7 +103,8 @@ struct ContentView: View {
                                     })
                                 }
                             })
-                            .frame(minHeight: geometry.size.height, maxHeight: .infinity)
+                        #endif
+                            .frame(minHeight: geometry.size.height - 60, maxHeight: .infinity)
                             .presentationDetents([.large])
                             .presentationDragIndicator(.visible)
                             .presentationCompactAdaptation(.sheet)
@@ -110,7 +112,7 @@ struct ContentView: View {
                     }
                     .sheet(isPresented: $showPlaceViewSheet, content: {
                         PlaceView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, placeDirectionsViewModel: placeDirectionsChatViewModel, resultId: $chatModel.selectedPlaceChatResult)
-                            .frame(minHeight: geometry.size.height, maxHeight: .infinity)
+                            .frame(minHeight: geometry.size.height - 60, maxHeight: .infinity)
                             .presentationDetents([.large])
                             .presentationDragIndicator(.visible)
                             .presentationCompactAdaptation(.sheet)

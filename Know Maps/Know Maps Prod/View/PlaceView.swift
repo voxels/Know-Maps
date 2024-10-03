@@ -89,7 +89,7 @@ struct PlaceView: View {
             }
             #if os(macOS)
             .toolbar(content: {
-                ToolbarItemGroup {
+                ToolbarItem{
                     Button(action: {
                         self.resultId = nil
                     }, label:{
