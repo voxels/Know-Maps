@@ -77,37 +77,25 @@ struct Know_MapsApp: App {
 //                        }
                     }
                     .task {
-                        settingsModel.authCompletion = { result in
-                            if case .success = result {
-                                Task {
-                                    do {
-                                        try await startup(chatModel: chatModel)
-                                    } catch {
-                                        print(error)
-                                        chatModel.analytics?.track(name: "Error during startup", properties: ["error":error.localizedDescription])
-                                    }
-                                }
-                            } else if case .failure = result {
-                                print(result)
-                                chatModel.analytics?.track(name: "Error during startup", properties: ["error":result])
-                            }
-                        }
-                        
-                        let cloudAuth = settingsModel.isAuthorized
-                        
-                        if cloudAuth {
-                            Task {
-                                do {
-                                    try await startup(chatModel: chatModel)
-                                } catch {
-                                    print(error)
-                                    chatModel.analytics?.track(name: "Error during startup", properties: ["error":error.localizedDescription])
-                                }
-                            }
-                        } else {
-                            performExistingAccountSetupFlows()
-                        }
-                    }
+                                            settingsModel.authCompletion = { result in
+                                                if case .success = result {
+                                                    Task {
+                                                        await startApp()
+                                                    }
+                                                } else if case .failure(let error) = result {
+                                                    print(error)
+                                                    chatModel.analytics?.track(name: "Error during startup", properties: ["error": error.localizedDescription])
+                                                }
+                                            }
+
+                                            if settingsModel.isAuthorized {
+                                                Task {
+                                                    await startApp()
+                                                }
+                                            } else {
+                                                performExistingAccountSetupFlows()
+                                            }
+                                        }
                     
 #if os(visionOS) || os(macOS)
                     .frame(minWidth: 1280, minHeight: 720)
@@ -159,6 +147,10 @@ struct Know_MapsApp: App {
 #endif
     }
     
+    private func startApp() async {
+        await startup(chatModel: chatModel)
+    }
+    
     func performExistingAccountSetupFlows() {
         let requests = [ASAuthorizationAppleIDProvider().createRequest()]
         let authorizationController = ASAuthorizationController(authorizationRequests: requests)
@@ -177,87 +169,103 @@ struct Know_MapsApp: App {
         chatModel.featureFlags.updateFlags(with: customerInfo)
     }
     
-    private func startup(chatModel: ChatResultViewModel) async throws {
-        do {
-            chatModel.cloudCache.analytics = chatModel.analytics
-            chatHost.analytics = chatModel.analytics
-            chatModel.assistiveHostDelegate = chatHost
-            chatHost.messagesDelegate = chatModel
-            
-            let cloudAuth = settingsModel.isAuthorized
-            
-            if !cloudAuth {
+    private func startup(chatModel: ChatResultViewModel) async {
+        await withTaskGroup(of: Void.self) { group in
+            group.addTask {
+                await self.setupChatModel(chatModel)
+            }
+            group.addTask {
+                await self.loadData(chatModel)
+            }
+        }
+
+        await MainActor.run {
+            // Update UI states
+            self.showSplashScreen = false
+        }
+    }
+
+    private func setupChatModel(_ chatModel: ChatResultViewModel) async {
+        // Perform setup tasks
+        chatModel.cloudCache.analytics = chatModel.analytics
+        chatHost.analytics = chatModel.analytics
+        chatModel.assistiveHostDelegate = chatHost
+        chatHost.messagesDelegate = chatModel
+
+        if !settingsModel.isAuthorized {
+            await MainActor.run {
                 performExistingAccountSetupFlows()
             }
-            
-            if !chatModel.cloudCache.hasFsqAccess {
-                try await chatModel.retrieveFsqUser()
-            }
-            
-            let isLocationAuthorized = chatModel.locationProvider.isAuthorized()
-            
-            if isLocationAuthorized, let location = chatModel.locationProvider.currentLocation() {
+        }
+
+        if !chatModel.cloudCache.hasFsqAccess {
+            try? await chatModel.retrieveFsqUser()
+        }
+    }
+
+    private func loadData(_ chatModel: ChatResultViewModel) async {
+        let isLocationAuthorized = chatModel.locationProvider.isAuthorized()
+
+        if isLocationAuthorized, let location = chatModel.locationProvider.currentLocation() {
+            await MainActor.run {
                 chatModel.currentLocationResult.replaceLocation(with: location, name: "Current Location")
-                await MainActor.run {
-                    chatModel.selectedDestinationLocationChatResult = chatModel.currentLocationResult.id
-                }
+                chatModel.selectedDestinationLocationChatResult = chatModel.currentLocationResult.id
             }
-            
-            Task {
+        }
+
+        Task {
+            do {
                 try await chatHost.organizeCategoryCodeList()
                 await chatModel.categoricalSearchModel()
+            } catch {
+                print(error)
+                chatModel.analytics?.track(name: "categorical_search_error")
             }
-            
-            Task {
-                let cacheRefreshTask = Task {
-                    try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
-                }
-                
-                do {
-                    try await withTimeout(seconds: 5) {
-                        try await cacheRefreshTask.value
-                    }
-                } catch {
-                    cacheRefreshTask.cancel()
-                    chatModel.analytics?.track(name: "cache_refresh_timeout")
-                    print("Cache refresh timed out: \(error)")
-                }
-                
-                let isOnboarded = !chatModel.cachedTasteResults.isEmpty
-                
-                if cloudAuth, chatModel.cloudCache.hasFsqAccess, isLocationAuthorized, isOnboarded {
-                    await MainActor.run {
-                        showOnboarding = false
-                        showSplashScreen = false
-                    }
-                } else if cloudAuth, chatModel.cloudCache.hasFsqAccess, isLocationAuthorized, !isOnboarded {
-                    await MainActor.run {
-                        selectedOnboardingTab = "Saving"
-                        showSplashScreen = false
-                    }
-                } else if cloudAuth, chatModel.cloudCache.hasFsqAccess, !isLocationAuthorized, !isOnboarded {
-                    await MainActor.run {
-                        selectedOnboardingTab = "Location"
-                        showSplashScreen = false
-                    }
-                }
+        }
+
+        let cacheRefreshTask = Task.detached {
+            try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
+        }
+
+        do {
+            try await withTimeout(seconds: 5) {
+                try await cacheRefreshTask.value
             }
         } catch {
-            chatModel.analytics?.track(name: "error \(error)")
-            print(error)
+            cacheRefreshTask.cancel()
+            chatModel.analytics?.track(name: "cache_refresh_timeout")
+            print("Cache refresh timed out: \(error)")
+        }
+
+        // Handle onboarding logic based on the loaded data
+        await self.handleOnboarding(chatModel)
+    }
+
+    private func handleOnboarding(_ chatModel: ChatResultViewModel) async {
+        let cloudAuth = settingsModel.isAuthorized
+        let isLocationAuthorized = chatModel.locationProvider.isAuthorized()
+        let isOnboarded = !chatModel.cachedTasteResults.isEmpty
+
+        await MainActor.run {
+            if cloudAuth, chatModel.cloudCache.hasFsqAccess, isLocationAuthorized, isOnboarded {
+                showOnboarding = false
+            } else if cloudAuth, chatModel.cloudCache.hasFsqAccess, isLocationAuthorized, !isOnboarded {
+                selectedOnboardingTab = "Saving"
+            } else if cloudAuth, chatModel.cloudCache.hasFsqAccess, !isLocationAuthorized, !isOnboarded {
+                selectedOnboardingTab = "Location"
+            }
         }
     }
 
     func withTimeout<T>(seconds: TimeInterval, operation: @escaping () async throws -> T) async throws -> T {
         try await withThrowingTaskGroup(of: T.self) { group in
             group.addTask {
-                try await operation()
+                return try await operation()
             }
             group.addTask {
                 try await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000))
                 throw NSError(domain: "TaskTimeout", code: 1, userInfo: nil)
             }
-            
             if let result = try await group.next() {
                 group.cancelAll()
                 return result
