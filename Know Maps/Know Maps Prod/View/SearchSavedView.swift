@@ -408,9 +408,7 @@ struct SavedListToolbarView: View {
             }
         }
         
-        if let selectedSavedResult = chatModel.selectedSavedResult, let categoricalResult = chatModel.allCachedResults.first(where: { result in
-            result.id == selectedSavedResult
-        }), PersonalizedSearchSection(rawValue: categoricalResult.parentCategory) == nil {
+        if let selectedSavedResult = chatModel.selectedSavedResult {
             Button(action: {
                 Task {
                     do {
@@ -470,7 +468,7 @@ struct SavedListToolbarView: View {
             deleteCategoryItem(at: idsToDelete)
         } else if let selectedSavedResult = chatModel.selectedSavedResult, let selectedPlaceItem = chatModel.cachedPlaceResult(for: selectedSavedResult) {
             let idsToDelete: [UUID] = [selectedPlaceItem.id]
-            deleteCategoryItem(at: idsToDelete)
+            deletePlaceItem(at: idsToDelete)
         }
         
         try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
@@ -493,10 +491,6 @@ struct SavedListToolbarView: View {
             Task {
                 if let parent = chatModel.cachedListResult(for: id) {
                     await removeCachedResults(group: "List", identity: parent.parentCategory)
-                }
-                
-                if let parent = chatModel.cachedPlaceResult(for: id) {
-                    await removeCachedResults(group: "Place", identity: parent.parentCategory)
                 }
             }
         }
