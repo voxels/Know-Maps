@@ -62,7 +62,7 @@ struct SearchSavedView: View {
                                                 var userRecord = UserCachedRecord(recordId: "", group: "Location", identity: chatModel.cachedLocationIdentity(for: location), title: parent.locationName, icons: "", list:"Places", section:"none")
                                                 let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, list:userRecord.list, section:userRecord.section)
                                                 userRecord.setRecordId(to:record)
-                                                try await chatModel.refreshCachedLocations(cloudCache: chatModel.cloudCache)
+                                                try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
                                             }
                                         }
                                     }.labelStyle(.titleAndIcon)
@@ -74,7 +74,7 @@ struct SearchSavedView: View {
                                             var userRecord = UserCachedRecord(recordId: "", group: "Location", identity: chatModel.cachedLocationIdentity(for: location), title: parent.locationName, icons: "", list:"Places", section:"none")
                                             let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, list:userRecord.list, section:userRecord.section)
                                             userRecord.setRecordId(to:record)
-                                            try await chatModel.refreshCachedLocations(cloudCache: chatModel.cloudCache)
+                                            try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
                                         }
                                     }
                                 }.labelStyle(.titleAndIcon)
