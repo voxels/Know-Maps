@@ -39,6 +39,7 @@ final class ChatResultViewModel: ObservableObject {
     @Published public var isFetchingResults:Bool = false
     @Published public var completedTasks = 0
     // Cached Results
+    @Published public var cachedDefaultResults = [CategoryResult]()
     @Published public var cachedCategoryResults = [CategoryResult]()
     @Published public var cachedTasteResults = [CategoryResult]()
     @Published public var cachedPlaceResults = [CategoryResult]()
@@ -58,7 +59,6 @@ final class ChatResultViewModel: ObservableObject {
     
     // Fetching States
     @Published public var isFetchingPlaceDescription: Bool = false
-    @Published public var locationSearchText: String = ""
     
     // Results
     @Published public var categoryResults = [CategoryResult]()
@@ -185,9 +185,9 @@ final class ChatResultViewModel: ObservableObject {
         return filteredLocationResults
     }
     
-    public func filteredDestinationLocationResults() async -> [LocationResult] {
+    public func filteredDestinationLocationResults(with searchText:String) async -> [LocationResult] {
         var results = filteredLocationResults
-        let searchLocationResult = await locationChatResult(with: locationSearchText)
+        let searchLocationResult = await locationChatResult(with: searchText)
         results.insert(searchLocationResult, at: 0)
         return results
     }
@@ -210,7 +210,7 @@ final class ChatResultViewModel: ObservableObject {
         }
 
         // Initialize progress variables
-        let totalTasks = 6
+        let totalTasks = 7
         
         // Define the timeout duration in seconds
         let timeoutInSeconds: UInt64 = 10
@@ -220,6 +220,17 @@ final class ChatResultViewModel: ObservableObject {
             // Use a throwing task group to manage tasks and handle cancellations
             try await withThrowingTaskGroup(of: Void.self) { group in
                 // Define tasks with progress updates
+                
+                group.addTask {
+                    try Task.checkCancellation()
+                    await self.refreshDefaultResults()
+                    try Task.checkCancellation()
+                    await MainActor.run { [self] in
+                        self.completedTasks += 1
+                        let progress = Double(self.completedTasks) / Double(totalTasks)
+                        self.cacheFetchProgress = progress
+                    }
+                }
                 group.addTask { [self] in
                     try Task.checkCancellation()
                     await self.refreshCachedCategories(cloudCache: cloudCache)
@@ -369,6 +380,13 @@ final class ChatResultViewModel: ObservableObject {
         }
     }
     
+    public func refreshDefaultResults() async {
+        let defaults = defaultResults()
+        await MainActor.run {
+            cachedDefaultResults = defaults
+        }
+    }
+    
     @MainActor
     public func removeCachedResults() {
         cachedListResults.removeAll()
@@ -486,6 +504,10 @@ final class ChatResultViewModel: ObservableObject {
     
     // MARK: Cached Chat Result Methods
     
+    public func cachedPlaceResult(for id: CategoryResult.ID) -> CategoryResult? {
+        return cachedPlaceResults.first { $0.id == id }
+    }
+
     public func cachedChatResult(for id: CategoryResult.ID) -> ChatResult? {
         if cachedListResults.first(where: { $0.id == id }) != nil {
             return nil
@@ -493,12 +515,6 @@ final class ChatResultViewModel: ObservableObject {
         else if let parentCategory = allCachedResults.first(where: { $0.id == id }) {
             return parentCategory.categoricalChatResults.first
         } else {
-            
-            for allCachedResult in allCachedResults {
-                if let result = allCachedResult.children.first(where: { $0.id == id }) {
-                    return result.categoricalChatResults.first
-                }
-            }
             return nil
         }
     }
@@ -534,14 +550,14 @@ final class ChatResultViewModel: ObservableObject {
         return categoryResults.compactMap { $0.result(title: title) }.first
     }
     
-    public func chatResult(for id: ChatResult.ID) -> ChatResult? {
+    public func categoryChatResult(for id: ChatResult.ID) -> ChatResult? {
         let allResults = categoryResults.compactMap { $0.categoricalChatResults }
         for results in allResults {
             if let result = results.first(where: { $0.id == id || $0.parentId == id }) {
                 return result
             }
         }
-        return chatResult(title: locationSearchText)
+        return nil
     }
     
     // MARK: - Saved Results
@@ -549,14 +565,15 @@ final class ChatResultViewModel: ObservableObject {
     private func savedCategoricalResults() -> [CategoryResult] {
         return cachedCategoryRecords?.map {
             let chatResults = [ChatResult(title: $0.title, list:$0.list, section:PersonalizedSearchSection(rawValue:$0.section) ?? .none, placeResponse: nil, recommendedPlaceResponse: nil)]
-            return CategoryResult(parentCategory: $0.title, list: $0.list, section:PersonalizedSearchSection(rawValue:$0.section) ?? .none, categoricalChatResults: chatResults)        } ?? []
+            return CategoryResult(parentCategory: $0.title, list: $0.list, section:PersonalizedSearchSection(rawValue:$0.section) ?? .none, categoricalChatResults: chatResults)
+        }.sorted(by: {$0.parentCategory < $1.parentCategory}) ?? []
     }
     
     private func savedTasteResults() -> [CategoryResult] {
         return cachedTasteRecords?.map {
             let chatResults = [ChatResult(title: $0.title, list:$0.list, section:PersonalizedSearchSection(rawValue:$0.section) ?? .none, placeResponse: nil, recommendedPlaceResponse: nil)]
             return CategoryResult(parentCategory: $0.title, list: $0.list, section:PersonalizedSearchSection(rawValue:$0.section) ?? .none, categoricalChatResults: chatResults)
-        } ?? []
+        }.sorted(by: {$0.parentCategory < $1.parentCategory}) ?? []
     }
     
     private func savedPlaceResults() -> [CategoryResult] {
@@ -591,7 +608,7 @@ final class ChatResultViewModel: ObservableObject {
                 chatResults = [ChatResult(title: record.title, list: record.list, section:PersonalizedSearchSection(rawValue:record.section) ?? .none, placeResponse: nil, recommendedPlaceResponse: nil)]
             }
             return CategoryResult(parentCategory: record.title, list: record.list, section:PersonalizedSearchSection(rawValue:record.section) ?? .none, categoricalChatResults: chatResults)
-        }
+        }.sorted(by: {$0.parentCategory < $1.parentCategory})
     }
     
     private func savedListResults() -> [CategoryResult] {
@@ -609,18 +626,6 @@ final class ChatResultViewModel: ObservableObject {
                 }
             }
             
-            for tasteResult in cachedTasteResults {
-                let list = tasteResult.list
-                if list == record.identity {
-                    if var existing = temp[record.title] {
-                        existing.2.append(contentsOf: tasteResult.categoricalChatResults)
-                        temp[record.title] = existing
-                    } else {
-                        temp[record.title] = (list, PersonalizedSearchSection(rawValue: record.section)!, tasteResult.categoricalChatResults)
-                    }
-                }
-            }
-            
             if temp[record.title] == nil {
                 temp[record.title] = (record.identity, PersonalizedSearchSection(rawValue: record.section)!, [])
             }
@@ -628,14 +633,8 @@ final class ChatResultViewModel: ObservableObject {
  
        let retval = temp.map {
             CategoryResult(parentCategory: $0.key, list: $0.value.0, section: $0.value.1, categoricalChatResults: $0.value.2)
-        }.sorted {
-            if $0.section == $1.section {
-                // If sections are equal, compare by parentCategory
-                return $0.parentCategory.lowercased() < $1.parentCategory.lowercased()
-            } else {
-                // Otherwise, compare by section
-                return $0.section.rawValue < $1.section.rawValue
-            }
+       }.sorted {
+           return $0.parentCategory < $1.parentCategory
         }
         
         for returnvalue in retval {
@@ -645,11 +644,15 @@ final class ChatResultViewModel: ObservableObject {
         return retval
     }
     
-    private func allSavedResults() -> [CategoryResult] {
-        var results = cachedCategoryResults + cachedTasteResults + cachedListResults + PersonalizedSearchSection.allCases.filter({$0 != .location && $0 != .none && $0 != .trending})
+    private func defaultResults() -> [CategoryResult] {
+        PersonalizedSearchSection.allCases.filter({$0 != .location && $0 != .none && $0 != .trending})
             .map({$0.categoryResult()})
+    }
+    
+    private func allSavedResults() -> [CategoryResult] {
+        var results = cachedCategoryResults + cachedTasteResults + cachedListResults + cachedDefaultResults
         
-        results.sort { $0.list.lowercased() < $1.list.lowercased() && $0.parentCategory.lowercased() < $1.parentCategory.lowercased() }
+        results.sort { $0.parentCategory.lowercased() < $1.parentCategory.lowercased() }
         return results
     }
     
@@ -776,20 +779,17 @@ final class ChatResultViewModel: ObservableObject {
         analytics?.track(name: "resetPlaceModel")
     }
     
-    public func refreshModel(queryIntents: [AssistiveChatHostIntent]? = nil) async throws {
+    public func refreshModel(query:String, queryIntents: [AssistiveChatHostIntent]? = nil) async throws {
         guard let chatHost = self.assistiveHostDelegate else { return }
         
         if let lastIntent = queryIntents?.last {
-            await MainActor.run {
-                locationSearchText = lastIntent.caption
-            }
             try await model(intent: lastIntent)
         } else {
-            let intent = chatHost.determineIntent(for: locationSearchText, override: nil)
+            let intent = chatHost.determineIntent(for: query, override: nil)
             let location = chatHost.lastLocationIntent()
-            let queryParameters = try await chatHost.defaultParameters(for: locationSearchText)
+            let queryParameters = try await chatHost.defaultParameters(for: query)
             let newIntent = AssistiveChatHostIntent(
-                caption: locationSearchText,
+                caption: query,
                 intent: intent,
                 selectedPlaceSearchResponse: nil,
                 selectedPlaceSearchDetails: nil,
@@ -1143,7 +1143,6 @@ final class ChatResultViewModel: ObservableObject {
         }
             
         await MainActor.run { [chatResults] in
-            locationSearchText = intent.caption
             placeResults = chatResults
         }
         
@@ -1276,7 +1275,6 @@ final class ChatResultViewModel: ObservableObject {
 
 
             await MainActor.run { [newResults] in
-                locationSearchText = intent.caption
                 placeResults = newResults
             }
             
@@ -1311,7 +1309,6 @@ final class ChatResultViewModel: ObservableObject {
         }
                 
         await MainActor.run { [chatResults] in
-            locationSearchText = intent.caption
             placeResults = chatResults
         }
         
@@ -1436,10 +1433,6 @@ final class ChatResultViewModel: ObservableObject {
                
                if let rawSection = rawParameters["section"] as? String {
                    section = PersonalizedSearchSection(rawValue: rawSection) ?? PersonalizedSearchSection.none
-                   
-                   if intent.caption == section?.rawValue {
-                       query = ""
-                   }
                }
            }
            
@@ -1593,7 +1586,6 @@ extension ChatResultViewModel : @preconcurrency AssistiveChatHostMessagesDelegat
             analytics?.track(name: "error \(error)")
             print(error)
         }
-        
     }
     
     public func updateLastIntentParameter(for placeChatResult:ChatResult, selectedDestinationChatResultID:LocationResult.ID?) async throws {
@@ -1616,7 +1608,7 @@ extension ChatResultViewModel : @preconcurrency AssistiveChatHostMessagesDelegat
         chatHost.updateLastIntentParameters(intent: newIntent)
         
         if let queryIntentParameters = chatHost.queryIntentParameters {
-            try await didUpdateQuery(with: queryIntentParameters)
+            try await didUpdateQuery(with: placeChatResult.title, parameters: queryIntentParameters)
         }
     }
     
@@ -1739,11 +1731,11 @@ extension ChatResultViewModel : @preconcurrency AssistiveChatHostMessagesDelegat
             
             try await receiveMessage(caption: caption, parameters: parameters, isLocalParticipant: isLocalParticipant)
             try await searchIntent(intent: lastIntent, location: locationChatResult?.location)
-            try await didUpdateQuery(with: parameters)
+            try await didUpdateQuery(with: caption, parameters: parameters)
         } else if let lastIntent = queryParametersHistory.last?.queryIntents.last, lastIntent.intent == .Location {
             try await receiveMessage(caption: caption, parameters: parameters, isLocalParticipant: isLocalParticipant)
             try await searchIntent(intent: lastIntent, location: nil)
-            try await didUpdateQuery(with: parameters)
+            try await didUpdateQuery(with: caption, parameters: parameters)
         } else {
             do {
                 guard let chatHost = self.assistiveHostDelegate else {
@@ -1757,7 +1749,7 @@ extension ChatResultViewModel : @preconcurrency AssistiveChatHostMessagesDelegat
                 chatHost.appendIntentParameters(intent: newIntent)
                 try await receiveMessage(caption: caption, parameters: parameters, isLocalParticipant: isLocalParticipant)
                 try await searchIntent(intent: newIntent, location: locationChatResult(with:caption).location! )
-                try await didUpdateQuery(with: parameters)
+                try await didUpdateQuery(with: caption, parameters: parameters)
             } catch {
                 analytics?.track(name: "error \(error)")
                 print(error)
@@ -1765,8 +1757,8 @@ extension ChatResultViewModel : @preconcurrency AssistiveChatHostMessagesDelegat
         }
     }
     
-    public func didUpdateQuery(with parameters: AssistiveChatHostQueryParameters) async throws {
-        try await refreshModel(queryIntents: parameters.queryIntents)
+    public func didUpdateQuery(with query:String, parameters: AssistiveChatHostQueryParameters) async throws {
+        try await refreshModel(query: query, queryIntents: parameters.queryIntents)
     }
     
     @MainActor

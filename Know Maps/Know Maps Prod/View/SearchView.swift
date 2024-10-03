@@ -58,16 +58,10 @@ struct SearchView: View {
                 Task {
                     if let selectedDestinationLocationChatResult = chatModel.selectedDestinationLocationChatResult {
                         if let cachedResult = chatModel.cachedChatResult(for: newValue) {
-                            await MainActor.run {
-                                chatModel.locationSearchText = cachedResult.title
-                            }
                             await chatHost.didTap(chatResult: cachedResult, selectedDestinationChatResultID: selectedDestinationLocationChatResult)
                         }
                     } else {
                         if let cachedResult = chatModel.cachedChatResult(for: newValue) {
-                            await MainActor.run {
-                                chatModel.locationSearchText = cachedResult.title
-                            }
                             await chatHost.didTap(chatResult: cachedResult,  selectedDestinationChatResultID: nil)
                         }
                     }
@@ -78,10 +72,6 @@ struct SearchView: View {
                 Task {
                     if let newValue = newValue, let categoricalResult =
                         chatModel.categoricalChatResult(for: newValue) {
-                        let categoricalChatResult = chatModel.categoricalChatResult(for: newValue)?.title ?? chatModel.locationSearchText
-                        await MainActor.run {
-                            chatModel.locationSearchText = categoricalChatResult
-                        }
                         await chatHost.didTap(chatResult: categoricalResult, selectedDestinationChatResultID:chatModel.selectedDestinationLocationChatResult)
                     }
                 }
@@ -89,9 +79,6 @@ struct SearchView: View {
                 chatModel.resetPlaceModel()
                 Task {
                     if let newValue = newValue, let tasteResult = chatModel.tasteChatResult(for: newValue) {
-                        await MainActor.run {
-                            chatModel.locationSearchText = tasteResult.title
-                        }
                         await chatHost.didTap(chatResult: tasteResult, selectedDestinationChatResultID:chatModel.selectedDestinationLocationChatResult)
                     }
                 }

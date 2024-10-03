@@ -14,7 +14,7 @@ public protocol AssistiveChatHostMessagesDelegate : AnyObject {
     func didTap(chatResult: ChatResult, selectedPlaceSearchResponse: PlaceSearchResponse?, selectedPlaceSearchDetails: PlaceDetailsResponse?, selectedRecommendedPlaceSearchResponse:RecommendedPlaceSearchResponse?,
                        selectedDestinationChatResultID:UUID?, intent:AssistiveChatHost.Intent) async
     func addReceivedMessage(caption:String, parameters:AssistiveChatHostQueryParameters, isLocalParticipant:Bool) async throws
-    func didUpdateQuery(with parameters:AssistiveChatHostQueryParameters) async throws
+    func didUpdateQuery(with query:String, parameters: AssistiveChatHostQueryParameters) async throws
     func updateLastIntentParameter(for placeChatResult:ChatResult, selectedDestinationChatResultID:LocationResult.ID?) async throws
     func updateQueryParametersHistory(with parameters: AssistiveChatHostQueryParameters)
 }

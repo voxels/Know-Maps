@@ -610,8 +610,8 @@ extension AssistiveChatHost {
                 // Check main category
                 taskGroup.addTask {
                     var localCodes = [String]()
-                    let categorySimilarity = embedding.distance(between: query, and: categoryName.lowercased())
-                    if categorySimilarity <= 0.25 {
+                    let categorySimilarity = query.lowercased() == categoryName.lowercased()
+                    if categorySimilarity{
                         // Add all subcategory codes if main category matches
                         for subcategory in subcategories {
                             if let code = subcategory["code"] {
@@ -622,8 +622,8 @@ extension AssistiveChatHost {
                         // Check subcategories
                         for subcategory in subcategories {
                             if let subcategoryName = subcategory["category"]?.lowercased() {
-                                let subcategorySimilarity = embedding.distance(between: query, and: subcategoryName)
-                                if subcategorySimilarity <= 0.25, let code = subcategory["code"] {
+                                let subcategorySimilarity = query.lowercased() == subcategoryName.lowercased()
+                                if subcategorySimilarity, let code = subcategory["code"] {
                                     print("Adding subcategory:\(subcategoryName)\t\(subcategorySimilarity)")
                                     localCodes.append(code)
                                 }

@@ -22,7 +22,7 @@ public enum PersonalizedSearchSection : String, Hashable, CaseIterable {
     case drinks = "Drinks"
     case coffee = "Coffee"
     case shops = "Shopping"
-    case arts = "Art"
+    case arts = "Arts"
     case outdoors = "Outdoors"
     case sights = "Sightseeing"
     case trending = "Trending places"
@@ -310,7 +310,6 @@ open class PersonalizedSearchSession {
                 
         var retval = [String:Any]()
         if let responseDict = response["response"] as? [String:Any] {
-            print(responseDict)
             retval = responseDict
         }
 
@@ -354,11 +353,10 @@ open class PersonalizedSearchSession {
         if let categories = request.categories, !categories.isEmpty {
             let categoriesQueryItem = URLQueryItem(name:"categoryId", value:categories)
             components?.queryItems?.append(categoriesQueryItem)
+        } else if let section = request.section, section.rawValue.lowercased() == request.query.lowercased() {
+               let sectionQueryItem = URLQueryItem(name: "section", value: section.key())
+               components?.queryItems?.append(sectionQueryItem)
         }
-        /*else if let section = request.section, section != .none {
-            let sectionQueryItem = URLQueryItem(name: "section", value: section.key())
-            components?.queryItems?.append(sectionQueryItem)
-        }*/
         
         if request.minPrice > 1 {
             let minPriceQueryItem = URLQueryItem(name: "price", value: "\(request.minPrice)")
@@ -394,7 +392,6 @@ open class PersonalizedSearchSession {
                         
         var retval = [String:Any]()
         if let responseDict = response["response"] as? [String:Any] {
-            print(responseDict)
             retval = responseDict
         }
 

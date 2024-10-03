@@ -38,22 +38,6 @@ struct SearchSavedView: View {
                                 }
                                 .textFieldStyle(.roundedBorder)
                             
-                            Button("Current Location", systemImage:"location") {
-                                Task {
-                                    do {
-                                        if let currentLocationName = try await chatModel.currentLocationName() {
-                                            try await chatModel.didSearch(caption:currentLocationName, selectedDestinationChatResultID:nil, intent:.Location)
-                                        } else {
-                                            showNavigationLocationSheet.toggle()
-                                        }
-                                    } catch {
-                                        chatModel.analytics?.track(name: "error \(error)")
-                                        print(error)
-                                    }
-                                }
-                            }.labelStyle(.iconOnly)
-                                .padding()
-                            
                             if let selectedDestinationLocationChatResult = chatModel.selectedDestinationLocationChatResult,
                                let parent = chatModel.locationChatResult(for: selectedDestinationLocationChatResult)
                             {
@@ -61,11 +45,11 @@ struct SearchSavedView: View {
                                 let isSaved = chatModel.cachedLocation(contains:parent.locationName)
                                 if isSaved {
                                     Button("Delete", systemImage:"minus.circle") {
-                                        if let location = parent.location, let cachedLocationResults = chatModel.cachedResults(for: "Location", identity:chatModel.cachedLocationIdentity(for: location)) {
+                                        if let location = parent.location, let cachedLocationResults = chatModel.cachedResults(for: "Location", identity:chatModel.cachedLocationIdentity(for: location)), let cachedLocationResult = cachedLocationResults.first {
                                             Task {
-                                                for cachedLocationResult in cachedLocationResults {
-                                                    try await chatModel.cloudCache.deleteUserCachedRecord(for: cachedLocationResult)
-                                                }
+                                            
+                                                try await chatModel.cloudCache.deleteUserCachedRecord(for: cachedLocationResult)
+                                            
                                                 try await chatModel.refreshCachedLocations(cloudCache: chatModel.cloudCache)
                                             }
                                         }
@@ -75,16 +59,25 @@ struct SearchSavedView: View {
                                     Button("Save", systemImage:"square.and.arrow.down") {
                                         Task{
                                             if let location = parent.location {
-                                                var userRecord = UserCachedRecord(recordId: "", group: "Location", identity: chatModel.cachedLocationIdentity(for: location), title: parent.locationName, icons: "", list:"Places", section:chatHost.section(place: parent.locationName).rawValue)
+                                                var userRecord = UserCachedRecord(recordId: "", group: "Location", identity: chatModel.cachedLocationIdentity(for: location), title: parent.locationName, icons: "", list:"Places", section:"none")
                                                 let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, list:userRecord.list, section:userRecord.section)
                                                 userRecord.setRecordId(to:record)
-                                                await chatModel.appendCachedLocation(with: userRecord)
                                                 try await chatModel.refreshCachedLocations(cloudCache: chatModel.cloudCache)
                                             }
                                         }
-                                    }.labelStyle(.iconOnly)
-                                        .padding()
+                                    }.labelStyle(.titleAndIcon)
                                 }
+                            } else if let parent = chatModel.locationResults.first(where: {$0.locationName == searchText}) {
+                                Button("Save", systemImage:"square.and.arrow.down") {
+                                    Task{
+                                        if let location = parent.location {
+                                            var userRecord = UserCachedRecord(recordId: "", group: "Location", identity: chatModel.cachedLocationIdentity(for: location), title: parent.locationName, icons: "", list:"Places", section:"none")
+                                            let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, list:userRecord.list, section:userRecord.section)
+                                            userRecord.setRecordId(to:record)
+                                            try await chatModel.refreshCachedLocations(cloudCache: chatModel.cloudCache)
+                                        }
+                                    }
+                                }.labelStyle(.titleAndIcon)
                             }
                         }.padding()
                         NavigationLocationView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider)
@@ -259,24 +252,48 @@ struct SavedListView: View {
     @State private var selectedResult:CategoryResult.ID?
     var body: some View {
         List(selection: $selectedResult) {
-            ForEach(chatModel.allCachedResults, id: \.id) { parent in
-                if parent.children.isEmpty {
-                    Text(parent.parentCategory)
-                } else {
-                    DisclosureGroup(isExpanded: Binding(
-                        get: { parent.isExpanded },
-                        set: { parent.isExpanded = $0 }
-                    )) {
-                        ForEach(parent.children, id: \.id) { child in
-                            Text(child.parentCategory)
-                        }
-                    } label: {
+            Section("Lists") {
+                ForEach(chatModel.cachedListResults, id:\.id) { parent in
+                    if parent.children.isEmpty {
                         Text(parent.parentCategory)
+                    } else {
+                        DisclosureGroup(isExpanded: Binding(
+                            get: { parent.isExpanded },
+                            set: { parent.isExpanded = $0 }
+                        )) {
+                            ForEach(parent.children, id: \.id) { child in
+                                Text(child.parentCategory)
+                            }
+                        } label: {
+                            Text(parent.parentCategory)
+                        }
+                        .disclosureGroupStyle(.automatic)
                     }
-                    .disclosureGroupStyle(.automatic)
+                }
+                .onDelete(perform: deleteItem)
+            }
+            
+            
+            Section("Features") {
+                ForEach(chatModel.cachedTasteResults, id:\.id) { parent in
+                    Text(parent.parentCategory)
+                }
+                .onDelete(perform: deleteItem)
+            }
+            
+            Section("Industries") {
+                ForEach(chatModel.cachedCategoryResults, id:\.id) { parent in
+                    Text(parent.parentCategory)
+                }
+                .onDelete(perform: deleteItem)
+            }
+            
+            Section("Mood") {
+                ForEach(chatModel.cachedDefaultResults, id:\.id) {
+                    parent in
+                    Text(parent.parentCategory)
                 }
             }
-            .onDelete(perform: deleteItem)
         }
         .onChange(of:selectedResult) { oldValue, newValue in
             guard let newValue = newValue else {
@@ -308,6 +325,49 @@ struct SavedListView: View {
     private func moveItem(from source: IndexSet, to destination: Int) {
         chatModel.allCachedResults.move(fromOffsets: source, toOffset: destination)
         print("Moving from: \(source) to: \(destination)")
+    }
+    
+    private func deleteListItem(at offsets: IndexSet) {
+        let idsToDelete = offsets.map { chatModel.cachedTasteResults[$0].id }
+        
+        // Loop through the IDs and delete each one
+        for id in idsToDelete {
+            Task {
+                if let parent = chatModel.tasteResult(for: id) {
+                    await removeCachedResults(group: "Taste", identity: parent.parentCategory)
+                }
+            }
+        }
+    }
+    
+    private func deleteTasteItem(at offsets: IndexSet) {
+        let idsToDelete = offsets.map { chatModel.cachedListResults[$0].id }
+        
+        // Loop through the IDs and delete each one
+        for id in idsToDelete {
+            Task {
+                if let parent = chatModel.cachedListResult(for: id) {
+                    await removeCachedResults(group: "List", identity: parent.parentCategory)
+                }
+                
+                if let parent = chatModel.cachedPlaceResult(for: id) {
+                    await removeCachedResults(group: "Place", identity: parent.parentCategory)
+                }
+            }
+        }
+    }
+    
+    private func deleteCategoryItem(at offsets: IndexSet) {
+        let idsToDelete = offsets.map { chatModel.cachedCategoryResults[$0].id }
+        
+        // Loop through the IDs and delete each one
+        for id in idsToDelete {
+            Task {
+                if let parent = chatModel.categoricalResult(for: id) {
+                    await removeCachedResults(group: "Category", identity: parent.parentCategory)
+                }
+            }
+        }
     }
     
     private func deleteItem(at offsets: IndexSet) {
@@ -385,9 +445,9 @@ struct SavedListToolbarView: View {
         }
         
         Button("Search Location", systemImage:"location.magnifyingglass") {
-            chatModel.locationSearchText.removeAll()
             showNavigationLocationSheet.toggle()
         }
+        
         /*
         if contentViewDetail == .places{
             Button(action: {

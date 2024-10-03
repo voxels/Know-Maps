@@ -50,26 +50,31 @@ struct Know_MapsApp: App {
                         }
                         Spacer()
                     }
-                    .task { @MainActor in
-                        do {
-                            let purchasesId =  settingsModel.purchasesId
-                            let revenuecatAPIKey = try await chatModel.cloudCache.apiKey(for: .revenuecat)
-                            Purchases.configure(withAPIKey: revenuecatAPIKey, appUserID: purchasesId)
-                            Purchases.shared.delegate = chatModel.featureFlags
-                            
-                            settingsModel.fetchSubscriptionOfferings()
-                            let customerInfo = try await Purchases.shared.customerInfo()
-                            chatModel.featureFlags.updateFlags(with: customerInfo)
-                            
-                            await MainActor.run { [self] in
-                                chatModel.completedTasks += 1
-                                let progress = Double(chatModel.completedTasks) / Double(6)
-                                chatModel.cacheFetchProgress = progress
-                            }
-                        } catch {
-                            print(error)
-                            chatModel.analytics?.track(name: "Error during setup", properties: ["error":error.localizedDescription])
-                        }
+                    .task {
+//                        Task.detached {
+//                            do {
+//                                let purchasesId =  await settingsModel.purchasesId
+//                                let revenuecatAPIKey = try await chatModel.cloudCache.apiKey(for: .revenuecat)
+//                                Purchases.configure(withAPIKey: revenuecatAPIKey, appUserID: purchasesId)
+//                                Purchases.shared.delegate = await chatModel.featureFlags
+//#if DEBUG
+//            Purchases.logLevel = .debug
+//#endif
+//
+//                                await settingsModel.fetchSubscriptionOfferings()
+//                                let customerInfo = try await Purchases.shared.customerInfo()
+//                                await chatModel.featureFlags.updateFlags(with: customerInfo)
+//                                
+//                                await MainActor.run { [self] in
+//                                    chatModel.completedTasks += 1
+//                                    let progress = Double(chatModel.completedTasks) / Double(6)
+//                                    chatModel.cacheFetchProgress = progress
+//                                }
+//                            } catch {
+//                                print(error)
+//                                await chatModel.analytics?.track(name: "Error during setup", properties: ["error":error.localizedDescription])
+//                            }
+//                        }
                     }
                     .task {
                         settingsModel.authCompletion = { result in
@@ -172,7 +177,7 @@ struct Know_MapsApp: App {
         chatModel.featureFlags.updateFlags(with: customerInfo)
     }
     
-    private func startup(chatModel:ChatResultViewModel) async throws{
+    private func startup(chatModel: ChatResultViewModel) async throws {
         do {
             chatModel.cloudCache.analytics = chatModel.analytics
             chatHost.analytics = chatModel.analytics
@@ -188,9 +193,6 @@ struct Know_MapsApp: App {
             if !chatModel.cloudCache.hasFsqAccess {
                 try await chatModel.retrieveFsqUser()
             }
-#if DEBUG
-            Purchases.logLevel = .debug
-#endif
             
             let isLocationAuthorized = chatModel.locationProvider.isAuthorized()
             
@@ -206,7 +208,20 @@ struct Know_MapsApp: App {
                 await chatModel.categoricalSearchModel()
             }
             
-                try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
+            Task {
+                let cacheRefreshTask = Task {
+                    try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
+                }
+                
+                do {
+                    try await withTimeout(seconds: 5) {
+                        try await cacheRefreshTask.value
+                    }
+                } catch {
+                    cacheRefreshTask.cancel()
+                    chatModel.analytics?.track(name: "cache_refresh_timeout")
+                    print("Cache refresh timed out: \(error)")
+                }
                 
                 let isOnboarded = !chatModel.cachedTasteResults.isEmpty
                 
@@ -220,19 +235,35 @@ struct Know_MapsApp: App {
                         selectedOnboardingTab = "Saving"
                         showSplashScreen = false
                     }
-                } else if cloudAuth, chatModel.cloudCache.hasFsqAccess,
-                          !isLocationAuthorized, !isOnboarded {
+                } else if cloudAuth, chatModel.cloudCache.hasFsqAccess, !isLocationAuthorized, !isOnboarded {
                     await MainActor.run {
                         selectedOnboardingTab = "Location"
                         showSplashScreen = false
                     }
                 }
+            }
         } catch {
             chatModel.analytics?.track(name: "error \(error)")
             print(error)
         }
-        await MainActor.run {
-            showSplashScreen = false
+    }
+
+    func withTimeout<T>(seconds: TimeInterval, operation: @escaping () async throws -> T) async throws -> T {
+        try await withThrowingTaskGroup(of: T.self) { group in
+            group.addTask {
+                try await operation()
+            }
+            group.addTask {
+                try await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000))
+                throw NSError(domain: "TaskTimeout", code: 1, userInfo: nil)
+            }
+            
+            if let result = try await group.next() {
+                group.cancelAll()
+                return result
+            } else {
+                throw NSError(domain: "TaskTimeout", code: 1, userInfo: nil)
+            }
         }
     }
     

@@ -20,6 +20,7 @@ struct OnboardingTemplateView: View {
     @ObservedObject public var locationProvider:LocationProvider
     @State private var searchIsPresented:Bool = false
     @State private var isSaving:Bool = false
+    @State private var searchText:String = ""
     
     
     var body: some View {
@@ -28,7 +29,7 @@ struct OnboardingTemplateView: View {
                 Text("Know Maps is an app that helps you find nearby places to go to.")
                     .font(.headline)
                     .padding(.top, 60)
-                if chatModel.locationSearchText.isEmpty {
+                if searchText.isEmpty {
                     withAnimation {
                         VStack(alignment: .leading) {
                             Text("1. Use the search bar to find the things your like.")
@@ -37,12 +38,12 @@ struct OnboardingTemplateView: View {
                         }
                     }
                 }
-                TextField("Search for food, drinks, coffee, shops, arts, outdoor sights, or a place name", text: $chatModel.locationSearchText)
+                TextField("Search for food, drinks, coffee, shops, arts, outdoor sights, or a place name", text: $searchText)
                     .onSubmit {
                         if let _ = locationProvider.currentLocation() {
                             Task {
                                 do {
-                                    try await chatModel.didSearch(caption:chatModel.locationSearchText, selectedDestinationChatResultID:chatModel.currentLocationResult.id, intent:.AutocompleteTastes)
+                                    try await chatModel.didSearch(caption:searchText, selectedDestinationChatResultID:chatModel.currentLocationResult.id, intent:.AutocompleteTastes)
                                 } catch {
                                     chatModel.analytics?.track(name: "error \(error)")
                                     print(error)

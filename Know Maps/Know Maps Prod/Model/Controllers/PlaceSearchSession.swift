@@ -116,7 +116,7 @@ open class PlaceSearchSession : ObservableObject {
             throw PlaceSearchSessionError.UnsupportedRequest
         }
         
-        let placeSearchResponse = try await fetch(url: url, apiKey: self.foursquareApiKey)
+        let placeSearchResponse = try await fetch(url: url)
         
         guard let response = placeSearchResponse as? [String:Any] else {
             return [String:Any]()
@@ -206,7 +206,7 @@ open class PlaceSearchSession : ObservableObject {
         }
         
         
-        return try await fetch(url: url, apiKey: self.foursquareApiKey)
+        return try await fetch(url: url)
     }
     
     public func photos(for fsqID:String) async throws -> Any {
@@ -216,7 +216,7 @@ open class PlaceSearchSession : ObservableObject {
             throw PlaceSearchSessionError.UnsupportedRequest
         }
         
-        return try await fetch(url: url, apiKey: self.foursquareApiKey)
+        return try await fetch(url: url)
     }
     
     public func tips(for fsqID:String) async throws -> Any {
@@ -226,7 +226,7 @@ open class PlaceSearchSession : ObservableObject {
             throw PlaceSearchSessionError.UnsupportedRequest
         }
         
-        return try await fetch(url: url, apiKey: self.foursquareApiKey)
+        return try await fetch(url: url)
     }
     
     public func autocomplete(caption:String, parameters:[String:Any]?, location:CLLocation) async throws -> [String:Any] {
@@ -299,7 +299,7 @@ open class PlaceSearchSession : ObservableObject {
             throw PlaceSearchSessionError.UnsupportedRequest
         }
         
-        let placeSearchResponse = try await fetch(url: url, apiKey: self.foursquareApiKey)
+        let placeSearchResponse = try await fetch(url: url)
         
         guard let response = placeSearchResponse as? [String:Any] else {
             return [String:Any]()
@@ -345,7 +345,7 @@ open class PlaceSearchSession : ObservableObject {
     
     private let sessionQueue = DispatchQueue(label: "com.secretatomics.knowmaps.sessionQueue")
 
-    func fetch(url: URL, apiKey: String) async throws -> Any {
+    func fetch(url: URL) async throws -> Any {
         print("Requesting URL: \(url)")
 
         if searchSession == nil {
@@ -353,9 +353,9 @@ open class PlaceSearchSession : ObservableObject {
         }
 
         return try await withCheckedThrowingContinuation { checkedContinuation in
-            sessionQueue.async {
+            sessionQueue.async { [self] in
                 var request = URLRequest(url: url)
-                request.setValue(apiKey, forHTTPHeaderField: "Authorization")
+                request.setValue(self.foursquareApiKey, forHTTPHeaderField: "Authorization")
                 self.searchSession?.dataTask(with: request) { data, response, error in
                     if let error = error {
                         checkedContinuation.resume(throwing: error)
