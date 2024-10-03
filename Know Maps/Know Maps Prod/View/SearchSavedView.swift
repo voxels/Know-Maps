@@ -499,8 +499,8 @@ struct SavedListToolbarView: View {
     private func deletePlaceItem(at idsToDelete:[UUID]) {
         for id in idsToDelete {
             Task {
-                if let parent = chatModel.cachedPlaceResult(for: id) {
-                    await removeCachedResults(group: "Place", identity: parent.parentCategory)
+                if let parent = chatModel.cachedPlaceResult(for: id), let fsqID = parent.categoricalChatResults.first?.placeResponse?.fsqID {
+                    await removeCachedResults(group: "Place", identity: fsqID)
                 }
             }
         }

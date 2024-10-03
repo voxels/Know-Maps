@@ -103,7 +103,7 @@ struct PlaceAboutView: View {
                                                                 let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, list:userRecord.list, section:userRecord.section)
                                                                 userRecord.setRecordId(to: record)
                                                                 await chatModel.appendCachedPlace(with: userRecord)
-                                                                await chatModel.refreshCachedResults()
+                                                                try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
                                                             }
                                                         }
                                                 } else {
