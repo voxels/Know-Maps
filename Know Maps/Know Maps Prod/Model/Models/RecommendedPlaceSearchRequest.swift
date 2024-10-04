@@ -11,14 +11,14 @@ public struct RecommendedPlaceSearchRequest {
     let query:String
     let ll:String?
     var radius:Int = 20000
-    let categories:String?
+    let categories:String
     var minPrice:Int = 1
     var maxPrice:Int = 4
     let openNow:Bool?
     let nearLocation:String?
     var limit:Int = 50
     var offset:Int = 0
-    var section:PersonalizedSearchSection?
+    var section:PersonalizedSearchSection
     var tags:AssistiveChatHostTaggedWord
     
     mutating func updateOffset(with offset:Int){

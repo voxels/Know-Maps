@@ -142,7 +142,7 @@ public actor PersonalizedSearchSession {
             throw PersonalizedSearchSessionError.UnsupportedRequest
         }
         
-        let userCreationResponse = try await fetch(url: url, apiKey: apiKey, httpMethod: "POST")
+        let userCreationResponse = try await fetch(url: url, apiKey: apiKey, urlQueryItems: [], httpMethod: "POST")
         
         guard let response = userCreationResponse as? [String:Any] else {
             return false
@@ -193,25 +193,28 @@ public actor PersonalizedSearchSession {
             }
         }
         
-        var queryComponents = URLComponents(string:"\(PersonalizedSearchSession.serverUrl)\(PersonalizedSearchSession.autocompleteTastesAPIUrl)")
-        queryComponents?.queryItems = [URLQueryItem]()
-
-        if nameString.count > 0 {
-            let queryUrlItem = URLQueryItem(name: "query", value: nameString.trimmingCharacters(in: .whitespacesAndNewlines))
-            queryComponents?.queryItems?.append(queryUrlItem)
-        } else {
-            let queryUrlItem = URLQueryItem(name: "query", value: caption)
-            queryComponents?.queryItems?.append(queryUrlItem)
-        }
-        
-        let limitQueryItem = URLQueryItem(name: "limit", value: "\(limit)")
-        queryComponents?.queryItems?.append(limitQueryItem)
-
-        guard let url = queryComponents?.url else {
+        guard let queryComponents = URLComponents(string:"\(PersonalizedSearchSession.serverUrl)\(PersonalizedSearchSession.autocompleteTastesAPIUrl)") else {
             throw PlaceSearchSessionError.UnsupportedRequest
         }
         
-        let tastesAutocompleteResponse = try await fetch(url: url, apiKey: apiKey, urlQueryItems: queryComponents?.queryItems)
+        var queryItems = [URLQueryItem]()
+
+        if nameString.count > 0 {
+            let queryUrlItem = URLQueryItem(name: "query", value: nameString.trimmingCharacters(in: .whitespacesAndNewlines))
+            queryItems.append(queryUrlItem)
+        } else {
+            let queryUrlItem = URLQueryItem(name: "query", value: caption)
+            queryItems.append(queryUrlItem)
+        }
+        
+        let limitQueryItem = URLQueryItem(name: "limit", value: "\(limit)")
+        queryItems.append(limitQueryItem)
+
+        guard let url = queryComponents.url else {
+            throw PlaceSearchSessionError.UnsupportedRequest
+        }
+        
+        let tastesAutocompleteResponse = try await fetch(url: url, apiKey: apiKey, urlQueryItems: queryItems)
         
         guard let response = tastesAutocompleteResponse as? [String:Any] else {
             return [String:Any]()
@@ -272,37 +275,40 @@ public actor PersonalizedSearchSession {
             }
         }
         
-        var queryComponents = URLComponents(string:"\(PersonalizedSearchSession.serverUrl)\(PersonalizedSearchSession.autocompleteAPIUrl)")
-        queryComponents?.queryItems = [URLQueryItem]()
+        guard let queryComponents = URLComponents(string:"\(PersonalizedSearchSession.serverUrl)\(PersonalizedSearchSession.autocompleteAPIUrl)") else {
+            throw PersonalizedSearchSessionError.UnsupportedRequest
+        }
+        
+        var queryItems = [URLQueryItem]()
 
         if nameString.count > 0 {
             let queryUrlItem = URLQueryItem(name: "query", value: nameString.trimmingCharacters(in: .whitespacesAndNewlines))
-            queryComponents?.queryItems?.append(queryUrlItem)
+            queryItems.append(queryUrlItem)
         } else {
             let queryUrlItem = URLQueryItem(name: "query", value: caption)
-            queryComponents?.queryItems?.append(queryUrlItem)
+            queryItems.append(queryUrlItem)
         }
         
         if ll.count > 0 {
             let locationQueryItem = URLQueryItem(name: "ll", value: ll)
-            queryComponents?.queryItems?.append(locationQueryItem)
+            queryItems.append(locationQueryItem)
             
             var value = 2000
             if caption.contains("near") {
                 value = 100000
             }
             let radiusQueryItem = URLQueryItem(name: "radius", value:"\(value)")
-            queryComponents?.queryItems?.append(radiusQueryItem)
+            queryItems.append(radiusQueryItem)
         }
         
         let limitQueryItem = URLQueryItem(name: "limit", value: "\(limit)")
-        queryComponents?.queryItems?.append(limitQueryItem)
+        queryItems.append(limitQueryItem)
 
-        guard let url = queryComponents?.url else {
+        guard let url = queryComponents.url else {
             throw PlaceSearchSessionError.UnsupportedRequest
         }
         
-        let placeSearchResponse = try await fetch(url: url, apiKey: apiKey, urlQueryItems: queryComponents?.queryItems)
+        let placeSearchResponse = try await fetch(url: url, apiKey: apiKey, urlQueryItems: queryItems)
         
         guard let response = placeSearchResponse as? [String:Any] else {
             return [String:Any]()
@@ -329,66 +335,66 @@ public actor PersonalizedSearchSession {
             throw PersonalizedSearchSessionError.UnsupportedRequest
         }
         
-        var components = URLComponents(string:"\(PersonalizedSearchSession.serverUrl)\(PersonalizedSearchSession.venueRecommendationsAPIUrl)")
+        guard let components = URLComponents(string:"\(PersonalizedSearchSession.serverUrl)\(PersonalizedSearchSession.venueRecommendationsAPIUrl)") else {
+            throw PersonalizedSearchSessionError.UnsupportedRequest
+        }
         
-        components?.queryItems = [URLQueryItem]()
+        var queryItems = [URLQueryItem]()
         
         if let location = location, request.nearLocation == nil {
             let rawLocation = "\(location.coordinate.latitude),\(location.coordinate.longitude)"
             let radius = request.radius
             let radiusQueryItem = URLQueryItem(name: "radius", value: "\(radius)")
-            components?.queryItems?.append(radiusQueryItem)
+            queryItems.append(radiusQueryItem)
             
             let locationQueryItem = URLQueryItem(name: "ll", value: rawLocation)
-            components?.queryItems?.append(locationQueryItem)
+            queryItems.append(locationQueryItem)
         } else if let rawLocation = request.ll {
             let locationQueryItem = URLQueryItem(name: "ll", value: rawLocation)
-            components?.queryItems?.append(locationQueryItem)
+            queryItems.append(locationQueryItem)
         }
                 
-        if let categories = request.categories, !categories.isEmpty {
-            let categoriesQueryItem = URLQueryItem(name:"categoryId", value:categories)
-            components?.queryItems?.append(categoriesQueryItem)
-        } else if let section = request.section, section.rawValue.lowercased() == request.query.lowercased() {
-               let sectionQueryItem = URLQueryItem(name: "section", value: section.key())
-               components?.queryItems?.append(sectionQueryItem)
+        if !request.categories.isEmpty {
+            let categoriesQueryItem = URLQueryItem(name:"categoryId", value:request.categories)
+            queryItems.append(categoriesQueryItem)
+        } else if request.section.rawValue.lowercased() == request.query.lowercased() {
+            let sectionQueryItem = URLQueryItem(name: "section", value: request.section.key())
+               queryItems.append(sectionQueryItem)
         }
         
         if request.minPrice > 1 {
             let minPriceQueryItem = URLQueryItem(name: "price", value: "\(request.minPrice)")
-            components?.queryItems?.append(minPriceQueryItem)
+            queryItems.append(minPriceQueryItem)
         }
 
         if request.maxPrice < 4 {
             let maxPriceQueryItem = URLQueryItem(name: "price", value: "\(request.maxPrice)")
-            components?.queryItems?.append(maxPriceQueryItem)
+            queryItems.append(maxPriceQueryItem)
 
         }
         
         if request.openNow == true {
             let openNowQueryItem = URLQueryItem(name: "open_now", value: "true")
-            components?.queryItems?.append(openNowQueryItem)
+            queryItems.append(openNowQueryItem)
         }
         
         let limitQueryItem = URLQueryItem(name: "limit", value: "\(request.limit)")
-        components?.queryItems?.append(limitQueryItem)
+        queryItems.append(limitQueryItem)
         
         let offsetQueryItem = URLQueryItem(name: "offset", value: "\(request.offset)")
-        components?.queryItems?.append(offsetQueryItem)
+        queryItems.append(offsetQueryItem)
+        
+        
+        if  request.categories.isEmpty,  request.section.rawValue.lowercased() != request.query.lowercased(), !request.query.isEmpty {
+            let queryItem = URLQueryItem(name: "query", value: request.query)
+            queryItems.append(queryItem)
+        }
                 
-        guard let url = components?.url else {
+        guard let url = components.url else {
             throw PersonalizedSearchSessionError.UnsupportedRequest
         }
         
-        if let categories = request.categories, categories.isEmpty, let section = request.section, section.rawValue.lowercased() != request.query.lowercased(), !request.query.isEmpty {
-            let queryItem = URLQueryItem(name: "query", value: request.query)
-            components?.queryItems?.append(queryItem)
-        } else if request.categories == nil, request.section == nil, !request.query.isEmpty {
-            let queryItem = URLQueryItem(name: "query", value: request.query)
-            components?.queryItems?.append(queryItem)
-        }
-        
-        let response = try await fetch(url: url, apiKey: apiKey, urlQueryItems: components?.queryItems)
+        let response = try await fetch(url: url, apiKey: apiKey, urlQueryItems: queryItems)
         
         guard let response = response as? [String:Any] else {
             throw PersonalizedSearchSessionError.NoTasteFound
@@ -456,12 +462,15 @@ public actor PersonalizedSearchSession {
             throw PersonalizedSearchSessionError.UnsupportedRequest
         }
         
-        let components = URLComponents(string:"\(PersonalizedSearchSession.serverUrl)\(PersonalizedSearchSession.relatedVenueAPIUrl)\(fsqID)\(PersonalizedSearchSession.relatedVenuePath)")
-        guard let url = components?.url else {
+        guard let components = URLComponents(string:"\(PersonalizedSearchSession.serverUrl)\(PersonalizedSearchSession.relatedVenueAPIUrl)\(fsqID)\(PersonalizedSearchSession.relatedVenuePath)") else {
             throw PersonalizedSearchSessionError.UnsupportedRequest
         }
         
-        let response = try await fetch(url: url, apiKey: apiKey)
+        guard let url = components.url else {
+            throw PersonalizedSearchSessionError.UnsupportedRequest
+        }
+        
+        let response = try await fetch(url: url, apiKey: apiKey, urlQueryItems: [])
         
         guard let response = response as? [String:Any] else {
             throw PersonalizedSearchSessionError.NoTasteFound
@@ -530,22 +539,23 @@ public actor PersonalizedSearchSession {
         }
     }
     
-    internal func fetch(url:URL, apiKey:String, urlQueryItems:[URLQueryItem]? = nil, httpMethod:String = "GET") async throws -> Any {
-        print("Requesting URL: \(url)")
+    internal func fetch(url:URL, apiKey:String, urlQueryItems:[URLQueryItem], httpMethod:String = "GET") async throws -> Any {
         
-        var urlComponents = URLComponents(url: url, resolvingAgainstBaseURL: false)
+        guard var urlComponents = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
+            throw PersonalizedSearchSessionError.UnsupportedRequest
+        }
         
         let urlQueryItem = URLQueryItem(name: "v", value: PersonalizedSearchSession.foursquareVersionDate)
         var allQueryItems = [urlQueryItem]
+        allQueryItems.append(contentsOf: urlQueryItems)
+
+        urlComponents.queryItems = allQueryItems
         
-        if let urlQueryItems = urlQueryItems {
-            allQueryItems.append(contentsOf: urlQueryItems)
-        }
-        urlComponents?.queryItems = allQueryItems
-        
-        guard let queryUrl = urlComponents?.url else {
+        guard let queryUrl = urlComponents.url else {
             throw PersonalizedSearchSessionError.UnsupportedRequest
         }
+        
+        print("Requesting URL: \(queryUrl)")
 
         var request = URLRequest(url:queryUrl)
         request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
