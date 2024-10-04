@@ -99,15 +99,7 @@ struct PlacesList: View {
                     }
                 }
                 .padding()
-                .toolbar {
-                    ToolbarItemGroup {
-                        Button {
-                            showMapsResultViewSheet.toggle()
-                        } label: {
-                            Label("Show Map", systemImage: "map")
-                        }
-                    }
-                }
+                
             } else if chatModel.placeResults.count != 0 {
                 ScrollView{
                     let sizeWidth:CGFloat = sizeClass == .compact ? 1 : 2

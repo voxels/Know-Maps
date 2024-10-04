@@ -17,7 +17,7 @@ struct PlaceAboutView: View {
     @ObservedObject public var chatModel:ChatResultViewModel
     @ObservedObject public var locationProvider:LocationProvider
     @Binding public var resultId:ChatResult.ID?
-    @Binding public var sectionSelection:Int
+    @Binding public var tabItem:Int
     @State private var presentingPopover:Bool = false
     
 #if os(visionOS) || os(iOS)
@@ -75,7 +75,7 @@ struct PlaceAboutView: View {
 #endif
                                     .padding(PlaceAboutView.defaultPadding)
                                     .onTapGesture {
-                                        sectionSelection = 1
+                                        tabItem = 1
                                     }
                                 
                                 
@@ -221,7 +221,7 @@ struct PlaceAboutView: View {
                                         .hoverEffect(.lift)
 #endif
                                         .onTapGesture {
-                                            sectionSelection = 3
+                                            tabItem = 3
                                         }
                                     }
                                     

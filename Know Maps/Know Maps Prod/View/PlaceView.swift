@@ -14,12 +14,12 @@ struct PlaceView: View {
     @ObservedObject public var locationProvider:LocationProvider
     @ObservedObject public var placeDirectionsViewModel:PlaceDirectionsViewModel
     @Binding public var resultId:ChatResult.ID?
-    @State private var sectionSelection = 0
+    @State private var tabItem = 0
     
     var body: some View {
         if let resultId = resultId, let placeChatResult = chatModel.placeChatResult(for: resultId) {
             VStack {
-                Picker("", selection: $sectionSelection) {
+                Picker("", selection: $tabItem) {
                     Text("About").tag(0)
                     Text("Directions").tag(1)
                     if let detailsResponses = placeChatResult.placeDetailsResponse, let photoResponses = detailsResponses.photoResponses, photoResponses.count > 0 {
@@ -31,9 +31,9 @@ struct PlaceView: View {
                 }
                 .padding()
                 .pickerStyle(.palette)
-                switch sectionSelection {
+                switch tabItem {
                 case 0:
-                    PlaceAboutView(chatHost:chatHost,chatModel: chatModel, locationProvider: locationProvider, resultId: $resultId, sectionSelection: $sectionSelection)
+                    PlaceAboutView(chatHost:chatHost,chatModel: chatModel, locationProvider: locationProvider, resultId: $resultId, tabItem: $tabItem)
                         .tabItem {
                             Label("About", systemImage: "target")
                         }

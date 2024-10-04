@@ -8,13 +8,14 @@ struct SearchSavedView: View {
     @Binding public var columnVisibility: NavigationSplitViewVisibility
     @Binding public var preferredColumn:NavigationSplitViewColumn
     @Binding public var contentViewDetail:ContentDetailView
+    @Binding public var addItemSection:Int
     @Binding public var settingsPresented: Bool
     @State private var showNavigationLocationSheet:Bool = false
     @State private var searchText:String = ""
     
     var body: some View {
         GeometryReader { geometry in
-            SavedListView(chatModel: chatModel, contentViewDetail: $contentViewDetail, preferredColumn: $preferredColumn)
+            SavedListView(chatModel: chatModel, contentViewDetail: $contentViewDetail, addItemSection: $addItemSection, preferredColumn: $preferredColumn)
                 .toolbar {
                     ToolbarItemGroup(placement: .automatic) {
                         SavedListToolbarView(
@@ -132,23 +133,25 @@ struct AddPromptView: View {
     @ObservedObject public var chatHost: AssistiveChatHost
     @ObservedObject public var chatModel: ChatResultViewModel
     @ObservedObject public var locationProvider: LocationProvider
-    @Binding public var sectionSelection: String
+    @Binding public var addItemSection: Int
     @Binding public var contentViewDetail:ContentDetailView
     
     var body: some View {
-        TabView(selection: $sectionSelection) {
-            SearchTasteView(model: chatModel)
-                .tag("Feature")
-                .tabItem {
-                    Label("Feature", systemImage: "heart")
-                }
+        TabView(selection: $addItemSection) {
             SearchCategoryView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider)
-                .tag("Industry")
+                .tag(0)
                 .tabItem {
-                    Label("Industry", systemImage: "building")
+                    Label("Type", systemImage: "building")
                 }
+            
+            SearchTasteView(model: chatModel)
+                .tag(1)
+                .tabItem {
+                    Label("Item", systemImage: "heart")
+                }
+            
             SearchPlacesView(model: chatModel)
-                .tag("Place")
+                .tag(2)
                 .tabItem {
                     Label("Place", systemImage: "mappin")
                 }
@@ -158,12 +161,26 @@ struct AddPromptView: View {
 
 struct AddPromptToolbarView: View {
     @ObservedObject public var chatModel: ChatResultViewModel
-    @Binding public var sectionSelection: String
+    @Binding public var addItemSection: Int
     @Binding public var contentViewDetail:ContentDetailView
     @Binding public var columnVisibility:NavigationSplitViewVisibility
     
     var body: some View {
-        if sectionSelection == "Industry",
+        
+        if addItemSection == 0,
+           let parentID = chatModel.selectedTasteCategoryResult,
+           let parent = chatModel.tasteResult(for: parentID) {
+            let isSaved = chatModel.cachedTastes(contains: parent.parentCategory)
+            if isSaved {
+                Button(action: removeTaste(parent: parent)) {
+                    Label("Delete", systemImage: "minus.circle")
+                }
+            } else {
+                Button(action: addTaste(parent: parent)) {
+                    Label("Save", systemImage: "square.and.arrow.down")
+                }
+            }
+        } else if addItemSection == 1,
            let parentID = chatModel.selectedCategoryResult,
            let parent = chatModel.categoricalResult(for: parentID) {
             if chatModel.cachedCategories(contains: parent.parentCategory) {
@@ -181,20 +198,7 @@ struct AddPromptToolbarView: View {
             }
         }
         
-        if sectionSelection == "Feature",
-           let parentID = chatModel.selectedTasteCategoryResult,
-           let parent = chatModel.tasteResult(for: parentID) {
-            let isSaved = chatModel.cachedTastes(contains: parent.parentCategory)
-            if isSaved {
-                Button(action: removeTaste(parent: parent)) {
-                    Label("Delete", systemImage: "minus.circle")
-                }
-            } else {
-                Button(action: addTaste(parent: parent)) {
-                    Label("Save", systemImage: "square.and.arrow.down")
-                }
-            }
-        }
+
         
         Button(action: {
             columnVisibility = .all
@@ -273,45 +277,54 @@ struct AddPromptToolbarView: View {
 struct SavedListView: View {
     @ObservedObject public var chatModel: ChatResultViewModel
     @Binding public var contentViewDetail:ContentDetailView
+    @Binding public var addItemSection:Int
     @Binding public var preferredColumn:NavigationSplitViewColumn
     @State private var selectedResult:CategoryResult.ID?
     var body: some View {
         List(selection: $selectedResult) {
-            Section("Places") {
-                if chatModel.cachedPlaceResults.isEmpty {
-                    Text("Search for a place")
-                } else {
-                    ForEach(chatModel.cachedPlaceResults, id:\.id) { parent in
-                        Text(parent.parentCategory)
-                    }
-                    .onDelete(perform: deletePlaceItem)
-                }
-            }
-            
-            
-            Section("Features") {
-                if chatModel.cachedTasteResults.isEmpty {
-                    Text("Search for a feature")
-                } else {
-                    ForEach(chatModel.cachedTasteResults, id:\.id) { parent in
-                        Text(parent.parentCategory)
-                    }
-                    .onDelete(perform: deleteTasteItem)
-                }
-            }
-            
-            Section("Industries") {
-                if chatModel.cachedCategoryResults.isEmpty {
-                    Text("Search for an industry")
-                } else {
+            Section("Types") {
+                if !chatModel.cachedCategoryResults.isEmpty {
                     ForEach(chatModel.cachedCategoryResults, id:\.id) { parent in
                         Text(parent.parentCategory)
                     }
                     .onDelete(perform: deleteCategoryItem)
                 }
+                Text("Add a type of place")
+                    .onTapGesture {
+                        addItemSection = 0
+                        contentViewDetail = .add
+                    }
             }
             
-            Section("Mood") {
+            Section("Items") {
+                if !chatModel.cachedTasteResults.isEmpty {
+                    ForEach(chatModel.cachedTasteResults, id:\.id) { parent in
+                        Text(parent.parentCategory)
+                    }
+                    .onDelete(perform: deleteTasteItem)
+                }
+                Text("Add an item")
+                    .onTapGesture {
+                        addItemSection = 1
+                        contentViewDetail = .add
+                    }
+            }
+            
+            Section("Places") {
+                if !chatModel.cachedPlaceResults.isEmpty {
+                    ForEach(chatModel.cachedPlaceResults, id:\.id) { parent in
+                        Text(parent.parentCategory)
+                    }
+                    .onDelete(perform: deletePlaceItem)
+                }
+                Text("Search for a place")
+                    .onTapGesture {
+                        addItemSection = 2
+                        contentViewDetail = .add
+                    }
+            }
+            
+            Section("Moods") {
                 ForEach(chatModel.cachedDefaultResults, id:\.id) {
                     parent in
                     Text(parent.parentCategory)

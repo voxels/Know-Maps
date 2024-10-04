@@ -15,13 +15,13 @@ struct SearchView: View {
     @Binding public var columnVisibility:NavigationSplitViewVisibility
     @Binding public var preferredColumn:NavigationSplitViewColumn
     @Binding public var contentViewDetail:ContentDetailView
+    @Binding public var addItemSection:Int
     @Binding public var settingsPresented:Bool
     @Binding public var showPlaceViewSheet:Bool
     @Binding public var didError:Bool
-    @State private var savedSectionSelection = 1
     
     var body: some View {
-        SearchSavedView(chatHost:chatHost, chatModel: chatModel, locationProvider: locationProvider, columnVisibility: $columnVisibility, preferredColumn: $preferredColumn, contentViewDetail: $contentViewDetail, settingsPresented: $settingsPresented )
+        SearchSavedView(chatHost:chatHost, chatModel: chatModel, locationProvider: locationProvider, columnVisibility: $columnVisibility, preferredColumn: $preferredColumn, contentViewDetail: $contentViewDetail, addItemSection: $addItemSection, settingsPresented: $settingsPresented )
             .onChange(of: chatModel.selectedPlaceChatResult, { oldValue, newValue in
                 guard let newValue = newValue else {
                     showPlaceViewSheet = false

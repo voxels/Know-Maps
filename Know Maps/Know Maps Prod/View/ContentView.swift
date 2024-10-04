@@ -41,7 +41,7 @@ struct ContentView: View {
     NavigationSplitViewVisibility.all
     @State private var preferredColumn =
     NavigationSplitViewColumn.sidebar
-    @State private var sectionSelection: String = "Feature"
+    @State private var addItemSection: Int = 0
     @State private var settingsPresented:Bool = false
     @State private var didError = false
     @State private var contentViewDetail:ContentDetailView = .places
@@ -50,11 +50,11 @@ struct ContentView: View {
     @State private var showPlaceViewSheet:Bool = false
     @State private var cameraPosition:MapCameraPosition = .automatic
     @StateObject public var placeDirectionsChatViewModel = PlaceDirectionsViewModel(rawLocationIdent: "")
-
+    
     var body: some View {
         GeometryReader() { geometry in
             NavigationSplitView(columnVisibility: $columnVisibility, preferredCompactColumn: $preferredColumn) {
-                SearchView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, columnVisibility: $columnVisibility, preferredColumn: $preferredColumn, contentViewDetail: $contentViewDetail, settingsPresented: $settingsPresented, showPlaceViewSheet: $showPlaceViewSheet, didError: $didError)
+                SearchView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, columnVisibility: $columnVisibility, preferredColumn: $preferredColumn, contentViewDetail: $contentViewDetail, addItemSection: $addItemSection, settingsPresented: $settingsPresented, showPlaceViewSheet: $showPlaceViewSheet, didError: $didError)
 #if os(iOS) || os(visionOS)
                     .sheet(isPresented: $settingsPresented) {
                         SettingsView(chatModel: chatModel, showOnboarding: $showOnboarding)
@@ -85,39 +85,52 @@ struct ContentView: View {
                             chatModel.resetPlaceModel()
                             chatModel.selectedSavedResult = nil
                         }
-                    
-                    .sheet(isPresented: $showMapsResultViewSheet) {
-                        MapResultsView(chatHost: chatHost, model: chatModel, locationProvider: locationProvider, selectedMapItem: $selectedItem, cameraPosition:$cameraPosition)
-                            .onChange(of: selectedItem) { oldValue, newValue in
-                                if let newValue, let placeResponse = chatModel.filteredPlaceResults.first(where: { $0.placeResponse?.fsqID == newValue }) {
-                                    chatModel.selectedPlaceChatResult = placeResponse.id
+                        .toolbar {
+                            if contentViewDetail == .places {
+                                
+                                ToolbarItem {
+                                    Button {
+                                        showMapsResultViewSheet.toggle()
+                                    } label: {
+                                        Label("Show Map", systemImage: "map")
+                                    }
                                 }
                             }
-                        #if os(macOS)
-                            .toolbar(content: {
-                                ToolbarItem {
-                                    Button(action:{
-                                        showMapsResultViewSheet.toggle()
-                                    }, label:{
-                                        Label("List", systemImage: "list.bullet")
-                                    })
+                            
+                        }
+                    
+                        .sheet(isPresented: $showMapsResultViewSheet) {
+                            MapResultsView(chatHost: chatHost, model: chatModel, locationProvider: locationProvider, selectedMapItem: $selectedItem, cameraPosition:$cameraPosition)
+                                .onChange(of: selectedItem) { oldValue, newValue in
+                                    if let newValue, let placeResponse = chatModel.filteredPlaceResults.first(where: { $0.placeResponse?.fsqID == newValue }) {
+                                        chatModel.selectedPlaceChatResult = placeResponse.id
+                                    }
                                 }
-                            })
-                        #endif
-                            .frame(minHeight: geometry.size.height - 60, maxHeight: .infinity)
-                            .presentationDetents([.large])
-                            .presentationDragIndicator(.visible)
-                            .presentationCompactAdaptation(.sheet)
-
-                    }
-                    .sheet(isPresented: $showPlaceViewSheet, content: {
-                        PlaceView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, placeDirectionsViewModel: placeDirectionsChatViewModel, resultId: $chatModel.selectedPlaceChatResult)
-                            .frame(minHeight: geometry.size.height - 60, maxHeight: .infinity)
-                            .presentationDetents([.large])
-                            .presentationDragIndicator(.visible)
-                            .presentationCompactAdaptation(.sheet)
-                    })
-        
+#if os(macOS)
+                                .toolbar(content: {
+                                    ToolbarItem {
+                                        Button(action:{
+                                            showMapsResultViewSheet.toggle()
+                                        }, label:{
+                                            Label("List", systemImage: "list.bullet")
+                                        })
+                                    }
+                                })
+#endif
+                                .frame(minHeight: geometry.size.height - 60, maxHeight: .infinity)
+                                .presentationDetents([.large])
+                                .presentationDragIndicator(.visible)
+                                .presentationCompactAdaptation(.sheet)
+                            
+                        }
+                        .sheet(isPresented: $showPlaceViewSheet, content: {
+                            PlaceView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, placeDirectionsViewModel: placeDirectionsChatViewModel, resultId: $chatModel.selectedPlaceChatResult)
+                                .frame(minHeight: geometry.size.height - 60, maxHeight: .infinity)
+                                .presentationDetents([.large])
+                                .presentationDragIndicator(.visible)
+                                .presentationCompactAdaptation(.sheet)
+                        })
+                    
                 case .order:
                     PromptRankingView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, contentViewDetail: $contentViewDetail)
                 case .add:
@@ -126,13 +139,13 @@ struct ContentView: View {
                             chatHost: chatHost,
                             chatModel: chatModel,
                             locationProvider: locationProvider,
-                            sectionSelection: $sectionSelection, contentViewDetail: $contentViewDetail
+                            addItemSection: $addItemSection, contentViewDetail: $contentViewDetail
                         )
                         .toolbar {
                             ToolbarItemGroup(placement: .automatic) {
                                 AddPromptToolbarView(
                                     chatModel: chatModel,
-                                    sectionSelection: $sectionSelection,
+                                    addItemSection: $addItemSection,
                                     contentViewDetail: $contentViewDetail, columnVisibility: $columnVisibility
                                 )
                             }
@@ -143,13 +156,13 @@ struct ContentView: View {
                                 chatHost: chatHost,
                                 chatModel: chatModel,
                                 locationProvider: locationProvider,
-                                sectionSelection: $sectionSelection, contentViewDetail: $contentViewDetail
+                                addItemSection: $addItemSection, contentViewDetail: $contentViewDetail
                             )
                             .toolbar {
                                 ToolbarItemGroup(placement: .automatic) {
                                     AddPromptToolbarView(
                                         chatModel: chatModel,
-                                        sectionSelection: $sectionSelection,
+                                        addItemSection: $addItemSection,
                                         contentViewDetail: $contentViewDetail, columnVisibility: $columnVisibility
                                     )
                                 }

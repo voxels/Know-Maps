@@ -217,15 +217,11 @@ struct Know_MapsApp: App {
                 chatModel.selectedDestinationLocationChatResult = chatModel.currentLocationResult.id
             }
         }
-        
-        let isOnboarded = !chatModel.cachedTasteResults.isEmpty || !chatModel.cachedPlaceResults.isEmpty || !chatModel.cachedCategoryResults.isEmpty
-        
+                
         await MainActor.run {
-            if cloudAuth, chatModel.cloudCache.hasFsqAccess, isLocationAuthorized, isOnboarded {
+            if cloudAuth, chatModel.cloudCache.hasFsqAccess, isLocationAuthorized {
                 showOnboarding = false
-            } else if cloudAuth, chatModel.cloudCache.hasFsqAccess, isLocationAuthorized, !isOnboarded {
-                selectedOnboardingTab = "Saving"
-            } else if cloudAuth, chatModel.cloudCache.hasFsqAccess, !isLocationAuthorized, !isOnboarded {
+            }else if cloudAuth, chatModel.cloudCache.hasFsqAccess, !isLocationAuthorized {
                 selectedOnboardingTab = "Location"
             }
             
