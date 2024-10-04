@@ -47,10 +47,14 @@ struct SearchSavedView: View {
                                     Button("Delete", systemImage:"minus.circle") {
                                         if let location = parent.location, let cachedLocationResults = chatModel.cachedResults(for: "Location", identity:chatModel.cachedLocationIdentity(for: location)), let cachedLocationResult = cachedLocationResults.first {
                                             Task {
-                                                
-                                                try await chatModel.cloudCache.deleteUserCachedRecord(for: cachedLocationResult)
-                                                
-                                                try await chatModel.refreshCachedLocations(cloudCache: chatModel.cloudCache)
+                                                do {
+                                                    try await chatModel.cloudCache.deleteUserCachedRecord(for: cachedLocationResult)
+                                                    
+                                                    try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
+                                                } catch {
+                                                    print(error)
+                                                    chatModel.analytics?.track(name: "Error deleting location", properties: ["error":error.localizedDescription])
+                                                }
                                             }
                                         }
                                     }.labelStyle(.iconOnly)
@@ -100,20 +104,23 @@ struct SearchSavedView: View {
                     if let selectedDestinationLocationChatResult = chatModel.selectedDestinationLocationChatResult,
                        let parent = chatModel.locationChatResult(for: selectedDestinationLocationChatResult)
                     {
-                        
                         Task{
-                            if let location = parent.location {
-                                var userRecord = UserCachedRecord(recordId: "", group: "Location", identity: chatModel.cachedLocationIdentity(for: location), title: parent.locationName, icons: "", list:"Places", section:chatHost.section(place: parent.locationName).rawValue)
-                                let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, list:userRecord.list, section:userRecord.section)
-                                userRecord.setRecordId(to:record)
-                                await chatModel.appendCachedLocation(with: userRecord)
-                                try await chatModel.refreshCachedLocations(cloudCache: chatModel.cloudCache)
+                            do {
+                                if let location = parent.location {
+                                    var userRecord = UserCachedRecord(recordId: "", group: "Location", identity: chatModel.cachedLocationIdentity(for: location), title: parent.locationName, icons: "", list:"Places", section:chatHost.section(place: parent.locationName).rawValue)
+                                    let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, list:userRecord.list, section:userRecord.section)
+                                    userRecord.setRecordId(to:record)
+                                    try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
+                                }
+                            }  catch {
+                                print(error)
+                                chatModel.analytics?.track(name: "error \(error)")
                             }
                         }
                     }
                 } catch {
-                    chatModel.analytics?.track(name: "error \(error)")
                     print(error)
+                    chatModel.analytics?.track(name: "error \(error)")
                 }
             }
         }
@@ -200,10 +207,15 @@ struct AddPromptToolbarView: View {
         return {
             guard let cachedResults = chatModel.cachedResults(for: "Category", identity: parent.parentCategory) else { return }
             Task {
-                for result in cachedResults {
-                    try await chatModel.cloudCache.deleteUserCachedRecord(for: result)
+                do {
+                    for result in cachedResults {
+                        try await chatModel.cloudCache.deleteUserCachedRecord(for: result)
+                    }
+                    try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
+                } catch {
+                    print(error)
+                    chatModel.analytics?.track(name: "Error removing category", properties: ["error": error.localizedDescription])
                 }
-                try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
             }
         }
     }
@@ -211,11 +223,15 @@ struct AddPromptToolbarView: View {
     private func addCategory(parent: CategoryResult) -> () -> Void {
         return {
             Task {
-                var userRecord = UserCachedRecord(recordId: "", group: "Category", identity: parent.parentCategory, title: parent.parentCategory, icons: "", list: parent.list, section: parent.section.rawValue)
-                let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, list:userRecord.list, section:userRecord.section)
-                userRecord.setRecordId(to: record)
-                await chatModel.appendCachedCategory(with: userRecord)
-                await chatModel.refreshCachedResults()
+                do {
+                    var userRecord = UserCachedRecord(recordId: "", group: "Category", identity: parent.parentCategory, title: parent.parentCategory, icons: "", list: parent.list, section: parent.section.rawValue)
+                    let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, list:userRecord.list, section:userRecord.section)
+                    userRecord.setRecordId(to: record)
+                    try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
+                } catch {
+                    print(error)
+                    chatModel.analytics?.track(name: "Error adding category", properties: ["error": error.localizedDescription])
+                }
             }
         }
     }
@@ -225,8 +241,13 @@ struct AddPromptToolbarView: View {
             guard let cachedResults = chatModel.cachedResults(for: "Taste", identity: parent.parentCategory) else { return }
             for result in cachedResults {
                 Task {
+                    do {
                     try await chatModel.cloudCache.deleteUserCachedRecord(for: result)
                     try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
+                    } catch {
+                        print(error)
+                        chatModel.analytics?.track(name: "Error removing taste", properties: ["error": error.localizedDescription])
+                    }
                 }
             }
         }
@@ -235,11 +256,15 @@ struct AddPromptToolbarView: View {
     private func addTaste(parent: CategoryResult) -> () -> Void {
         return {
             Task {
-                var userRecord = UserCachedRecord(recordId: "", group: "Taste", identity: parent.parentCategory, title: parent.parentCategory, icons: "", list: parent.list, section: parent.section.rawValue)
-                let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, list:userRecord.list, section:userRecord.section)
-                userRecord.setRecordId(to: record)
-                await chatModel.appendCachedTaste(with: userRecord)
-                await chatModel.refreshCachedResults()
+                do {
+                    var userRecord = UserCachedRecord(recordId: "", group: "Taste", identity: parent.parentCategory, title: parent.parentCategory, icons: "", list: parent.list, section: parent.section.rawValue)
+                    let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, list:userRecord.list, section:userRecord.section)
+                    userRecord.setRecordId(to: record)
+                    try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
+                } catch {
+                    print(error)
+                    chatModel.analytics?.track(name: "Error adding taste", properties: ["error": error.localizedDescription])
+                }
             }
         }
     }
@@ -253,25 +278,37 @@ struct SavedListView: View {
     var body: some View {
         List(selection: $selectedResult) {
             Section("Places") {
-                ForEach(chatModel.cachedPlaceResults, id:\.id) { parent in
-                    Text(parent.parentCategory)
+                if chatModel.cachedPlaceResults.isEmpty {
+                    Text("Search for a place")
+                } else {
+                    ForEach(chatModel.cachedPlaceResults, id:\.id) { parent in
+                        Text(parent.parentCategory)
+                    }
+                    .onDelete(perform: deletePlaceItem)
                 }
-                .onDelete(perform: deletePlaceItem)
             }
             
             
             Section("Features") {
-                ForEach(chatModel.cachedTasteResults, id:\.id) { parent in
-                    Text(parent.parentCategory)
+                if chatModel.cachedTasteResults.isEmpty {
+                    Text("Search for a feature")
+                } else {
+                    ForEach(chatModel.cachedTasteResults, id:\.id) { parent in
+                        Text(parent.parentCategory)
+                    }
+                    .onDelete(perform: deleteTasteItem)
                 }
-                .onDelete(perform: deleteTasteItem)
             }
             
             Section("Industries") {
-                ForEach(chatModel.cachedCategoryResults, id:\.id) { parent in
-                    Text(parent.parentCategory)
+                if chatModel.cachedCategoryResults.isEmpty {
+                    Text("Search for an industry")
+                } else {
+                    ForEach(chatModel.cachedCategoryResults, id:\.id) { parent in
+                        Text(parent.parentCategory)
+                    }
+                    .onDelete(perform: deleteCategoryItem)
                 }
-                .onDelete(perform: deleteCategoryItem)
             }
             
             Section("Mood") {

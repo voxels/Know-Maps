@@ -68,7 +68,12 @@ struct PlaceDirectionsView: View {
                                     .onChange(of: model.destination) {
                                         if let destination = model.destination {
                                             Task {
-                                                try await getLookAroundScene(mapItem:destination)
+                                                do {
+                                                    try await getLookAroundScene(mapItem:destination)
+                                                } catch {
+                                                    print(error)
+                                                    chatModel.analytics?.track(name: "Error getting LookAroundScene) \(error)")
+                                                }
                                             }
                                         }
                                     }

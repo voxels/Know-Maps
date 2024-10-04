@@ -167,7 +167,12 @@ struct ContentView: View {
         })
         .onChange(of: selectedItem, { oldValue, newValue in
             Task {
-                try await chatModel.didTapMarker(with: newValue)
+                do {
+                    try await chatModel.didTapMarker(with: newValue)
+                } catch {
+                    print(error)
+                    chatModel.analytics?.track(name: "error \(error)")
+                }
             }
         })
         .onChange(of: columnVisibility) { oldValue, newValue in

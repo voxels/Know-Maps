@@ -99,11 +99,16 @@ struct PlaceAboutView: View {
                                                         .labelStyle(.iconOnly).foregroundStyle(.primary)
                                                         .onTapGesture {
                                                             Task {
-                                                                var userRecord = UserCachedRecord(recordId: "", group: "Place", identity:placeResponse.fsqID, title: parent.title, icons: "", list: parent.list, section: parent.section.rawValue)
-                                                                let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, list:userRecord.list, section:userRecord.section)
-                                                                userRecord.setRecordId(to: record)
-                                                                await chatModel.appendCachedPlace(with: userRecord)
-                                                                try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
+                                                                do {
+                                                                    var userRecord = UserCachedRecord(recordId: "", group: "Place", identity:placeResponse.fsqID, title: parent.title, icons: "", list: parent.list, section: parent.section.rawValue)
+                                                                    let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, list:userRecord.list, section:userRecord.section)
+                                                                    userRecord.setRecordId(to: record)
+                                                                    
+                                                                    try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
+                                                                } catch {
+                                                                    print(error)
+                                                                    chatModel.analytics?.track(name: "Error Saving Place", properties: ["error": error.localizedDescription])
+                                                                }
                                                             }
                                                         }
                                                 } else {
@@ -114,9 +119,13 @@ struct PlaceAboutView: View {
                                                                 let identity = placeResponse.fsqID
                                                                 if let cachedPlaceResults = chatModel.cachedResults(for: "Place", identity:identity), let cachedPlaceResult = cachedPlaceResults.first {
                                                                     Task {
-                                                                        
-                                                                        try await chatModel.cloudCache.deleteUserCachedRecord(for: cachedPlaceResult)
-                                                                        try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
+                                                                        do {
+                                                                            try await chatModel.cloudCache.deleteUserCachedRecord(for: cachedPlaceResult)
+                                                                            try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
+                                                                        } catch {
+                                                                            print(error)
+                                                                            chatModel.analytics?.track(name: "Error Deleting Place", properties: ["error": error.localizedDescription])
+                                                                        }
                                                                     }
                                                                 }
                                                                 
@@ -318,8 +327,7 @@ struct PlaceAboutView: View {
                                                                     let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, list:userRecord.list, section: userRecord.section)
                                                                     
                                                                     userRecord.setRecordId(to:record)
-                                                                    await chatModel.appendCachedTaste(with: userRecord)
-                                                                    await chatModel.refreshCachedResults()
+                                                                    try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
                                                                 } catch {
                                                                     chatModel.analytics?.track(name: "error \(error)")
                                                                     print(error)

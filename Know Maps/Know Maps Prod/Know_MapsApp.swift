@@ -184,12 +184,17 @@ struct Know_MapsApp: App {
         }
 
         let cacheRefreshTask = Task {
-            try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
+            do {
+                try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
+            } catch {
+                print(error)
+                chatModel.analytics?.track(name: "cache_refresh_error", properties: ["error": error.localizedDescription])
+            }
         }
 
         do {
             try await withTimeout(seconds: 10) {
-                try await cacheRefreshTask.value
+                await cacheRefreshTask.value
             }
         } catch {
             cacheRefreshTask.cancel()

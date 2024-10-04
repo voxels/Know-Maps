@@ -481,7 +481,7 @@ public actor PersonalizedSearchSession {
         // Use a continuation to wait for the async operation to complete
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
             operation.recordMatchedBlock = { [weak self] recordId, result in
-                guard let self = self else { return }
+                
                 Task { [weak self] in
                     guard let self = self else { return }
                     await self.handleRecordMatched(result: result)
@@ -489,7 +489,7 @@ public actor PersonalizedSearchSession {
             }
 
             operation.queryResultBlock = { [weak self] result in
-                guard let self = self else { return }
+                
                 Task { [weak self] in
                     guard let self = self else { return }
                     await self.handleQueryResult(result: result, continuation: continuation)
@@ -559,6 +559,8 @@ public actor PersonalizedSearchSession {
                             if let checkDict = json as? NSDictionary, let message = checkDict["message"] as? String, message.hasPrefix("Foursquare servers")  {
                                 print("Message from server:")
                                 print(message)
+                                checkedContinuation.resume(throwing: PersonalizedSearchSessionError.ServerErrorMessage)
+                            } else if let checkDict = json as? NSDictionary, let meta = checkDict["meta"] as? NSDictionary, let code = meta["code"] as? Int64, code == 500 {
                                 checkedContinuation.resume(throwing: PersonalizedSearchSessionError.ServerErrorMessage)
                             } else {
                                 checkedContinuation.resume(returning:json)

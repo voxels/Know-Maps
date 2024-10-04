@@ -39,15 +39,18 @@ struct AddListItemView: View {
                     for selectedItem in newValue {
                         
                         Task {
-                            if let selectedPlaceChatResult = chatModel.selectedPlaceChatResult, let chatResult = chatModel.placeChatResult(for: selectedPlaceChatResult), let placeResponse = chatResult.placeResponse, let cachedListResult = chatModel.cachedListResult(for: selectedItem) {
-                                
-                                var userRecord = UserCachedRecord(recordId: "", group: "Place", identity:placeResponse.fsqID, title: placeResponse.name, icons: "", list:cachedListResult.list, section:chatResult.section.rawValue)
-                                let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, list:userRecord.list, section:userRecord.section)
-                                userRecord.setRecordId(to: record)
-                                await chatModel.appendCachedCategory(with: userRecord)
-                                await chatModel.refreshCachedResults()
+                            do {
+                                if let selectedPlaceChatResult = chatModel.selectedPlaceChatResult, let chatResult = chatModel.placeChatResult(for: selectedPlaceChatResult), let placeResponse = chatResult.placeResponse, let cachedListResult = chatModel.cachedListResult(for: selectedItem) {
+                                    
+                                    var userRecord = UserCachedRecord(recordId: "", group: "Place", identity:placeResponse.fsqID, title: placeResponse.name, icons: "", list:cachedListResult.list, section:chatResult.section.rawValue)
+                                    let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, list:userRecord.list, section:userRecord.section)
+                                    userRecord.setRecordId(to: record)
+                                    try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
+                                }
+                            } catch {
+                                print(error)
+                                chatModel.analytics?.track(name: "error \(error)", properties: ["error": error.localizedDescription])
                             }
-                            
                         }
                     }
                 }
@@ -72,7 +75,12 @@ struct AddListItemView: View {
                     
                     Button("Done") {
                         Task {
-                            try await chatModel.refreshCache(cloudCache: cloudCache)
+                            do {
+                                try await chatModel.refreshCache(cloudCache: cloudCache)
+                            } catch {
+                                print(error)
+                                chatModel.analytics?.track(name: "error \(error)", properties: ["error": error.localizedDescription])
+                            }
                         }
                         presentingPopover.toggle()
                     }
@@ -87,27 +95,31 @@ struct AddListItemView: View {
         guard !textFieldData.isEmpty else { return }
         
         Task {
-            var userRecord = UserCachedRecord(
-                recordId: "",
-                group: "List",
-                identity: textFieldData,
-                title: textFieldData,
-                icons: "",
-                list: textFieldData,
-                section: chatHost.section(for: textFieldData).rawValue
-            )
-            
-            let record = try await chatModel.cloudCache.storeUserCachedRecord(
-                for: userRecord.group,
-                identity: userRecord.identity,
-                title: userRecord.title,
-                list: userRecord.list,
-                section: userRecord.section
-            )
-            
-            userRecord.setRecordId(to: record)
-            await chatModel.appendCachedList(with: userRecord)
-            await chatModel.refreshCachedResults()
+            do {
+                var userRecord = UserCachedRecord(
+                    recordId: "",
+                    group: "List",
+                    identity: textFieldData,
+                    title: textFieldData,
+                    icons: "",
+                    list: textFieldData,
+                    section: chatHost.section(for: textFieldData).rawValue
+                )
+                
+                let record = try await chatModel.cloudCache.storeUserCachedRecord(
+                    for: userRecord.group,
+                    identity: userRecord.identity,
+                    title: userRecord.title,
+                    list: userRecord.list,
+                    section: userRecord.section
+                )
+                
+                userRecord.setRecordId(to: record)
+                try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
+            } catch {
+                print(error)
+                chatModel.analytics?.track(name: "error \(error)")
+            }
         }
     }
 }

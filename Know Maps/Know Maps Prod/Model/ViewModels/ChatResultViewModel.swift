@@ -731,13 +731,11 @@ final class ChatResultViewModel: ObservableObject {
     }
     
     public func retrieveFsqUser() async throws {
-        Task {
-            try await personalizedSearchSession.fetchManagedUserIdentity()
-            try await personalizedSearchSession.fetchManagedUserAccessToken()
-            
-            if await personalizedSearchSession.fsqIdentity == nil {
-                try await personalizedSearchSession.addFoursquareManagedUserIdentity()
-            }
+        try await personalizedSearchSession.fetchManagedUserIdentity()
+        try await personalizedSearchSession.fetchManagedUserAccessToken()
+        
+        if await personalizedSearchSession.fsqIdentity == nil {
+            try await personalizedSearchSession.addFoursquareManagedUserIdentity()
         }
     }
     
@@ -811,9 +809,7 @@ final class ChatResultViewModel: ObservableObject {
                 }
             }
             
-            Task {
-                try await refreshCachedLocations(cloudCache: cloudCache)
-            }
+            try await refreshCache(cloudCache: cloudCache)
         case .AutocompleteSearch:
             do {
                 if let selectedDestinationLocationChatResult = selectedDestinationLocationChatResult,

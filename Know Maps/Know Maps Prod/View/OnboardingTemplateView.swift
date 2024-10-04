@@ -95,7 +95,12 @@ struct OnboardingTemplateView: View {
                 HStack {
                     Button(action:{
                         Task {
-                            try await chatModel.refreshCache(cloudCache: cloudCache)
+                            do {
+                                try await chatModel.refreshCache(cloudCache: cloudCache)
+                            } catch {
+                                print(error)
+                                chatModel.analytics?.track(name: "Error refreshing cache", properties: ["error":error.localizedDescription])
+                            }
                         }
                     }, label:{
                         Label("Store in iCloud", systemImage:"square.and.arrow.up.circle").labelStyle(.titleAndIcon)
@@ -131,8 +136,8 @@ struct OnboardingTemplateView: View {
                                         try await chatModel.cloudCache.deleteUserCachedRecord(for: cachedTasteResult)
                                         try await chatModel.refreshCache(cloudCache: cloudCache)
                                     } catch {
-                                        chatModel.analytics?.track(name: "error \(error)")
                                         print(error)
+                                        chatModel.analytics?.track(name: "error \(error)")
                                     }
                                     
                                 }
@@ -147,8 +152,8 @@ struct OnboardingTemplateView: View {
                             await chatModel.appendCachedTaste(with: userRecord)
                             await chatModel.refreshCachedResults()
                         } catch {
-                            chatModel.analytics?.track(name: "error \(error)")
                             print(error)
+                            chatModel.analytics?.track(name: "error \(error)")
                         }
                     }
                 }

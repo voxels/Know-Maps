@@ -36,8 +36,8 @@ struct SearchView: View {
                                 showPlaceViewSheet = true
                             }
                         } catch {
-                            chatModel.analytics?.track(name: "error \(error)")
                             print(error)
+                            chatModel.analytics?.track(name: "error \(error)")
                             await MainActor.run {
                                 didError.toggle()
                             }

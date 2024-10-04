@@ -425,7 +425,6 @@ public actor PlaceSearchSession : ObservableObject {
         operation.resultsLimit = 1
 
         operation.recordMatchedBlock = { [weak self] recordId, result in
-            guard let self = self else { return }
             Task { [weak self] in
                 guard let self = self else { return }
                 await self.handleRecordMatched(result: result)
@@ -437,7 +436,6 @@ public actor PlaceSearchSession : ObservableObject {
 
         let success = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Bool, Error>) in
             operation.queryResultBlock = { [weak self] result in
-                guard let self = self else { return }
                 Task { [weak self] in
                     guard let self = self else { return }
                     await self.handleQueryResult(result: result, continuation: continuation)

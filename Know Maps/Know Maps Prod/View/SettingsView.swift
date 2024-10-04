@@ -88,6 +88,7 @@ struct SettingsView: View {
                         }
                     } catch {
                         print(error)
+                        chatModel.analytics?.track(name: "Error deleting all groups", properties: ["error": error.localizedDescription])
                     }
                 }
             }, label:{
