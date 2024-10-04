@@ -38,60 +38,120 @@ open class CloudCache: NSObject, ObservableObject {
     
     private var cacheOperations = Set<CKDatabaseOperation>()
     private var keysOperations = Set<CKDatabaseOperation>()
-
+    
     public enum CloudCacheService: String {
         case revenuecat
     }
     
+    // Thread-safe queues for synchronizing access
+    private let operationQueue = DispatchQueue(label: "com.secretatomics.knowmaps.operationQueue", attributes: .concurrent)
+    
+#if !os(macOS)
+    private var backgroundTask: UIBackgroundTaskIdentifier = .invalid
+#endif
+    
     public override init() {
         super.init()
-        #if os(macOS)
+#if os(macOS)
         NotificationCenter.default.addObserver(self, selector: #selector(appDidEnterBackground), name: NSApplication.didResignActiveNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(appWillEnterForeground), name: NSApplication.didBecomeActiveNotification, object: nil)
-        #else
+#else
         NotificationCenter.default.addObserver(self, selector: #selector(appDidEnterBackground), name: UIApplication.didEnterBackgroundNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(appWillEnterForeground), name: UIApplication.willEnterForegroundNotification, object: nil)
-        #endif
+#endif
     }
     
     @objc func appDidEnterBackground() {
-        // Assuming you have a reference to your CKOperations
-        for operation in cacheOperations {
-            operation.cancel()
-        }
+        // Register background task
+#if !os(macOS)
+        backgroundTask = UIApplication.shared.beginBackgroundTask(expirationHandler: {
+            // Cancel operations if background time expires
+            self.cancelAllOperations()
+            UIApplication.shared.endBackgroundTask(self.backgroundTask)
+            self.backgroundTask = .invalid
+        })
+#endif
         
-        for operation in keysOperations {
-            operation.cancel()
+        // Do not immediately cancel operations; allow them to finish in the background
+        DispatchQueue.global().async {
+            self.waitForOperationsToFinish()
         }
     }
     
     @objc func appWillEnterForeground() {
-        // Restart or queue the previously suspended operations
-        // Fetch or resume data if required
-        
-        for operation in keysOperations {
-            keysContainer.add(operation)
+        // End background task if necessary
+#if !os(macOS)
+        if backgroundTask != .invalid {
+            UIApplication.shared.endBackgroundTask(backgroundTask)
+            backgroundTask = .invalid
+        }
+#endif
+        // Resume or restart any necessary operations
+    }
+    
+    private func waitForOperationsToFinish() {
+        // Wait for ongoing operations to finish before canceling
+        cacheOperations.forEach { operation in
+            if operation.isExecuting {
+                operation.queuePriority = .veryLow
+            }
+        }
+        keysOperations.forEach { operation in
+            if operation.isExecuting {
+                operation.queuePriority = .veryLow
+            }
         }
         
-        for operation in cacheOperations {
-            cacheContainer.add(operation)
+        // Optionally wait for a specific amount of time before cancelling if necessary
+        DispatchQueue.main.asyncAfter(deadline: .now() + 20) {
+            self.cancelAllOperations()
         }
     }
-
+    
+    private func cancelAllOperations() {
+        // Safely cancel all operations
+        cacheOperations.forEach { $0.cancel() }
+        keysOperations.forEach { $0.cancel() }
+    }
+    
+    private func insertCacheOperation(_ operation: CKDatabaseOperation) {
+        operationQueue.async(flags: .barrier) {
+            self.cacheOperations.insert(operation)
+        }
+    }
+    
+    private func insertKeysOperation(_ operation: CKDatabaseOperation) {
+        operationQueue.async(flags: .barrier) {
+            self.keysOperations.insert(operation)
+        }
+    }
+    
+    private func removeCacheOperation(_ operation: CKDatabaseOperation) {
+        operationQueue.async(flags: .barrier) {
+            self.cacheOperations.remove(operation)
+        }
+    }
+    
+    private func removeKeysOperation(_ operation: CKDatabaseOperation) {
+        operationQueue.async(flags: .barrier) {
+            self.keysOperations.remove(operation)
+        }
+    }
+    
     public func clearCache() {
         // Implement cache clearing logic here
     }
-
+    
     public func fetch(url: URL, from cloudService: CloudCacheService) async throws -> Any {
         let configuredSession = try await session(service: cloudService.rawValue)
         return try await fetch(url: url, apiKey: serviceAPIKey, session: configuredSession)
     }
-
+    
     internal func fetch(url: URL, apiKey: String, session: URLSession) async throws -> Any {
         print("Requesting URL: \(url)")
         var request = URLRequest(url: url)
         request.setValue(apiKey, forHTTPHeaderField: "Authorization")
-
+        
         return try await withCheckedThrowingContinuation { continuation in
             let dataTask = session.dataTask(with: request) { data, response, error in
                 if let e = error {
@@ -112,7 +172,7 @@ open class CloudCache: NSObject, ObservableObject {
             dataTask.resume()
         }
     }
-
+    
     internal func session(service: String) async throws -> URLSession {
         let predicate = NSPredicate(format: "service == %@", service)
         let query = CKQuery(recordType: "KeyString", predicate: predicate)
@@ -121,7 +181,7 @@ open class CloudCache: NSObject, ObservableObject {
         operation.resultsLimit = 1
         operation.recordMatchedBlock = { [weak self] _, result in
             guard let self = self else { return }
-
+            
             do {
                 let record = try result.get()
                 if let apiKey = record["value"] as? String {
@@ -138,7 +198,7 @@ open class CloudCache: NSObject, ObservableObject {
         }
         operation.queuePriority = .veryHigh
         operation.qualityOfService = .userInitiated
-
+        
         let success = try await withCheckedThrowingContinuation { continuation in
             operation.queryResultBlock = { result in
                 switch result {
@@ -149,19 +209,19 @@ open class CloudCache: NSObject, ObservableObject {
                     continuation.resume(returning: false)
                 }
             }
-            keysOperations.insert(operation)
+            self.insertKeysOperation(operation)
             keysContainer.publicCloudDatabase.add(operation)
         }
-
+        
+        self.removeKeysOperation(operation)
+        
         if success {
-            keysOperations.remove(operation)
             return defaultSession()
         } else {
-            keysOperations.remove(operation)
             throw CloudCacheError.ServiceNotFound
         }
     }
-
+    
     public func apiKey(for service: CloudCacheService) async throws -> String {
         let predicate = NSPredicate(format: "service == %@", service.rawValue)
         let query = CKQuery(recordType: "KeyString", predicate: predicate)
@@ -170,7 +230,7 @@ open class CloudCache: NSObject, ObservableObject {
         operation.resultsLimit = 1
         operation.recordMatchedBlock = { [weak self] _, result in
             guard let self = self else { return }
-
+            
             do {
                 let record = try result.get()
                 if let apiKey = record["value"] as? String {
@@ -187,7 +247,7 @@ open class CloudCache: NSObject, ObservableObject {
         }
         operation.queuePriority = .veryHigh
         operation.qualityOfService = .userInitiated
-
+        
         let success = try await withCheckedThrowingContinuation { continuation in
             operation.queryResultBlock = { result in
                 switch result {
@@ -198,22 +258,21 @@ open class CloudCache: NSObject, ObservableObject {
                     continuation.resume(returning: false)
                 }
             }
-            keysOperations.insert(operation)
+            self.insertKeysOperation(operation)
             keysContainer.publicCloudDatabase.add(operation)
         }
-
+        
+        self.removeKeysOperation(operation)
+        
         if success {
-            keysOperations.remove(operation)
-            
             return await MainActor.run {
                 serviceAPIKey
             }
         } else {
-            keysOperations.remove(operation)
             throw CloudCacheError.ServiceNotFound
         }
     }
-
+    
     public func fetchCloudKitUserRecordID() async throws -> CKRecord.ID? {
         return try await withCheckedThrowingContinuation { continuation in
             cacheContainer.fetchUserRecordID { recordId, error in
@@ -227,7 +286,7 @@ open class CloudCache: NSObject, ObservableObject {
             }
         }
     }
-
+    
     public func fetchFsqIdentity() async throws -> String {
         let predicate = NSPredicate(format: "TRUEPREDICATE")
         let query = CKQuery(recordType: "PersonalizedUser", predicate: predicate)
@@ -253,7 +312,7 @@ open class CloudCache: NSObject, ObservableObject {
                 self.analytics?.track(name: "error \(error)")
             }
         }
-
+        
         let success = try await withCheckedThrowingContinuation { continuation in
             operation.queryResultBlock = { result in
                 switch result {
@@ -264,19 +323,19 @@ open class CloudCache: NSObject, ObservableObject {
                     continuation.resume(returning: false)
                 }
             }
-            cacheOperations.insert(operation)
+            self.insertCacheOperation(operation)
             cacheContainer.privateCloudDatabase.add(operation)
         }
-
+        
+        self.removeCacheOperation(operation)
+        
         if success {
-            cacheOperations.remove(operation)
             return await MainActor.run { fsqUserId }
         } else {
-            cacheOperations.remove(operation)
             return ""
         }
     }
-
+    
     public func fetchToken(for fsqUserId: String) async throws -> String {
         let predicate = NSPredicate(format: "userId == %@", fsqUserId)
         let query = CKQuery(recordType: "PersonalizedUser", predicate: predicate)
@@ -303,7 +362,7 @@ open class CloudCache: NSObject, ObservableObject {
                 self.analytics?.track(name: "error \(error)")
             }
         }
-
+        
         let success = try await withCheckedThrowingContinuation { continuation in
             operation.queryResultBlock = { result in
                 switch result {
@@ -314,20 +373,19 @@ open class CloudCache: NSObject, ObservableObject {
                     continuation.resume(returning: false)
                 }
             }
-            cacheOperations.insert(operation)
+            self.insertCacheOperation(operation)
             cacheContainer.privateCloudDatabase.add(operation)
         }
-
+        
+        self.removeCacheOperation(operation)
         if success {
             // Access oauthToken on the main actor
-            cacheOperations.remove(operation)
             return await MainActor.run { self.oauthToken }
         } else {
-            cacheOperations.remove(operation)
             return ""
         }
     }
-
+    
     public func storeFoursquareIdentityAndToken(for fsqUserId: String, oauthToken: String) {
         let record = CKRecord(recordType: "PersonalizedUser")
         record.setObject(fsqUserId as NSString, forKey: "userId")
@@ -340,7 +398,7 @@ open class CloudCache: NSObject, ObservableObject {
             }
         }
     }
-
+    
     public func fetchGroupedUserCachedRecords(for group: String) async throws -> [UserCachedRecord] {
         await MainActor.run {
             isFetchingCachedRecords = true
@@ -365,7 +423,7 @@ open class CloudCache: NSObject, ObservableObject {
                 let rawIcons = record["Icons"] as? String ?? ""
                 let rawList = record["List"] as? String ?? ""
                 let rawSection = record["Section"] as? String ?? PersonalizedSearchSection.none.rawValue
-
+                
                 let cachedRecord = UserCachedRecord(
                     recordId: recordId.recordName,
                     group: rawGroup,
@@ -381,7 +439,7 @@ open class CloudCache: NSObject, ObservableObject {
                 self.analytics?.track(name: "error \(error)")
             }
         }
-
+        
         let _ = try await withCheckedThrowingContinuation { continuation in
             operation.queryResultBlock = { result in
                 switch result {
@@ -392,19 +450,19 @@ open class CloudCache: NSObject, ObservableObject {
                     continuation.resume(returning: false)
                 }
             }
-            cacheOperations.insert(operation)
+            self.insertCacheOperation(operation)
             cacheContainer.privateCloudDatabase.add(operation)
         }
-
-        cacheOperations.remove(operation)
+        
+        self.removeCacheOperation(operation)
         
         await MainActor.run {
             isFetchingCachedRecords = false
         }
-
+        
         return retval
     }
-
+    
     @discardableResult
     public func storeUserCachedRecord(
         for group: String,
@@ -421,7 +479,7 @@ open class CloudCache: NSObject, ObservableObject {
         record.setObject(list as NSString, forKey: "List")
         record.setObject(section as NSString, forKey: "Section")
         record.setObject((icons ?? "") as NSString, forKey: "Icons")
-
+        
         let result = try await cacheContainer.privateCloudDatabase.modifyRecords(
             saving: [record],
             deleting: [],
@@ -430,15 +488,15 @@ open class CloudCache: NSObject, ObservableObject {
         if let resultName = result.saveResults.keys.first?.recordName {
             return resultName
         }
-
+        
         return record.recordID.recordName
     }
-
+    
     public func deleteUserCachedRecord(for cachedRecord: UserCachedRecord) async throws {
         guard !cachedRecord.recordId.isEmpty else { return }
         try await cacheContainer.privateCloudDatabase.deleteRecord(withID: CKRecord.ID(recordName: cachedRecord.recordId))
     }
-
+    
     @discardableResult
     public func deleteAllUserCachedRecords(for group: String) async throws -> (
         saveResults: [CKRecord.ID: Result<CKRecord, Error>],
@@ -452,7 +510,7 @@ open class CloudCache: NSObject, ObservableObject {
             atomically: true
         )
     }
-
+    
     public func deleteAllUserCachedGroups() async throws {
         try await withThrowingTaskGroup(of: Void.self) { taskGroup in
             let types = ["Location", "Category", "Taste", "Place", "List"]
