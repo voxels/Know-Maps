@@ -25,23 +25,31 @@ struct SearchSavedView: View {
                 }
                 .sheet(isPresented:$showNavigationLocationSheet) {
                     VStack {
+                        #if os(macOS)
                         HStack {
+                            Spacer()
                             Button(action: {
-                                showNavigationLocationSheet.toggle()
+                                showNavigationLocationSheet = false
                             }, label: {
-                                Label("Done", systemImage: "chevron.backward").labelStyle(.iconOnly)
-                            })
-                            
-                            TextField("New York, NY", text: $searchText)
-                                .onSubmit {
-                                    search()
-                                }
-                                .textFieldStyle(.roundedBorder)
-                            
+                                Label("Done", systemImage: "plus.circle").labelStyle(.titleAndIcon)
+                            }).padding()
+                        }
+                        #endif
+                        HStack {
+                            TextField("City, State", text: $searchText)
+                                                            .onSubmit {
+                                                                search()
+                                                            }
+                                                            .textFieldStyle(.roundedBorder)
+                            Button("Search", systemImage: "magnifyingglass") {
+                                search()
+                            }
+                        }.padding()
+                        NavigationLocationView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider)
+                        HStack {
                             if let selectedDestinationLocationChatResult = chatModel.selectedDestinationLocationChatResult,
                                let parent = chatModel.locationChatResult(for: selectedDestinationLocationChatResult)
                             {
-                                
                                 let isSaved = chatModel.cachedLocation(contains:parent.locationName)
                                 if isSaved {
                                     Button("Delete", systemImage:"minus.circle") {
@@ -57,20 +65,21 @@ struct SearchSavedView: View {
                                                 }
                                             }
                                         }
-                                    }.labelStyle(.iconOnly)
+                                    }.labelStyle(.titleAndIcon)
                                         .padding()
                                 } else {
                                     Button("Save", systemImage:"square.and.arrow.down") {
                                         Task{
                                             if let location = parent.location {
-                                                var userRecord = UserCachedRecord(recordId: "", group: "Location", identity: chatModel.cachedLocationIdentity(for: location), title: parent.locationName, icons: "", list:"Places", section:"none")
+                                                var userRecord = UserCachedRecord(recordId: "", group: "Location", identity: chatModel.cachedLocationIdentity(for: location), title: parent.locationName, icons: "", list:"Places", section:PersonalizedSearchSection.location.rawValue)
                                                 let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, list:userRecord.list, section:userRecord.section)
                                                 userRecord.setRecordId(to:record)
-                                                try await Task.sleep(nanoseconds: 500_000_000)
+                                                try await Task.sleep(nanoseconds: 1_000_000_000)
                                                 try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
                                             }
                                         }
                                     }.labelStyle(.titleAndIcon)
+                                        .padding()
                                 }
                             } else if let parent = chatModel.locationResults.first(where: {$0.locationName == searchText}) {
                                 Button("Save", systemImage:"square.and.arrow.down") {
@@ -79,15 +88,16 @@ struct SearchSavedView: View {
                                             var userRecord = UserCachedRecord(recordId: "", group: "Location", identity: chatModel.cachedLocationIdentity(for: location), title: parent.locationName, icons: "", list:"Places", section:PersonalizedSearchSection.location.rawValue)
                                             let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, list:userRecord.list, section:userRecord.section)
                                             userRecord.setRecordId(to:record)
-                                            try await Task.sleep(nanoseconds: 500_000_000)
+                                            try await Task.sleep(nanoseconds: 1_000_000_000)
                                             try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
                                         }
                                     }
                                 }.labelStyle(.titleAndIcon)
+                                    .padding()
+                                
+                                
                             }
                         }.padding()
-                        NavigationLocationView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider)
-                            .padding()
                     }
                     .padding()
                     .frame(minHeight: geometry.size.height, maxHeight: .infinity)
@@ -103,24 +113,6 @@ struct SearchSavedView: View {
             Task {
                 do {
                     try await chatModel.didSearch(caption:searchText, selectedDestinationChatResultID:nil, intent:.Location)
-                    if let selectedDestinationLocationChatResult = chatModel.selectedDestinationLocationChatResult,
-                       let parent = chatModel.locationChatResult(for: selectedDestinationLocationChatResult)
-                    {
-                        Task{
-                            do {
-                                if let location = parent.location {
-                                    var userRecord = UserCachedRecord(recordId: "", group: "Location", identity: chatModel.cachedLocationIdentity(for: location), title: parent.locationName, icons: "", list:"Places", section:PersonalizedSearchSection.location.rawValue)
-                                    let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, list:userRecord.list, section:userRecord.section)
-                                    userRecord.setRecordId(to:record)
-                                    try await Task.sleep(nanoseconds: 500_000_000)
-                                    try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
-                                }
-                            }  catch {
-                                print(error)
-                                chatModel.analytics?.track(name: "error \(error)")
-                            }
-                        }
-                    }
                 } catch {
                     print(error)
                     chatModel.analytics?.track(name: "error \(error)")
@@ -300,6 +292,7 @@ struct SavedListView: View {
                     .onTapGesture {
                         addItemSection = 0
                         contentViewDetail = .add
+                        preferredColumn = .detail
                     }
             }
             
@@ -314,6 +307,7 @@ struct SavedListView: View {
                     .onTapGesture {
                         addItemSection = 1
                         contentViewDetail = .add
+                        preferredColumn = .detail
                     }
             }
             
@@ -328,6 +322,7 @@ struct SavedListView: View {
                     .onTapGesture {
                         addItemSection = 2
                         contentViewDetail = .add
+                        preferredColumn = .detail
                     }
             }
             

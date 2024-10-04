@@ -16,22 +16,19 @@ struct NavigationLocationView: View {
     @State private var searchText:String = ""
     
     var body: some View {
-        Section {
-            List(chatModel.filteredLocationResults, selection:$chatModel.selectedDestinationLocationChatResult) { result in
-                let isSaved = chatModel.cachedLocation(contains:result.locationName)
-                HStack {
-                    if result.id == chatModel.selectedDestinationLocationChatResult {
-                        Label(result.locationName, systemImage: "mappin")
-                            .tint(.red)
-                    } else {
-                        Label(result.locationName, systemImage: "mappin")
-                            .tint(.blue)
-                    }
-                    Spacer()
-                    isSaved ? Image(systemName: "checkmark.circle.fill") : Image(systemName: "circle")
+        List(chatModel.filteredLocationResults, selection:$chatModel.selectedDestinationLocationChatResult) { result in
+            let isSaved = chatModel.cachedLocation(contains:result.locationName)
+            HStack {
+                if result.id == chatModel.selectedDestinationLocationChatResult {
+                    Label(result.locationName, systemImage: "mappin")
+                        .tint(.red)
+                } else {
+                    Label(result.locationName, systemImage: "mappin")
+                        .tint(.blue)
                 }
+                Spacer()
+                isSaved ? Image(systemName: "checkmark.circle.fill") : Image(systemName: "circle")
             }
-            .listStyle(.automatic)
         }
     }
 }

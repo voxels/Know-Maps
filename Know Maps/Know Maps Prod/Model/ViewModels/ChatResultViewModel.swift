@@ -163,23 +163,12 @@ final class ChatResultViewModel: ObservableObject {
     
     public var filteredLocationResults: [LocationResult] {
         var results = [LocationResult]()
-        results.append(currentLocationResult)
-        results.append(contentsOf:cachedLocationResults)
+        results.append(contentsOf: cachedLocationResults)
+        results.append(contentsOf: locationResults.filter({ result in
+            !cachedLocationResults.contains(where: { $0.locationName == result.locationName })
+        }))
         
-        for locationResult in locationResults {
-            var foundResult = false
-            for result in results {
-                if locationResult == result {
-                    foundResult = true
-                    break
-                }
-            }
-            
-            if foundResult { continue }
-            results.append(locationResult)
-        }
-        
-        return results
+        return results.sorted(by: { $0.locationName < $1.locationName })
     }
     
     public var filteredSourceLocationResults: [LocationResult] {
