@@ -288,12 +288,14 @@ struct SavedListView: View {
                     }
                     .onDelete(perform: deleteCategoryItem)
                 }
-                Text("Add a type of place")
+                Text("Add a type")
                     .onTapGesture {
                         addItemSection = 0
                         contentViewDetail = .add
                         preferredColumn = .detail
                     }
+                    .foregroundStyle(.accent)
+
             }
             
             Section("Items") {
@@ -309,6 +311,7 @@ struct SavedListView: View {
                         contentViewDetail = .add
                         preferredColumn = .detail
                     }
+                    .foregroundStyle(.accent)
             }
             
             Section("Places") {
@@ -318,12 +321,14 @@ struct SavedListView: View {
                     }
                     .onDelete(perform: deletePlaceItem)
                 }
-                Text("Search for a place")
+                Text("Add a place")
                     .onTapGesture {
                         addItemSection = 2
                         contentViewDetail = .add
                         preferredColumn = .detail
                     }
+                    .foregroundStyle(.accent)
+
             }
             
             Section("Moods") {

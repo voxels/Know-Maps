@@ -53,7 +53,7 @@ struct PlaceDirectionsView: View {
                                                     .padding(.horizontal, 24)
                                                     .padding(.vertical, 64)
                                                     .foregroundStyle(.primary)
-                                                    .backgroundStyle(.thickMaterial)
+                                                    .background()
                                                     Spacer()
                                                 }
                                                 Spacer()

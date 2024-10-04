@@ -39,13 +39,13 @@ struct PlacesList: View {
                 }
             } else if chatModel.recommendedPlaceResults.count != 0 {
                 ScrollView{
-                    let sizeWidth:CGFloat = sizeClass == .compact ? 1 : 2
+                    let sizeWidth:CGFloat = sizeClass == .compact ? 1 : 3
 #if os(macOS) || os(visionOS)
                     let columns = Array(repeating: GridItem(.adaptive(minimum: geometry.size.width / sizeWidth)),  count:Int(sizeWidth))
 #else
                     let columns = Array(repeating: GridItem(.adaptive(minimum: UIScreen.main.bounds.size.width / sizeWidth)),  count:Int(sizeWidth))
 #endif
-                    LazyVGrid(columns: columns, spacing: 16) {
+                    LazyVGrid(columns: columns, alignment: .leading, spacing: 16) {
                         ForEach(chatModel.filteredRecommendedPlaceResults){ result in
                             VStack(alignment:.leading, content: {
                                 ZStack {
@@ -90,7 +90,7 @@ struct PlacesList: View {
                                     }
                                 }
                             })
-                            .background(.thinMaterial)
+                            .background()
                             .cornerRadius(16)
                             .onTapGesture {
                                 chatModel.selectedPlaceChatResult = result.id
@@ -102,13 +102,13 @@ struct PlacesList: View {
                 
             } else if chatModel.placeResults.count != 0 {
                 ScrollView{
-                    let sizeWidth:CGFloat = sizeClass == .compact ? 1 : 2
+                    let sizeWidth:CGFloat = sizeClass == .compact ? 1 : 3
 #if os(macOS) || os(visionOS)
                     let columns = Array(repeating: GridItem(.adaptive(minimum: geometry.size.width / sizeWidth)),  count:Int(sizeWidth))
 #else
                     let columns = Array(repeating: GridItem(.adaptive(minimum: UIScreen.main.bounds.size.width / sizeWidth)),  count:Int(sizeWidth))
 #endif
-                    LazyVGrid(columns: columns, spacing: 16) {
+                    LazyVGrid(columns: columns, alignment: .leading, spacing: 16) {
                         ForEach(chatModel.filteredPlaceResults) { result in
                             VStack(alignment:.leading, content: {
                                 ZStack {
@@ -145,7 +145,7 @@ struct PlacesList: View {
                                     }
                                 }
                             })
-                            .background(.thinMaterial)
+                            .background()
                             .cornerRadius(16)
                             .onTapGesture {
                                 chatModel.selectedPlaceChatResult = result.id
