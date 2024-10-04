@@ -37,8 +37,6 @@ struct ContentView: View {
     @State private var selectedItem: String?
     @State private var showImmersiveSpace = false
     @State private var immersiveSpaceIsShown = false
-    @State private var columnVisibility =
-    NavigationSplitViewVisibility.all
     @State private var preferredColumn =
     NavigationSplitViewColumn.sidebar
     @State private var addItemSection: Int = 0
@@ -53,8 +51,8 @@ struct ContentView: View {
     
     var body: some View {
         GeometryReader() { geometry in
-            NavigationSplitView(columnVisibility: $columnVisibility, preferredCompactColumn: $preferredColumn) {
-                SearchView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, columnVisibility: $columnVisibility, preferredColumn: $preferredColumn, contentViewDetail: $contentViewDetail, addItemSection: $addItemSection, settingsPresented: $settingsPresented, showPlaceViewSheet: $showPlaceViewSheet, didError: $didError)
+            NavigationSplitView(preferredCompactColumn: $preferredColumn) {
+                SearchView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, preferredColumn: $preferredColumn, contentViewDetail: $contentViewDetail, addItemSection: $addItemSection, settingsPresented: $settingsPresented, showPlaceViewSheet: $showPlaceViewSheet, didError: $didError)
 #if os(iOS) || os(visionOS)
                     .sheet(isPresented: $settingsPresented) {
                         SettingsView(chatModel: chatModel, showOnboarding: $showOnboarding)
@@ -64,7 +62,7 @@ struct ContentView: View {
                     }
                     .onAppear {
                         contentViewDetail = .places
-                        columnVisibility = .all
+                        preferredColumn = .sidebar
                     }
 #endif
             } detail: {
@@ -146,7 +144,7 @@ struct ContentView: View {
                                 AddPromptToolbarView(
                                     chatModel: chatModel,
                                     addItemSection: $addItemSection,
-                                    contentViewDetail: $contentViewDetail, columnVisibility: $columnVisibility
+                                    contentViewDetail: $contentViewDetail, preferredColumn: $preferredColumn
                                 )
                             }
                         }
@@ -163,7 +161,7 @@ struct ContentView: View {
                                     AddPromptToolbarView(
                                         chatModel: chatModel,
                                         addItemSection: $addItemSection,
-                                        contentViewDetail: $contentViewDetail, columnVisibility: $columnVisibility
+                                        contentViewDetail: $contentViewDetail, preferredColumn: $preferredColumn
                                     )
                                 }
                             }
@@ -188,14 +186,6 @@ struct ContentView: View {
                 }
             }
         })
-        .onChange(of: columnVisibility) { oldValue, newValue in
-            if newValue == .all {
-                preferredColumn = .sidebar
-                contentViewDetail = .places
-            } else {
-                preferredColumn = .detail
-            }
-        }
     }
 }
 

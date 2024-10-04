@@ -103,7 +103,7 @@ struct PlaceAboutView: View {
                                                                     var userRecord = UserCachedRecord(recordId: "", group: "Place", identity:placeResponse.fsqID, title: parent.title, icons: "", list: parent.list, section: parent.section.rawValue)
                                                                     let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, list:userRecord.list, section:userRecord.section)
                                                                     userRecord.setRecordId(to: record)
-                                                                    
+                                                                    try await Task.sleep(nanoseconds: 500_000_000)
                                                                     try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
                                                                 } catch {
                                                                     print(error)
@@ -323,10 +323,11 @@ struct PlaceAboutView: View {
                                                         } else {
                                                             Task {
                                                                 do {
-                                                                    var userRecord = UserCachedRecord(recordId: "", group: "Taste", identity: taste, title: taste, icons: "", list:"Feature", section:chatHost.section(place: taste).rawValue )
+                                                                    var userRecord = UserCachedRecord(recordId: "", group: "Taste", identity: taste, title: taste, icons: "", list:"Type", section:chatHost.section(place: taste).rawValue )
                                                                     let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, list:userRecord.list, section: userRecord.section)
                                                                     
                                                                     userRecord.setRecordId(to:record)
+                                                                    try await Task.sleep(nanoseconds: 500_000_000)
                                                                     try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
                                                                 } catch {
                                                                     chatModel.analytics?.track(name: "error \(error)")

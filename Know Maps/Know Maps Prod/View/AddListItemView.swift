@@ -45,6 +45,7 @@ struct AddListItemView: View {
                                     var userRecord = UserCachedRecord(recordId: "", group: "Place", identity:placeResponse.fsqID, title: placeResponse.name, icons: "", list:cachedListResult.list, section:chatResult.section.rawValue)
                                     let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, list:userRecord.list, section:userRecord.section)
                                     userRecord.setRecordId(to: record)
+                                    try await Task.sleep(nanoseconds: 500_000_000)
                                     try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
                                 }
                             } catch {
@@ -115,6 +116,7 @@ struct AddListItemView: View {
                 )
                 
                 userRecord.setRecordId(to: record)
+                try await Task.sleep(nanoseconds: 500_000_000)
                 try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
             } catch {
                 print(error)

@@ -5,7 +5,6 @@ struct SearchSavedView: View {
     @ObservedObject public var chatHost: AssistiveChatHost
     @ObservedObject public var chatModel: ChatResultViewModel
     @ObservedObject public var locationProvider: LocationProvider
-    @Binding public var columnVisibility: NavigationSplitViewVisibility
     @Binding public var preferredColumn:NavigationSplitViewColumn
     @Binding public var contentViewDetail:ContentDetailView
     @Binding public var addItemSection:Int
@@ -20,7 +19,7 @@ struct SearchSavedView: View {
                     ToolbarItemGroup(placement: .automatic) {
                         SavedListToolbarView(
                             chatModel: chatModel,
-                            settingsPresented: $settingsPresented, contentViewDetail: $contentViewDetail, columnVisibility: $columnVisibility, showNavigationLocationSheet: $showNavigationLocationSheet)
+                            settingsPresented: $settingsPresented, contentViewDetail: $contentViewDetail, preferredColumn: $preferredColumn, showNavigationLocationSheet: $showNavigationLocationSheet)
                         
                     }
                 }
@@ -67,6 +66,7 @@ struct SearchSavedView: View {
                                                 var userRecord = UserCachedRecord(recordId: "", group: "Location", identity: chatModel.cachedLocationIdentity(for: location), title: parent.locationName, icons: "", list:"Places", section:"none")
                                                 let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, list:userRecord.list, section:userRecord.section)
                                                 userRecord.setRecordId(to:record)
+                                                try await Task.sleep(nanoseconds: 500_000_000)
                                                 try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
                                             }
                                         }
@@ -76,9 +76,10 @@ struct SearchSavedView: View {
                                 Button("Save", systemImage:"square.and.arrow.down") {
                                     Task{
                                         if let location = parent.location {
-                                            var userRecord = UserCachedRecord(recordId: "", group: "Location", identity: chatModel.cachedLocationIdentity(for: location), title: parent.locationName, icons: "", list:"Places", section:"none")
+                                            var userRecord = UserCachedRecord(recordId: "", group: "Location", identity: chatModel.cachedLocationIdentity(for: location), title: parent.locationName, icons: "", list:"Places", section:PersonalizedSearchSection.location.rawValue)
                                             let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, list:userRecord.list, section:userRecord.section)
                                             userRecord.setRecordId(to:record)
+                                            try await Task.sleep(nanoseconds: 500_000_000)
                                             try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
                                         }
                                     }
@@ -108,9 +109,10 @@ struct SearchSavedView: View {
                         Task{
                             do {
                                 if let location = parent.location {
-                                    var userRecord = UserCachedRecord(recordId: "", group: "Location", identity: chatModel.cachedLocationIdentity(for: location), title: parent.locationName, icons: "", list:"Places", section:chatHost.section(place: parent.locationName).rawValue)
+                                    var userRecord = UserCachedRecord(recordId: "", group: "Location", identity: chatModel.cachedLocationIdentity(for: location), title: parent.locationName, icons: "", list:"Places", section:PersonalizedSearchSection.location.rawValue)
                                     let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, list:userRecord.list, section:userRecord.section)
                                     userRecord.setRecordId(to:record)
+                                    try await Task.sleep(nanoseconds: 500_000_000)
                                     try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
                                 }
                             }  catch {
@@ -160,48 +162,50 @@ struct AddPromptView: View {
 }
 
 struct AddPromptToolbarView: View {
+    @Environment(\.horizontalSizeClass) var sizeClass
+
     @ObservedObject public var chatModel: ChatResultViewModel
     @Binding public var addItemSection: Int
     @Binding public var contentViewDetail:ContentDetailView
-    @Binding public var columnVisibility:NavigationSplitViewVisibility
+    @Binding public var preferredColumn:NavigationSplitViewColumn
     
     var body: some View {
-        
         if addItemSection == 0,
-           let parentID = chatModel.selectedTasteCategoryResult,
-           let parent = chatModel.tasteResult(for: parentID) {
-            let isSaved = chatModel.cachedTastes(contains: parent.parentCategory)
-            if isSaved {
-                Button(action: removeTaste(parent: parent)) {
-                    Label("Delete", systemImage: "minus.circle")
-                }
-            } else {
-                Button(action: addTaste(parent: parent)) {
-                    Label("Save", systemImage: "square.and.arrow.down")
-                }
-            }
-        } else if addItemSection == 1,
            let parentID = chatModel.selectedCategoryResult,
            let parent = chatModel.categoricalResult(for: parentID) {
             if chatModel.cachedCategories(contains: parent.parentCategory) {
                 Button(action: removeCategory(parent: parent)) {
                     Label("Delete", systemImage: "minus.cicle")
                 }
-                .labelStyle(.iconOnly)
-                .padding()
+                .labelStyle(.titleAndIcon)
+                
             } else {
                 Button(action: addCategory(parent: parent)) {
                     Label("Save", systemImage: "square.and.arrow.down")
                 }
-                .labelStyle(.iconOnly)
-                .padding()
+                .labelStyle(.titleAndIcon)
+                
             }
+        } else if addItemSection == 1,
+           let parentID = chatModel.selectedTasteCategoryResult,
+           let parent = chatModel.tasteResult(for: parentID) {
+            let isSaved = chatModel.cachedTastes(contains: parent.parentCategory)
+            if isSaved {
+                Button(action: removeTaste(parent: parent)) {
+                    Label("Delete", systemImage: "minus.circle")
+                }.labelStyle(.titleAndIcon)
+            } else {
+                Button(action: addTaste(parent: parent)) {
+                    Label("Save", systemImage: "square.and.arrow.down")
+                }.labelStyle(.titleAndIcon)
+            }
+        } else {
+            
         }
         
-
-        
         Button(action: {
-            columnVisibility = .all
+            preferredColumn = .sidebar
+            contentViewDetail = .places
         }) {
             Label("Done", systemImage: "checkmark.circle")
         }
@@ -215,6 +219,7 @@ struct AddPromptToolbarView: View {
                     for result in cachedResults {
                         try await chatModel.cloudCache.deleteUserCachedRecord(for: result)
                     }
+                    
                     try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
                 } catch {
                     print(error)
@@ -231,6 +236,7 @@ struct AddPromptToolbarView: View {
                     var userRecord = UserCachedRecord(recordId: "", group: "Category", identity: parent.parentCategory, title: parent.parentCategory, icons: "", list: parent.list, section: parent.section.rawValue)
                     let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, list:userRecord.list, section:userRecord.section)
                     userRecord.setRecordId(to: record)
+                    try await Task.sleep(nanoseconds: 500_000_000)
                     try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
                 } catch {
                     print(error)
@@ -264,6 +270,7 @@ struct AddPromptToolbarView: View {
                     var userRecord = UserCachedRecord(recordId: "", group: "Taste", identity: parent.parentCategory, title: parent.parentCategory, icons: "", list: parent.list, section: parent.section.rawValue)
                     let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, list:userRecord.list, section:userRecord.section)
                     userRecord.setRecordId(to: record)
+                    try await Task.sleep(nanoseconds: 500_000_000)
                     try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
                 } catch {
                     print(error)
@@ -436,13 +443,13 @@ struct SavedListToolbarView: View {
     @ObservedObject public var chatModel: ChatResultViewModel
     @Binding public var settingsPresented: Bool
     @Binding public var contentViewDetail:ContentDetailView
-    @Binding public var columnVisibility:NavigationSplitViewVisibility
+    @Binding public var preferredColumn:NavigationSplitViewColumn
     @Binding public var showNavigationLocationSheet:Bool
     
     var body: some View {
         if contentViewDetail == .places {
             Button(action: {
-                columnVisibility = .detailOnly
+                preferredColumn = .detail
                 contentViewDetail = .add
             }) {
                 Label("Add Prompt", systemImage: "plus.circle")
