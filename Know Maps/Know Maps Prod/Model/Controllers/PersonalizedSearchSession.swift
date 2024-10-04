@@ -332,10 +332,6 @@ public actor PersonalizedSearchSession {
         var components = URLComponents(string:"\(PersonalizedSearchSession.serverUrl)\(PersonalizedSearchSession.venueRecommendationsAPIUrl)")
         
         components?.queryItems = [URLQueryItem]()
-        if request.query.count > 0 {
-            let queryItem = URLQueryItem(name: "query", value: request.query)
-            components?.queryItems?.append(queryItem)
-        }
         
         if let location = location, request.nearLocation == nil {
             let rawLocation = "\(location.coordinate.latitude),\(location.coordinate.longitude)"
@@ -382,6 +378,14 @@ public actor PersonalizedSearchSession {
                 
         guard let url = components?.url else {
             throw PersonalizedSearchSessionError.UnsupportedRequest
+        }
+        
+        if let categories = request.categories, categories.isEmpty, let section = request.section, section.rawValue.lowercased() != request.query.lowercased(), !request.query.isEmpty {
+            let queryItem = URLQueryItem(name: "query", value: request.query)
+            components?.queryItems?.append(queryItem)
+        } else if request.categories == nil, request.section == nil, !request.query.isEmpty {
+            let queryItem = URLQueryItem(name: "query", value: request.query)
+            components?.queryItems?.append(queryItem)
         }
         
         let response = try await fetch(url: url, apiKey: apiKey, urlQueryItems: components?.queryItems)

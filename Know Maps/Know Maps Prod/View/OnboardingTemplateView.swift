@@ -149,7 +149,7 @@ struct OnboardingTemplateView: View {
                         do {
                             var userRecord = UserCachedRecord(recordId: "", group: "Taste", identity: result.title, title:result.title, icons: "", list:result.list, section:result.section.rawValue )
                             userRecord.recordId = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, list:userRecord.list, section:userRecord.section)
-                            try await Task.sleep(nanoseconds: 500_000_000)
+                            try await Task.sleep(nanoseconds: 1_000_000_000)
                             try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
                         } catch {
                             print(error)
