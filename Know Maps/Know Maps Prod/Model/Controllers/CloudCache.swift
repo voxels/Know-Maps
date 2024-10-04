@@ -9,6 +9,11 @@
 import Foundation
 import CloudKit
 import Segment
+#if os(macOS)
+import AppKit
+#else
+import UIKit
+#endif
 
 public enum CloudCacheError: Error {
     case ThrottleRequests
@@ -18,21 +23,59 @@ public enum CloudCacheError: Error {
 
 open class CloudCache: NSObject, ObservableObject {
     public var analytics:Analytics?
-    var hasFsqAccess: Bool {
+    @MainActor var hasFsqAccess: Bool {
         fsqUserId.isEmpty ? false : true
     }
     @Published var isFetchingCachedRecords: Bool = false
     @Published public var queuedGroups = Set<String>()
     let cacheContainer = CKContainer(identifier: "iCloud.com.secretatomics.knowmaps.Cache")
     let keysContainer = CKContainer(identifier: "iCloud.com.secretatomics.knowmaps.Keys")
-    private var fsqid: String = ""
-    private var desc: String = ""
-    private var fsqUserId: String = ""
+    @MainActor private var fsqid: String = ""
+    @MainActor private var desc: String = ""
+    @MainActor private var fsqUserId: String = ""
     @MainActor private var oauthToken: String = ""
-    private var serviceAPIKey: String = ""
+    @MainActor private var serviceAPIKey: String = ""
+    
+    private var cacheOperations = Set<CKDatabaseOperation>()
+    private var keysOperations = Set<CKDatabaseOperation>()
 
     public enum CloudCacheService: String {
         case revenuecat
+    }
+    
+    public override init() {
+        super.init()
+        #if os(macOS)
+        NotificationCenter.default.addObserver(self, selector: #selector(appDidEnterBackground), name: NSApplication.didResignActiveNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(appWillEnterForeground), name: NSApplication.didBecomeActiveNotification, object: nil)
+        #else
+        NotificationCenter.default.addObserver(self, selector: #selector(appDidEnterBackground), name: UIApplication.didEnterBackgroundNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(appWillEnterForeground), name: UIApplication.willEnterForegroundNotification, object: nil)
+        #endif
+    }
+    
+    @objc func appDidEnterBackground() {
+        // Assuming you have a reference to your CKOperations
+        for operation in cacheOperations {
+            operation.cancel()
+        }
+        
+        for operation in keysOperations {
+            operation.cancel()
+        }
+    }
+    
+    @objc func appWillEnterForeground() {
+        // Restart or queue the previously suspended operations
+        // Fetch or resume data if required
+        
+        for operation in keysOperations {
+            keysContainer.add(operation)
+        }
+        
+        for operation in cacheOperations {
+            cacheContainer.add(operation)
+        }
     }
 
     public func clearCache() {
@@ -83,7 +126,9 @@ open class CloudCache: NSObject, ObservableObject {
                 let record = try result.get()
                 if let apiKey = record["value"] as? String {
                     print("\(String(describing: record["service"]))")
-                    self.serviceAPIKey = apiKey
+                    Task{ @MainActor in
+                        self.serviceAPIKey = apiKey
+                    }
                 } else {
                     print("Did not find API Key")
                 }
@@ -104,12 +149,15 @@ open class CloudCache: NSObject, ObservableObject {
                     continuation.resume(returning: false)
                 }
             }
+            keysOperations.insert(operation)
             keysContainer.publicCloudDatabase.add(operation)
         }
 
         if success {
+            keysOperations.remove(operation)
             return defaultSession()
         } else {
+            keysOperations.remove(operation)
             throw CloudCacheError.ServiceNotFound
         }
     }
@@ -127,7 +175,9 @@ open class CloudCache: NSObject, ObservableObject {
                 let record = try result.get()
                 if let apiKey = record["value"] as? String {
                     print("\(String(describing: record["service"]))")
-                    self.serviceAPIKey = apiKey
+                    Task { @MainActor in
+                        self.serviceAPIKey = apiKey
+                    }
                 } else {
                     print("Did not find API Key")
                 }
@@ -148,12 +198,18 @@ open class CloudCache: NSObject, ObservableObject {
                     continuation.resume(returning: false)
                 }
             }
+            keysOperations.insert(operation)
             keysContainer.publicCloudDatabase.add(operation)
         }
 
         if success {
-            return serviceAPIKey
+            keysOperations.remove(operation)
+            
+            return await MainActor.run {
+                serviceAPIKey
+            }
         } else {
+            keysOperations.remove(operation)
             throw CloudCacheError.ServiceNotFound
         }
     }
@@ -183,9 +239,13 @@ open class CloudCache: NSObject, ObservableObject {
             do {
                 let record = try result.get()
                 if let userId = record["userId"] as? String {
-                    self.fsqUserId = userId
+                    Task { @MainActor in
+                        self.fsqUserId = userId
+                    }
                 } else {
-                    self.fsqUserId = ""
+                    Task { @MainActor in
+                        self.fsqUserId = ""
+                    }
                     print("Did not find userId")
                 }
             } catch {
@@ -204,12 +264,15 @@ open class CloudCache: NSObject, ObservableObject {
                     continuation.resume(returning: false)
                 }
             }
+            cacheOperations.insert(operation)
             cacheContainer.privateCloudDatabase.add(operation)
         }
 
         if success {
-            return fsqUserId
+            cacheOperations.remove(operation)
+            return await MainActor.run { fsqUserId }
         } else {
+            cacheOperations.remove(operation)
             return ""
         }
     }
@@ -251,13 +314,16 @@ open class CloudCache: NSObject, ObservableObject {
                     continuation.resume(returning: false)
                 }
             }
+            cacheOperations.insert(operation)
             cacheContainer.privateCloudDatabase.add(operation)
         }
 
         if success {
             // Access oauthToken on the main actor
+            cacheOperations.remove(operation)
             return await MainActor.run { self.oauthToken }
         } else {
+            cacheOperations.remove(operation)
             return ""
         }
     }
@@ -326,9 +392,12 @@ open class CloudCache: NSObject, ObservableObject {
                     continuation.resume(returning: false)
                 }
             }
+            cacheOperations.insert(operation)
             cacheContainer.privateCloudDatabase.add(operation)
         }
 
+        cacheOperations.remove(operation)
+        
         await MainActor.run {
             isFetchingCachedRecords = false
         }

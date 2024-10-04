@@ -211,11 +211,8 @@ final class ChatResultViewModel: ObservableObject {
         }
 
         // Initialize progress variables
-        let totalTasks = 7
+        let totalTasks = 5
         
-        // Define the timeout duration in seconds
-        let timeoutInSeconds: UInt64 = 10
-
         // Create a task that encapsulates the entire operation
         let operationTask = Task {
             // Use a throwing task group to manage tasks and handle cancellations
@@ -276,42 +273,12 @@ final class ChatResultViewModel: ObservableObject {
                 // Wait for all tasks to complete or handle cancellation
                 try await group.waitForAll()
             }
-
-            try await self.refreshCachedLists(cloudCache: cloudCache)
-            await MainActor.run { [self] in
-                self.completedTasks += 1
-                let progress = Double(self.completedTasks) / Double(totalTasks)
-                self.cacheFetchProgress = progress
-            }
+            
             // Proceed with remaining tasks after the group tasks are done
             await refreshCachedResults()
         }
-
-        // Wait for the operation task to complete or cancel it after the timeout
-        do {
-            try await withThrowingTaskGroup(of: Void.self) { group in
-                // Add the main operation task
-                group.addTask {
-                    try await operationTask.value
-                }
-                // Add a timeout task
-                group.addTask {
-                    try await Task.sleep(nanoseconds: timeoutInSeconds * 1_000_000_000)
-                    operationTask.cancel()
-                    throw CancellationError()
-                }
-                // Wait for the first task to finish (either the operation or the timeout)
-                try await group.next()
-                // Cancel all remaining tasks
-                group.cancelAll()
-            }
-        } catch is CancellationError {
-            // Handle timeout or cancellation
-            print("Refresh cache operation timed out or was cancelled")
-        } catch {
-            // Handle other errors
-            print("An unexpected error occurred: \(error)")
-        }
+        
+        try await operationTask.value
 
         await MainActor.run {
             isRefreshingCache = false

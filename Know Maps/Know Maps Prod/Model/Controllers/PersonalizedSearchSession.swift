@@ -101,11 +101,11 @@ public actor PersonalizedSearchSession {
     
     @discardableResult
     public func fetchManagedUserAccessToken() async throws ->String {
-        guard cloudCache.hasFsqAccess else {
+        guard await cloudCache.hasFsqAccess else {
             return ""
         }
         
-        if fsqIdentity == nil, cloudCache.hasFsqAccess {
+        if fsqIdentity == nil, await cloudCache.hasFsqAccess {
             try await fetchManagedUserIdentity()
         }
         
