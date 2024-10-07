@@ -53,7 +53,7 @@ public enum CloudCacheService: String {
 }
 
 public final class CloudCache: NSObject, ObservableObject, CloudCacheDelegate {
-    var analyticsManager:AnalyticsManager
+    var analyticsManager:AnalyticsService
     @MainActor public var hasFsqAccess: Bool {
         fsqUserId.isEmpty ? false : true
     }
@@ -77,7 +77,7 @@ public final class CloudCache: NSObject, ObservableObject, CloudCacheDelegate {
     private var backgroundTask: UIBackgroundTaskIdentifier = .invalid
 #endif
     
-    public init(analyticsManager:AnalyticsManager) {
+    public init(analyticsManager:AnalyticsService) {
         self.analyticsManager = analyticsManager
         super.init()
 #if os(macOS)

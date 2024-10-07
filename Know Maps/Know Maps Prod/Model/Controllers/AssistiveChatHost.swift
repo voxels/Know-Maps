@@ -15,7 +15,7 @@ import Segment
 public typealias AssistiveChatHostTaggedWord = [String: [String]]
 
 public final class AssistiveChatHost : AssistiveChatHostDelegate, ObservableObject {
-    public let analyticsManager:AnalyticsManager
+    public let analyticsManager:AnalyticsService
     public enum Intent : String {
         case Search
         case Place
@@ -34,7 +34,7 @@ public final class AssistiveChatHost : AssistiveChatHostDelegate, ObservableObje
     let geocoder = CLGeocoder()
     public var lastGeocodedPlacemarks:[CLPlacemark]?
     
-    required public init(analyticsManager:AnalyticsManager, messagesDelegate: AssistiveChatHostMessagesDelegate? = nil, lastGeocodedPlacemarks: [CLPlacemark]? = nil) {
+    required public init(analyticsManager:AnalyticsService, messagesDelegate: AssistiveChatHostMessagesDelegate? = nil, lastGeocodedPlacemarks: [CLPlacemark]? = nil) {
         self.analyticsManager = analyticsManager
         self.messagesDelegate = messagesDelegate
         self.lastGeocodedPlacemarks = lastGeocodedPlacemarks
@@ -420,24 +420,6 @@ public final class AssistiveChatHost : AssistiveChatHostDelegate, ObservableObje
     public func section(place:String)->PersonalizedSearchSection {
         return .location
     }
-}
-
-extension AssistiveChatHost {
-    public func searchQueryDescription(nearLocation:CLLocation) async throws -> String {
-        return try await languageDelegate.searchQueryDescription(nearLocation:nearLocation)
-    }
-    
-//    public func placeDescription(chatResult:ChatResult, delegate:AssistiveChatHostStreamResponseDelegate) async throws {
-//        if let fsqid = chatResult.placeResponse?.fsqID {
-//            let desc = try await cloudCache.fetchGeneratedDescription(for: fsqid)
-//            if desc.isEmpty {
-//                try await languageDelegate.placeDescription(chatResult: chatResult, delegate: delegate)
-//            } else {
-//                await languageDelegate.placeDescription(with: desc, chatResult: chatResult, delegate: delegate)
-//                analytics.track(name: "usingCachedGPTDescription")
-//            }
-//        }
-//    }
 }
 
 extension AssistiveChatHost {

@@ -17,9 +17,4 @@ struct ImmersiveView: View {
         }
     }
 }
-
-#Preview {
-    ImmersiveView()
-        .previewLayout(.sizeThatFits)
-}
 #endif

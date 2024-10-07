@@ -57,7 +57,7 @@ public protocol CacheManager {
 public final class CloudCacheManager: CacheManager, ObservableObject {
 
     public let cloudCache: CloudCacheDelegate
-    private let analyticsManager:AnalyticsManager
+    private let analyticsManager:AnalyticsService
     @Published public var isRefreshingCache: Bool = false
     @Published public var cacheFetchProgress:Double = 0
     @Published public var completedTasks = 0
@@ -75,7 +75,7 @@ public final class CloudCacheManager: CacheManager, ObservableObject {
     @Published public var allCachedResults = [CategoryResult]()
     @Published public var cachedLocationResults = [LocationResult]()
     
-    init(cloudCache: CloudCache, analyticsManager:AnalyticsManager) {
+    init(cloudCache: CloudCache, analyticsManager:AnalyticsService) {
         self.cloudCache = cloudCache
         self.analyticsManager = analyticsManager
     }

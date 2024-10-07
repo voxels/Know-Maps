@@ -8,7 +8,7 @@
 import Foundation
 import Segment
 
-public protocol AnalyticsManager {
+public protocol AnalyticsService {
     // Track a generic event with optional properties
     func track(event: String, properties: [String: Any]?)
     
@@ -21,7 +21,7 @@ public protocol AnalyticsManager {
     func identify(userID:String)
 }
 
-public final class SegmentAnalyticsManager: AnalyticsManager {
+public final class SegmentAnalyticsManager: AnalyticsService {
     
     private var analytics: Analytics
     

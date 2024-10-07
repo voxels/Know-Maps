@@ -6,7 +6,7 @@ struct SearchTasteView: View {
     @State private var isLoadingNextPage = false
     @State private var tasteSearchText:String = ""
     var body: some View {
-            List(chatModel.tasteResults, selection: $chatModel.selectedTasteCategoryResult) { parent in
+        List(chatModel.tasteResults, id:\.self, selection: $chatModel.selectedTasteCategoryResult) { parent in
                 HStack {
                     let isSaved = chatModel.cacheManager.cachedTastes(contains: parent.parentCategory)
 
@@ -20,9 +20,9 @@ struct SearchTasteView: View {
                         isLoadingNextPage = true
                         Task {
                             do {
-                                try await chatModel.refreshTastes(page: chatModel.lastFetchedTastePage + 1)
+                                chatModel.tasteResults = try await chatModel.placeSearchService.refreshTastes(page: chatModel.placeSearchService.lastFetchedTastePage + 1, currentTasteResults: chatModel.tasteResults)
                             } catch {
-                                chatModel.analyticsManager.trackError(error:error, additionalInfo: ["page": chatModel.lastFetchedTastePage + 1])
+                                chatModel.analyticsManager.trackError(error:error, additionalInfo: ["page": chatModel.placeSearchService.lastFetchedTastePage + 1])
                             }
                             isLoadingNextPage = false
                         }
@@ -35,9 +35,8 @@ struct SearchTasteView: View {
                 }
                 
                 Task {
-                    chatModel.lastFetchedTastePage = 0
                     do {
-                        try await chatModel.refreshTastes(page:chatModel.lastFetchedTastePage)
+                        chatModel.tasteResults = try await chatModel.placeSearchService.refreshTastes(page:0, currentTasteResults: [])
                     } catch {
                         chatModel.analyticsManager.trackError(error:error, additionalInfo: nil)
                     }
@@ -46,8 +45,7 @@ struct SearchTasteView: View {
             .refreshable {
                 Task {
                     do {
-                        chatModel.lastFetchedTastePage = 0
-                        try await chatModel.refreshTastes(page:chatModel.lastFetchedTastePage)
+                        chatModel.tasteResults = try await chatModel.placeSearchService.refreshTastes(page:0, currentTasteResults: [])
                     } catch {
                         chatModel.analyticsManager.trackError(error:error, additionalInfo: nil)
                     }

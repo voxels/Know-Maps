@@ -32,9 +32,6 @@ protocol ChatResultHandling {
     func refreshModel(query: String, queryIntents: [AssistiveChatHostIntent]?) async throws
     func didSearch(caption: String, selectedDestinationChatResultID:LocationResult.ID?, intent: AssistiveChatHost.Intent?) async throws 
     
-    // Session Management
-    func refreshSessions() async throws
-    
     // Message Handling
     func receiveMessage(caption: String, parameters: AssistiveChatHostQueryParameters, isLocalParticipant: Bool) async throws    
 }

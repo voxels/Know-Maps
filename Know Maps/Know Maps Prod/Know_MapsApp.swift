@@ -178,7 +178,7 @@ struct Know_MapsApp: App {
         // Perform setup tasks
         if !chatModel.cacheManager.cloudCache.hasFsqAccess {
             do {
-                try await chatModel.retrieveFsqUser()
+                try await chatModel.placeSearchService.retrieveFsqUser()
 
             } catch {
                 chatModel.analyticsManager.trackError(error: error, additionalInfo:nil)

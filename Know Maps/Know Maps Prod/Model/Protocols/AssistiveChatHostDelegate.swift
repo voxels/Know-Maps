@@ -18,7 +18,7 @@ public protocol AssistiveChatHostDelegate:AnyObject {
     var categoryCodes:[[String:[[String:String]]]] { get }
     var lastGeocodedPlacemarks:[CLPlacemark]? { get }
     
-    init(analyticsManager:AnalyticsManager, messagesDelegate: AssistiveChatHostMessagesDelegate?, lastGeocodedPlacemarks: [CLPlacemark]?)
+    init(analyticsManager:AnalyticsService, messagesDelegate: AssistiveChatHostMessagesDelegate?, lastGeocodedPlacemarks: [CLPlacemark]?)
     func organizeCategoryCodeList() async throws
     
     func determineIntent(for caption:String, override:AssistiveChatHost.Intent?) -> AssistiveChatHost.Intent

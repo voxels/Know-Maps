@@ -6,32 +6,15 @@
 //
 
 import Foundation
-import CoreLocation
 
 public protocol LanguageGeneratorDelegate {
-    func searchQueryDescription(nearLocation:CLLocation) async throws -> String
     func placeDescription(chatResult:ChatResult, delegate:AssistiveChatHostStreamResponseDelegate) async throws
     func placeDescription(with description:String, chatResult:ChatResult, delegate:AssistiveChatHostStreamResponseDelegate) async
-    func lookUpLocation(location:CLLocation) async throws -> [CLPlacemark]?
-    func lookUpLocationName(name:String) async throws -> [CLPlacemark]?
 }
 
 
 open class LanguageGenerator : LanguageGeneratorDelegate {
-    
     private var session:LanguageGeneratorSession = LanguageGeneratorSession()
-    
-    public func searchQueryDescription(nearLocation:CLLocation) async throws -> String {
-        let retval = "Sorted by distance"
-        
-        let placemark = try await lookUpLocation(location: nearLocation)?.first
-        
-        if let name = placemark?.name {
-            return retval.appending(" from \(name):")
-        } else {
-            return retval.appending(":")
-        }
-    }
     
     public func placeDescription(with description:String, chatResult:ChatResult, delegate:AssistiveChatHostStreamResponseDelegate) async {
         await delegate.willReceiveStreamingResult(for: chatResult.id)
@@ -127,17 +110,5 @@ open class LanguageGenerator : LanguageGeneratorDelegate {
                 }
             }
         }
-    }
-    
-    public func lookUpLocation(location:CLLocation) async throws -> [CLPlacemark]? {
-        let geocoder = CLGeocoder()
-       
-        return try await geocoder.reverseGeocodeLocation(location)
-    }
-    
-    public func lookUpLocationName(name: String) async throws -> [CLPlacemark]? {
-        let geocoder = CLGeocoder()
-            
-        return try await geocoder.geocodeAddressString(name)
     }
 }
