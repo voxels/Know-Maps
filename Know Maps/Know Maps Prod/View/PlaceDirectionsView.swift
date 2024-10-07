@@ -11,16 +11,11 @@ import MapKit
 import Segment
 
 struct PlaceDirectionsView: View {
-    @ObservedObject public var chatHost:AssistiveChatHost
     @ObservedObject public var chatModel:ChatResultViewModel
     @ObservedObject public var locationProvider:LocationProvider
     @ObservedObject public var model:PlaceDirectionsViewModel
     @Binding public var resultId:ChatResult.ID?
-    
-    @State private var lookAroundScene: MKLookAroundScene?
-    @State private var lookAroundSceneRequest:MKLookAroundSceneRequest?
-    @State private var showLookAroundScene:Bool = false
-    
+        
     static let mapFrameConstraint:Double = 200000
     static let mapFrameMinimumPadding:Double = 1000
     static let polylineStrokeWidth:CGFloat = 8
@@ -40,7 +35,8 @@ struct PlaceDirectionsView: View {
             GeometryReader { geo in
                 ScrollView {
                     VStack(alignment: .center) {
-                            if showLookAroundScene, let lookAroundScene = lookAroundScene {
+                        
+                        if model.showLookAroundScene, let lookAroundScene = model.lookAroundScene {
                                 LookAroundPreview(initialScene: lookAroundScene)
                                     .overlay {
                                         if let source = model.source, let destination = model.destination {
@@ -48,7 +44,7 @@ struct PlaceDirectionsView: View {
                                             VStack(alignment: .center) {
                                                 HStack {
                                                     Button("Directions", systemImage: "map.fill") {
-                                                        showLookAroundScene.toggle()
+                                                        model.showLookAroundScene.toggle()
                                                     }
                                                     .padding(.horizontal, 24)
                                                     .padding(.vertical, 64)
@@ -69,10 +65,9 @@ struct PlaceDirectionsView: View {
                                         if let destination = model.destination {
                                             Task {
                                                 do {
-                                                    try await getLookAroundScene(mapItem:destination)
+                                                    try await model.getLookAroundScene(mapItem:destination)
                                                 } catch {
-                                                    print(error)
-                                                    chatModel.analytics?.track(name: "Error getting LookAroundScene) \(error)")
+                                                    chatModel.analyticsManager.trackError(error:error, additionalInfo:nil)
                                                 }
                                             }
                                         }
@@ -110,10 +105,10 @@ struct PlaceDirectionsView: View {
                                     if let source = model.source, let destination = model.destination {
                                         let launchOptions = model.appleMapsLaunchOptions()
                                         VStack(alignment: .center) {
-                                            if lookAroundScene != nil {
+                                            if model.lookAroundScene != nil {
                                                 HStack {
                                                     Button("Look Around", systemImage: "binoculars.fill") {
-                                                        showLookAroundScene.toggle()
+                                                        model.showLookAroundScene.toggle()
                                                     }
                                                     .padding(36)
                                                     .foregroundStyle(.primary)
@@ -131,7 +126,7 @@ struct PlaceDirectionsView: View {
                                     
                                 }
                             }
-                            if !showLookAroundScene {
+                        if !model.showLookAroundScene {
                                 Picker("Transport Type", selection: $model.rawTransportType) {
                                     Text(PlaceDirectionsViewModel.RawTransportType.Automobile.rawValue).tag(PlaceDirectionsViewModel.RawTransportType.Automobile)
                                     Text(PlaceDirectionsViewModel.RawTransportType.Walking.rawValue).tag(PlaceDirectionsViewModel.RawTransportType.Walking)
@@ -145,43 +140,8 @@ struct PlaceDirectionsView: View {
                                     Text(chatRouteResult.instructions)
                                 }
                             }.padding(16)
+                         
                         }
-                    }
-                }
-                .task {
-                    guard let selectedDestinationLocationChatResult = chatModel.selectedDestinationLocationChatResult, let sourceLocationResult = chatModel.locationChatResult(for: selectedDestinationLocationChatResult), let sourceLocation = sourceLocationResult.location  else {
-                        return
-                    }
-                    
-                    let destinationLocation = CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude)
-                    
-                    do {
-                        try await refreshDirections(with: sourceLocation, destination:destinationLocation)
-                        if let destination = model.destination {
-                            try await getLookAroundScene(mapItem:destination)
-                        }
-
-                    } catch {
-                        chatModel.analytics?.track(name: "error \(error)")
-                        print(error)
-                    }
-                }
-            }
-            .onChange(of: resultId) { oldValue, newValue in
-                guard let placeChatResult = chatModel.placeChatResult(for: newValue), let placeResponse = placeChatResult.placeResponse else {
-                    return
-                }
-                
-                if oldValue != newValue, let currentLocationID = chatModel.selectedDestinationLocationChatResult, let locationResult = chatModel.locationChatResult(for: currentLocationID), let currentLocation = locationResult.location, let sourceMapItem = mapItem(for: currentLocation, name:locationResult.locationName), let destinationMapItem = mapItem(for: CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude), name:placeResponse.name) {
-                    Task {
-                        do {
-                            try await getDirections(source:sourceMapItem, destination:destinationMapItem, model:model)
-                            self.resultId = resultId
-                        } catch {
-                            chatModel.analytics?.track(name: "error \(error)")
-                            print(error)
-                        }
-                        
                     }
                 }
             }
@@ -193,10 +153,9 @@ struct PlaceDirectionsView: View {
                     
                     Task{
                         do {
-                            try await refreshDirections(with: sourceLocation, destination:CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude))
+                            try await model.refreshDirections(with: sourceLocation, destination:CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude))
                         } catch {
-                            chatModel.analytics?.track(name: "error \(error)")
-                            print(error)
+                            chatModel.analyticsManager.trackError(error:error, additionalInfo:nil)
                         }
                     }
                 }
@@ -219,42 +178,8 @@ struct PlaceDirectionsView: View {
                     
                     Task{
                         do {
-                            try await refreshDirections(with: sourceLocation, destination:CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude))
-                        } catch {
-                            chatModel.analytics?.track(name: "error \(error)")
-                            print(error)
-                        }
-                    }
-                }
-            }
-            .onChange(of: model.source) { oldValue, newValue in
-                if let ident = UUID(uuidString: model.rawLocationIdent) {
-                    guard let sourceLocation = chatModel.locationChatResult(for: ident)?.location, let result = chatModel.placeChatResult(for: resultId), let placeResponse = result.placeResponse else {
-                        return
-                    }
-                    
-                    Task{
-                        do {
-                            try await refreshDirections(with: sourceLocation, destination:CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude))
-                        } catch {
-                            chatModel.analytics?.track(name: "error \(error)")
-                            print(error)
-                        }
-                    }
-                }
-            }
-            .onChange(of: model.destination) { oldValue, newValue in
-                if let ident = UUID(uuidString:model.rawLocationIdent) {
-                    guard let sourceLocation = chatModel.locationChatResult(for: ident)?.location, let result = chatModel.placeChatResult(for: resultId), let placeResponse = result.placeResponse else {
-                        return
-                    }
-                    
-                    Task{
-                        do {
-                            try await refreshDirections(with: sourceLocation, destination:CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude))
-                        } catch {
-                            chatModel.analytics?.track(name: "error \(error)")
-                            print(error)
+                            try await model.refreshDirections(with: sourceLocation, destination:CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude))
+                        } catch {                            chatModel.analyticsManager.trackError(error:error, additionalInfo:nil)
                         }
                     }
                 }
@@ -262,93 +187,6 @@ struct PlaceDirectionsView: View {
         }
         else {
             ContentUnavailableView("No route available", systemImage: "x.circle.fill")
-        }
-    }
-    
-    func refreshDirections(with source:CLLocation, destination:CLLocation) async throws {
-        if let sourceMapItem = mapItem(for: source), let destinationMapItem = mapItem(for:destination) {
-            Task {
-                do {
-                    try await getDirections(source:sourceMapItem, destination:destinationMapItem, model:model)
-                } catch {
-                    chatModel.analytics?.track(name: "error \(error)")
-                    print(error)
-                }
-            }
-        }
-    }
-    
-    func mapItem(for location:CLLocation?, name:String? = nil)->MKMapItem? {
-        guard let location = location, let placemark = placemark(for: location) else {
-            return nil
-        }
-        
-        let mapItem = MKMapItem(placemark: placemark)
-        mapItem.name = name
-        
-        return mapItem
-    }
-    
-    func placemark(for location:CLLocation?)->MKPlacemark? {
-        guard let location = location else {
-            return nil
-        }
-        return MKPlacemark(coordinate: location.coordinate)
-    }
-    
-    func getDirections(source:MKMapItem?, destination:MKMapItem?, model:PlaceDirectionsViewModel) async throws {
-        
-        guard let source = source, let destination = destination else {
-            return
-        }
-        
-        model.route = nil
-        model.polyline = nil
-        model.chatRouteResults?.removeAll()
-        
-        let request = MKDirections.Request()
-        request.source = source
-        request.destination = destination
-        request.transportType = model.transportType
-        
-        let directions = MKDirections(request: request)
-        
-        let response = try await directions.calculate()
-        model.source = source
-        model.destination = destination
-        model.route = response.routes.first
-        if let route = model.route {
-            model.polyline = route.polyline
-            model.chatRouteResults = route.steps.compactMap({ step in
-                let instructions = step.instructions
-                if !instructions.isEmpty {
-                    return ChatRouteResult(route: route, instructions: instructions)
-                } else {
-                    return route.steps.count > 0 ? nil : ChatRouteResult(route: route, instructions: "Check Apple Maps for a route")
-                }
-            })
-            
-            if let routeResults = model.chatRouteResults, routeResults.isEmpty {
-                model.chatRouteResults = [ChatRouteResult(route: route, instructions: "Check Apple Maps for a route")]
-            }
-        } else {
-            model.chatRouteResults = [ChatRouteResult(route: nil, instructions: "Check Apple Maps for a route")]
-        }
-    }
-    
-    func getLookAroundScene (mapItem:MKMapItem) async throws {
-        if let request = lookAroundSceneRequest, request.isLoading {
-            return
-        }
-        
-        let request = MKLookAroundSceneRequest(coordinate: mapItem.placemark.coordinate)
-        await MainActor.run {
-            lookAroundSceneRequest = request
-        }
-        
-        let scene = try await lookAroundSceneRequest?.scene
-        await MainActor.run {
-            lookAroundScene = scene
         }
     }
 }

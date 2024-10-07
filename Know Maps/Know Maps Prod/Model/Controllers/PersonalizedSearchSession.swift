@@ -63,7 +63,7 @@ public enum PersonalizedSearchSection : String, Hashable, CaseIterable {
 }
 
 public actor PersonalizedSearchSession {
-    public let cloudCache:CloudCache
+    public let cacheManager:CacheManager
     public var fsqIdentity:String?
     public var fsqAccessToken:String?
     private var fsqServiceAPIKey:String?
@@ -80,14 +80,14 @@ public actor PersonalizedSearchSession {
     static let relatedVenuePath = "/related"
     static let foursquareVersionDate = "20240101"
     
-    public init(cloudCache: CloudCache, searchSession:URLSession? = nil) {
-        self.cloudCache = cloudCache
+    public init(cacheManager: CacheManager, searchSession:URLSession? = nil) {
+        self.cacheManager = cacheManager
         self.searchSession = searchSession
     }
     
     @discardableResult
     public func fetchManagedUserIdentity() async throws ->String? {
-        let cloudFsqIdentity = try await cloudCache.fetchFsqIdentity()
+        let cloudFsqIdentity = try await cacheManager.cloudCache.fetchFsqIdentity()
         
         if cloudFsqIdentity.isEmpty {
             try await addFoursquareManagedUserIdentity()
@@ -101,11 +101,11 @@ public actor PersonalizedSearchSession {
     
     @discardableResult
     public func fetchManagedUserAccessToken() async throws ->String {
-        guard await cloudCache.hasFsqAccess else {
+        guard cacheManager.cloudCache.hasFsqAccess else {
             return ""
         }
         
-        if fsqIdentity == nil, await cloudCache.hasFsqAccess {
+        if fsqIdentity == nil, cacheManager.cloudCache.hasFsqAccess {
             try await fetchManagedUserIdentity()
         }
         
@@ -113,7 +113,7 @@ public actor PersonalizedSearchSession {
             throw PersonalizedSearchSessionError.NoUserFound
         }
         
-        let cloudToken = try await cloudCache.fetchToken(for: fsqIdentity)
+        let cloudToken = try await cacheManager.cloudCache.fetchToken(for: fsqIdentity)
         fsqAccessToken = cloudToken
         
         guard let token = fsqAccessToken, !token.isEmpty else {
@@ -164,7 +164,7 @@ public actor PersonalizedSearchSession {
             throw PersonalizedSearchSessionError.NoUserFound
         }
                 
-        cloudCache.storeFoursquareIdentityAndToken(for: identity, oauthToken: token)
+        cacheManager.cloudCache.storeFoursquareIdentityAndToken(for: identity, oauthToken: token)
         
         return true
     }

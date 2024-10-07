@@ -2,7 +2,6 @@ import SwiftUI
 
 struct PlacePhotosView: View {
     @Environment(\.horizontalSizeClass) var sizeClass
-    @ObservedObject public var chatHost: AssistiveChatHost
     @ObservedObject public var chatModel: ChatResultViewModel
     @ObservedObject public var locationProvider: LocationProvider
     @Binding public var resultId: ChatResult.ID?

@@ -23,8 +23,7 @@ struct OnboardingSubscriptionView: View {
     @Binding public var selectedTab:String
     @Binding public var showOnboarding:Bool
     @EnvironmentObject public var featureFlags:FeatureFlags
-    @EnvironmentObject public var model:SettingsModel
-    @EnvironmentObject public var cloudCache:CloudCache
+    @EnvironmentObject public var model:AuthenticationManager
     @State private var selectedSubscription:SubscriptionPlan?
     @State private var subscriptionIncomplete:Bool = true
     

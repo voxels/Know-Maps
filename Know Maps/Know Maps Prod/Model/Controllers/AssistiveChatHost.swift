@@ -14,8 +14,8 @@ import Segment
 
 public typealias AssistiveChatHostTaggedWord = [String: [String]]
 
-open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControllerDelegate, ObservableObject {
-    public var analytics:Analytics?
+public final class AssistiveChatHost : AssistiveChatHostDelegate, ObservableObject {
+    public let analyticsManager:AnalyticsManager
     public enum Intent : String {
         case Search
         case Place
@@ -34,7 +34,8 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
     let geocoder = CLGeocoder()
     public var lastGeocodedPlacemarks:[CLPlacemark]?
     
-    required public init(messagesDelegate: AssistiveChatHostMessagesDelegate? = nil, lastGeocodedPlacemarks: [CLPlacemark]? = nil) {
+    required public init(analyticsManager:AnalyticsManager, messagesDelegate: AssistiveChatHostMessagesDelegate? = nil, lastGeocodedPlacemarks: [CLPlacemark]? = nil) {
+        self.analyticsManager = analyticsManager
         self.messagesDelegate = messagesDelegate
         self.lastGeocodedPlacemarks = lastGeocodedPlacemarks
         self.queryIntentParameters = AssistiveChatHostQueryParameters()
@@ -123,23 +124,6 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
             categoryCodes = finalArray
         }
     }
-    
-    public func didTap(categoricalResult:CategoryResult, chatResult:ChatResult?, selectedDestinationChatResultID:UUID) async {
-        if let chatResult = chatResult {
-            await didTap(chatResult: chatResult, selectedDestinationChatResultID: selectedDestinationChatResultID)
-        }
-    }
-    
-    public func didTap(chatResult: ChatResult, selectedDestinationChatResultID:UUID?) async {
-        print("Did tap result:\(chatResult.title) for place:\(chatResult.placeResponse?.fsqID ?? "")")
-        var intent = AssistiveChatHost.Intent.Search
-        if let placeResponse = chatResult.placeResponse, !placeResponse.fsqID.isEmpty, placeResponse.name.isEmpty {
-            intent = .Place
-        }
-        
-        await messagesDelegate?.didTap(chatResult: chatResult, selectedPlaceSearchResponse: chatResult.placeResponse, selectedPlaceSearchDetails:chatResult.placeDetailsResponse, selectedRecommendedPlaceSearchResponse: chatResult.recommendedPlaceResponse, selectedDestinationChatResultID:selectedDestinationChatResultID, intent:intent )
-    }
-    
     
     public func determineIntent(for caption:String, override:Intent? = nil) -> Intent
     {
@@ -242,8 +226,7 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
                 return nil
             }
         } catch {
-            analytics?.track(name: "error \(error)")
-            print(error)
+            analyticsManager.trackError(error:error, additionalInfo:nil)
             return nil
         }
     }
@@ -425,8 +408,7 @@ open class AssistiveChatHost : AssistiveChatHostDelegate, ChatHostingViewControl
             // Extract the predicted section from the model's output
             
         } catch {
-            print(error)
-            analytics?.track(name: "Error: \(error)")
+            analyticsManager.trackError(error:error, additionalInfo:nil)
             return .none
         }
         

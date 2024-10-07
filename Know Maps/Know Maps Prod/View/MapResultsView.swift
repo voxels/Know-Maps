@@ -10,7 +10,6 @@ import CoreLocation
 import MapKit
 
 struct MapResultsView: View {
-    @ObservedObject public var chatHost:AssistiveChatHost
     @ObservedObject public var model:ChatResultViewModel
     @ObservedObject public var locationProvider:LocationProvider
     @Binding public var selectedMapItem: String?

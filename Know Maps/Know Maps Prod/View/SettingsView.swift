@@ -10,8 +10,7 @@ import AuthenticationServices
 
 struct SettingsView: View {
     @Environment(\.openWindow) private var openWindow
-    @EnvironmentObject public var model:SettingsModel
-    @EnvironmentObject public var cloudCache:CloudCache
+    @EnvironmentObject public var model:AuthenticationManager
     @State private var popoverPresented:Bool = false
     @State private var signInErrorMessage:String = "Error"
     @State private var isAuthenticated = false
@@ -47,7 +46,7 @@ struct SettingsView: View {
                                 Task {
                                     let key =  model.appleUserId.data(using: .utf8)
                                     let addquery: [String: Any] = [kSecClass as String: kSecClassKey,
-                                                                   kSecAttrApplicationTag as String: SettingsModel.tag,
+                                                                   kSecAttrApplicationTag as String: AuthenticationManager.tag,
                                                                    kSecValueData as String: key as AnyObject]
                                     let status = SecItemAdd(addquery as CFDictionary, nil)
                                     guard status == errSecSuccess else {
@@ -80,15 +79,13 @@ struct SettingsView: View {
             Button(action:{
                 Task {
                     do {
-                        try await cloudCache.deleteAllUserCachedGroups()
-                        chatModel.removeCachedResults()
-                        try await chatModel.refreshCache(cloudCache: cloudCache)
+                        try await chatModel.cacheManager.cloudCache.deleteAllUserCachedGroups()
+                        try await chatModel.cacheManager.refreshCache()
                         await MainActor.run {
                             showOnboarding = true
                         }
                     } catch {
-                        print(error)
-                        chatModel.analytics?.track(name: "Error deleting all groups", properties: ["error": error.localizedDescription])
+                        chatModel.analyticsManager.trackError(error:error, additionalInfo:nil)
                     }
                 }
             }, label:{

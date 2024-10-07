@@ -10,13 +10,26 @@ import Segment
 import RevenueCat
 import CoreLocation
 import AuthenticationServices
+//import GoogleMobileAds
+
+class AppDelegate: UIResponder, UIApplicationDelegate {
+
+  func application(_ application: UIApplication,
+      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+
+    //GADMobileAds.sharedInstance().start(completionHandler: nil)
+
+    return true
+  }
+}
 
 @main
 struct Know_MapsApp: App {
-    @StateObject public var settingsModel = SettingsModel(userId: "")
-    @StateObject public var chatHost:AssistiveChatHost = AssistiveChatHost()
-    @StateObject public var chatModel:ChatResultViewModel = ChatResultViewModel(locationProvider: LocationProvider(), cloudCache: CloudCache(), featureFlags: FeatureFlags())
-    public var analytics: Analytics = Analytics(configuration: Know_MapsApp.config)
+    
+//    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    @StateObject public var settingsModel:AuthenticationManager
+    @StateObject public var chatModel:ChatResultViewModel
+    @StateObject public var searchSavedViewModel:SearchSavedViewModel
     
     @State private var showOnboarding:Bool = true
     @State private var showSplashScreen:Bool = true
@@ -26,6 +39,20 @@ struct Know_MapsApp: App {
         .trackApplicationLifecycleEvents(true)
         .flushAt(3)
         .flushInterval(10)
+    
+    init() {
+         // Safely initialize chatModel first
+         let chatModel = ChatResultViewModel(
+             locationProvider: LocationProvider(),
+             featureFlags: FeatureFlags(),
+             analyticsManager: SegmentAnalyticsManager(analytics: Analytics(configuration: Know_MapsApp.config))
+         )
+         
+         // Now safely initialize searchSavedViewModel using chatModel
+         _settingsModel = StateObject(wrappedValue: AuthenticationManager(userId: ""))
+         _chatModel = StateObject(wrappedValue: chatModel)
+         _searchSavedViewModel = StateObject(wrappedValue: SearchSavedViewModel(chatModel: chatModel))
+     }
     
     var body: some Scene {
         WindowGroup(id:"ContentView") {
@@ -43,7 +70,7 @@ struct Know_MapsApp: App {
                                 .frame(width:100 , height: 100)
                                 .padding()
                             Spacer()
-                            ProgressView(value: chatModel.cacheFetchProgress)
+                            ProgressView(value: chatModel.cacheManager.cacheFetchProgress)
                                 .frame(maxWidth:geometry.size.width / 2)
                                 .padding()
                             Spacer()
@@ -63,7 +90,7 @@ struct Know_MapsApp: App {
                                                         }
                                                     } else if case .failure(let error) = result {
                                                         print(error)
-                                                        chatModel.analytics?.track(name: "Error during startup", properties: ["error": error.localizedDescription])
+                                                        chatModel.analyticsManager.trackError(error: error, additionalInfo: ["error": error.localizedDescription])
                                                     }
                                                 }
                                                 
@@ -76,19 +103,17 @@ struct Know_MapsApp: App {
 #endif
                 } else {
                     if showOnboarding {
-                        OnboardingView(chatHost: chatHost, chatModel: chatModel, locationProvider: chatModel.locationProvider, selectedTab: $selectedOnboardingTab, showOnboarding: $showOnboarding)
+                        OnboardingView( chatModel: chatModel, locationProvider: chatModel.locationProvider, selectedTab: $selectedOnboardingTab, showOnboarding: $showOnboarding)
 #if os(visionOS) || os(macOS)
                             .frame(minWidth: 1280, minHeight: 720)
 #endif
-                            .environmentObject(chatModel.cloudCache)
                             .environmentObject(settingsModel)
                             .environmentObject(chatModel.featureFlags)
                     } else {
-                        ContentView(chatHost: chatHost, chatModel: chatModel, locationProvider: chatModel.locationProvider, showOnboarding: $showOnboarding)
+                        ContentView(chatModel: chatModel, locationProvider: chatModel.locationProvider, searchSavedViewModel: searchSavedViewModel, showOnboarding: $showOnboarding)
 #if os(visionOS) || os(macOS)
                             .frame(minWidth: 1280, minHeight: 720)
 #endif
-                            .environmentObject(chatModel.cloudCache)
                             .environmentObject(settingsModel)
                             .environmentObject(chatModel.featureFlags)
                     }
@@ -103,15 +128,11 @@ struct Know_MapsApp: App {
                     
 #if os(visionOS) || os(iOS)
                     if !newValue.isEmpty, let vendorId = UIDevice().identifierForVendor {
-                        analytics.identify(userId: vendorId.uuidString)
+                        chatModel.analyticsManager.identify(userID: vendorId.uuidString)
                     }
-#endif
-#if os(macOS)
-                    
 #endif
                 })
         }
-        .environmentObject(chatModel.cloudCache)
         .environmentObject(settingsModel)
         
 #if os(visionOS)
@@ -134,7 +155,7 @@ struct Know_MapsApp: App {
     
     private func loadPurchases() async throws {
         let purchasesId =  settingsModel.purchasesId
-        let revenuecatAPIKey = try await chatModel.cloudCache.apiKey(for: .revenuecat)
+        let revenuecatAPIKey = try await chatModel.cacheManager.cloudCache.apiKey(for: .revenuecat)
         Purchases.configure(withAPIKey: revenuecatAPIKey, appUserID: purchasesId)
         Purchases.shared.delegate = chatModel.featureFlags
         
@@ -144,16 +165,10 @@ struct Know_MapsApp: App {
     }
     
     private func startup(chatModel: ChatResultViewModel) async {
-        chatModel.cloudCache.analytics = chatModel.analytics
-        chatHost.analytics = chatModel.analytics
-        chatModel.assistiveHostDelegate = chatHost
-        chatHost.messagesDelegate = chatModel
-
         do {
             try await loadPurchases()
         } catch {
-            print(error)
-            chatModel.analytics?.track(name: "Error loading purchases", properties: ["error": error.localizedDescription])
+            chatModel.analyticsManager.trackError(error: error, additionalInfo:nil)
         }
         await setupChatModel(chatModel)
         await loadData(chatModel)
@@ -161,13 +176,12 @@ struct Know_MapsApp: App {
 
     private func setupChatModel(_ chatModel: ChatResultViewModel) async {
         // Perform setup tasks
-        if !chatModel.cloudCache.hasFsqAccess {
+        if !chatModel.cacheManager.cloudCache.hasFsqAccess {
             do {
                 try await chatModel.retrieveFsqUser()
 
             } catch {
-                print(error)
-                chatModel.analytics?.track(name: "Error retrieving Foursquare user", properties: ["error": error.localizedDescription])
+                chatModel.analyticsManager.trackError(error: error, additionalInfo:nil)
             }
         }
     }
@@ -175,20 +189,18 @@ struct Know_MapsApp: App {
     private func loadData(_ chatModel: ChatResultViewModel) async {
         Task {
             do {
-                try await chatHost.organizeCategoryCodeList()
+                try await chatModel.assistiveHostDelegate.organizeCategoryCodeList()
                 await chatModel.categoricalSearchModel()
             } catch {
-                print(error)
-                chatModel.analytics?.track(name: "categorical_search_error")
+                chatModel.analyticsManager.trackError(error: error, additionalInfo:nil)
             }
         }
 
         let cacheRefreshTask = Task {
             do {
-                try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
+                try await chatModel.cacheManager.refreshCache()
             } catch {
-                print(error)
-                chatModel.analytics?.track(name: "cache_refresh_error", properties: ["error": error.localizedDescription])
+                chatModel.analyticsManager.trackError(error: error, additionalInfo:nil)
             }
         }
 
@@ -198,8 +210,7 @@ struct Know_MapsApp: App {
             }
         } catch {
             cacheRefreshTask.cancel()
-            chatModel.analytics?.track(name: "cache_refresh_timeout")
-            print("Cache refresh timed out: \(error)")
+            chatModel.analyticsManager.trackError(error: error, additionalInfo:nil)
         }
 
         // Handle onboarding logic based on the loaded data
@@ -219,9 +230,9 @@ struct Know_MapsApp: App {
         }
                 
         await MainActor.run {
-            if cloudAuth, chatModel.cloudCache.hasFsqAccess, isLocationAuthorized {
+            if cloudAuth, chatModel.cacheManager.cloudCache.hasFsqAccess, isLocationAuthorized {
                 showOnboarding = false
-            }else if cloudAuth, chatModel.cloudCache.hasFsqAccess, !isLocationAuthorized {
+            }else if cloudAuth,  chatModel.cacheManager.cloudCache.hasFsqAccess, !isLocationAuthorized {
                 selectedOnboardingTab = "Location"
             }
             

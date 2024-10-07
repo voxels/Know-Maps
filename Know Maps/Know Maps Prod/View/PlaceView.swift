@@ -9,7 +9,6 @@ import SwiftUI
 import MapKit
 
 struct PlaceView: View {
-    @ObservedObject public var chatHost:AssistiveChatHost
     @ObservedObject public var chatModel:ChatResultViewModel
     @ObservedObject public var locationProvider:LocationProvider
     @ObservedObject public var placeDirectionsViewModel:PlaceDirectionsViewModel
@@ -33,46 +32,46 @@ struct PlaceView: View {
                 .pickerStyle(.palette)
                 switch tabItem {
                 case 0:
-                    PlaceAboutView(chatHost:chatHost,chatModel: chatModel, locationProvider: locationProvider, resultId: $resultId, tabItem: $tabItem)
+                    PlaceAboutView(chatModel: chatModel, locationProvider: locationProvider, resultId: $resultId, tabItem: $tabItem)
                         .tabItem {
                             Label("About", systemImage: "target")
                         }
                         .tag("About")
                         .onAppear(perform: {
-                            chatModel.analytics?.screen(title: "PlaceAboutView")
+                            chatModel.analyticsManager.track(event:"PlaceAboutView", properties: nil)
                         })
                 case 1:
-                    PlaceDirectionsView(chatHost:chatHost, chatModel: chatModel, locationProvider: locationProvider, model: placeDirectionsViewModel, resultId: $resultId)
+                    PlaceDirectionsView( chatModel: chatModel, locationProvider: locationProvider, model: placeDirectionsViewModel, resultId: $resultId)
                         .tabItem {
                             Label("Directions", systemImage: "map")
                         }
                         .tag("Directions")
                         .onAppear(perform: {
-                            chatModel.analytics?.screen(title: "PlaceDirectionsView")
+                            chatModel.analyticsManager.track(event:"PlaceDirectionsView", properties: nil)
                         })
                 case 2:
                     if let detailsResponses = placeChatResult.placeDetailsResponse {
                         if let photoResponses = detailsResponses.photoResponses, photoResponses.count > 0 {
-                            PlacePhotosView(chatHost:chatHost,chatModel: chatModel, locationProvider: locationProvider, resultId: $resultId)
+                            PlacePhotosView(chatModel: chatModel, locationProvider: locationProvider, resultId: $resultId)
                                 .tabItem {
                                     Label("Photos", systemImage: "photo.stack")
                                 }
                                 .tag("Photos")
                                 .onAppear(perform: {
-                                    chatModel.analytics?.screen(title: "PlacePhotosView")
+                                    chatModel.analyticsManager.track(event:"PlacePhotosView", properties: nil)
                                 })
                         }
                     }
                 case 3:
                     if let detailsResponses = placeChatResult.placeDetailsResponse {
                         if let tipsResponses = detailsResponses.tipsResponses, tipsResponses.count > 0 {
-                            PlaceTipsView(chatHost:chatHost, chatModel: chatModel, locationProvider: locationProvider, resultId: $resultId)
+                            PlaceTipsView(chatModel: chatModel, locationProvider: locationProvider, resultId: $resultId)
                                 .tabItem {
                                     Label("Tips", systemImage: "quote.bubble")
                                 }
                                 .tag("Tips")
                                 .onAppear(perform: {
-                                    chatModel.analytics?.screen(title: "PlaceTipsView")
+                                    chatModel.analyticsManager.track(event:"PlaceTipsView", properties: nil)
                                 })
                         }
                     }
@@ -87,17 +86,6 @@ struct PlaceView: View {
             .onDisappear {
                 chatModel.selectedPlaceChatResult = nil
             }
-            #if os(macOS)
-            .toolbar(content: {
-                ToolbarItem{
-                    Button(action: {
-                        self.resultId = nil
-                    }, label:{
-                        Label("List", systemImage:"list.bullet")
-                    })
-                }
-            })
-            #endif
         } else {
             VStack {
                 Spacer()

@@ -653,7 +653,7 @@ open class PlaceResponseFormatter {
         return retVal
     }
     
-    public class func placeDetailsResponse(with response:Any, for placeSearchResponse:PlaceSearchResponse, placePhotosResponses:[PlacePhotoResponse]? = nil, placeTipsResponses:[PlaceTipsResponse]? = nil, previousDetails:[PlaceDetailsResponse]? = nil, cloudCache:CloudCache?) async throws ->PlaceDetailsResponse {
+    public class func placeDetailsResponse(with response:Any, for placeSearchResponse:PlaceSearchResponse, placePhotosResponses:[PlacePhotoResponse]? = nil, placeTipsResponses:[PlaceTipsResponse]? = nil, previousDetails:[PlaceDetailsResponse]? = nil) async throws ->PlaceDetailsResponse {
         
         guard let response = response as? NSDictionary else {
             throw PlaceResponseFormatterError.InvalidRawResponseType

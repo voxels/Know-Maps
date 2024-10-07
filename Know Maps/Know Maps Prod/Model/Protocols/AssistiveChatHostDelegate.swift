@@ -11,18 +11,16 @@ import Segment
 
 public protocol AssistiveChatHostDelegate:AnyObject {
     
-    var messagesDelegate:AssistiveChatHostMessagesDelegate? { get set}
+    var messagesDelegate:AssistiveChatHostMessagesDelegate? { get set }
     var languageDelegate:LanguageGeneratorDelegate { get }
     var placeSearchSession:PlaceSearchSession { get }
     var queryIntentParameters:AssistiveChatHostQueryParameters? { get }
     var categoryCodes:[[String:[[String:String]]]] { get }
     var lastGeocodedPlacemarks:[CLPlacemark]? { get }
     
-    init(messagesDelegate: AssistiveChatHostMessagesDelegate?, lastGeocodedPlacemarks: [CLPlacemark]?)
+    init(analyticsManager:AnalyticsManager, messagesDelegate: AssistiveChatHostMessagesDelegate?, lastGeocodedPlacemarks: [CLPlacemark]?)
     func organizeCategoryCodeList() async throws
     
-    func didTap(chatResult: ChatResult, selectedDestinationChatResultID:UUID?) async
-    func didTap(categoricalResult:CategoryResult, chatResult:ChatResult?, selectedDestinationChatResultID:UUID) async
     func determineIntent(for caption:String, override:AssistiveChatHost.Intent?) -> AssistiveChatHost.Intent
     func updateLastIntentParameters(intent:AssistiveChatHostIntent)
     func appendIntentParameters(intent:AssistiveChatHostIntent)

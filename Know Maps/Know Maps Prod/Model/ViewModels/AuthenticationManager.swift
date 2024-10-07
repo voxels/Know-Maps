@@ -10,11 +10,11 @@ import AuthenticationServices
 import RevenueCat
 import Security
 
-public enum SettingsModelError : Error {
+public enum AuthenticationManagerError : Error {
     case failed
 }
 
-open class SettingsModel : NSObject, ASAuthorizationControllerDelegate,  ObservableObject {
+open class AuthenticationManager : NSObject, ASAuthorizationControllerDelegate,  ObservableObject {
     public static let tag = "com.noisederived.Know-Maps.keys.appleuserid".data(using: .utf8)!
 
     public var isAuthorized:Bool {
@@ -53,7 +53,7 @@ open class SettingsModel : NSObject, ASAuthorizationControllerDelegate,  Observa
             print("Authorization successful for \(String(describing: fullName)).")
             authCompletion?(.success(authorization))
         } else {
-            authCompletion?(.failure(SettingsModelError.failed))
+            authCompletion?(.failure(AuthenticationManagerError.failed))
         }
     }
     

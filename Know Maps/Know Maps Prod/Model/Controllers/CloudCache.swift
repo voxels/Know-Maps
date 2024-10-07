@@ -21,12 +21,43 @@ public enum CloudCacheError: Error {
     case ServiceNotFound
 }
 
-open class CloudCache: NSObject, ObservableObject {
-    public var analytics:Analytics?
-    @MainActor var hasFsqAccess: Bool {
+public protocol CloudCacheDelegate: AnyObject {
+    // Properties
+    var hasFsqAccess: Bool { get }
+    var isFetchingCachedRecords: Bool { get set }
+    
+    // Fetching and Caching Methods
+    func fetch(url: URL, from cloudService: CloudCacheService) async throws -> Any
+    func fetchGroupedUserCachedRecords(for group: String) async throws -> [UserCachedRecord]
+    func storeUserCachedRecord(for group: String, identity: String, title: String, icons: String, list: String, section: String) async throws -> String
+    func deleteUserCachedRecord(for cachedRecord: UserCachedRecord) async throws
+    func deleteAllUserCachedRecords(for group: String) async throws -> (saveResults: [CKRecord.ID: Result<CKRecord, Error>], deleteResults: [CKRecord.ID: Result<Void, Error>])
+    func deleteAllUserCachedGroups() async throws
+
+    // CloudKit Identity and OAuth Management
+    func fetchFsqIdentity() async throws -> String
+    func fetchToken(for fsqUserId: String) async throws -> String
+    func storeFoursquareIdentityAndToken(for fsqUserId: String, oauthToken: String)
+
+    // API Key and Session Management
+    func apiKey(for service: CloudCacheService) async throws -> String
+    func session(service: String) async throws -> URLSession
+    func fetchCloudKitUserRecordID() async throws -> CKRecord.ID?
+
+    // Background Operations
+    func clearCache()
+}
+
+public enum CloudCacheService: String {
+    case revenuecat
+}
+
+public final class CloudCache: NSObject, ObservableObject, CloudCacheDelegate {
+    var analyticsManager:AnalyticsManager
+    @MainActor public var hasFsqAccess: Bool {
         fsqUserId.isEmpty ? false : true
     }
-    @Published var isFetchingCachedRecords: Bool = false
+    @Published public var isFetchingCachedRecords: Bool = false
     @Published public var queuedGroups = Set<String>()
     let cacheContainer = CKContainer(identifier: "iCloud.com.secretatomics.knowmaps.Cache")
     let keysContainer = CKContainer(identifier: "iCloud.com.secretatomics.knowmaps.Keys")
@@ -39,10 +70,6 @@ open class CloudCache: NSObject, ObservableObject {
     private var cacheOperations = Set<CKDatabaseOperation>()
     private var keysOperations = Set<CKDatabaseOperation>()
     
-    public enum CloudCacheService: String {
-        case revenuecat
-    }
-    
     // Thread-safe queues for synchronizing access
     private let operationQueue = DispatchQueue(label: "com.secretatomics.knowmaps.operationQueue", attributes: .concurrent)
     
@@ -50,7 +77,8 @@ open class CloudCache: NSObject, ObservableObject {
     private var backgroundTask: UIBackgroundTaskIdentifier = .invalid
 #endif
     
-    public override init() {
+    public init(analyticsManager:AnalyticsManager) {
+        self.analyticsManager = analyticsManager
         super.init()
 #if os(macOS)
         NotificationCenter.default.addObserver(self, selector: #selector(appDidEnterBackground), name: NSApplication.didResignActiveNotification, object: nil)
@@ -153,7 +181,9 @@ open class CloudCache: NSObject, ObservableObject {
         request.setValue(apiKey, forHTTPHeaderField: "Authorization")
         
         return try await withCheckedThrowingContinuation { continuation in
-            let dataTask = session.dataTask(with: request) { data, response, error in
+            let dataTask = session.dataTask(with: request) { [weak self] data, response, error in
+                
+                guard let strongSelf = self else { return }
                 if let e = error {
                     print(e)
                     continuation.resume(throwing: e)
@@ -162,9 +192,9 @@ open class CloudCache: NSObject, ObservableObject {
                         let json = try JSONSerialization.jsonObject(with: d, options: [.fragmentsAllowed])
                         continuation.resume(returning: json)
                     } catch {
-                        print(error)
                         let returnedString = String(data: d, encoding: .utf8) ?? ""
                         print(returnedString)
+                        strongSelf.analyticsManager.trackError(error: error, additionalInfo: nil)
                         continuation.resume(throwing: CloudCacheError.ServerErrorMessage)
                     }
                 }
@@ -173,39 +203,40 @@ open class CloudCache: NSObject, ObservableObject {
         }
     }
     
-    internal func session(service: String) async throws -> URLSession {
+    public func session(service: String) async throws -> URLSession {
         let predicate = NSPredicate(format: "service == %@", service)
         let query = CKQuery(recordType: "KeyString", predicate: predicate)
         let operation = CKQueryOperation(query: query)
         operation.desiredKeys = ["value", "service"]
         operation.resultsLimit = 1
         operation.recordMatchedBlock = { [weak self] _, result in
-            guard let self = self else { return }
+            guard let strongSelf = self else { return }
             
             do {
                 let record = try result.get()
                 if let apiKey = record["value"] as? String {
                     print("\(String(describing: record["service"]))")
                     Task{ @MainActor in
-                        self.serviceAPIKey = apiKey
+                        strongSelf.serviceAPIKey = apiKey
                     }
                 } else {
                     print("Did not find API Key")
                 }
             } catch {
-                print(error)
+                strongSelf.analyticsManager.trackError(error: error, additionalInfo: nil)
             }
         }
         operation.queuePriority = .veryHigh
         operation.qualityOfService = .userInitiated
         
         let success = try await withCheckedThrowingContinuation { continuation in
-            operation.queryResultBlock = { result in
+            operation.queryResultBlock = { [weak self] result in
+                guard let strongSelf = self else { return }
                 switch result {
                 case .success:
                     continuation.resume(returning: true)
                 case .failure(let error):
-                    print(error)
+                    strongSelf.analyticsManager.trackError(error: error, additionalInfo: nil)
                     continuation.resume(returning: false)
                 }
             }
@@ -229,32 +260,33 @@ open class CloudCache: NSObject, ObservableObject {
         operation.desiredKeys = ["value", "service"]
         operation.resultsLimit = 1
         operation.recordMatchedBlock = { [weak self] _, result in
-            guard let self = self else { return }
+            guard let strongSelf = self else { return }
             
             do {
                 let record = try result.get()
                 if let apiKey = record["value"] as? String {
                     print("\(String(describing: record["service"]))")
                     Task { @MainActor in
-                        self.serviceAPIKey = apiKey
+                        strongSelf.serviceAPIKey = apiKey
                     }
                 } else {
                     print("Did not find API Key")
                 }
             } catch {
-                print(error)
+                strongSelf.analyticsManager.trackError(error: error, additionalInfo: nil)
             }
         }
         operation.queuePriority = .veryHigh
         operation.qualityOfService = .userInitiated
         
         let success = try await withCheckedThrowingContinuation { continuation in
-            operation.queryResultBlock = { result in
+            operation.queryResultBlock = { [weak self] result in
+                guard let strongSelf = self else { return }
                 switch result {
                 case .success:
                     continuation.resume(returning: true)
                 case .failure(let error):
-                    print(error)
+                    strongSelf.analyticsManager.trackError(error: error, additionalInfo: nil)
                     continuation.resume(returning: false)
                 }
             }
@@ -275,8 +307,10 @@ open class CloudCache: NSObject, ObservableObject {
     
     public func fetchCloudKitUserRecordID() async throws -> CKRecord.ID? {
         return try await withCheckedThrowingContinuation { continuation in
-            cacheContainer.fetchUserRecordID { recordId, error in
+            cacheContainer.fetchUserRecordID { [weak self] recordId, error in
+                guard let strongSelf = self else { return }
                 if let e = error {
+                    strongSelf.analyticsManager.trackError(error: e, additionalInfo: nil)
                     continuation.resume(throwing: e)
                 } else if let record = recordId {
                     continuation.resume(returning: record)
@@ -294,32 +328,33 @@ open class CloudCache: NSObject, ObservableObject {
         operation.desiredKeys = ["userId"]
         operation.resultsLimit = 1
         operation.qualityOfService = .userInitiated
-        operation.recordMatchedBlock = { _, result in
+        operation.recordMatchedBlock = { [weak self] _, result in
+            guard let strongSelf = self else { return }
             do {
                 let record = try result.get()
                 if let userId = record["userId"] as? String {
                     Task { @MainActor in
-                        self.fsqUserId = userId
+                        strongSelf.fsqUserId = userId
                     }
                 } else {
                     Task { @MainActor in
-                        self.fsqUserId = ""
+                        strongSelf.fsqUserId = ""
                     }
                     print("Did not find userId")
                 }
             } catch {
-                print(error)
-                self.analytics?.track(name: "error \(error)")
+                strongSelf.analyticsManager.trackError(error: error, additionalInfo: ["operation": "fetchFsqIdentity"])
             }
         }
         
         let success = try await withCheckedThrowingContinuation { continuation in
-            operation.queryResultBlock = { result in
+            operation.queryResultBlock = { [weak self] result in
+                guard let strongSelf = self else { return }
                 switch result {
                 case .success:
                     continuation.resume(returning: true)
                 case .failure(let error):
-                    print(error)
+                    strongSelf.analyticsManager.trackError(error: error, additionalInfo: nil)
                     continuation.resume(returning: false)
                 }
             }
@@ -343,33 +378,34 @@ open class CloudCache: NSObject, ObservableObject {
         operation.desiredKeys = ["token"]
         operation.resultsLimit = 1
         operation.qualityOfService = .userInteractive
-        operation.recordMatchedBlock = { _, result in
+        operation.recordMatchedBlock = { [weak self] _, result in
+            guard let strongSelf = self else { return }
             do {
                 let record = try result.get()
                 if let token = record["token"] as? String {
                     Task { @MainActor in
-                        self.fsqUserId = fsqUserId
-                        self.oauthToken = token
+                        strongSelf.fsqUserId = fsqUserId
+                        strongSelf.oauthToken = token
                     }
                 } else {
                     Task { @MainActor in
-                        self.oauthToken = ""
+                        strongSelf.oauthToken = ""
                     }
                     print("Did not find token")
                 }
             } catch {
-                print(error)
-                self.analytics?.track(name: "error \(error)")
+                strongSelf.analyticsManager.trackError(error:error, additionalInfo: nil)
             }
         }
         
         let success = try await withCheckedThrowingContinuation { continuation in
-            operation.queryResultBlock = { result in
+            operation.queryResultBlock = { [weak self] result in
+                guard let strongSelf = self else { return }
                 switch result {
                 case .success:
                     continuation.resume(returning: true)
                 case .failure(let error):
-                    print(error)
+                    strongSelf.analyticsManager.trackError(error: error, additionalInfo: nil)
                     continuation.resume(returning: false)
                 }
             }
@@ -410,7 +446,8 @@ open class CloudCache: NSObject, ObservableObject {
         let operation = CKQueryOperation(query: query)
         operation.desiredKeys = ["Group", "Icons", "Identity", "Title", "List", "Section"]
         operation.qualityOfService = .default
-        operation.recordMatchedBlock = { recordId, result in
+        operation.recordMatchedBlock = { [weak self] recordId, result in
+            guard let strongSelf = self else { return }
             do {
                 let record = try result.get()
                 guard
@@ -435,18 +472,18 @@ open class CloudCache: NSObject, ObservableObject {
                 )
                 retval.append(cachedRecord)
             } catch {
-                print(error)
-                self.analytics?.track(name: "error \(error)")
+                strongSelf.analyticsManager.trackError(error: error, additionalInfo: nil)
             }
         }
         
         let _ = try await withCheckedThrowingContinuation { continuation in
-            operation.queryResultBlock = { result in
+            operation.queryResultBlock = { [weak self] result in
+                guard let strongSelf = self else { return }
                 switch result {
                 case .success:
                     continuation.resume(returning: true)
                 case .failure(let error):
-                    print(error)
+                    strongSelf.analyticsManager.trackError(error: error, additionalInfo: nil)
                     continuation.resume(returning: false)
                 }
             }
@@ -468,7 +505,7 @@ open class CloudCache: NSObject, ObservableObject {
         for group: String,
         identity: String,
         title: String,
-        icons: String? = nil,
+        icons: String,
         list: String,
         section: String
     ) async throws -> String {
@@ -478,7 +515,7 @@ open class CloudCache: NSObject, ObservableObject {
         record.setObject(title as NSString, forKey: "Title")
         record.setObject(list as NSString, forKey: "List")
         record.setObject(section as NSString, forKey: "Section")
-        record.setObject((icons ?? "") as NSString, forKey: "Icons")
+        record.setObject((icons) as NSString, forKey: "Icons")
         
         let result = try await cacheContainer.privateCloudDatabase.modifyRecords(
             saving: [record],
@@ -506,8 +543,7 @@ open class CloudCache: NSObject, ObservableObject {
         let recordsToDelete = existingGroups.map { CKRecord.ID(recordName: $0.recordId) }
         return try await cacheContainer.privateCloudDatabase.modifyRecords(
             saving: [],
-            deleting: recordsToDelete,
-            atomically: true
+            deleting: recordsToDelete
         )
     }
     

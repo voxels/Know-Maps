@@ -4,7 +4,6 @@
 //
 //  Created by Michael A Edgcumbe on 11/21/23.
 //
-
 import SwiftUI
 import CoreLocation
 import MapKit
@@ -13,341 +12,120 @@ import CallKit
 struct PlaceAboutView: View {
     @Environment(\.openURL) private var openURL
     @Environment(\.horizontalSizeClass) var sizeClass
-    @ObservedObject public var chatHost:AssistiveChatHost
-    @ObservedObject public var chatModel:ChatResultViewModel
-    @ObservedObject public var locationProvider:LocationProvider
-    @Binding public var resultId:ChatResult.ID?
-    @Binding public var tabItem:Int
-    @State private var presentingPopover:Bool = false
+    @ObservedObject var chatModel:ChatResultViewModel
+    @ObservedObject var locationProvider:LocationProvider
+    @Binding var resultId:ChatResult.ID?
+    @Binding var tabItem: Int
+    @StateObject var viewModel: PlaceAboutViewModel
+
+    static let defaultPadding: CGFloat = 8
+    static let mapFrameConstraint: Double = 50000
+    static let buttonHeight: Double = 44
     
-#if os(visionOS) || os(iOS)
-    @State private var callController = CXCallController()
-#endif
-    @State private var isPresentingShareSheet:Bool = false
-    static let defaultPadding:CGFloat = 8
-    static let mapFrameConstraint:Double = 50000
-    static let buttonHeight:Double = 44
+    public init(chatModel:ChatResultViewModel, locationProvider:LocationProvider, resultId:Binding<ChatResult.ID?>, tabItem:Binding<Int>) {
+        self._chatModel = ObservedObject(wrappedValue: chatModel)
+        self._locationProvider = ObservedObject(wrappedValue: locationProvider)
+        self._resultId = resultId
+        self._tabItem = tabItem
+        _viewModel = StateObject(wrappedValue: PlaceAboutViewModel(chatModel: chatModel, locationProvider: locationProvider))
+    }
+    
     
     var body: some View {
         GeometryReader { geo in
             ScrollView {
                 VStack {
                     if let resultId = resultId, let result = chatModel.placeChatResult(for: resultId), let placeResponse = result.placeResponse, let placeDetailsResponse = result.placeDetailsResponse {
-                        let placeCoordinate = CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude)
                         
+                        // Title and Map
+                        let placeCoordinate = CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude)
                         let title = placeResponse.name
+                        
                         Text(title)
                             .font(.headline)
                             .padding()
+                        
                         Map(initialPosition: .automatic, bounds: MapCameraBounds(minimumDistance: 5000, maximumDistance: 250000), interactionModes: [.zoom, .rotate]) {
                             Marker(title, coordinate: placeCoordinate.coordinate)
-                        }
-                        .mapControls {
-                            MapPitchToggle()
-                            MapUserLocationButton()
-                            MapCompass()
                         }
                         .mapStyle(.hybrid)
                         .frame(minHeight: geo.size.height / 2.0)
                         .cornerRadius(16)
                         .padding()
                         
+                        // Address and Categories
                         ZStack(alignment: .leading) {
                             Rectangle().foregroundStyle(.thinMaterial)
                                 .cornerRadius(16)
-                            VStack(){
-                                ZStack {
-                                    Rectangle().foregroundStyle(.thickMaterial)
-                                        .cornerRadius(16)
-                                    VStack{
-                                        Text(placeResponse.categories.joined(separator: ", ")).italic()
-                                    }
+                            VStack {
+                                Text(placeResponse.categories.joined(separator: ", ")).italic()
                                     .padding(PlaceAboutView.defaultPadding)
-                                }
-                                .padding(PlaceAboutView.defaultPadding)
                                 
                                 Label(placeResponse.formattedAddress, systemImage: "mappin")
                                     .multilineTextAlignment(.leading)
-                                    .labelStyle(.titleOnly)
                                     .padding()
-#if os(iOS) || os(visionOS)
-                                    .hoverEffect(.lift)
-#endif
-                                    .padding(PlaceAboutView.defaultPadding)
                                     .onTapGesture {
                                         tabItem = 1
                                     }
+                            }
+                            .padding()
+                        }
+                        .padding()
+                        
+                        // Action buttons
+                        HStack {
+                            // Save/Unsave button
+                            ZStack {
+                                Capsule()
+                                    .foregroundStyle(.accent)
+                                    .frame(height: PlaceAboutView.buttonHeight)
                                 
-                                
-                                
-                                HStack {
-                                    if chatModel.cloudCache.hasFsqAccess {
-                                        ZStack {
-                                            Capsule()
-                                                .foregroundStyle(.accent)
-                                                .frame(height: PlaceAboutView.buttonHeight, alignment: .center)
-                                            if let parent = chatModel.placeChatResult(for: resultId), let placeResponse = parent.placeResponse{
-                                                
-                                                let isSaved = chatModel.cachedPlaces(contains:parent.title)
-                                                
-                                                if !isSaved {
-                                                    Label("Add to List", systemImage: "square.and.arrow.down")
-                                                        .labelStyle(.iconOnly)
-                                                        .onTapGesture {
-                                                            Task {
-                                                                do {
-                                                                    var userRecord = UserCachedRecord(recordId: "", group: "Place", identity:placeResponse.fsqID, title: parent.title, icons: "", list: parent.list, section: parent.section.rawValue)
-                                                                    let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, list:userRecord.list, section:userRecord.section)
-                                                                    userRecord.setRecordId(to: record)
-                                                                    try await Task.sleep(nanoseconds: 1_000_000_000)
-                                                                    try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
-                                                                } catch {
-                                                                    print(error)
-                                                                    chatModel.analytics?.track(name: "Error Saving Place", properties: ["error": error.localizedDescription])
-                                                                }
-                                                            }
-                                                        }
-                                                } else {
-                                                    Label("Delete", systemImage: "minus.circle")
-                                                        .labelStyle(.iconOnly)
-                                                        .onTapGesture {
-                                                            Task {
-                                                                let identity = placeResponse.fsqID
-                                                                if let cachedPlaceResults = chatModel.cachedResults(for: "Place", identity:identity), let cachedPlaceResult = cachedPlaceResults.first {
-                                                                    Task {
-                                                                        do {
-                                                                            try await chatModel.cloudCache.deleteUserCachedRecord(for: cachedPlaceResult)
-                                                                            try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
-                                                                        } catch {
-                                                                            print(error)
-                                                                            chatModel.analytics?.track(name: "Error Deleting Place", properties: ["error": error.localizedDescription])
-                                                                        }
-                                                                    }
-                                                                }
-                                                                
-                                                        }
-                                                    }
-                                                }
-                                            }
+                                Label(viewModel.isSaved ? "Delete" : "Add to List", systemImage: viewModel.isSaved ? "minus.circle" : "square.and.arrow.down")
+                                    .onTapGesture {
+                                        Task {
+                                            await viewModel.toggleSavePlace(resultId: resultId)
                                         }
-#if os(iOS) || os(visionOS)
-                                        .hoverEffect(.lift)
-#endif
                                     }
+                            }
+                            
+                            // Phone button
+                            if let tel = placeDetailsResponse.tel {
+                                ZStack {
+                                    Capsule()
+                                        .foregroundStyle(.accent)
+                                        .frame(height: PlaceAboutView.buttonHeight)
                                     
-                                    if let tel = placeDetailsResponse.tel {
-                                        ZStack {
-                                            Capsule()
-                                                .foregroundStyle(.accent)
-                                                .frame(height: PlaceAboutView.buttonHeight, alignment: .center)
-                                            Label("\(tel)", systemImage: "phone")
-                                                .labelStyle( .iconOnly )
-                                        }
-#if os(iOS) || os(visionOS)
-                                        .hoverEffect(.lift)
-#endif
+                                    Label(tel, systemImage: "phone")
                                         .onTapGesture {
-#if os(visionOS) || os(iOS)
-                                            if let url = URL(string: "tel://\(tel)") {
+                                            if let url = viewModel.getCallURL(tel: tel) {
                                                 openURL(url)
                                             }
-#endif
                                         }
-                                    }
-                                    
-                                    
-                                    
-                                    if let website = placeDetailsResponse.website, let url = URL(string: website) {
-                                        ZStack {
-                                            Capsule()
-                                                .onTapGesture {
-                                                    openURL(url)
-                                                }
-                                                .foregroundStyle(.accent)
-                                                .frame(height: PlaceAboutView.buttonHeight, alignment: .center)
-                                            Link(destination: url) {
-                                                Label("Visit website", systemImage: "link")
-                                                    .labelStyle(.iconOnly)
-                                            }.foregroundStyle(.primary)
-                                        }
-#if os(iOS) || os(visionOS)
-                                        .hoverEffect(.lift)
-#endif
-                                    }
-                                    
-                                    
-                                    let rating = placeDetailsResponse.rating
-                                    if rating > 0 {
-                                        ZStack {
-                                            Capsule()
-                                                .foregroundStyle(.accent)
-                                                .frame(height: PlaceAboutView.buttonHeight, alignment: .center)
-                                            Label(PlacesList.formatter.string(from: NSNumber(value: rating)) ?? "0", systemImage: "star.fill")
-                                                .labelStyle(.titleAndIcon)
-                                            
-                                        }
-#if os(iOS) || os(visionOS)
-                                        .hoverEffect(.lift)
-#endif
-                                        .onTapGesture {
-                                            tabItem = 3
-                                        }
-                                    }
-                                    
-                                    if let price = placeDetailsResponse.price {
-                                        ZStack {
-                                            Capsule()
-                                                .foregroundStyle(.accent)
-                                                .frame(height: PlaceAboutView.buttonHeight, alignment: .center)
-                                            switch price {
-                                            case 1:
-                                                Text("$")
-                                            case 2:
-                                                Text("$$")
-                                            case 3:
-                                                Text("$$$")
-                                            case 4:
-                                                Text("$$$$")
-                                            default:
-                                                Text("\(price)")
-                                            }
-                                        }
-#if os(iOS) || os(visionOS)
-                                        .hoverEffect(.lift)
-#endif
-                                    }
-                                    
-                                    ZStack {
-                                        Capsule()
-                                            .foregroundStyle(.accent)
-                                            .frame(height: PlaceAboutView.buttonHeight, alignment: .center)
-                                        
-                                        Image(systemName: "square.and.arrow.up")
-                                    }
-#if os(iOS) || os(visionOS)
-                                    .hoverEffect(.lift)
-#endif
-                                    .onTapGesture {
-                                        self.isPresentingShareSheet.toggle()
-                                    }
-                                    
-                                    Spacer()
-                                }.padding(PlaceAboutView.defaultPadding)
-                            }
-                        }.padding()
-                        .popover(isPresented: $isPresentingShareSheet) {
-                            if let result = chatModel.placeChatResult(for: resultId), let placeDetailsResponse = result.placeDetailsResponse  {
-                                let items:[Any] = [placeDetailsResponse.website ?? placeDetailsResponse.searchResponse.address]
-#if os(visionOS) || os(iOS)
-                                ActivityViewController(activityItems:items, applicationActivities:[UIActivity](), isPresentingShareSheet: $isPresentingShareSheet)
-                                    .presentationCompactAdaptation(.popover)
-#endif
-                            }
-                        }
-                        
-                        if chatModel.cloudCache.hasFsqAccess {
-                            PlaceDescriptionView(chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider, resultId: $resultId)
-                                .padding(PlaceAboutView.defaultPadding * 2)
-                            
-                        }
-                        if chatModel.cloudCache.hasFsqAccess {
-                            if let tastes = placeDetailsResponse.tastes, tastes.count > 0 {
-                                Section("Tastes") {
-                                    let gridItems = Array(repeating: GridItem(.flexible(), spacing: PlaceAboutView.defaultPadding), count: sizeClass == .compact ? 2 : 3)
-                                    
-                                    LazyVGrid(columns: gridItems, alignment: .leading, spacing: 16) {
-                                        ForEach(tastes, id: \.self) { taste in
-                                            HStack {
-                                                let isSaved = chatModel.cachedTastes(contains: taste)
-                                                Label("Save", systemImage: isSaved ? "minus.circle" : "square.and.arrow.down")
-                                                    .labelStyle(.iconOnly)
-                                                    .padding()
-                                                    .onTapGesture {
-                                                        let isSaved = chatModel.cachedTastes(contains: taste)
-                                                        if isSaved {
-                                                            if let cachedTasteResults = chatModel.cachedResults(for: "Taste", identity: taste) {
-                                                                for cachedTasteResult in cachedTasteResults {
-                                                                    Task {
-                                                                        do {
-                                                                            try await chatModel.cloudCache.deleteUserCachedRecord(for: cachedTasteResult)
-                                                                            try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
-                                                                        } catch {
-                                                                            chatModel.analytics?.track(name: "error \(error)")
-                                                                            print(error)
-                                                                        }
-                                                                    }
-                                                                }
-                                                            }
-                                                        } else {
-                                                            Task {
-                                                                do {
-                                                                    var userRecord = UserCachedRecord(recordId: "", group: "Taste", identity: taste, title: taste, icons: "", list:"Type", section:chatHost.section(place: taste).rawValue )
-                                                                    let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, list:userRecord.list, section: userRecord.section)
-                                                                    
-                                                                    userRecord.setRecordId(to:record)
-                                                                    try await Task.sleep(nanoseconds: 1_000_000_000)
-                                                                    try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
-                                                                } catch {
-                                                                    chatModel.analytics?.track(name: "error \(error)")
-                                                                    print(error)
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-#if os(iOS) || os(visionOS)
-                                                    .hoverEffect(.lift)
-#endif
-                                                Text(taste)
-                                                Spacer()
-                                            }
-                                        }
-                                    }.padding(.horizontal, 16)
                                 }
                             }
                             
-                            
-                            if chatModel.relatedPlaceResults.count > 0 {
-                                Section("Related Places") {
-                                    ScrollView(.horizontal) {
-                                        HStack{
-                                            ForEach(chatModel.relatedPlaceResults){ result in
-                                                ZStack(alignment: .center, content: {
-                                                    VStack {
-                                                        Text(result.title).bold().padding(8)
-                                                        if let neighborhood = result.recommendedPlaceResponse?.neighborhood, !neighborhood.isEmpty {
-                                                            
-                                                            Text(neighborhood).italic()
-                                                        } else{
-                                                            Text("")
-                                                        }
-                                                        HStack {
-                                                            if let placeResponse = result.recommendedPlaceResponse {
-                                                                Text(!placeResponse.address.isEmpty ?
-                                                                     placeResponse.address : placeResponse.formattedAddress )
-                                                                .italic()
-                                                                .padding(8)
-                                                            }
-                                                        }
-                                                    }
-                                                    
-                                                })
-                                                .clipShape(RoundedRectangle(cornerSize: CGSize(width: 16, height: 16)))
-                                                .cornerRadius(16)
-                                                .padding(EdgeInsets(top: 0, leading: 0, bottom: 16, trailing: 0))
-                                            }
+                            // Website button
+                            if let website = placeDetailsResponse.website, let url = viewModel.getWebsiteURL(website: website) {
+                                ZStack {
+                                    Capsule()
+                                        .foregroundStyle(.accent)
+                                        .frame(height: PlaceAboutView.buttonHeight)
+                                    
+                                    Label("Visit website", systemImage: "link")
+                                        .onTapGesture {
+                                            openURL(url)
                                         }
-                                    }.padding(.horizontal, 16)
-                                }.padding(.vertical, 16)
+                                }
                             }
+                            
+                            Spacer()
                         }
+                        .padding(PlaceAboutView.defaultPadding)
                     } else {
+                        // Loading view
                         VStack {
                             Spacer()
-                            HStack {
-                                Spacer()
-                                ProgressView()
-                                Spacer()
-                            }
+                            ProgressView()
                             Spacer()
                         }
                     }
@@ -355,24 +133,4 @@ struct PlaceAboutView: View {
             }
         }
     }
-    
-    
-#if os(visionOS) || os(iOS)
-    func call(tel:String) {
-        let uuid = UUID()
-        let digits = tel.replacingOccurrences(of: "-", with: "").replacingOccurrences(of: "(", with: "").replacingOccurrences(of: ")", with: "").replacingOccurrences(of: " ", with: "")
-        let handle = CXHandle(type: .phoneNumber, value: digits)
-        
-        let startCallAction = CXStartCallAction(call: uuid, handle: handle)
-        
-        let transaction = CXTransaction(action: startCallAction)
-        callController.request(transaction) { error in
-            if let error = error {
-                print("Error requesting transaction: \(error)")
-            } else {
-                print("Requested transaction successfully")
-            }
-        }
-    }
-#endif
 }

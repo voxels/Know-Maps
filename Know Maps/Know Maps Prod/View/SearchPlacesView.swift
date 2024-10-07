@@ -9,7 +9,7 @@
 import SwiftUI
 
 struct SearchPlacesView: View {
-    @ObservedObject public var model:ChatResultViewModel
+    @ObservedObject public var chatModel:ChatResultViewModel
     var body: some View {
         Text("Hello world")
     }

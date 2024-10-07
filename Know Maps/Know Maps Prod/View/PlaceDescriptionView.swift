@@ -8,7 +8,6 @@
 import SwiftUI
 
 struct PlaceDescriptionView: View {
-    @ObservedObject public var chatHost:AssistiveChatHost
     @ObservedObject public var chatModel:ChatResultViewModel
     @ObservedObject public var locationProvider:LocationProvider
     @Binding public var resultId:ChatResult.ID?

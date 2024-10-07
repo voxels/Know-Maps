@@ -7,12 +7,9 @@
 
 import SwiftUI
 
-struct OnboardingView: View {
-    
-    @EnvironmentObject public var cloudCache:CloudCache
-    @EnvironmentObject public var settingsModel:SettingsModel
+struct OnboardingView: View {    
+    @EnvironmentObject public var settingsModel:AuthenticationManager
     @EnvironmentObject public var featureFlags:FeatureFlags
-    @ObservedObject public var chatHost:AssistiveChatHost
     @ObservedObject public var chatModel:ChatResultViewModel
     @ObservedObject public var locationProvider:LocationProvider
     
@@ -20,9 +17,6 @@ struct OnboardingView: View {
     @Binding public var showOnboarding:Bool
 
     var body: some View {
-        if selectedTab == "Saving" {
-            OnboardingTemplateView(selectedTab: $selectedTab, showOnboarding: $showOnboarding, chatHost: chatHost, chatModel: chatModel, locationProvider: locationProvider).tag("Saving")
-        } else {
         TabView(selection: $selectedTab,
                 content:  {
             OnboardingSignInView(selectedTab: $selectedTab)
@@ -30,22 +24,11 @@ struct OnboardingView: View {
                 .tabItem({
                     Label("Sign In", systemImage: "person.crop.circle.badge.plus")
                 })
-            OnboardingLocationView(locationProvider: locationProvider, selectedTab: $selectedTab)
+            OnboardingLocationView(locationProvider: locationProvider, showOnboarding: $showOnboarding, selectedTab: $selectedTab)
                 .tag("Location")
                 .tabItem({
                     Label("Location", systemImage: "map" )
                 })
-            OnboardingSubscriptionView(selectedTab: $selectedTab, showOnboarding: $showOnboarding)
-                .tag("Subscription")
-                .tabItem({
-                Label("Subscription", systemImage: "cart")
-            })
         })
-        #if os(iOS) || os(visionOS)
-        .tabViewStyle(.page(indexDisplayMode: .never))
-        .indexViewStyle(.page(backgroundDisplayMode: .always))
-        .scrollDisabled(true)
-        #endif
-        }
     }
 }

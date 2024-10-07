@@ -22,31 +22,20 @@ enum ChatResultViewModelError: Error {
 
 // MARK: - ChatResultViewModel
 
-@MainActor
-final class ChatResultViewModel: ObservableObject {
-    // MARK: - Dependencies
+final class ChatResultViewModel: ObservableObject, ChatResultHandling {
     
-    public weak var assistiveHostDelegate: AssistiveChatHostDelegate?
+    // MARK: - Dependencies
+    public var assistiveHostDelegate: AssistiveChatHostDelegate
     public var placeSearchSession: PlaceSearchSession
     public var personalizedSearchSession: PersonalizedSearchSession
     public var locationProvider: LocationProvider
-    public var cloudCache: CloudCache
+    public var cacheManager:CacheManager
     public var featureFlags: FeatureFlags
-    public var analytics: Analytics?
+    public var analyticsManager: AnalyticsManager
     
     // MARK: - Published Properties
     
-    @Published public var isRefreshingCache: Bool = false
     @Published public var isFetchingResults:Bool = false
-    @Published public var completedTasks = 0
-    // Cached Results
-    @Published public var cachedDefaultResults = [CategoryResult]()
-    @Published public var cachedCategoryResults = [CategoryResult]()
-    @Published public var cachedTasteResults = [CategoryResult]()
-    @Published public var cachedPlaceResults = [CategoryResult]()
-    @Published public var cachedListResults = [CategoryResult]()
-    @Published public var allCachedResults = [CategoryResult]()
-    @Published public var cachedLocationResults = [LocationResult]()
     
     // Selection States
     @Published public var selectedPersonalizedSearchSection:PersonalizedSearchSection?
@@ -62,7 +51,7 @@ final class ChatResultViewModel: ObservableObject {
     @Published public var isFetchingPlaceDescription: Bool = false
     
     // Results
-    @Published public var categoryResults = [CategoryResult]()
+    @Published public var industryResults = [CategoryResult]()
     @Published public var tasteResults = [CategoryResult]()
     @Published public var searchCategoryResults = [CategoryResult]()
     @Published public var placeResults = [ChatResult]()
@@ -71,7 +60,7 @@ final class ChatResultViewModel: ObservableObject {
     @Published public var locationResults = [LocationResult]()
     @Published public var currentLocationResult:LocationResult = LocationResult(locationName: "Current Location", location: nil)
     @Published public var lastFetchedTastePage: Int = 0
-    @Published public var cacheFetchProgress:Double = 0
+    
     
     
     // MARK: - Private Properties
@@ -79,28 +68,23 @@ final class ChatResultViewModel: ObservableObject {
     private var queryParametersHistory = [AssistiveChatHostQueryParameters]()
     private var fetchingPlaceID: ChatResult.ID?
     private var sessionRetryCount: Int = 0
-    private var cachedLocationRecords: [UserCachedRecord]?
-    private var cachedTasteRecords: [UserCachedRecord]?
-    private var cachedCategoryRecords: [UserCachedRecord]?
-    private var cachedPlaceRecords: [UserCachedRecord]?
-    private var cachedListRecords = [UserCachedRecord]()
+    
     
     // MARK: - Initializer
     
     public init(
-        assistiveHostDelegate: AssistiveChatHostDelegate? = nil,
         locationProvider: LocationProvider,
-        cloudCache: CloudCache,
         featureFlags: FeatureFlags,
-        analytics: Analytics? = nil
+        analyticsManager: AnalyticsManager
     ) {
-        self.assistiveHostDelegate = assistiveHostDelegate
         self.locationProvider = locationProvider
-        self.cloudCache = cloudCache
         self.featureFlags = featureFlags
-        self.analytics = analytics
+        self.analyticsManager = analyticsManager
         self.placeSearchSession = PlaceSearchSession()
-        self.personalizedSearchSession = PersonalizedSearchSession(cloudCache: cloudCache)
+        self.assistiveHostDelegate = AssistiveChatHost(analyticsManager: analyticsManager)
+        self.cacheManager = CloudCacheManager(cloudCache:CloudCache(analyticsManager: analyticsManager), analyticsManager: analyticsManager)
+        self.personalizedSearchSession = PersonalizedSearchSession(cacheManager: cacheManager)
+        self.assistiveHostDelegate.messagesDelegate = self
     }
     
     // MARK: - Session Management
@@ -123,7 +107,7 @@ final class ChatResultViewModel: ObservableObject {
     
     public func currentLocationName() async throws -> String? {
         if let location = locationProvider.currentLocation() {
-            return try await assistiveHostDelegate?.languageDelegate.lookUpLocation(location: location)?.first?.name
+            return try await assistiveHostDelegate.languageDelegate.lookUpLocation(location: location)?.first?.name
         }
         return nil
     }
@@ -138,21 +122,20 @@ final class ChatResultViewModel: ObservableObject {
         }
         
         do {
-            if let placemarks = try await assistiveHostDelegate?.languageDelegate.lookUpLocationName(name: title),
+            if let placemarks = try await assistiveHostDelegate.languageDelegate.lookUpLocationName(name: title),
                let firstPlacemark = placemarks.first {
                 return LocationResult(locationName: title, location: firstPlacemark.location)
             }
         } catch {
-            print(error)
-            analytics?.track(name: "error: \(error)")
+            analyticsManager.trackError(error: error, additionalInfo: ["title": title])
         }
         
         return LocationResult(locationName: title)
     }
     
     public func checkSearchTextForLocations(with text: String) async throws -> [CLPlacemark]? {
-        let tags = try assistiveHostDelegate?.tags(for: text)
-        return try await assistiveHostDelegate?.nearLocationCoordinate(for: text, tags: tags)
+        let tags = try assistiveHostDelegate.tags(for: text)
+        return try await assistiveHostDelegate.nearLocationCoordinate(for: text, tags: tags)
     }
     
     // MARK: - Filtered Results
@@ -163,9 +146,10 @@ final class ChatResultViewModel: ObservableObject {
     
     public var filteredLocationResults: [LocationResult] {
         var results = [LocationResult]()
-        results.append(contentsOf: cachedLocationResults)
+        results.append(currentLocationResult)
+        results.append(contentsOf: cacheManager.cachedLocationResults)
         results.append(contentsOf: locationResults.filter({ result in
-            !cachedLocationResults.contains(where: { $0.locationName == result.locationName })
+            !cacheManager.cachedLocationResults.contains(where: { $0.locationName == result.locationName })
         }))
         
         return results.sorted(by: { $0.locationName < $1.locationName })
@@ -183,7 +167,7 @@ final class ChatResultViewModel: ObservableObject {
     }
     
     public var filteredResults: [CategoryResult] {
-        return categoryResults.filter { !$0.categoricalChatResults.isEmpty }
+        return industryResults.filter { !$0.categoricalChatResults.isEmpty }
     }
     
     public var filteredPlaceResults: [ChatResult] {
@@ -192,256 +176,7 @@ final class ChatResultViewModel: ObservableObject {
     
     // MARK: - Cache Management
     
-    // MARK: Refresh Cache
     
-    public func refreshCache(cloudCache: CloudCache) async throws {
-        await MainActor.run {
-            isRefreshingCache = true
-        }
-        
-        // Initialize progress variables
-        let totalTasks = 5
-        
-        // Create a task that encapsulates the entire operation
-        let operationTask = Task {
-            // Use a throwing task group to manage tasks and handle cancellations
-            try await withThrowingTaskGroup(of: Void.self) { group in
-                // Define tasks with progress updates
-                
-                group.addTask {
-                    try Task.checkCancellation()
-                    await self.refreshDefaultResults()
-                    try Task.checkCancellation()
-                    await MainActor.run { [self] in
-                        self.completedTasks += 1
-                        let progress = Double(self.completedTasks) / Double(totalTasks)
-                        self.cacheFetchProgress = progress
-                    }
-                }
-                group.addTask { [self] in
-                    try Task.checkCancellation()
-                    await self.refreshCachedCategories(cloudCache: cloudCache)
-                    try Task.checkCancellation()
-                    await MainActor.run { [self] in
-                        self.completedTasks += 1
-                        let progress = Double(self.completedTasks) / Double(totalTasks)
-                        self.cacheFetchProgress = progress
-                    }
-                }
-                group.addTask { [self] in
-                    try Task.checkCancellation()
-                    await self.refreshCachedTastes(cloudCache: cloudCache)
-                    try Task.checkCancellation()
-                    await MainActor.run { [self] in
-                        self.completedTasks += 1
-                        let progress = Double(self.completedTasks) / Double(totalTasks)
-                        self.cacheFetchProgress = progress
-                    }
-                }
-                group.addTask { [self] in
-                    try Task.checkCancellation()
-                    await self.refreshCachedPlaces(cloudCache: cloudCache)
-                    try Task.checkCancellation()
-                    await MainActor.run { [self] in
-                        self.completedTasks += 1
-                        let progress = Double(self.completedTasks) / Double(totalTasks)
-                        self.cacheFetchProgress = progress
-                    }
-                }
-                group.addTask { [self] in
-                    try Task.checkCancellation()
-                    try await self.refreshCachedLocations(cloudCache:cloudCache)
-                    try Task.checkCancellation()
-                    await MainActor.run { [self] in
-                        self.completedTasks += 1
-                        let progress = Double(self.completedTasks) / Double(totalTasks)
-                        self.cacheFetchProgress = progress
-                    }
-                }
-                
-                // Wait for all tasks to complete or handle cancellation
-                try await group.waitForAll()
-            }
-            
-            // Proceed with remaining tasks after the group tasks are done
-            await refreshCachedResults()
-        }
-        
-        try await operationTask.value
-        
-        await MainActor.run {
-            isRefreshingCache = false
-        }
-    }
-    
-    private func refreshCachedCategories(cloudCache: CloudCache) async {
-        do {
-            cachedCategoryRecords = try await cloudCache.fetchGroupedUserCachedRecords(for: "Category")
-            let categoryResults = savedCategoricalResults()
-            await MainActor.run {
-                cachedCategoryResults = categoryResults
-            }
-        } catch {
-            print(error)
-            analytics?.track(name: "error \(error)")
-        }
-    }
-    
-    
-    private func refreshCachedTastes(cloudCache: CloudCache) async {
-        do {
-            cachedTasteRecords = try await cloudCache.fetchGroupedUserCachedRecords(for: "Taste")
-            let tasteResults = savedTasteResults()
-            await MainActor.run {
-                cachedTasteResults = tasteResults
-            }
-        } catch {
-            print(error)
-            analytics?.track(name: "error \(error)")
-        }
-    }
-    
-    private func refreshCachedPlaces(cloudCache:CloudCache) async {
-        do {
-            self.cachedPlaceRecords = try await cloudCache.fetchGroupedUserCachedRecords(for: "Place")
-            let placeResults = savedPlaceResults()
-            await MainActor.run {
-                cachedPlaceResults = placeResults
-            }
-        } catch {
-            print(error)
-            self.analytics?.track(name: "error \(error)")
-        }
-    }
-    
-    private func refreshCachedLists(cloudCache: CloudCache) async throws {
-        self.cachedListRecords = try await cloudCache.fetchGroupedUserCachedRecords(for: "List")
-        let listResults = savedListResults()
-        await MainActor.run {
-            self.cachedListResults = listResults
-        }
-    }
-    
-    public func refreshCachedLocations(cloudCache: CloudCache) async throws {
-        cachedLocationRecords = try await cloudCache.fetchGroupedUserCachedRecords(for: "Location")
-        let locationResults = savedLocationResults()
-        await MainActor.run {
-            cachedLocationResults = locationResults
-        }
-    }
-    
-    public func refreshCachedResults() async {
-        let savedResults = allSavedResults()
-        await MainActor.run {
-            allCachedResults = savedResults
-        }
-    }
-    
-    public func refreshDefaultResults() async {
-        let defaults = defaultResults()
-        await MainActor.run {
-            cachedDefaultResults = defaults
-        }
-    }
-    
-    @MainActor
-    public func removeCachedResults() {
-        cachedListResults.removeAll()
-        cachedPlaceResults.removeAll()
-        cachedTasteResults.removeAll()
-        cachedCategoryResults.removeAll()
-        cachedLocationResults.removeAll()
-    }
-    
-    // MARK: Append Cached Data
-    
-    public func appendCachedLocation(with record: UserCachedRecord) async {
-        cachedLocationRecords?.append(record)
-        let locationResults = savedLocationResults()
-        await MainActor.run {
-            cachedLocationResults = locationResults
-        }
-    }
-    
-    public func appendCachedCategory(with record: UserCachedRecord) async {
-        cachedCategoryRecords?.append(record)
-        let categoricalResults = savedCategoricalResults()
-        await MainActor.run {
-            cachedCategoryResults = categoricalResults
-        }
-    }
-    
-    public func appendCachedTaste(with record: UserCachedRecord) async {
-        cachedTasteRecords?.append(record)
-        let tasteResults = savedTasteResults()
-        await MainActor.run {
-            cachedTasteResults = tasteResults
-        }
-    }
-    
-    public func appendCachedList(with record: UserCachedRecord) async {
-        cachedListRecords.append(record)
-        let listResults = savedListResults()
-        await MainActor.run {
-            cachedListResults = listResults
-        }
-    }
-    
-    
-    public func appendCachedPlace(with record: UserCachedRecord) async {
-        cachedPlaceRecords?.append(record)
-        let placeResults = savedPlaceResults()
-        await MainActor.run {
-            cachedPlaceResults = placeResults
-        }
-    }
-    
-    // MARK: Cached Records Methods
-    
-    public func cachedCategories(contains category: String) -> Bool {
-        return cachedCategoryRecords?.contains { $0.identity == category } ?? false
-    }
-    
-    public func cachedTastes(contains taste: String) -> Bool {
-        return cachedTasteRecords?.contains { $0.identity == taste } ?? false
-    }
-    
-    public func cachedLocation(contains location: String) -> Bool {
-        return cachedLocationResults.contains { $0.locationName == location }
-    }
-    
-    public func cachedPlaces(contains place:String) -> Bool {
-        return cachedPlaceResults.contains { $0.parentCategory == place }
-    }
-    
-    public func cachedLocationIdentity(for location: CLLocation) -> String {
-        return "\(location.coordinate.latitude),\(location.coordinate.longitude)"
-    }
-    
-    
-    
-    // MARK: Fetch Cached Results by Group and Identity
-    
-    public func cachedResults(for group: String, identity: String) -> [UserCachedRecord]? {
-        let allCachedRecords: [UserCachedRecord]? = {
-            switch group {
-            case "Category":
-                return cachedCategoryRecords
-            case "Taste":
-                return cachedTasteRecords
-            case "Location":
-                return cachedLocationRecords
-            case "Place":
-                return cachedPlaceRecords
-            case "List":
-                return cachedListRecords
-            default:
-                return nil
-            }
-        }()
-        
-        return allCachedRecords?.filter { $0.group == group && $0.identity == identity }
-    }
     
     
     
@@ -463,57 +198,14 @@ final class ChatResultViewModel: ObservableObject {
         return placeResults.first { $0.placeResponse?.fsqID == fsqID }
     }
     
-    // MARK: Cached Chat Result Methods
-    
-    public func cachedPlaceResult(for id: CategoryResult.ID) -> CategoryResult? {
-        return cachedPlaceResults.first { $0.id == id }
-    }
-    
-    public func cachedChatResult(for id: CategoryResult.ID) -> ChatResult? {
-        if let parentCategory = allCachedResults.first(where: { $0.id == id }) {
-            return parentCategory.categoricalChatResults.first
-        }
-        
-        return nil
-    }
-    
-    public func cachedTasteResult(for id: CategoryResult.ID) -> CategoryResult? {
-        return cachedTasteResults.first { $0.id == id }
-    }
-    
-    public func tasteResult(for id: CategoryResult.ID) -> CategoryResult? {
-        return tasteResults.first { $0.id == id }
-    }
-    
-    public func tasteChatResult(for id: CategoryResult.ID) -> ChatResult? {
-        return tasteResults.first(where: { $0.id == id })?.categoricalChatResults.first
-    }
-    
-    public func cachedListResult(for id: CategoryResult.ID) -> CategoryResult? {
-        return cachedListResults.first { $0.id == id }
-    }
-    
-    public func categoricalResult(for id: CategoryResult.ID) -> CategoryResult? {
-        return categoryResults.flatMap { [$0] + $0.children }.first { $0.id == id }
-    }
-    
-    public func cachedCategoricalResult(for id:CategoryResult.ID)->CategoryResult? {
-        return cachedCategoryResults.first { $0.id == id }
-    }
-    
-    public func categoricalChatResult(for id: CategoryResult.ID) -> ChatResult? {
-        if let parentCategory = categoryResults.flatMap({ [$0] + $0.children }).first(where: { $0.id == id }) {
-            return parentCategory.categoricalChatResults.last
-        }
-        return nil
-    }
+    // MARK: Chat Result Methods
     
     public func chatResult(title: String) -> ChatResult? {
-        return categoryResults.compactMap { $0.result(title: title) }.first
+        return industryResults.compactMap { $0.result(title: title) }.first
     }
     
     public func categoryChatResult(for id: ChatResult.ID) -> ChatResult? {
-        let allResults = categoryResults.compactMap { $0.categoricalChatResults }
+        let allResults = industryResults.compactMap { $0.categoricalChatResults }
         for results in allResults {
             if let result = results.first(where: { $0.id == id || $0.parentId == id }) {
                 return result
@@ -522,112 +214,43 @@ final class ChatResultViewModel: ObservableObject {
         return nil
     }
     
-    // MARK: - Saved Results
-    
-    private func savedCategoricalResults() -> [CategoryResult] {
-        return cachedCategoryRecords?.map {
-            let chatResults = [ChatResult(title: $0.title, list:$0.list, section:PersonalizedSearchSection(rawValue:$0.section) ?? .none, placeResponse: nil, recommendedPlaceResponse: nil)]
-            return CategoryResult(parentCategory: $0.title, list: $0.list, section:PersonalizedSearchSection(rawValue:$0.section) ?? .none, categoricalChatResults: chatResults)
-        }.sorted(by: {$0.parentCategory < $1.parentCategory}) ?? []
+    public func tasteChatResult(for id: CategoryResult.ID) -> ChatResult? {
+        return tasteResults.first(where: { $0.id == id })?.categoricalChatResults.first
     }
     
-    private func savedTasteResults() -> [CategoryResult] {
-        return cachedTasteRecords?.map {
-            let chatResults = [ChatResult(title: $0.title, list:$0.list, section:PersonalizedSearchSection(rawValue:$0.section) ?? .none, placeResponse: nil, recommendedPlaceResponse: nil)]
-            return CategoryResult(parentCategory: $0.title, list: $0.list, section:PersonalizedSearchSection(rawValue:$0.section) ?? .none, categoricalChatResults: chatResults)
-        }.sorted(by: {$0.parentCategory < $1.parentCategory}) ?? []
+    public func categoricalChatResult(for id: CategoryResult.ID) -> ChatResult? {
+        if let parentCategory = industryResults.flatMap({ [$0] + $0.children }).first(where: { $0.id == id }) {
+            return parentCategory.categoricalChatResults.last
+        }
+        return nil
     }
     
-    private func savedPlaceResults() -> [CategoryResult] {
-        guard let savedRecords = cachedPlaceRecords else { return [] }
-        return savedRecords.map { record in
-            var chatResults = [ChatResult]()
-            if record.group == "Place" {
-                let placeResponse = PlaceSearchResponse(
-                    fsqID: record.identity,
-                    name: "",
-                    categories: [],
-                    latitude: 0,
-                    longitude: 0,
-                    address: "",
-                    addressExtended: "",
-                    country: "",
-                    dma: "",
-                    formattedAddress: "",
-                    locality: "",
-                    postCode: "",
-                    region: "",
-                    chains: [],
-                    link: "",
-                    childIDs: [],
-                    parentIDs: []
-                )
-                
-                chatResults = [ChatResult(title: record.title, list: record.list, section:PersonalizedSearchSection(rawValue:record.section) ?? .none, placeResponse: placeResponse, recommendedPlaceResponse: nil)]
-                
-                return CategoryResult(parentCategory:record.title, list: record.list, section:PersonalizedSearchSection(rawValue:record.section) ?? .none, categoricalChatResults: chatResults)
-            } else {
-                chatResults = [ChatResult(title: record.title, list: record.list, section:PersonalizedSearchSection(rawValue:record.section) ?? .none, placeResponse: nil, recommendedPlaceResponse: nil)]
-            }
-            return CategoryResult(parentCategory: record.title, list: record.list, section:PersonalizedSearchSection(rawValue:record.section) ?? .none, categoricalChatResults: chatResults)
-        }.sorted(by: {$0.parentCategory < $1.parentCategory})
+    public func industryCategoryResult(for id: CategoryResult.ID) -> CategoryResult? {
+        return industryResults.flatMap { [$0] + $0.children }.first { $0.id == id }
     }
     
-    private func savedListResults() -> [CategoryResult] {
-        var temp = [String: (String, PersonalizedSearchSection, [ChatResult])]()
-        for record in cachedListRecords {
-            for placeResult in cachedPlaceResults {
-                let list = placeResult.list
-                if list == record.identity {
-                    if var existing = temp[record.title] {
-                        existing.2.append(contentsOf: placeResult.categoricalChatResults)
-                        temp[record.title] = existing
-                    } else {
-                        temp[record.title] = (list, PersonalizedSearchSection(rawValue: record.section)!, placeResult.categoricalChatResults)
-                    }
-                }
-            }
-            
-            if temp[record.title] == nil {
-                temp[record.title] = (record.identity, PersonalizedSearchSection(rawValue: record.section)!, [])
-            }
+    public func tasteCategoryResult(for id: CategoryResult.ID) -> CategoryResult? {
+        return tasteResults.first { $0.id == id }
+    }
+    
+    public func cachedCategoricalResult(for id:CategoryResult.ID)->CategoryResult? {
+        return cacheManager.cachedIndustryResults.first { $0.id == id }
+    }
+    
+    public func cachedPlaceResult(for id: CategoryResult.ID) -> CategoryResult? {
+        return cacheManager.cachedPlaceResults.first { $0.id == id }
+    }
+    
+    public func cachedChatResult(for id: CategoryResult.ID) -> ChatResult? {
+        if let parentCategory = cacheManager.allCachedResults.first(where: { $0.id == id }) {
+            return parentCategory.categoricalChatResults.first
         }
         
-        let retval = temp.map {
-            CategoryResult(parentCategory: $0.key, list: $0.value.0, section: $0.value.1, categoricalChatResults: $0.value.2)
-        }.sorted {
-            return $0.parentCategory < $1.parentCategory
-        }
-        
-        for returnvalue in retval {
-            returnvalue.isExpanded = true
-        }
-        
-        return retval
+        return nil
     }
     
-    private func defaultResults() -> [CategoryResult] {
-        PersonalizedSearchSection.allCases.filter({$0 != .location && $0 != .none && $0 != .trending})
-            .map({$0.categoryResult()})
-    }
-    
-    private func allSavedResults() -> [CategoryResult] {
-        var results = cachedCategoryResults + cachedTasteResults + cachedPlaceResults + cachedDefaultResults
-        
-        results.sort { $0.parentCategory.lowercased() < $1.parentCategory.lowercased() }
-        return results
-    }
-    
-    private func savedLocationResults() -> [LocationResult] {
-        return cachedLocationRecords?.compactMap { record in
-            let components = record.identity.split(separator: ",")
-            if components.count == 2,
-               let latitude = Double(components[0]),
-               let longitude = Double(components[1]) {
-                return LocationResult(locationName: record.title, location: CLLocation(latitude: latitude, longitude: longitude))
-            }
-            return nil
-        } ?? []
+    public func cachedTasteResult(for id: CategoryResult.ID) -> CategoryResult? {
+        return cacheManager.cachedTasteResults.first { $0.id == id }
     }
     
     // MARK: - Asynchronous Network Calls
@@ -664,46 +287,33 @@ final class ChatResultViewModel: ObservableObject {
                     
                     try await withThrowingTaskGroup(of: Void.self) { innerGroup in
                         // Fetch details
+                        innerGroup.addTask { [weak self] in
+                            rawDetailsResponse = try await self?.placeSearchSession.details(for: request)
+                            self?.analyticsManager.track(event: "fetchDetails", properties: nil)
+                        }
+                        
+                        // Fetch tips in parallel
                         innerGroup.addTask {
-                            rawDetailsResponse = try await self.placeSearchSession.details(for: request)
-                            await self.analytics?.track(name: "fetchDetails")
+                            tipsData = try await self.placeSearchSession.tips(for: response.fsqID)
                         }
-                        
-                        if await self.cloudCache.hasFsqAccess {
-                            // Fetch tips in parallel
-                            innerGroup.addTask {
-                                tipsData = try await self.placeSearchSession.tips(for: response.fsqID)
-                            }
-                            // Fetch photos in parallel
-                            innerGroup.addTask {
-                                photosData = try await self.placeSearchSession.photos(for: response.fsqID)
-                            }
+                        // Fetch photos in parallel
+                        innerGroup.addTask {
+                            photosData = try await self.placeSearchSession.photos(for: response.fsqID)
                         }
-                        
                         // Wait for all tasks to complete
                         try await innerGroup.waitForAll()
                     }
                     
-                    if await self.cloudCache.hasFsqAccess {
-                        let tipsResponses = try PlaceResponseFormatter.placeTipsResponses(with: tipsData!, for: response.fsqID)
-                        let photoResponses = try PlaceResponseFormatter.placePhotoResponses(with: photosData!, for: response.fsqID)
-                        
-                        return try await PlaceResponseFormatter.placeDetailsResponse(
-                            with: rawDetailsResponse!,
-                            for: response,
-                            placePhotosResponses: photoResponses,
-                            placeTipsResponses: tipsResponses,
-                            previousDetails: self.assistiveHostDelegate?.queryIntentParameters?.queryIntents.last?.placeDetailsResponses,
-                            cloudCache: self.cloudCache
-                        )
-                    } else {
-                        return try await PlaceResponseFormatter.placeDetailsResponse(
-                            with: rawDetailsResponse!,
-                            for: response,
-                            previousDetails: self.assistiveHostDelegate?.queryIntentParameters?.queryIntents.last?.placeDetailsResponses,
-                            cloudCache: self.cloudCache
-                        )
-                    }
+                    let tipsResponses = try PlaceResponseFormatter.placeTipsResponses(with: tipsData!, for: response.fsqID)
+                    let photoResponses = try PlaceResponseFormatter.placePhotoResponses(with: photosData!, for: response.fsqID)
+                    
+                    return try await PlaceResponseFormatter.placeDetailsResponse(
+                        with: rawDetailsResponse!,
+                        for: response,
+                        placePhotosResponses: photoResponses,
+                        placeTipsResponses: tipsResponses,
+                        previousDetails: self.assistiveHostDelegate.queryIntentParameters?.queryIntents.last?.placeDetailsResponses
+                    )
                 }
             }
             var allResponses = [PlaceDetailsResponse]()
@@ -730,23 +340,21 @@ final class ChatResultViewModel: ObservableObject {
     
     // MARK: - Model Building and Query Handling
     
-    @MainActor
     public func resetPlaceModel() {
         placeResults.removeAll()
         recommendedPlaceResults.removeAll()
         relatedPlaceResults.removeAll()
-        analytics?.track(name: "resetPlaceModel")
+        analyticsManager.track(event:"resetPlaceModel", properties: nil)
     }
     
     public func refreshModel(query:String, queryIntents: [AssistiveChatHostIntent]? = nil) async throws {
-        guard let chatHost = self.assistiveHostDelegate else { return }
         
         if let lastIntent = queryIntents?.last {
             try await model(intent: lastIntent)
         } else {
-            let intent = chatHost.determineIntent(for: query, override: nil)
-            let location = chatHost.lastLocationIntent()
-            let queryParameters = try await chatHost.defaultParameters(for: query)
+            let intent = assistiveHostDelegate.determineIntent(for: query, override: nil)
+            let location = assistiveHostDelegate.lastLocationIntent()
+            let queryParameters = try await assistiveHostDelegate.defaultParameters(for: query)
             let newIntent = AssistiveChatHostIntent(
                 caption: query,
                 intent: intent,
@@ -757,22 +365,20 @@ final class ChatResultViewModel: ObservableObject {
                 placeDetailsResponses: nil,
                 queryParameters: queryParameters
             )
-            chatHost.appendIntentParameters(intent: newIntent)
+            assistiveHostDelegate.appendIntentParameters(intent: newIntent)
             try await model(intent: newIntent)
         }
     }
     
     public func model(intent: AssistiveChatHostIntent) async throws {
-        guard let chatHost = self.assistiveHostDelegate else { return }
-        
         switch intent.intent {
         case .Place:
             await placeQueryModel(intent: intent)
-            analytics?.track(name: "modelPlaceQueryBuilt")
+            analyticsManager.track(event:"modelPlaceQueryBuilt", properties: nil)
         case .Search:
             await searchQueryModel(intent: intent)
             try await detailIntent(intent: intent)
-            analytics?.track(name: "modelSearchQueryBuilt")
+            analyticsManager.track(event:"modelSearchQueryBuilt", properties: nil)
         case .Location:
             if let placemarks = try await checkSearchTextForLocations(with: intent.caption) {
                 let locations = placemarks.map {
@@ -782,7 +388,7 @@ final class ChatResultViewModel: ObservableObject {
                 var candidates = [LocationResult]()
                 
                 for location in locations {
-                    let newLocationName = try await chatHost.languageDelegate.lookUpLocationName(name: location.locationName)?.first?.name ?? location.locationName
+                    let newLocationName = try await assistiveHostDelegate.languageDelegate.lookUpLocationName(name: location.locationName)?.first?.name ?? location.locationName
                     candidates.append(LocationResult(locationName: newLocationName, location: location.location))
                 }
                 
@@ -798,24 +404,17 @@ final class ChatResultViewModel: ObservableObject {
                 }
             }
             
-            try await refreshCache(cloudCache: cloudCache)
+            try await cacheManager.refreshCache()
         case .AutocompleteSearch:
-            do {
-                if let selectedDestinationLocationChatResult = selectedDestinationLocationChatResult,
-                   let locationResult = locationChatResult(for: selectedDestinationLocationChatResult),
-                   let finalLocation = locationResult.location {
-                    try await autocompletePlaceModel(caption: intent.caption, intent: intent, location: finalLocation)
-                    analytics?.track(name: "modelAutocompletePlaceModelBuilt")
-                }
-            } catch {
-                analytics?.track(name: "error \(error)")
-                print(error)
+            if let selectedDestinationLocationChatResult = selectedDestinationLocationChatResult,
+               let locationResult = locationChatResult(for: selectedDestinationLocationChatResult),
+               let finalLocation = locationResult.location {
+                try await autocompletePlaceModel(caption: intent.caption, intent: intent, location: finalLocation)
+                analyticsManager.track(event: "modelAutocompletePlaceModelBuilt", properties: nil)
             }
         case .AutocompleteTastes:
-            do {
-                try await autocompleteTastes(lastIntent: intent)
-                analytics?.track(name: "modelAutocompletePlaceModelBuilt")
-            }
+            try await autocompleteTastes(lastIntent: intent)
+            analyticsManager.track(event: "modelAutocompletePlaceModelBuilt", properties: nil)
         }
     }
     
@@ -823,30 +422,26 @@ final class ChatResultViewModel: ObservableObject {
         let blendedResults =  categoricalResults()
         
         await MainActor.run {
-            categoryResults = blendedResults
+            industryResults = blendedResults
         }
     }
     
     private func categoricalResults()->[CategoryResult] {
-        guard let chatHost = assistiveHostDelegate else {
-            return [CategoryResult]()
-        }
-        
         var retval = [CategoryResult]()
         
-        for categoryCode in chatHost.categoryCodes {
+        for categoryCode in assistiveHostDelegate.categoryCodes {
             var newChatResults = [ChatResult]()
             for values in categoryCode.values {
                 for value in values {
                     if let category = value["category"]{
-                        let chatResult = ChatResult(title:category, list:category, section:chatHost.section(for:category), placeResponse:nil, recommendedPlaceResponse: nil)
+                        let chatResult = ChatResult(title:category, list:category, section:assistiveHostDelegate.section(for:category), placeResponse:nil, recommendedPlaceResponse: nil)
                         newChatResults.append(chatResult)
                     }
                 }
             }
             
             for key in categoryCode.keys {
-                newChatResults.append(ChatResult(title: key, list:key, section:chatHost.section(for:key), placeResponse:nil, recommendedPlaceResponse: nil))
+                newChatResults.append(ChatResult(title: key, list:key, section:assistiveHostDelegate.section(for:key), placeResponse:nil, recommendedPlaceResponse: nil))
                 
                 if retval.contains(where: { checkResult in
                     return checkResult.parentCategory == key
@@ -866,12 +461,12 @@ final class ChatResultViewModel: ObservableObject {
                             return checkResult.parentCategory == key
                         }
                         
-                        let newResult = CategoryResult(parentCategory: key, list:key, section:chatHost.section(for:key), categoricalChatResults: newChatResults)
+                        let newResult = CategoryResult(parentCategory: key, list:key, section:assistiveHostDelegate.section(for:key), categoricalChatResults: newChatResults)
                         retval.append(newResult)
                     }
                     
                 } else {
-                    let newResult = CategoryResult(parentCategory: key, list:key, section:chatHost.section(for:key), categoricalChatResults: newChatResults)
+                    let newResult = CategoryResult(parentCategory: key, list:key, section:assistiveHostDelegate.section(for:key), categoricalChatResults: newChatResults)
                     retval.append(newResult)
                 }
             }
@@ -883,10 +478,6 @@ final class ChatResultViewModel: ObservableObject {
     // MARK: Message Handling
     
     public func receiveMessage(caption: String, parameters: AssistiveChatHostQueryParameters, isLocalParticipant: Bool) async throws {
-        guard let chatHost = self.assistiveHostDelegate else {
-            return
-        }
-        
         if parameters.queryIntents.last?.intent == .Location {
             let placemarks = try? await checkSearchTextForLocations(with: caption)
             
@@ -902,14 +493,14 @@ final class ChatResultViewModel: ObservableObject {
                 await MainActor.run {
                     locationResults.append(contentsOf: newLocations)
                 }
-                analytics?.track(name: "foundPlacemarksInQuery")
+                analyticsManager.track(event:"foundPlacemarksInQuery", properties: nil)
             }
         }
         
         if let sourceLocationID = selectedDestinationLocationChatResult,
            let sourceLocationResult = locationChatResult(for: sourceLocationID),
            let queryLocation = sourceLocationResult.location,
-           let destinationPlacemarks = try await chatHost.languageDelegate.lookUpLocation(location: queryLocation) {
+           let destinationPlacemarks = try await assistiveHostDelegate.languageDelegate.lookUpLocation(location: queryLocation) {
             
             let existingLocationNames = locationResults.compactMap { $0.locationName }
             
@@ -932,7 +523,7 @@ final class ChatResultViewModel: ObservableObject {
         if let sourceLocationID = selectedDestinationLocationChatResult,
            let sourceLocationResult = locationChatResult(for: sourceLocationID),
            sourceLocationResult.location == nil,
-           let destinationPlacemarks = try await chatHost.languageDelegate.lookUpLocationName(name: sourceLocationResult.locationName) {
+           let destinationPlacemarks = try await assistiveHostDelegate.languageDelegate.lookUpLocationName(name: sourceLocationResult.locationName) {
             
             let existingLocationNames = locationResults.compactMap { $0.locationName }
             
@@ -963,17 +554,16 @@ final class ChatResultViewModel: ObservableObject {
                     intent.selectedPlaceSearchResponse = searchResponse
                     intent.selectedPlaceSearchDetails = detailsResponse
                 }
-                analytics?.track(name: "searchIntentWithSelectedPlace")
+                analyticsManager.track(event: "searchIntentWithSelectedPlace", properties: nil)
             } else {
                 let request = await placeSearchRequest(intent: intent, location:location)
                 let rawQueryResponse = try await placeSearchSession.query(request:request, location: location)
                 let placeSearchResponses = try PlaceResponseFormatter.placeSearchResponses(with: rawQueryResponse)
                 intent.placeSearchResponses = placeSearchResponses
                 try await detailIntent(intent: intent)
-                analytics?.track(name: "searchIntentWithPlace")
+                analyticsManager.track(event: "searchIntentWithPlace", properties: nil)
             }
         case .Search:
-            if cloudCache.hasFsqAccess {
                 let request = await recommendedPlaceSearchRequest(intent: intent, location: location)
                 let rawQueryResponse = try await personalizedSearchSession.fetchRecommendedVenues(with:request, location: location)
                 let recommendedPlaceSearchResponses = try PlaceResponseFormatter.recommendedPlaceSearchResponses(with: rawQueryResponse)
@@ -987,38 +577,23 @@ final class ChatResultViewModel: ObservableObject {
                     let placeSearchResponses = intent.placeSearchResponses.isEmpty ? try PlaceResponseFormatter.placeSearchResponses(with: rawQueryResponse) : intent.placeSearchResponses
                     intent.placeSearchResponses = placeSearchResponses
                 }
-                analytics?.track(name: "searchIntentWithSearch")
-            } else {
-                let request = await placeSearchRequest(intent: intent, location:location)
-                let rawQueryResponse = try await placeSearchSession.query(request:request, location: location)
-                let placeSearchResponses = intent.placeSearchResponses.isEmpty ? try PlaceResponseFormatter.placeSearchResponses(with: rawQueryResponse) : intent.placeSearchResponses
-                intent.placeSearchResponses = placeSearchResponses
-                analytics?.track(name: "searchIntentWithSearch")
-            }
+                analyticsManager.track(event: "searchIntentWithSearch", properties: nil)
         case .Location:
             break
         case .AutocompleteSearch:
             guard let location = location else {
                 return
             }
-            if cloudCache.hasFsqAccess {
                 let autocompleteResponse = try await personalizedSearchSession.autocomplete(caption: intent.caption, parameters: intent.queryParameters, location: location)
                 let placeSearchResponses = intent.placeSearchResponses.isEmpty ? try PlaceResponseFormatter.autocompletePlaceSearchResponses(with: autocompleteResponse) : intent.placeSearchResponses
                 intent.placeSearchResponses = placeSearchResponses
-                analytics?.track(name: "searchIntentWithPersonalizedAutocomplete")
-            } else {
-                let autocompleteResponse = try await placeSearchSession.autocomplete(caption: intent.caption, parameters: intent.queryParameters, location: location)
-                let placeSearchResponses = intent.placeSearchResponses.isEmpty ? try PlaceResponseFormatter.autocompletePlaceSearchResponses(with: autocompleteResponse) : intent.placeSearchResponses
-                intent.placeSearchResponses = placeSearchResponses
-                analytics?.track(name: "searchIntentWithAutocomplete")
-            }
+            analyticsManager.track(event: "searchIntentWithPersonalizedAutocomplete", properties: nil)
+
         case .AutocompleteTastes:
-            if cloudCache.hasFsqAccess {
                 let autocompleteResponse = try await personalizedSearchSession.autocompleteTastes(caption: intent.caption, parameters: intent.queryParameters)
                 let tastes = try PlaceResponseFormatter.autocompleteTastesResponses(with: autocompleteResponse)
                 intent.tasteAutocompleteResponese = tastes
-                analytics?.track(name: "searchIntentWithPersonalizedAutocompleteTastes")
-            }
+            analyticsManager.track(event: "searchIntentWithPersonalizedAutocompleteTastes", properties: nil)
         }
     }
     
@@ -1034,7 +609,6 @@ final class ChatResultViewModel: ObservableObject {
             tasteResults = results
             lastFetchedTastePage = 0
         }
-        await refreshCachedTastes(cloudCache: cloudCache)
     }
     
     public func refreshTastes(page: Int) async throws {
@@ -1060,12 +634,11 @@ final class ChatResultViewModel: ObservableObject {
     }
     
     private func tasteCategoryResults(with tastes: [String], page: Int) -> [CategoryResult] {
-        guard let chatHost = assistiveHostDelegate else { return [] }
         var results = tasteResults
         
         for taste in tastes {
-            let chatResult = ChatResult(title: taste, list:"Features", section:chatHost.section(for:taste), placeResponse: nil, recommendedPlaceResponse: nil)
-            let categoryResult = CategoryResult(parentCategory: taste, list:"Features", section:chatHost.section(for:taste), categoricalChatResults: [chatResult])
+            let chatResult = ChatResult(title: taste, list:"Features", section:assistiveHostDelegate.section(for:taste), placeResponse: nil, recommendedPlaceResponse: nil)
+            let categoryResult = CategoryResult(parentCategory: taste, list:"Features", section:assistiveHostDelegate.section(for:taste), categoricalChatResults: [chatResult])
             results.append(categoryResult)
         }
         
@@ -1075,14 +648,13 @@ final class ChatResultViewModel: ObservableObject {
     // MARK: Place Query Models
     
     public func placeQueryModel(intent: AssistiveChatHostIntent) async {
-        guard let chatHost = assistiveHostDelegate else { return }
         var chatResults = [ChatResult]()
         
         if let response = intent.selectedPlaceSearchResponse, let details = intent.selectedPlaceSearchDetails {
             let results = PlaceResponseFormatter.placeChatResults(
                 for: intent,
                 place: response,
-                section: chatHost.section(for:intent.caption),
+                section: assistiveHostDelegate.section(for:intent.caption),
                 list:intent.caption,
                 details: details,
                 recommendedPlaceResponse:nil
@@ -1092,7 +664,7 @@ final class ChatResultViewModel: ObservableObject {
             if !intent.placeSearchResponses.isEmpty {
                 for response in intent.placeSearchResponses {
                     if !response.name.isEmpty {
-                        let results = PlaceResponseFormatter.placeChatResults(for: intent, place: response, section:chatHost.section(for:intent.caption), list:intent.caption, details: nil, recommendedPlaceResponse: nil)
+                        let results = PlaceResponseFormatter.placeChatResults(for: intent, place: response, section:assistiveHostDelegate.section(for:intent.caption), list:intent.caption, details: nil, recommendedPlaceResponse: nil)
                         chatResults.append(contentsOf: results)
                     }
                 }
@@ -1114,7 +686,6 @@ final class ChatResultViewModel: ObservableObject {
     }
     
     public func recommendedPlaceQueryModel(intent: AssistiveChatHostIntent) async {
-        guard let chatHost = assistiveHostDelegate else { return }
         var recommendedChatResults = [ChatResult]()
         
         if let recommendedPlaceSearchResponses = intent.recommendedPlaceSearchResponses, !recommendedPlaceSearchResponses.isEmpty {
@@ -1142,7 +713,7 @@ final class ChatResultViewModel: ObservableObject {
                     let results = PlaceResponseFormatter.placeChatResults(
                         for: intent,
                         place: placeResponse,
-                        section: chatHost.section(for: intent.caption), list: intent.caption,
+                        section: assistiveHostDelegate.section(for: intent.caption), list: intent.caption,
                         details: nil,
                         recommendedPlaceResponse: response
                     )
@@ -1157,7 +728,6 @@ final class ChatResultViewModel: ObservableObject {
     }
     
     public func relatedPlaceQueryModel(intent: AssistiveChatHostIntent) async {
-        guard let chatHost = assistiveHostDelegate else { return }
         var relatedChatResults = [ChatResult]()
         
         if let relatedPlaceSearchResponses = intent.relatedPlaceSearchResponses, !relatedPlaceSearchResponses.isEmpty {
@@ -1167,7 +737,7 @@ final class ChatResultViewModel: ObservableObject {
                         let results = PlaceResponseFormatter.placeChatResults(
                             for: intent,
                             place: placeSearchResponse,
-                            section: chatHost.section(for: intent.caption), list: intent.caption,
+                            section: assistiveHostDelegate.section(for: intent.caption), list: intent.caption,
                             details: intent.selectedPlaceSearchDetails,
                             recommendedPlaceResponse:nil
                         )
@@ -1195,7 +765,7 @@ final class ChatResultViewModel: ObservableObject {
                         let results = PlaceResponseFormatter.placeChatResults(
                             for: intent,
                             place: placeResponse,
-                            section: chatHost.section(for: intent.caption), list: intent.caption,
+                            section: assistiveHostDelegate.section(for: intent.caption), list: intent.caption,
                             details: nil,
                             recommendedPlaceResponse: response
                         )
@@ -1210,7 +780,6 @@ final class ChatResultViewModel: ObservableObject {
     }
     
     public func searchQueryModel(intent: AssistiveChatHostIntent) async {
-        guard let chatHost = assistiveHostDelegate else { return }
         var chatResults = [ChatResult]()
         
         let existingPlaceResults = placeResults.compactMap { $0.placeResponse }
@@ -1250,7 +819,7 @@ final class ChatResultViewModel: ObservableObject {
                 let results = PlaceResponseFormatter.placeChatResults(
                     for: intent,
                     place: detailsResponse.searchResponse,
-                    section: chatHost.section(for: intent.caption), list: intent.caption,
+                    section: assistiveHostDelegate.section(for: intent.caption), list: intent.caption,
                     details: detailsResponse
                 )
                 chatResults.append(contentsOf: results)
@@ -1258,7 +827,7 @@ final class ChatResultViewModel: ObservableObject {
         }
         
         for response in intent.placeSearchResponses {
-            var results = PlaceResponseFormatter.placeChatResults(for: intent, place: response, section: chatHost.section(for: intent.caption), list: intent.caption, details: nil)
+            var results = PlaceResponseFormatter.placeChatResults(for: intent, place: response, section: assistiveHostDelegate.section(for: intent.caption), list: intent.caption, details: nil)
             results = results.filter { result in
                 !(intent.placeDetailsResponses?.contains { $0.fsqID == result.placeResponse?.fsqID } ?? false)
             }
@@ -1288,7 +857,6 @@ final class ChatResultViewModel: ObservableObject {
     // MARK: Autocomplete Place Model
     
     public func autocompletePlaceModel(caption: String, intent: AssistiveChatHostIntent, location: CLLocation) async throws {
-        guard let chatHost = assistiveHostDelegate else { return }
         let autocompleteResponse = try await placeSearchSession.autocomplete(caption: caption, parameters: intent.queryParameters, location: location)
         let placeSearchResponses = try PlaceResponseFormatter.autocompletePlaceSearchResponses(with: autocompleteResponse)
         intent.placeSearchResponses = placeSearchResponses
@@ -1299,7 +867,7 @@ final class ChatResultViewModel: ObservableObject {
         var chatResults = [ChatResult]()
         let allResponses = intent.placeSearchResponses
         for response in allResponses {
-            let results = PlaceResponseFormatter.placeChatResults(for: intent, place: response, section: chatHost.section(for: intent.caption), list: intent.caption, details: nil)
+            let results = PlaceResponseFormatter.placeChatResults(for: intent, place: response, section: assistiveHostDelegate.section(for: intent.caption), list: intent.caption, details: nil)
             chatResults.append(contentsOf: results)
         }
         
@@ -1522,45 +1090,41 @@ extension ChatResultViewModel : @preconcurrency AssistiveChatHostMessagesDelegat
         
         let destinationChatResultID = selectedDestinationChatResultID
         
-        guard let chatHost = self.assistiveHostDelegate else {
-            return
-        }
-        
-        let checkIntent:AssistiveChatHost.Intent = intent ?? chatHost.determineIntent(for: checkCaption, override: nil)
-        let queryParameters = try await chatHost.defaultParameters(for: caption)
-        if let lastIntent = chatHost.queryIntentParameters?.queryIntents.last, lastIntent.caption == caption {
+        let checkIntent:AssistiveChatHost.Intent = intent ?? assistiveHostDelegate.determineIntent(for: checkCaption, override: nil)
+        let queryParameters = try await assistiveHostDelegate.defaultParameters(for: caption)
+        if let lastIntent = assistiveHostDelegate.queryIntentParameters?.queryIntents.last, lastIntent.caption == caption {
             let newIntent = AssistiveChatHostIntent(caption: checkCaption, intent: checkIntent, selectedPlaceSearchResponse: lastIntent.selectedPlaceSearchResponse, selectedPlaceSearchDetails: lastIntent.selectedPlaceSearchDetails, placeSearchResponses: lastIntent.placeSearchResponses, selectedDestinationLocationID: destinationChatResultID, placeDetailsResponses:lastIntent.placeDetailsResponses,recommendedPlaceSearchResponses: lastIntent.recommendedPlaceSearchResponses, queryParameters: queryParameters)
             
-            chatHost.updateLastIntentParameters(intent:newIntent)
+            assistiveHostDelegate.updateLastIntentParameters(intent:newIntent)
         } else {
             let newIntent = AssistiveChatHostIntent(caption: checkCaption, intent: checkIntent, selectedPlaceSearchResponse: nil, selectedPlaceSearchDetails: nil, placeSearchResponses: [PlaceSearchResponse](), selectedDestinationLocationID:destinationChatResultID, placeDetailsResponses:nil, queryParameters: queryParameters)
             
-            chatHost.appendIntentParameters(intent: newIntent)
+            assistiveHostDelegate.appendIntentParameters(intent: newIntent)
         }
-        try await chatHost.receiveMessage(caption: checkCaption, isLocalParticipant:true)
+        try await assistiveHostDelegate.receiveMessage(caption: checkCaption, isLocalParticipant:true)
         
     }
     
     public func updateLastIntentParameter(for placeChatResult:ChatResult, selectedDestinationChatResultID:LocationResult.ID?) async throws {
-        guard let chatHost = assistiveHostDelegate, let lastIntent = assistiveHostDelegate?.queryIntentParameters?.queryIntents.last else {
+        guard  let lastIntent = assistiveHostDelegate.queryIntentParameters?.queryIntents.last else {
             return
         }
         
-        let queryParameters = try await chatHost.defaultParameters(for: placeChatResult.title)
+        let queryParameters = try await assistiveHostDelegate.defaultParameters(for: placeChatResult.title)
         let newIntent = AssistiveChatHostIntent(caption: placeChatResult.title, intent: .Place, selectedPlaceSearchResponse: placeChatResult.placeResponse, selectedPlaceSearchDetails:placeChatResult.placeDetailsResponse, placeSearchResponses: lastIntent.placeSearchResponses, selectedDestinationLocationID: selectedDestinationChatResultID, placeDetailsResponses: nil, recommendedPlaceSearchResponses: lastIntent.recommendedPlaceSearchResponses, queryParameters: queryParameters)
         
         
         guard placeChatResult.placeResponse != nil else {
-            chatHost.updateLastIntentParameters(intent: newIntent)
-            try await chatHost.receiveMessage(caption: newIntent.caption, isLocalParticipant: true)
+            assistiveHostDelegate.updateLastIntentParameters(intent: newIntent)
+            try await assistiveHostDelegate.receiveMessage(caption: newIntent.caption, isLocalParticipant: true)
             return
         }
         
         try await self.detailIntent(intent: newIntent)
         
-        chatHost.updateLastIntentParameters(intent: newIntent)
+        assistiveHostDelegate.updateLastIntentParameters(intent: newIntent)
         
-        if let queryIntentParameters = chatHost.queryIntentParameters {
+        if let queryIntentParameters = assistiveHostDelegate.queryIntentParameters {
             try await didUpdateQuery(with: placeChatResult.title, parameters: queryIntentParameters)
         }
     }
@@ -1578,7 +1142,7 @@ extension ChatResultViewModel : @preconcurrency AssistiveChatHostMessagesDelegat
     }
     
     public func didTap(placeChatResult: ChatResult) async throws {
-        guard let lastIntent = assistiveHostDelegate?.queryIntentParameters?.queryIntents.last, lastIntent.placeSearchResponses.count > 0 else {
+        guard let lastIntent = assistiveHostDelegate.queryIntentParameters?.queryIntents.last, lastIntent.placeSearchResponses.count > 0 else {
             return
         }
         
@@ -1600,48 +1164,39 @@ extension ChatResultViewModel : @preconcurrency AssistiveChatHostMessagesDelegat
     }
     
     public func didTap(locationChatResult: LocationResult) async throws {
-        guard let chatHost = assistiveHostDelegate else {
-            return
-        }
-        
-        let queryParameters = try await chatHost.defaultParameters(for: locationChatResult.locationName)
+        let queryParameters = try await assistiveHostDelegate.defaultParameters(for: locationChatResult.locationName)
         
         if let selectedDestinationLocationChatResult = selectedDestinationLocationChatResult {
             let newIntent = AssistiveChatHostIntent(caption: locationChatResult.locationName, intent:.Location, selectedPlaceSearchResponse: nil, selectedPlaceSearchDetails: nil, placeSearchResponses: [PlaceSearchResponse](), selectedDestinationLocationID: selectedDestinationLocationChatResult, placeDetailsResponses:nil, queryParameters: queryParameters)
             
-            chatHost.appendIntentParameters(intent: newIntent)
+            assistiveHostDelegate.appendIntentParameters(intent: newIntent)
         } else {
             selectedDestinationLocationChatResult = locationChatResult.id
             let newIntent = AssistiveChatHostIntent(caption: locationChatResult.locationName, intent:.Location, selectedPlaceSearchResponse: nil, selectedPlaceSearchDetails: nil, placeSearchResponses: [PlaceSearchResponse](), selectedDestinationLocationID: locationChatResult.id, placeDetailsResponses:nil, queryParameters: queryParameters)
             
-            chatHost.appendIntentParameters(intent: newIntent)
+            assistiveHostDelegate.appendIntentParameters(intent: newIntent)
         }
         
-        try await chatHost.receiveMessage(caption: locationChatResult.locationName, isLocalParticipant:true)
+        try await assistiveHostDelegate.receiveMessage(caption: locationChatResult.locationName, isLocalParticipant:true)
     }
     
     public func didTap(chatResult: ChatResult, selectedPlaceSearchResponse: PlaceSearchResponse?, selectedPlaceSearchDetails: PlaceDetailsResponse?, selectedRecommendedPlaceSearchResponse:RecommendedPlaceSearchResponse?,
                        selectedDestinationChatResultID:UUID?, intent:AssistiveChatHost.Intent = .Search) async {
-        
         do {
-            guard let chatHost = self.assistiveHostDelegate else {
-                return
-            }
-            
             await MainActor.run {
                 isFetchingResults = true
             }
             
             let caption = chatResult.title
             
-            let queryParameters = try await chatHost.defaultParameters(for: caption)
+            let queryParameters = try await assistiveHostDelegate.defaultParameters(for: caption)
             
             let placeSearchResponses = chatResult.placeResponse != nil ? [chatResult.placeResponse!] : [PlaceSearchResponse]()
             let destinationLocationChatResult = selectedDestinationChatResultID
             
             let newIntent = AssistiveChatHostIntent(caption: caption, intent: intent, selectedPlaceSearchResponse: selectedPlaceSearchResponse, selectedPlaceSearchDetails: selectedPlaceSearchDetails, placeSearchResponses: placeSearchResponses, selectedDestinationLocationID: destinationLocationChatResult, placeDetailsResponses:nil, queryParameters: queryParameters)
-            chatHost.appendIntentParameters(intent: newIntent)
-            try await chatHost.receiveMessage(caption: chatResult.title, isLocalParticipant: true)
+            assistiveHostDelegate.appendIntentParameters(intent: newIntent)
+            try await assistiveHostDelegate.receiveMessage(caption: chatResult.title, isLocalParticipant: true)
             
             await MainActor.run {
                 isFetchingResults = false
@@ -1651,9 +1206,25 @@ extension ChatResultViewModel : @preconcurrency AssistiveChatHostMessagesDelegat
                 isFetchingResults = false
             }
             
-            analytics?.track(name: "error \(error)")
-            print(error)
+            analyticsManager.trackError(error: error, additionalInfo: nil)
         }
+    }
+    
+    
+    public func didTap(categoricalResult:CategoryResult, chatResult:ChatResult?, selectedDestinationChatResultID:UUID) async {
+        if let chatResult = chatResult {
+            await didTap(chatResult: chatResult, selectedDestinationChatResultID: selectedDestinationChatResultID)
+        }
+    }
+    
+    public func didTap(chatResult: ChatResult, selectedDestinationChatResultID:UUID?) async {
+        print("Did tap result:\(chatResult.title) for place:\(chatResult.placeResponse?.fsqID ?? "")")
+        var intent = AssistiveChatHost.Intent.Search
+        if let placeResponse = chatResult.placeResponse, !placeResponse.fsqID.isEmpty, placeResponse.name.isEmpty {
+            intent = .Place
+        }
+        
+        await didTap(chatResult: chatResult, selectedPlaceSearchResponse: chatResult.placeResponse, selectedPlaceSearchDetails:chatResult.placeDetailsResponse, selectedRecommendedPlaceSearchResponse: chatResult.recommendedPlaceResponse, selectedDestinationChatResultID:selectedDestinationChatResultID, intent:intent )
     }
     
     
@@ -1672,7 +1243,7 @@ extension ChatResultViewModel : @preconcurrency AssistiveChatHostMessagesDelegat
         } else {
             if let destinationChatResult = selectedDestinationChatResult, let _ = locationChatResult(for: destinationChatResult) {
                 
-            } else if let lastIntent = assistiveHostDelegate?.queryIntentParameters?.queryIntents.last  {
+            } else if let lastIntent = assistiveHostDelegate.queryIntentParameters?.queryIntents.last  {
                 let locationChatResult = locationChatResult(for: lastIntent.selectedDestinationLocationID ?? currentLocationResult.id)
                 selectedDestinationChatResult = locationChatResult?.id
                 await MainActor.run {
@@ -1694,15 +1265,11 @@ extension ChatResultViewModel : @preconcurrency AssistiveChatHostMessagesDelegat
             try await searchIntent(intent: lastIntent, location: nil)
             try await didUpdateQuery(with: caption, parameters: parameters)
         } else {
-            guard let chatHost = self.assistiveHostDelegate else {
-                return
-            }
-            
-            let intent:AssistiveChatHost.Intent = chatHost.determineIntent(for: caption, override: nil)
-            let queryParameters = try await chatHost.defaultParameters(for: caption)
+            let intent:AssistiveChatHost.Intent = assistiveHostDelegate.determineIntent(for: caption, override: nil)
+            let queryParameters = try await assistiveHostDelegate.defaultParameters(for: caption)
             let newIntent = AssistiveChatHostIntent(caption: caption, intent: intent, selectedPlaceSearchResponse: nil, selectedPlaceSearchDetails: nil, placeSearchResponses: [PlaceSearchResponse](), selectedDestinationLocationID: selectedDestinationChatResult, placeDetailsResponses:nil, queryParameters: queryParameters)
             
-            chatHost.appendIntentParameters(intent: newIntent)
+            assistiveHostDelegate.appendIntentParameters(intent: newIntent)
             try await receiveMessage(caption: caption, parameters: parameters, isLocalParticipant: isLocalParticipant)
             try await searchIntent(intent: newIntent, location: locationChatResult(with:caption).location! )
             try await didUpdateQuery(with: caption, parameters: parameters)

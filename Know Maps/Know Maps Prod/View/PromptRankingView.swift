@@ -3,8 +3,6 @@ import UniformTypeIdentifiers
 
 struct PromptRankingView: View {
     @Environment(\.horizontalSizeClass) var sizeClass
-
-    @EnvironmentObject var cloudCache: CloudCache
     @ObservedObject var chatHost: AssistiveChatHost
     @ObservedObject var chatModel: ChatResultViewModel
     @ObservedObject var locationProvider: LocationProvider
