@@ -20,13 +20,10 @@ public final class DefaultModelController : ModelController, ObservableObject {
     // MARK: - Published Properties
         
     // Selection States
-    public var selectedPersonalizedSearchSection:PersonalizedSearchSection?
-    public var selectedCategoryResult: CategoryResult.ID?
-    public var selectedSavedResult: CategoryResult.ID?
-    public var selectedTasteCategoryResult: CategoryResult.ID?
-    public var selectedCategoryChatResult: ChatResult.ID?
-    public var selectedPlaceChatResult: ChatResult.ID?
-    public var selectedDestinationLocationChatResult: LocationResult.ID?
+    @Published public var selectedPersonalizedSearchSection:PersonalizedSearchSection?
+    @Published public var selectedSavedResult: CategoryResult.ID?
+    @Published public var selectedPlaceChatResult: ChatResult.ID?
+    @Published public var selectedDestinationLocationChatResult: LocationResult.ID?
     
     // Fetching States
     public var isFetchingPlaceDescription: Bool = false

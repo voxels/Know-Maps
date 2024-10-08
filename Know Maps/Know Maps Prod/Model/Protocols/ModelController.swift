@@ -22,10 +22,7 @@ public protocol ModelController {
     
     // Selection States
     var selectedPersonalizedSearchSection:PersonalizedSearchSection? { get set }
-    var selectedCategoryResult: CategoryResult.ID? { get set }
     var selectedSavedResult: CategoryResult.ID? { get set }
-    var selectedTasteCategoryResult: CategoryResult.ID? { get set }
-    var selectedCategoryChatResult: ChatResult.ID? { get set }
     var selectedPlaceChatResult: ChatResult.ID? { get set }
     var selectedDestinationLocationChatResult: LocationResult.ID? { get set }
     
