@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import CoreLocation
 
 public final class SearchSavedViewModel: ObservableObject {
     
@@ -31,6 +32,16 @@ public final class SearchSavedViewModel: ObservableObject {
         } catch {
             chatModel.modelController.analyticsManager.trackError(error:error, additionalInfo: nil)
         }
+    }
+    
+    // Add Location
+    
+    func addLocation(parent:LocationResult,location:CLLocation) async throws {
+        var userRecord = UserCachedRecord(recordId: "", group: "Location", identity: chatModel.modelController.cacheManager.cachedLocationIdentity(for: location), title: parent.locationName, icons: "", list:"Places", section:PersonalizedSearchSection.location.rawValue)
+        let record = try await chatModel.modelController.cacheManager.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, icons: userRecord.icons, list:userRecord.list, section:userRecord.section)
+        userRecord.setRecordId(to:record)
+        try await Task.sleep(nanoseconds: 1_000_000_000)
+        try await chatModel.modelController.cacheManager.refreshCache()
     }
     
     // Add Category

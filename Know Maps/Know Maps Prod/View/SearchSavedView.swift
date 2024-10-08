@@ -25,8 +25,78 @@ struct SearchSavedView: View {
                 }
                 .sheet(isPresented: $showNavigationLocationSheet) {
                     VStack {
+                        
+#if os(macOS)
+                        HStack {
+                            Spacer()
+                            Button(action: {
+                                showNavigationLocationSheet = false
+                            }, label: {
+                                Label("Done", systemImage: "plus.circle").labelStyle(.titleAndIcon)
+                            }).padding()
+                        }
+#endif
+                        HStack {
+                            TextField("City, State", text: $searchText)
+                                .onSubmit {
+                                    search()
+                                }
+                                .textFieldStyle(.roundedBorder)
+                            Button("Search", systemImage: "magnifyingglass") {
+                                search()
+                            }
+                        }.padding()
+                        NavigationLocationView( chatModel: viewModel.chatModel)
+                        HStack {
+                            if let selectedDestinationLocationChatResult = viewModel.chatModel.modelController.selectedDestinationLocationChatResult,
+                               let parent = viewModel.chatModel.modelController.locationChatResult(for: selectedDestinationLocationChatResult, in:viewModel.chatModel.modelController.filteredLocationResults)
+                            {
+                                let isSaved = viewModel.chatModel.modelController.cacheManager.cachedLocation(contains:parent.locationName)
+                                if isSaved {
+                                    Button("Delete", systemImage:"minus.circle") {
+                                        if let location = parent.location {
+                                            Task {
+                                                await  viewModel.removeCachedResults(group: "Location", identity: viewModel.chatModel.modelController.cacheManager.cachedLocationIdentity(for: location))
+                                            }
+                                        }
+                                    }.labelStyle(.titleAndIcon)
+                                        .padding()
+                                } else {
+                                    Button("Save", systemImage:"square.and.arrow.down") {
+                                        if let location = parent.location {
+                                            Task {
+                                                do {
+                                                    try await viewModel.addLocation(parent: parent, location: location)
+                                                } catch {
+                                                    viewModel.chatModel.modelController.analyticsManager.trackError(error:error, additionalInfo:nil)
+                                                }
+                                            }
+                                        }
+                                    }.labelStyle(.titleAndIcon)
+                                        .padding()
+                                }
+                            } else if let parent = viewModel.chatModel.modelController.locationResults.first(where: {$0.locationName == searchText}) {
+                                Button("Save", systemImage:"square.and.arrow.down") {
+                                    Task{
+                                        if let location = parent.location {
+                                            do {
+                                                try await viewModel.addLocation(parent: parent, location: location)
+                                            } catch {
+                                                viewModel.chatModel.modelController.analyticsManager.trackError(error:error, additionalInfo:nil)
+                                            }
+                                        }
+                                    }
+                                }.labelStyle(.titleAndIcon)
+                                    .padding()
+                            }
+                        }.padding()
                         // Sheet content
                     }
+                    .padding()
+                    .frame(minHeight: geometry.size.height, maxHeight: .infinity)
+                    .presentationDetents([.large])
+                    .presentationDragIndicator(.visible)
+                    .presentationCompactAdaptation(.sheet)
                 }
         }
     }
@@ -70,7 +140,7 @@ struct AddPromptView: View {
 
 struct AddPromptToolbarView: View {
     @Environment(\.horizontalSizeClass) var sizeClass
-
+    
     @ObservedObject public var viewModel: SearchSavedViewModel
     @Binding public var addItemSection: Int
     @Binding public var contentViewDetail:ContentDetailView
@@ -161,7 +231,7 @@ struct SavedListView: View {
                         preferredColumn = .detail
                     }
                     .foregroundStyle(.accent)
-
+                
             }
             
             Section("Items") {
@@ -204,7 +274,7 @@ struct SavedListView: View {
                         preferredColumn = .detail
                     }
                     .foregroundStyle(.accent)
-
+                
             }
             
             Section("Moods") {

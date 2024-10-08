@@ -25,7 +25,7 @@ enum ChatResultViewModelError: Error {
 final class ChatResultViewModel: ObservableObject, AssistiveChatHostMessagesDelegate {
     
     @Published public var modelController: ModelController
-
+    
     public init(modelController: ModelController) {
         self.modelController = modelController
         self.modelController.assistiveHostDelegate.messagesDelegate = self
