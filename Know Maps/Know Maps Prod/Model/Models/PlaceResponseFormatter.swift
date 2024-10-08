@@ -862,7 +862,7 @@ open class PlaceResponseFormatter {
     }
     
     public class func chatResult(title:String, section:PersonalizedSearchSection, list:String, placeResponse:PlaceSearchResponse?, placeDetailsResponse:PlaceDetailsResponse?, recommendedPlaceResponse:RecommendedPlaceSearchResponse? = nil)->ChatResult {
-        let result = ChatResult(title:title, list:list, section:section, placeResponse: placeResponse, recommendedPlaceResponse: recommendedPlaceResponse, placeDetailsResponse:placeDetailsResponse)
+        let result = ChatResult(title:title, list:list, icon: "", section:section, placeResponse: placeResponse, recommendedPlaceResponse: recommendedPlaceResponse, placeDetailsResponse:placeDetailsResponse)
                         
         return result
     }

@@ -16,6 +16,7 @@ public struct ChatResult : Identifiable, Equatable, Hashable {
     private(set) var parentId:UUID? = nil
     let title:String
     let list:String
+    let icon:String
     let section:PersonalizedSearchSection
     let placeResponse:PlaceSearchResponse?
     let recommendedPlaceResponse:RecommendedPlaceSearchResponse?

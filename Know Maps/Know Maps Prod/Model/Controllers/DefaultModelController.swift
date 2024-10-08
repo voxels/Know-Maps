@@ -89,14 +89,14 @@ public final class DefaultModelController : ModelController, ObservableObject {
             for values in categoryCode.values {
                 for value in values {
                     if let category = value["category"]{
-                        let chatResult = ChatResult(title:category, list:category, section:assistiveHostDelegate.section(for:category), placeResponse:nil, recommendedPlaceResponse: nil)
+                        let chatResult = ChatResult(title:category, list:category, icon: "", section:assistiveHostDelegate.section(for:category), placeResponse:nil, recommendedPlaceResponse: nil)
                         newChatResults.append(chatResult)
                     }
                 }
             }
             
             for key in categoryCode.keys {
-                newChatResults.append(ChatResult(title: key, list:key, section:assistiveHostDelegate.section(for:key), placeResponse:nil, recommendedPlaceResponse: nil))
+                newChatResults.append(ChatResult(title: key, list:key, icon:"", section:assistiveHostDelegate.section(for:key), placeResponse:nil, recommendedPlaceResponse: nil))
                 
                 if retval.contains(where: { checkResult in
                     return checkResult.parentCategory == key
@@ -116,12 +116,12 @@ public final class DefaultModelController : ModelController, ObservableObject {
                             return checkResult.parentCategory == key
                         }
                         
-                        let newResult = CategoryResult(parentCategory: key, list:key, section:assistiveHostDelegate.section(for:key), categoricalChatResults: newChatResults)
+                        let newResult = CategoryResult(parentCategory: key, list:key, icon:"", section:assistiveHostDelegate.section(for:key), categoricalChatResults: newChatResults)
                         retval.append(newResult)
                     }
                     
                 } else {
-                    let newResult = CategoryResult(parentCategory: key, list:key, section:assistiveHostDelegate.section(for:key), categoricalChatResults: newChatResults)
+                    let newResult = CategoryResult(parentCategory: key, list:key, icon: "", section:assistiveHostDelegate.section(for:key), categoricalChatResults: newChatResults)
                     retval.append(newResult)
                 }
             }

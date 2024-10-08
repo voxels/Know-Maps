@@ -145,8 +145,8 @@ public final class DefaultPlaceSearchService: PlaceSearchService {
         var results = currentTasteResults
         
         for taste in tastes {
-            let chatResult = ChatResult(title: taste, list:"Type", section:assistiveHostDelegate.section(for:taste), placeResponse: nil, recommendedPlaceResponse: nil)
-            let categoryResult = CategoryResult(parentCategory: taste, list:"Type", section:assistiveHostDelegate.section(for:taste), categoricalChatResults: [chatResult])
+            let chatResult = ChatResult(title: taste, list:"Type", icon: "", section:assistiveHostDelegate.section(for:taste), placeResponse: nil, recommendedPlaceResponse: nil)
+            let categoryResult = CategoryResult(parentCategory: taste, list:"Type", icon: chatResult.icon, section:chatResult.section, categoricalChatResults: [chatResult])
             results.append(categoryResult)
         }
         
