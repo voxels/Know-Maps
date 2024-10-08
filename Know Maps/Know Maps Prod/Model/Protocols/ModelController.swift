@@ -20,14 +20,11 @@ public protocol ModelController {
     
     // MARK: - Published Properties
     
-    var isFetchingResults:Bool { get set }
-    
     // Selection States
     var selectedPersonalizedSearchSection:PersonalizedSearchSection? { get set }
     var selectedCategoryResult: CategoryResult.ID? { get set }
     var selectedSavedResult: CategoryResult.ID? { get set }
     var selectedTasteCategoryResult: CategoryResult.ID? { get set }
-    var selectedListCategoryResult: CategoryResult.ID? { get set }
     var selectedCategoryChatResult: ChatResult.ID? { get set }
     var selectedPlaceChatResult: ChatResult.ID? { get set }
     var selectedDestinationLocationChatResult: LocationResult.ID? { get set }
@@ -38,7 +35,6 @@ public protocol ModelController {
     // Results
     var industryResults:[CategoryResult] { get set }
     var tasteResults:[CategoryResult] { get set }
-    var searchCategoryResults:[CategoryResult] { get set }
     var placeResults:[ChatResult] { get set }
     var recommendedPlaceResults:[ChatResult] { get set }
     var relatedPlaceResults:[ChatResult] { get set }
@@ -64,7 +60,7 @@ public protocol ModelController {
         analyticsManager: AnalyticsService
     )
     
-    func resetPlaceModel()
+    func resetPlaceModel() async
     
     // MARK: - Industry Category Handling
     
@@ -118,16 +114,12 @@ public protocol ModelController {
     func refreshModel(
         query: String,
         queryIntents: [AssistiveChatHostIntent]?,
-        locationResults: inout [LocationResult],
-        currentLocationResult: LocationResult,
         cacheManager:CacheManager
     ) async throws -> [ChatResult]
     
     /// Builds the model based on the given intent.
     func model(
         intent: AssistiveChatHostIntent,
-        locationResults: inout [LocationResult],
-        currentLocationResult: LocationResult,
         cacheManager:CacheManager
     ) async throws -> [ChatResult]
     
@@ -152,8 +144,7 @@ public protocol ModelController {
     func receiveMessage(
         caption: String,
         parameters: AssistiveChatHostQueryParameters,
-        isLocalParticipant: Bool,
-        locationResults: inout [LocationResult]
+        isLocalParticipant: Bool
     ) async throws
     
     /// Processes a search intent based on the given intent and location.
@@ -169,5 +160,5 @@ public protocol ModelController {
 
     func updateLastIntentParameter(for placeChatResult:ChatResult, selectedDestinationChatResultID:LocationResult.ID?, cacheManager:CacheManager) async throws
     
-    func updateQueryParametersHistory(with parameters: AssistiveChatHostQueryParameters)
+    func updateQueryParametersHistory(with parameters: AssistiveChatHostQueryParameters) async
 }

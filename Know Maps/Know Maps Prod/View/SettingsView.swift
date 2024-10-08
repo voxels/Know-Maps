@@ -13,6 +13,7 @@ struct SettingsView: View {
     @EnvironmentObject public var model:AppleAuthenticationService
     @ObservedObject public var chatModel:ChatResultViewModel
     @ObservedObject public var cacheManager:CloudCacheManager
+    @ObservedObject public var modelController:DefaultModelController
     @Binding public var showOnboarding:Bool
     @State private var popoverPresented:Bool = false
     @State private var signInErrorMessage:String = "Error"
@@ -87,7 +88,7 @@ struct SettingsView: View {
                             showOnboarding = true
                         }
                     } catch {
-                        chatModel.modelController.analyticsManager.trackError(error:error, additionalInfo:nil)
+                        modelController.analyticsManager.trackError(error:error, additionalInfo:nil)
                     }
                 }
             }, label:{

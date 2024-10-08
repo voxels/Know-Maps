@@ -14,7 +14,7 @@ import Segment
 
 public typealias AssistiveChatHostTaggedWord = [String: [String]]
 
-public final class AssistiveChatHostService : AssistiveChatHost, ObservableObject {
+public final class AssistiveChatHostService : AssistiveChatHost {
     public let analyticsManager:AnalyticsService
     public enum Intent : String {
         case Search
@@ -27,7 +27,7 @@ public final class AssistiveChatHostService : AssistiveChatHost, ObservableObjec
     weak public var messagesDelegate:AssistiveChatHostMessagesDelegate?
     public var placeSearchSession = PlaceSearchSession()
 
-    @Published public var queryIntentParameters:AssistiveChatHostQueryParameters?
+    public var queryIntentParameters:AssistiveChatHostQueryParameters?
     public var categoryCodes:[[String:[[String:String]]]] = [[String:[[String:String]]]]()
     
     let geocoder = CLGeocoder()
@@ -230,16 +230,16 @@ public final class AssistiveChatHostService : AssistiveChatHost, ObservableObjec
         }
     }
     
-    public func updateLastIntent(caption:String, selectedDestinationLocationID:LocationResult.ID) async throws {
+    public func updateLastIntent(caption:String, selectedDestinationLocationID:LocationResult.ID, modelController:ModelController) async throws {
         if let queryIntentParameters = queryIntentParameters, let lastIntent = queryIntentParameters.queryIntents.last {
             let queryParamters = try await defaultParameters(for: caption)
             let intent = determineIntent(for: caption)
             let newIntent = AssistiveChatHostIntent(caption: caption, intent:intent, selectedPlaceSearchResponse: lastIntent.selectedPlaceSearchResponse, selectedPlaceSearchDetails: lastIntent.selectedPlaceSearchDetails, placeSearchResponses: lastIntent.placeSearchResponses, selectedDestinationLocationID: selectedDestinationLocationID, placeDetailsResponses: lastIntent.placeDetailsResponses, recommendedPlaceSearchResponses: lastIntent.recommendedPlaceSearchResponses, queryParameters: queryParamters)
-            updateLastIntentParameters(intent: newIntent)
+            await updateLastIntentParameters(intent: newIntent, modelController: modelController)
         }
     }
     
-    public func updateLastIntentParameters(intent:AssistiveChatHostIntent) {
+    public func updateLastIntentParameters(intent:AssistiveChatHostIntent, modelController:ModelController) async {
         guard let queryIntentParameters = queryIntentParameters else {
             return
         }
@@ -248,17 +248,17 @@ public final class AssistiveChatHostService : AssistiveChatHost, ObservableObjec
             queryIntentParameters.queryIntents.removeLast()
         }
         queryIntentParameters.queryIntents.append(intent)
-        messagesDelegate?.updateQueryParametersHistory(with:queryIntentParameters)
+        await messagesDelegate?.updateQueryParametersHistory(with:queryIntentParameters, modelController: modelController)
     }
     
-    public func appendIntentParameters(intent:AssistiveChatHostIntent) {
+    public func appendIntentParameters(intent:AssistiveChatHostIntent, modelController:ModelController) async {
         guard let queryIntentParameters = queryIntentParameters else {
             return
         }
         
         queryIntentParameters.queryIntents.append(intent)
 
-        messagesDelegate?.updateQueryParametersHistory(with:queryIntentParameters)
+        await messagesDelegate?.updateQueryParametersHistory(with:queryIntentParameters, modelController: modelController)
     }
     
     public func resetIntentParameters() {
@@ -268,11 +268,11 @@ public final class AssistiveChatHostService : AssistiveChatHost, ObservableObjec
         queryIntentParameters.queryIntents = [AssistiveChatHostIntent]()
     }
     
-    public func receiveMessage(caption:String, isLocalParticipant:Bool, cacheManager:CacheManager ) async throws {
+    public func receiveMessage(caption:String, isLocalParticipant:Bool, cacheManager:CacheManager, modelController:ModelController ) async throws {
         guard let queryIntentParameters = queryIntentParameters else {
             return
         }
-        try await messagesDelegate?.addReceivedMessage(caption: caption, parameters: queryIntentParameters, isLocalParticipant: isLocalParticipant, cacheManager: cacheManager)
+        try await messagesDelegate?.addReceivedMessage(caption: caption, parameters: queryIntentParameters, isLocalParticipant: isLocalParticipant, cacheManager: cacheManager, modelController: modelController)
     }
 
     

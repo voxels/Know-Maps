@@ -21,10 +21,10 @@ public protocol AssistiveChatHost:AnyObject {
     func organizeCategoryCodeList() async throws
     
     func determineIntent(for caption:String, override:AssistiveChatHostService.Intent?) -> AssistiveChatHostService.Intent
-    func updateLastIntentParameters(intent:AssistiveChatHostIntent)
-    func appendIntentParameters(intent:AssistiveChatHostIntent)
+    func updateLastIntentParameters(intent:AssistiveChatHostIntent, modelController:ModelController) async
+    func appendIntentParameters(intent:AssistiveChatHostIntent, modelController:ModelController) async
     func resetIntentParameters()
-    func receiveMessage(caption:String, isLocalParticipant:Bool, cacheManager:CacheManager ) async throws
+    func receiveMessage(caption:String, isLocalParticipant:Bool, cacheManager:CacheManager,modelController:ModelController ) async throws
     func defaultParameters(for query:String) async throws -> [String:Any]?
     func lastLocationIntent()->AssistiveChatHostIntent?
     func nearLocation(for rawQuery:String, tags:AssistiveChatHostTaggedWord?) async throws -> String?

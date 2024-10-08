@@ -16,18 +16,18 @@ public final class CloudCacheManager: CacheManager, ObservableObject {
     @Published public var cacheFetchProgress:Double = 0
     @Published public var completedTasks = 0
 
-    @Published private var cachedCategoryRecords: [UserCachedRecord] = []
-    @Published private var cachedTasteRecords: [UserCachedRecord] = []
-    @Published private var cachedPlaceRecords: [UserCachedRecord] = []
-    @Published private var cachedLocationRecords: [UserCachedRecord] = []
+    private var cachedCategoryRecords: [UserCachedRecord] = []
+    private var cachedTasteRecords: [UserCachedRecord] = []
+    private var cachedPlaceRecords: [UserCachedRecord] = []
+    private var cachedLocationRecords: [UserCachedRecord] = []
 
     // Cached Results
-    @Published public var cachedDefaultResults = [CategoryResult]()
-    @Published public var cachedIndustryResults = [CategoryResult]()
-    @Published public var cachedTasteResults = [CategoryResult]()
-    @Published public var cachedPlaceResults = [CategoryResult]()
-    @Published public var allCachedResults = [CategoryResult]()
-    @Published public var cachedLocationResults = [LocationResult]()
+    public var cachedDefaultResults = [CategoryResult]()
+    public var cachedIndustryResults = [CategoryResult]()
+    public var cachedTasteResults = [CategoryResult]()
+    public var cachedPlaceResults = [CategoryResult]()
+    public var allCachedResults = [CategoryResult]()
+    public var cachedLocationResults = [LocationResult]()
     
     init(cloudCache: CloudCache, analyticsManager:AnalyticsService) {
         self.cloudCache = cloudCache

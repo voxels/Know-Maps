@@ -3,13 +3,14 @@ import SwiftUI
 struct PlacePhotosView: View {
     @Environment(\.horizontalSizeClass) var sizeClass
     @ObservedObject public var chatModel: ChatResultViewModel
+    @ObservedObject var modelController:DefaultModelController
     @Binding public var resultId: ChatResult.ID?
     @State private var position: Int?
 
     var body: some View {
         GeometryReader { geo in
             ZStack {
-                if let resultId = resultId, let placeChatResult = chatModel.modelController.placeChatResult(for: resultId), let placeDetailsResponse = placeChatResult.placeDetailsResponse, let photoResponses = placeDetailsResponse.photoResponses {
+                if let resultId = resultId, let placeChatResult = modelController.placeChatResult(for: resultId), let placeDetailsResponse = placeChatResult.placeDetailsResponse, let photoResponses = placeDetailsResponse.photoResponses {
                     if photoResponses.count > 0 {
                         ScrollView(.vertical) {
                            

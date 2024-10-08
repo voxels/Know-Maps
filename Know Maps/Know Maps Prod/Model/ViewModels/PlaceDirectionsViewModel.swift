@@ -9,16 +9,16 @@ import SwiftUI
 import MapKit
 
 public class PlaceDirectionsViewModel : ObservableObject {
-    @Published var lookAroundScene: MKLookAroundScene?
+    var lookAroundScene: MKLookAroundScene?
     @Published var showLookAroundScene:Bool = false
     @Published public var route:MKRoute?
     @Published public var source:MKMapItem?
     @Published public var destination:MKMapItem?
-    @Published public var polyline:MKPolyline?
+    public var polyline:MKPolyline?
     @Published public var transportType:MKDirectionsTransportType = .automobile
     @Published public var rawTransportType:RawTransportType = .Automobile
     @Published public var rawLocationIdent:String!
-    @Published public var chatRouteResults:[ChatRouteResult]?
+    public var chatRouteResults:[ChatRouteResult]?
 
     private var lookAroundSceneRequest:MKLookAroundSceneRequest?
 
@@ -94,7 +94,9 @@ public class PlaceDirectionsViewModel : ObservableObject {
             return
         }
         
-        route = nil
+        await MainActor.run {
+            route = nil
+        }
         polyline = nil
         chatRouteResults?.removeAll()
         
@@ -106,9 +108,11 @@ public class PlaceDirectionsViewModel : ObservableObject {
         let directions = MKDirections(request: request)
         
         let response = try await directions.calculate()
-        self.source = source
-        self.destination = destination
-        self.route = response.routes.first
+        await MainActor.run {
+            self.source = source
+            self.destination = destination
+            self.route = response.routes.first
+        }
         if let route = route {
             polyline = route.polyline
             chatRouteResults = route.steps.compactMap({ step in

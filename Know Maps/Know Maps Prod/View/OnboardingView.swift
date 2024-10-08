@@ -10,6 +10,7 @@ import SwiftUI
 struct OnboardingView: View {    
     @EnvironmentObject public var settingsModel:AppleAuthenticationService
     @ObservedObject public var chatModel:ChatResultViewModel
+    @ObservedObject var modelController:DefaultModelController
     
     @Binding public var selectedTab:String
     @Binding public var showOnboarding:Bool
@@ -22,7 +23,7 @@ struct OnboardingView: View {
                 .tabItem({
                     Label("Sign In", systemImage: "person.crop.circle.badge.plus")
                 })
-            OnboardingLocationView(chatModel:chatModel, showOnboarding: $showOnboarding, selectedTab: $selectedTab)
+            OnboardingLocationView(chatModel:chatModel, modelController:modelController, showOnboarding: $showOnboarding, selectedTab: $selectedTab)
                 .tag("Location")
                 .tabItem({
                     Label("Location", systemImage: "map" )

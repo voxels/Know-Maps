@@ -14,25 +14,26 @@ import AuthenticationServices
 
 #if os(iOS)
 class AppDelegate: UIResponder, UIApplicationDelegate {
-
-  func application(_ application: UIApplication,
-      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-
-    //GADMobileAds.sharedInstance().start(completionHandler: nil)
-
-    return true
-  }
+    
+    func application(_ application: UIApplication,
+                     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+        
+        //GADMobileAds.sharedInstance().start(completionHandler: nil)
+        
+        return true
+    }
 }
 #endif
 
 @main
 struct Know_MapsApp: App {
     
-//    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    //    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @StateObject public var settingsModel:AppleAuthenticationService
     @StateObject public var chatModel:ChatResultViewModel
     @StateObject public var searchSavedViewModel:SearchSavedViewModel
     @StateObject public var cacheManager:CloudCacheManager
+    @StateObject public var modelController:DefaultModelController
     
     @State private var showOnboarding:Bool = true
     @State private var showSplashScreen:Bool = true
@@ -45,18 +46,19 @@ struct Know_MapsApp: App {
     
     init() {
         let analyticsManager = SegmentAnalyticsService(analytics: Analytics(configuration: Know_MapsApp.config))
-         // Safely initialize chatModel first
-         let chatModel = ChatResultViewModel(modelController: DefaultModelController(
-             locationProvider: LocationProvider(),
-             analyticsManager:analyticsManager)
-         )
-         
-         // Now safely initialize searchSavedViewModel using chatModel
-         _cacheManager = StateObject(wrappedValue: CloudCacheManager(cloudCache: CloudCacheService(analyticsManager: analyticsManager), analyticsManager: analyticsManager))
-         _settingsModel = StateObject(wrappedValue: AppleAuthenticationService(userId: ""))
-         _chatModel = StateObject(wrappedValue: chatModel)
-         _searchSavedViewModel = StateObject(wrappedValue: SearchSavedViewModel(chatModel: chatModel))
-     }
+        let model = DefaultModelController(
+            locationProvider: LocationProvider(),
+            analyticsManager:analyticsManager)
+        let chatModel = ChatResultViewModel()
+        
+        // Now safely initialize searchSavedViewModel using chatModel
+        _cacheManager = StateObject(wrappedValue: CloudCacheManager(cloudCache: CloudCacheService(analyticsManager: analyticsManager), analyticsManager: analyticsManager))
+        _settingsModel = StateObject(wrappedValue: AppleAuthenticationService(userId: ""))
+        _modelController = StateObject(wrappedValue: model)
+        _searchSavedViewModel = StateObject(wrappedValue: SearchSavedViewModel())
+        _chatModel = StateObject(wrappedValue: chatModel)
+        model.assistiveHostDelegate.messagesDelegate = chatModel
+    }
     
     var body: some Scene {
         WindowGroup(id:"ContentView") {
@@ -82,38 +84,38 @@ struct Know_MapsApp: App {
                         Spacer()
                     }
                     .task {
-                                            if settingsModel.isAuthorized {
-                                                Task {
-                                                    await startApp()
-                                                }
-                                            } else {
-                                                settingsModel.authCompletion = { result in
-                                                    if case .success = result {
-                                                        Task {
-                                                            await startApp()
-                                                        }
-                                                    } else if case .failure(let error) = result {
-                                                        print(error)
-                                                        chatModel.modelController.analyticsManager.trackError(error: error, additionalInfo: ["error": error.localizedDescription])
-                                                    }
-                                                }
-                                                
-                                                performExistingAccountSetupFlows()
-                                            }
-                                        }
+                        if settingsModel.isAuthorized {
+                            Task {
+                                await startApp()
+                            }
+                        } else {
+                            settingsModel.authCompletion = { result in
+                                if case .success = result {
+                                    Task {
+                                        await startApp()
+                                    }
+                                } else if case .failure(let error) = result {
+                                    print(error)
+                                    modelController.analyticsManager.trackError(error: error, additionalInfo: ["error": error.localizedDescription])
+                                }
+                            }
+                            
+                            performExistingAccountSetupFlows()
+                        }
+                    }
                     
 #if os(visionOS) || os(macOS)
                     .frame(minWidth: 1280, minHeight: 720)
 #endif
                 } else {
                     if showOnboarding {
-                        OnboardingView( chatModel: chatModel, selectedTab: $selectedOnboardingTab, showOnboarding: $showOnboarding)
+                        OnboardingView( chatModel: chatModel, modelController: modelController, selectedTab: $selectedOnboardingTab, showOnboarding: $showOnboarding)
 #if os(visionOS) || os(macOS)
                             .frame(minWidth: 1280, minHeight: 720)
 #endif
                             .environmentObject(settingsModel)
                     } else {
-                        ContentView(chatModel: chatModel, cacheManager:cacheManager, searchSavedViewModel: searchSavedViewModel, showOnboarding: $showOnboarding)
+                        ContentView(chatModel: chatModel, cacheManager:cacheManager, modelController:modelController, searchSavedViewModel: searchSavedViewModel, showOnboarding: $showOnboarding)
 #if os(visionOS) || os(macOS)
                             .frame(minWidth: 1280, minHeight: 720)
 #endif
@@ -124,13 +126,13 @@ struct Know_MapsApp: App {
         }.windowResizability(.contentSize)
         
         WindowGroup(id:"SettingsView"){
-            SettingsView(chatModel:chatModel, cacheManager: cacheManager, showOnboarding: $showOnboarding)
+            SettingsView(chatModel:chatModel, cacheManager: cacheManager, modelController: modelController, showOnboarding: $showOnboarding)
                 .tag("Settings")
                 .onChange(of: settingsModel.appleUserId, { oldValue, newValue in
                     
 #if os(visionOS) || os(iOS)
                     if !newValue.isEmpty, let vendorId = UIDevice().identifierForVendor {
-                        chatModel.modelController.analyticsManager.identify(userID: vendorId.uuidString)
+                        modelController.analyticsManager.identify(userID: vendorId.uuidString)
                     }
 #endif
                 })
@@ -167,70 +169,70 @@ struct Know_MapsApp: App {
     }
     
     private func startup(chatModel: ChatResultViewModel) async {
-        do {
-            try await loadPurchases()
-        } catch {
-            chatModel.modelController.analyticsManager.trackError(error: error, additionalInfo:nil)
-        }
+//        do {
+//            try await loadPurchases()
+//        } catch {
+//            modelController.analyticsManager.trackError(error: error, additionalInfo:nil)
+//        }
         await setupChatModel(chatModel)
         await loadData(chatModel)
     }
-
+    
     private func setupChatModel(_ chatModel: ChatResultViewModel) async {
         // Perform setup tasks
         if !cacheManager.cloudCache.hasFsqAccess {
             do {
-                try await chatModel.modelController.placeSearchService.retrieveFsqUser(cacheManager: cacheManager)
-
+                try await modelController.placeSearchService.retrieveFsqUser(cacheManager: cacheManager)
+                
             } catch {
-                chatModel.modelController.analyticsManager.trackError(error: error, additionalInfo:nil)
+                modelController.analyticsManager.trackError(error: error, additionalInfo:nil)
             }
         }
     }
-
+    
     private func loadData(_ chatModel: ChatResultViewModel) async {
         Task {
             do {
-                try await chatModel.modelController.assistiveHostDelegate.organizeCategoryCodeList()
-                await chatModel.modelController.categoricalSearchModel()
+                try await modelController.assistiveHostDelegate.organizeCategoryCodeList()
+                await modelController.categoricalSearchModel()
             } catch {
-                chatModel.modelController.analyticsManager.trackError(error: error, additionalInfo:nil)
+                modelController.analyticsManager.trackError(error: error, additionalInfo:nil)
             }
         }
-
+        
         let cacheRefreshTask = Task {
             do {
                 try await cacheManager.refreshCache()
             } catch {
-                chatModel.modelController.analyticsManager.trackError(error: error, additionalInfo:nil)
+                modelController.analyticsManager.trackError(error: error, additionalInfo:nil)
             }
         }
-
+        
         do {
             try await withTimeout(seconds: 10) {
                 await cacheRefreshTask.value
             }
         } catch {
             cacheRefreshTask.cancel()
-            chatModel.modelController.analyticsManager.trackError(error: error, additionalInfo:nil)
+            modelController.analyticsManager.trackError(error: error, additionalInfo:nil)
         }
-
+        
         // Handle onboarding logic based on the loaded data
         await self.handleOnboarding(chatModel)
     }
-
+    
     private func handleOnboarding(_ chatModel: ChatResultViewModel) async {
         let cloudAuth = settingsModel.isAuthorized
-
-        let isLocationAuthorized = chatModel.modelController.locationProvider.isAuthorized()
-
-        if isLocationAuthorized, let location = chatModel.modelController.locationProvider.currentLocation() {
+        
+        let isLocationAuthorized = modelController.locationProvider.isAuthorized()
+        
+        if isLocationAuthorized, let location = modelController.locationProvider.currentLocation() {
             await MainActor.run {
-                chatModel.modelController.currentLocationResult.replaceLocation(with: location, name: "Current Location")
-                chatModel.modelController.selectedDestinationLocationChatResult = chatModel.modelController.currentLocationResult.id
+                modelController.currentLocationResult.replaceLocation(with: location, name: "Current Location")
+                modelController.selectedDestinationLocationChatResult = modelController.currentLocationResult.id
             }
         }
-                
+        
         await MainActor.run {
             if cloudAuth, cacheManager.cloudCache.hasFsqAccess, isLocationAuthorized {
                 showOnboarding = false
@@ -241,7 +243,7 @@ struct Know_MapsApp: App {
             showSplashScreen = false
         }
     }
-
+    
     func withTimeout<T>(seconds: TimeInterval, operation: @escaping () async throws -> T) async throws -> T {
         try await withThrowingTaskGroup(of: T.self) { group in
             group.addTask {

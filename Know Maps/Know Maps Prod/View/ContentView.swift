@@ -26,16 +26,17 @@ struct ContentView: View {
     @EnvironmentObject public var settingsModel:AppleAuthenticationService
     @ObservedObject public var chatModel:ChatResultViewModel
     @ObservedObject public var cacheManager:CloudCacheManager
+    @ObservedObject public var modelController:DefaultModelController
     @ObservedObject public var searchSavedViewModel:SearchSavedViewModel
     
     @Binding public var showOnboarding:Bool
     
-    @State private var selectedItem: String?
     @State private var showImmersiveSpace = false
     @State private var immersiveSpaceIsShown = false
     @State private var preferredColumn =
     NavigationSplitViewColumn.sidebar
     @State private var addItemSection: Int = 0
+    @State private var selectedCategoryID:CategoryResult.ID?
     @State private var settingsPresented:Bool = false
     @State private var didError = false
     @State private var contentViewDetail:ContentDetailView = .places
@@ -48,10 +49,10 @@ struct ContentView: View {
     var body: some View {
         GeometryReader() { geometry in
             NavigationSplitView(preferredCompactColumn: $preferredColumn) {
-                SearchView(chatModel: chatModel, cacheManager:cacheManager, searchSavedViewModel: searchSavedViewModel, preferredColumn: $preferredColumn, contentViewDetail: $contentViewDetail, addItemSection: $addItemSection, settingsPresented: $settingsPresented, showPlaceViewSheet: $showPlaceViewSheet, didError: $didError)
+                SearchView(chatModel: chatModel, cacheManager:cacheManager, modelController: modelController, searchSavedViewModel: searchSavedViewModel, preferredColumn: $preferredColumn, contentViewDetail: $contentViewDetail, addItemSection: $addItemSection, settingsPresented: $settingsPresented, showPlaceViewSheet: $showPlaceViewSheet, didError: $didError)
 #if os(iOS) || os(visionOS)
                     .sheet(isPresented: $settingsPresented) {
-                        SettingsView(chatModel: chatModel, showOnboarding: $showOnboarding)
+                        SettingsView(chatModel: chatModel,modelController:modelController, showOnboarding: $showOnboarding)
                             .presentationDetents([.large])
                             .presentationDragIndicator(.visible)
                             .presentationCompactAdaptation(.sheet)
@@ -86,11 +87,12 @@ struct ContentView: View {
             } detail: {
                 switch contentViewDetail {
                 case .places:
-                    PlacesList(chatModel: chatModel, resultId: $chatModel.modelController.selectedPlaceChatResult, showMapsResultViewSheet: $showMapsResultViewSheet)
+                    PlacesList(chatModel: chatModel, modelController:modelController, resultId: $modelController.selectedPlaceChatResult, showMapsResultViewSheet: $showMapsResultViewSheet)
                         .alert("Unknown Place", isPresented: $didError) {
                             Button(action: {
-                                chatModel.modelController.selectedPlaceChatResult = nil
-                                chatModel.modelController.isFetchingResults = false
+                                DispatchQueue.main.async {
+                                    modelController.selectedPlaceChatResult = nil
+                                }
                             }, label: {
                                 Text("Go Back")
                             })
@@ -112,12 +114,8 @@ struct ContentView: View {
                         }
                     
                         .sheet(isPresented: $showMapsResultViewSheet) {
-                            MapResultsView( model: chatModel,  selectedMapItem: $selectedItem, cameraPosition:$cameraPosition)
-                                .onChange(of: selectedItem) { oldValue, newValue in
-                                    if let newValue, let placeResponse = chatModel.modelController.filteredPlaceResults.first(where: { $0.placeResponse?.fsqID == newValue }) {
-                                        chatModel.modelController.selectedPlaceChatResult = placeResponse.id
-                                    }
-                                }
+                            MapResultsView( model: chatModel, modelController:modelController, cameraPosition:$cameraPosition)
+                                
 #if os(macOS)
                                 .toolbar(content: {
                                     ToolbarItem {
@@ -146,7 +144,7 @@ struct ContentView: View {
                             
                         }
                         .sheet(isPresented: $showPlaceViewSheet, content: {
-                            PlaceView( chatModel: chatModel, cacheManager:cacheManager, placeDirectionsViewModel: placeDirectionsChatViewModel, resultId: $chatModel.modelController.selectedPlaceChatResult)
+                            PlaceView( chatModel: chatModel, cacheManager:cacheManager, modelController:modelController, placeDirectionsViewModel: placeDirectionsChatViewModel, resultId: $modelController.selectedPlaceChatResult)
                                 .frame(minHeight: geometry.size.height - 60, maxHeight: .infinity)
                                 .presentationDetents([.large])
                                 .presentationDragIndicator(.visible)
@@ -177,15 +175,17 @@ struct ContentView: View {
                         AddPromptView(
                             chatModel: chatModel,
                             cacheManager: cacheManager,
+                            modelController: modelController,
                             addItemSection: $addItemSection,
-                            contentViewDetail: $contentViewDetail
+                            contentViewDetail: $contentViewDetail, selectedCategoryID:$selectedCategoryID
                         )
                         .toolbar {
                             ToolbarItemGroup(placement: .automatic) {
                                 AddPromptToolbarView( viewModel: searchSavedViewModel,
                                                       cacheManager: cacheManager,
+                                                      modelController: modelController,
                                                       addItemSection: $addItemSection,
-                                                      contentViewDetail: $contentViewDetail,
+                                                      selectedCategoryID: $selectedCategoryID, contentViewDetail: $contentViewDetail,
                                                       preferredColumn: $preferredColumn
                                 )
                             }
@@ -195,16 +195,7 @@ struct ContentView: View {
         }
         .navigationSplitViewStyle(.automatic)
         .onAppear(perform: {
-            chatModel.modelController.analyticsManager.track(event:"ContentView",properties: nil )
-        })
-        .onChange(of: selectedItem, { oldValue, newValue in
-            Task {
-                do {
-                    try await chatModel.didTapMarker(with: newValue)
-                } catch {
-                    chatModel.modelController.analyticsManager.trackError(error:error, additionalInfo: nil)
-                }
-            }
+            modelController.analyticsManager.track(event:"ContentView",properties: nil )
         })
     }
 }

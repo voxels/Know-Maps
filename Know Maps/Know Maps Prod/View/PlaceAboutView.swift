@@ -14,28 +14,20 @@ struct PlaceAboutView: View {
     @Environment(\.horizontalSizeClass) var sizeClass
     @ObservedObject var chatModel:ChatResultViewModel
     @ObservedObject var cacheManager:CloudCacheManager
+    @ObservedObject var modelController:DefaultModelController
     @Binding var resultId:ChatResult.ID?
     @Binding var tabItem: Int
-    @StateObject var viewModel: PlaceAboutViewModel
+    var viewModel: PlaceAboutViewModel = PlaceAboutViewModel()
 
     static let defaultPadding: CGFloat = 8
     static let mapFrameConstraint: Double = 50000
     static let buttonHeight: Double = 44
     
-    public init(chatModel:ChatResultViewModel, cacheManager:CloudCacheManager, resultId:Binding<ChatResult.ID?>, tabItem:Binding<Int>) {
-        self._chatModel = ObservedObject(wrappedValue: chatModel)
-        self._cacheManager = ObservedObject(wrappedValue: cacheManager)
-        self._resultId = resultId
-        self._tabItem = tabItem
-        _viewModel = StateObject(wrappedValue: PlaceAboutViewModel(chatModel: chatModel))
-    }
-    
-    
     var body: some View {
         GeometryReader { geo in
             ScrollView {
                 VStack {
-                    if let resultId = resultId, let result = chatModel.modelController.placeChatResult(for: resultId), let placeResponse = result.placeResponse, let placeDetailsResponse = result.placeDetailsResponse {
+                    if let resultId = resultId, let result = modelController.placeChatResult(for: resultId), let placeResponse = result.placeResponse, let placeDetailsResponse = result.placeDetailsResponse {
                         
                         // Title and Map
                         let placeCoordinate = CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude)
@@ -80,10 +72,11 @@ struct PlaceAboutView: View {
                                     .foregroundStyle(.accent)
                                     .frame(height: PlaceAboutView.buttonHeight)
                                 
-                                Label(viewModel.isSaved ? "Delete" : "Add to List", systemImage: viewModel.isSaved ? "minus.circle" : "square.and.arrow.down")
+                                let isSaved = cacheManager.cachedPlaces(contains: result.title)
+                                Label(isSaved ? "Delete" : "Add to List", systemImage: isSaved ? "minus.circle" : "square.and.arrow.down")
                                     .onTapGesture {
                                         Task {
-                                            await viewModel.toggleSavePlace(resultId: resultId, cacheManager:cacheManager)
+                                            await viewModel.toggleSavePlace(resultId: resultId, cacheManager:cacheManager, modelController: modelController)
                                         }
                                     }
                             }

@@ -10,6 +10,7 @@ import SwiftUI
 struct SearchView: View {
     @ObservedObject public var chatModel:ChatResultViewModel
     @ObservedObject public var cacheManager:CloudCacheManager
+    @ObservedObject public var modelController:DefaultModelController
     @ObservedObject public var searchSavedViewModel:SearchSavedViewModel
     @Binding public var preferredColumn:NavigationSplitViewColumn
     @Binding public var contentViewDetail:ContentDetailView
@@ -19,22 +20,22 @@ struct SearchView: View {
     @Binding public var didError:Bool
     
     var body: some View {
-        SearchSavedView(viewModel: searchSavedViewModel, cacheManager: cacheManager, preferredColumn: $preferredColumn, contentViewDetail: $contentViewDetail, addItemSection: $addItemSection, settingsPresented: $settingsPresented )
-            .onChange(of: chatModel.modelController.selectedPlaceChatResult, { oldValue, newValue in
+        SearchSavedView(chatModel: chatModel, viewModel: searchSavedViewModel, cacheManager: cacheManager, modelController: modelController, preferredColumn: $preferredColumn, contentViewDetail: $contentViewDetail, addItemSection: $addItemSection, settingsPresented: $settingsPresented )
+            .onChange(of: modelController.selectedPlaceChatResult, { oldValue, newValue in
                 guard let newValue = newValue else {
                     showPlaceViewSheet = false
                     return
                 }
                 
-                if let placeChatResult = chatModel.modelController.placeChatResult(for: newValue), placeChatResult.placeDetailsResponse == nil {
+                if let placeChatResult = modelController.placeChatResult(for: newValue), placeChatResult.placeDetailsResponse == nil {
                     Task {
                         do {
-                            try await chatModel.didTap(placeChatResult: placeChatResult, cacheManager: cacheManager)
+                            try await chatModel.didTap(placeChatResult: placeChatResult, cacheManager: cacheManager, modelController: modelController)
                             await MainActor.run {
                                 showPlaceViewSheet = true
                             }
                         } catch {
-                            chatModel.modelController.analyticsManager.trackError(error:error, additionalInfo: nil)
+                            modelController.analyticsManager.trackError(error:error, additionalInfo: nil)
                             await MainActor.run {
                                 didError.toggle()
                             }
@@ -45,41 +46,25 @@ struct SearchView: View {
                     showPlaceViewSheet = true
                 }
             })
-            .onChange(of: chatModel.modelController.selectedSavedResult) { oldValue, newValue in
-                chatModel.modelController.resetPlaceModel()
-                
+            .onChange(of: modelController.selectedSavedResult) { oldValue, newValue in
                 guard let newValue = newValue else {
                     return
                 }
                 
                 Task {
-                    if let selectedDestinationLocationChatResult = chatModel.modelController.selectedDestinationLocationChatResult {
-                        if let cachedResult = chatModel.modelController.cachedChatResult(for: newValue, cacheManager: cacheManager) {
-                            await chatModel.didTap(chatResult: cachedResult, selectedDestinationChatResultID: selectedDestinationLocationChatResult, cacheManager: cacheManager)
+                    await modelController.resetPlaceModel()
+                    
+                    if let selectedDestinationLocationChatResult = modelController.selectedDestinationLocationChatResult {
+                        if let cachedResult = modelController.cachedChatResult(for: newValue, cacheManager: cacheManager) {
+                            await chatModel.didTap(chatResult: cachedResult, selectedDestinationChatResultID: selectedDestinationLocationChatResult, cacheManager: cacheManager, modelController: modelController)
                         }
                     } else {
-                        if let cachedResult = chatModel.modelController.cachedChatResult(for: newValue, cacheManager: cacheManager) {
-                            await chatModel.didTap(chatResult: cachedResult,  selectedDestinationChatResultID: nil, cacheManager: cacheManager)
+                        if let cachedResult = modelController.cachedChatResult(for: newValue, cacheManager: cacheManager) {
+                            await chatModel.didTap(chatResult: cachedResult,  selectedDestinationChatResultID: nil, cacheManager: cacheManager, modelController: modelController)
                         }
                     }
                 }
             }
-            .onChange(of: chatModel.modelController.selectedCategoryResult) { oldValue, newValue in
-                chatModel.modelController.resetPlaceModel()
-                Task {
-                    if let newValue = newValue, let categoricalResult =
-                        chatModel.modelController.categoricalChatResult(for: newValue) {
-                        await chatModel.didTap(chatResult: categoricalResult, selectedDestinationChatResultID:chatModel.modelController.selectedDestinationLocationChatResult, cacheManager: cacheManager)
-                    }
-                }
-            }.onChange(of: chatModel.modelController.selectedTasteCategoryResult, { oldValue, newValue in
-                chatModel.modelController.resetPlaceModel()
-                Task {
-                    if let newValue = newValue, let tasteResult = chatModel.modelController.tasteChatResult(for: newValue) {
-                        await chatModel.didTap(chatResult: tasteResult, selectedDestinationChatResultID:chatModel.modelController.selectedDestinationLocationChatResult, cacheManager: cacheManager)
-                    }
-                }
-            })
     }
 }
 

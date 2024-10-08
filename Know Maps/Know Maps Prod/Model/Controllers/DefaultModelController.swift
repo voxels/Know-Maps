@@ -18,31 +18,27 @@ public final class DefaultModelController : ModelController, ObservableObject {
     public var analyticsManager: AnalyticsService
     
     // MARK: - Published Properties
-    
-    @Published public var isFetchingResults:Bool = false
-    
+        
     // Selection States
-    @Published public var selectedPersonalizedSearchSection:PersonalizedSearchSection?
-    @Published public var selectedCategoryResult: CategoryResult.ID?
-    @Published public var selectedSavedResult: CategoryResult.ID?
-    @Published public var selectedTasteCategoryResult: CategoryResult.ID?
-    @Published public var selectedListCategoryResult: CategoryResult.ID?
-    @Published public var selectedCategoryChatResult: ChatResult.ID?
-    @Published public var selectedPlaceChatResult: ChatResult.ID?
-    @Published public var selectedDestinationLocationChatResult: LocationResult.ID?
+    public var selectedPersonalizedSearchSection:PersonalizedSearchSection?
+    public var selectedCategoryResult: CategoryResult.ID?
+    public var selectedSavedResult: CategoryResult.ID?
+    public var selectedTasteCategoryResult: CategoryResult.ID?
+    public var selectedCategoryChatResult: ChatResult.ID?
+    public var selectedPlaceChatResult: ChatResult.ID?
+    public var selectedDestinationLocationChatResult: LocationResult.ID?
     
     // Fetching States
-    @Published public var isFetchingPlaceDescription: Bool = false
+    public var isFetchingPlaceDescription: Bool = false
     
     // Results
     @Published public var industryResults = [CategoryResult]()
     @Published public var tasteResults = [CategoryResult]()
-    @Published public var searchCategoryResults = [CategoryResult]()
     @Published public var placeResults = [ChatResult]()
     @Published public var recommendedPlaceResults = [ChatResult]()
-    @Published public var relatedPlaceResults = [ChatResult]()
-    @Published public var locationResults = [LocationResult]()
-    @Published public var currentLocationResult:LocationResult = LocationResult(locationName: "Current Location", location: nil)
+    public var relatedPlaceResults = [ChatResult]()
+    public var locationResults = [LocationResult]()
+    public var currentLocationResult:LocationResult = LocationResult(locationName: "Current Location", location: nil)
     
     
     // MARK: - Private Properties
@@ -64,10 +60,12 @@ public final class DefaultModelController : ModelController, ObservableObject {
         self.locationService = DefaultLocationService(locationProvider: locationProvider)
     }
     
-    public func resetPlaceModel() {
-        placeResults.removeAll()
-        recommendedPlaceResults.removeAll()
-        relatedPlaceResults.removeAll()
+    public func resetPlaceModel() async {
+        await MainActor.run {
+            placeResults.removeAll()
+            recommendedPlaceResults.removeAll()
+            relatedPlaceResults.removeAll()
+        }
         analyticsManager.track(event:"resetPlaceModel", properties: nil)
     }
     
@@ -264,10 +262,10 @@ public final class DefaultModelController : ModelController, ObservableObject {
     }
     
     @discardableResult
-    public func refreshModel(query: String, queryIntents: [AssistiveChatHostIntent]?, locationResults: inout [LocationResult], currentLocationResult: LocationResult, cacheManager:CacheManager) async throws -> [ChatResult] {
+    public func refreshModel(query: String, queryIntents: [AssistiveChatHostIntent]?, cacheManager:CacheManager) async throws -> [ChatResult] {
 
         if let lastIntent = queryIntents?.last {
-            return try await model(intent: lastIntent, locationResults: &locationResults, currentLocationResult: currentLocationResult, cacheManager: cacheManager)
+            return try await model(intent: lastIntent, cacheManager: cacheManager)
         } else {
             let intent = assistiveHostDelegate.determineIntent(for: query, override: nil)
             let location = assistiveHostDelegate.lastLocationIntent()
@@ -282,12 +280,12 @@ public final class DefaultModelController : ModelController, ObservableObject {
                 placeDetailsResponses: nil,
                 queryParameters: queryParameters
             )
-            assistiveHostDelegate.appendIntentParameters(intent: newIntent)
-            return try await model(intent: newIntent, locationResults: &locationResults, currentLocationResult: currentLocationResult, cacheManager: cacheManager)
+            await assistiveHostDelegate.appendIntentParameters(intent: newIntent, modelController: self)
+            return try await model(intent: newIntent, cacheManager: cacheManager)
         }
     }
     
-    public func model(intent: AssistiveChatHostIntent, locationResults: inout [LocationResult], currentLocationResult: LocationResult, cacheManager:CacheManager) async throws -> [ChatResult] {
+    public func model(intent: AssistiveChatHostIntent, cacheManager:CacheManager) async throws -> [ChatResult] {
         switch intent.intent {
         case .Place:
             await placeQueryModel(intent: intent)
@@ -328,7 +326,10 @@ public final class DefaultModelController : ModelController, ObservableObject {
                 analyticsManager.track(event: "modelAutocompletePlaceModelBuilt", properties: nil)
             }
         case .AutocompleteTastes:
-            tasteResults = try await placeSearchService.autocompleteTastes(lastIntent: intent, currentTasteResults: tasteResults, cacheManager: cacheManager)
+            let results = try await placeSearchService.autocompleteTastes(lastIntent: intent, currentTasteResults: tasteResults, cacheManager: cacheManager)
+            await MainActor.run {
+                tasteResults = results
+            }
             analyticsManager.track(event: "modelAutocompletePlaceModelBuilt", properties: nil)
         }
         
@@ -623,8 +624,7 @@ public final class DefaultModelController : ModelController, ObservableObject {
         return chatResults
     }
     
-    public func receiveMessage(caption: String, parameters: AssistiveChatHostQueryParameters, isLocalParticipant: Bool, locationResults: inout [LocationResult]) async throws {
-       
+    public func receiveMessage(caption: String, parameters: AssistiveChatHostQueryParameters, isLocalParticipant: Bool) async throws {
             if parameters.queryIntents.last?.intent == .Location {
                 let placemarks = try? await checkSearchTextForLocations(with: caption)
                 
@@ -693,14 +693,14 @@ public final class DefaultModelController : ModelController, ObservableObject {
         
         
         guard placeChatResult.placeResponse != nil else {
-            assistiveHostDelegate.updateLastIntentParameters(intent: newIntent)
-            try await assistiveHostDelegate.receiveMessage(caption: newIntent.caption, isLocalParticipant: true, cacheManager: cacheManager)
+            await assistiveHostDelegate.updateLastIntentParameters(intent: newIntent, modelController: self)
+            try await assistiveHostDelegate.receiveMessage(caption: newIntent.caption, isLocalParticipant: true, cacheManager: cacheManager, modelController: self)
             return
         }
         
         try await placeSearchService.detailIntent(intent: newIntent, cacheManager: cacheManager)
         
-        assistiveHostDelegate.updateLastIntentParameters(intent: newIntent)
+        await assistiveHostDelegate.updateLastIntentParameters(intent: newIntent, modelController: self)
         
         if let queryIntentParameters = assistiveHostDelegate.queryIntentParameters {
             try await didUpdateQuery(with: placeChatResult.title, parameters: queryIntentParameters, cacheManager: cacheManager)
@@ -736,11 +736,11 @@ public final class DefaultModelController : ModelController, ObservableObject {
         if let lastIntent = queryParametersHistory.last?.queryIntents.last, lastIntent.intent != .Location {
             let locationChatResult =  locationChatResult(for: selectedDestinationChatResult ?? currentLocationResult.id, in:filteredLocationResults(cacheManager: cacheManager))
             
-            try await receiveMessage(caption: caption, parameters: parameters, isLocalParticipant: isLocalParticipant, locationResults: &locationResults)
+            try await receiveMessage(caption: caption, parameters: parameters, isLocalParticipant: isLocalParticipant)
             try await searchIntent(intent: lastIntent, location: locationChatResult?.location, cacheManager: cacheManager)
             try await didUpdateQuery(with: caption, parameters: parameters, cacheManager: cacheManager)
         } else if let lastIntent = queryParametersHistory.last?.queryIntents.last, lastIntent.intent == .Location {
-            try await receiveMessage(caption: caption, parameters: parameters, isLocalParticipant: isLocalParticipant, locationResults: &locationResults)
+            try await receiveMessage(caption: caption, parameters: parameters, isLocalParticipant: isLocalParticipant)
             try await searchIntent(intent: lastIntent, location: nil, cacheManager: cacheManager)
             try await didUpdateQuery(with: caption, parameters: parameters, cacheManager: cacheManager)
         } else {
@@ -748,8 +748,8 @@ public final class DefaultModelController : ModelController, ObservableObject {
             let queryParameters = try await assistiveHostDelegate.defaultParameters(for: caption)
             let newIntent = AssistiveChatHostIntent(caption: caption, intent: intent, selectedPlaceSearchResponse: nil, selectedPlaceSearchDetails: nil, placeSearchResponses: [PlaceSearchResponse](), selectedDestinationLocationID: selectedDestinationChatResult, placeDetailsResponses:nil, queryParameters: queryParameters)
             
-            assistiveHostDelegate.appendIntentParameters(intent: newIntent)
-            try await receiveMessage(caption: caption, parameters: parameters, isLocalParticipant: isLocalParticipant, locationResults: &locationResults)
+            await assistiveHostDelegate.appendIntentParameters(intent: newIntent, modelController: self)
+            try await receiveMessage(caption: caption, parameters: parameters, isLocalParticipant: isLocalParticipant)
             try await searchIntent(intent: newIntent, location: locationChatResult(with:caption,  in:filteredLocationResults(cacheManager: cacheManager)).location!, cacheManager: cacheManager )
             try await didUpdateQuery(with: caption, parameters: parameters, cacheManager: cacheManager)
             
@@ -757,10 +757,13 @@ public final class DefaultModelController : ModelController, ObservableObject {
     }
     
     public func didUpdateQuery(with query:String, parameters: AssistiveChatHostQueryParameters, cacheManager:CacheManager) async throws {
-        placeResults = try await refreshModel(query: query, queryIntents: parameters.queryIntents, locationResults: &locationResults, currentLocationResult: currentLocationResult, cacheManager: cacheManager)
+        _ = try await refreshModel(query: query, queryIntents: parameters.queryIntents, cacheManager: cacheManager)
     }
     
-    public func updateQueryParametersHistory(with parameters: AssistiveChatHostQueryParameters) {
-        queryParametersHistory.append(parameters)
+    
+    public func updateQueryParametersHistory(with parameters: AssistiveChatHostQueryParameters) async {
+        await MainActor.run {
+            queryParametersHistory.append(parameters)
+        }
     }
 }

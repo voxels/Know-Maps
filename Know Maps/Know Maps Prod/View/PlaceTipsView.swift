@@ -9,12 +9,13 @@ import SwiftUI
 
 struct PlaceTipsView: View {
     @ObservedObject public var chatModel:ChatResultViewModel
+    @ObservedObject var modelController:DefaultModelController
     @Binding public var resultId:ChatResult.ID?
     @State private var isPresentingShareSheet:Bool = false
     
     var body: some View {
         
-        if let resultId = resultId, let placeChatResult = chatModel.modelController.placeChatResult(for: resultId), let placeDetailsResponse = placeChatResult.placeDetailsResponse, let tips = placeDetailsResponse.tipsResponses {
+        if let resultId = resultId, let placeChatResult = modelController.placeChatResult(for: resultId), let placeDetailsResponse = placeChatResult.placeDetailsResponse, let tips = placeDetailsResponse.tipsResponses {
             List(tips){ tip in
                 ZStack() {
                     Rectangle().foregroundStyle(.thickMaterial)

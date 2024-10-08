@@ -11,12 +11,13 @@ import MapKit
 struct PlaceView: View {
     @ObservedObject public var chatModel:ChatResultViewModel
     @ObservedObject public var cacheManager:CloudCacheManager
+    @ObservedObject public var modelController:DefaultModelController
     @ObservedObject public var placeDirectionsViewModel:PlaceDirectionsViewModel
     @Binding public var resultId:ChatResult.ID?
     @State private var tabItem = 0
     
     var body: some View {
-        if let resultId = resultId, let placeChatResult = chatModel.modelController.placeChatResult(for: resultId) {
+        if let resultId = resultId, let placeChatResult = modelController.placeChatResult(for: resultId) {
             VStack {
                 Picker("", selection: $tabItem) {
                     Text("About").tag(0)
@@ -32,46 +33,46 @@ struct PlaceView: View {
                 .pickerStyle(.palette)
                 switch tabItem {
                 case 0:
-                    PlaceAboutView(chatModel: chatModel, cacheManager: cacheManager, resultId: $resultId, tabItem: $tabItem)
+                    PlaceAboutView(chatModel: chatModel, cacheManager: cacheManager, modelController: modelController, resultId: $resultId, tabItem: $tabItem)
                         .tabItem {
                             Label("About", systemImage: "target")
                         }
                         .tag("About")
                         .onAppear(perform: {
-                            chatModel.modelController.analyticsManager.track(event:"PlaceAboutView", properties: nil)
+                            modelController.analyticsManager.track(event:"PlaceAboutView", properties: nil)
                         })
                 case 1:
-                    PlaceDirectionsView( chatModel: chatModel, model: placeDirectionsViewModel, cacheManager: cacheManager, resultId: $resultId)
+                    PlaceDirectionsView( chatModel: chatModel, model: placeDirectionsViewModel, cacheManager: cacheManager, modelController: modelController, resultId: $resultId)
                         .tabItem {
                             Label("Directions", systemImage: "map")
                         }
                         .tag("Directions")
                         .onAppear(perform: {
-                            chatModel.modelController.analyticsManager.track(event:"PlaceDirectionsView", properties: nil)
+                            modelController.analyticsManager.track(event:"PlaceDirectionsView", properties: nil)
                         })
                 case 2:
                     if let detailsResponses = placeChatResult.placeDetailsResponse {
                         if let photoResponses = detailsResponses.photoResponses, photoResponses.count > 0 {
-                            PlacePhotosView(chatModel: chatModel, resultId: $resultId)
+                            PlacePhotosView(chatModel: chatModel, modelController: modelController, resultId: $resultId)
                                 .tabItem {
                                     Label("Photos", systemImage: "photo.stack")
                                 }
                                 .tag("Photos")
                                 .onAppear(perform: {
-                                    chatModel.modelController.analyticsManager.track(event:"PlacePhotosView", properties: nil)
+                                    modelController.analyticsManager.track(event:"PlacePhotosView", properties: nil)
                                 })
                         }
                     }
                 case 3:
                     if let detailsResponses = placeChatResult.placeDetailsResponse {
                         if let tipsResponses = detailsResponses.tipsResponses, tipsResponses.count > 0 {
-                            PlaceTipsView(chatModel: chatModel, resultId: $resultId)
+                            PlaceTipsView(chatModel: chatModel, modelController:modelController, resultId: $resultId)
                                 .tabItem {
                                     Label("Tips", systemImage: "quote.bubble")
                                 }
                                 .tag("Tips")
                                 .onAppear(perform: {
-                                    chatModel.modelController.analyticsManager.track(event:"PlaceTipsView", properties: nil)
+                                    modelController.analyticsManager.track(event:"PlaceTipsView", properties: nil)
                                 })
                         }
                     }
@@ -84,7 +85,9 @@ struct PlaceView: View {
                 }
             }
             .onDisappear {
-                chatModel.modelController.selectedPlaceChatResult = nil
+                DispatchQueue.main.async{
+                    modelController.selectedPlaceChatResult = nil
+                }
             }
         } else {
             VStack {

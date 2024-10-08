@@ -9,15 +9,13 @@ import Foundation
 import Segment
 
 public protocol AssistiveChatHostMessagesDelegate : AnyObject {
-    func didSearch(caption: String, selectedDestinationChatResultID:LocationResult.ID?, intent: AssistiveChatHostService.Intent?, cacheManager:CacheManager) async throws
-    func didTap(placeChatResult:ChatResult, cacheManager:CacheManager) async throws
+    func didSearch(caption: String, selectedDestinationChatResultID:LocationResult.ID?, intent: AssistiveChatHostService.Intent?, cacheManager:CacheManager, modelController:ModelController) async throws
+    func didTap(placeChatResult:ChatResult, cacheManager:CacheManager, modelController: ModelController) async throws
     func didTap(chatResult: ChatResult, selectedPlaceSearchResponse: PlaceSearchResponse?, selectedPlaceSearchDetails: PlaceDetailsResponse?, selectedRecommendedPlaceSearchResponse:RecommendedPlaceSearchResponse?,
-                selectedDestinationChatResultID:UUID?, intent:AssistiveChatHostService.Intent, cacheManager:CacheManager) async
-    func didTap(locationChatResult: LocationResult, cacheManager:CacheManager) async throws
-    func didTap(categoricalResult:CategoryResult, chatResult:ChatResult?, selectedDestinationChatResultID:UUID, cacheManager:CacheManager) async
-    func didTap(chatResult: ChatResult, selectedDestinationChatResultID:UUID?, cacheManager:CacheManager) async
-    func addReceivedMessage(caption:String, parameters:AssistiveChatHostQueryParameters, isLocalParticipant:Bool, cacheManager:CacheManager) async throws
-    
-    func updateQueryParametersHistory(with parameters: AssistiveChatHostQueryParameters)
+                selectedDestinationChatResultID:UUID?, intent:AssistiveChatHostService.Intent, cacheManager:CacheManager, modelController: ModelController) async
+    func didTap(locationChatResult: LocationResult, cacheManager:CacheManager, modelController: ModelController) async throws
+    func didTap(chatResult: ChatResult, selectedDestinationChatResultID:UUID?, cacheManager:CacheManager, modelController: ModelController) async
+    func addReceivedMessage(caption:String, parameters:AssistiveChatHostQueryParameters, isLocalParticipant:Bool, cacheManager:CacheManager, modelController:ModelController) async throws
+    func updateQueryParametersHistory(with parameters: AssistiveChatHostQueryParameters, modelController:ModelController) async
 }
 

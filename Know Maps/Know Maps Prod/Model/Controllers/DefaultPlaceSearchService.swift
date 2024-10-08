@@ -124,30 +124,18 @@ public final class DefaultPlaceSearchService: PlaceSearchService {
     }
     
     public func refreshTastes(page: Int, currentTasteResults:[CategoryResult], cacheManager:CacheManager) async throws -> [CategoryResult] {
-        if page > lastFetchedTastePage {
-            let tastes = try await personalizedSearchSession.fetchTastes(page: page, cacheManager: cacheManager)
-            let results = tasteCategoryResults(with: tastes, page: page, currentTasteResults: currentTasteResults)
-            lastFetchedTastePage = page
-            return results
-        } else {
-            return await refreshTasteCategories(page: page, currentTasteResults: currentTasteResults)
-        }
-    }
-    
-    private func refreshTasteCategories(page: Int, currentTasteResults:[CategoryResult]) async -> [CategoryResult] {
-        let tastes = currentTasteResults.map { $0.parentCategory }
+        let tastes = try await personalizedSearchSession.fetchTastes(page: page, cacheManager: cacheManager)
         let results = tasteCategoryResults(with: tastes, page: page, currentTasteResults: currentTasteResults)
         lastFetchedTastePage = page
-
         return results
     }
-    
+        
     private func tasteCategoryResults(with tastes: [String], page: Int, currentTasteResults: [CategoryResult]) -> [CategoryResult] {
         var results = currentTasteResults
         
         for taste in tastes {
-            let chatResult = ChatResult(title: taste, list:"Type", icon: "", rating: 1, section:assistiveHostDelegate.section(for:taste), placeResponse: nil, recommendedPlaceResponse: nil)
-            let categoryResult = CategoryResult(parentCategory: taste, recordId: "", list:"Type", icon: chatResult.icon, rating: 1, section:chatResult.section, categoricalChatResults: [chatResult])
+            let chatResult = ChatResult(title: taste, list:"Taste", icon: "", rating: 1, section:assistiveHostDelegate.section(for:taste), placeResponse: nil, recommendedPlaceResponse: nil)
+            let categoryResult = CategoryResult(parentCategory: taste, recordId: "", list:"Taste", icon: chatResult.icon, rating: 1, section:chatResult.section, categoricalChatResults: [chatResult])
             results.append(categoryResult)
         }
         
@@ -354,8 +342,4 @@ public final class DefaultPlaceSearchService: PlaceSearchService {
         
         return request
     }
-    
-
-
-    
 }

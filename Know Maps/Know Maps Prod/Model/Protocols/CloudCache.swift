@@ -11,7 +11,6 @@ import CloudKit
 public protocol CloudCache: AnyObject {
     // Properties
     var hasFsqAccess: Bool { get }
-    var isFetchingCachedRecords: Bool { get set }
     
     // Fetching and Caching Methods
     func fetch(url: URL, from cloudService: CloudCacheServiceKey) async throws -> Any

@@ -14,6 +14,7 @@ import AppKit
 
 struct OnboardingLocationView: View {
     @ObservedObject public var chatModel:ChatResultViewModel
+    @ObservedObject var modelController:DefaultModelController
     @Binding public var showOnboarding:Bool
     @Binding public var selectedTab:String
     @State private var isAuthorized:Bool = false
@@ -30,7 +31,7 @@ struct OnboardingLocationView: View {
                 .multilineTextAlignment(.leading)
                 .padding()
             Button("Authorize Location Tracking") {
-                chatModel.modelController.locationProvider.authorize()
+                modelController.locationProvider.authorize()
                 showOnboarding = false
             }.padding()
                 .alert("Location Settings", isPresented: $isAuthorized, actions:                 {

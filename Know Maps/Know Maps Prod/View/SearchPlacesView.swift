@@ -11,6 +11,7 @@ import SwiftUI
 struct SearchPlacesView: View {
     @ObservedObject public var chatModel:ChatResultViewModel
     @ObservedObject public var cacheManager:CloudCacheManager
+    @ObservedObject public var modelController:DefaultModelController
     var body: some View {
         Text("Hello world")
     }

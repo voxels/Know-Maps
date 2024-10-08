@@ -3,11 +3,13 @@ import SwiftUI
 struct SearchTasteView: View {
     @ObservedObject public var chatModel:ChatResultViewModel
     @ObservedObject public var cacheManager:CloudCacheManager
+    @ObservedObject public var modelController:DefaultModelController
+    @Binding public var selectedCategoryID:CategoryResult.ID?
     @State private var isPresented:Bool = true
     @State private var isLoadingNextPage = false
     @State private var tasteSearchText:String = ""
     var body: some View {
-        List(chatModel.modelController.tasteResults, id:\.self, selection: $chatModel.modelController.selectedTasteCategoryResult) { parent in
+        List(modelController.tasteResults, id:\.id, selection: $selectedCategoryID) { parent in
             HStack {
                 let isSaved = cacheManager.cachedTastes(contains: parent.parentCategory)
                 
@@ -18,13 +20,13 @@ struct SearchTasteView: View {
                 }
             }
             .onAppear {
-                if let last = chatModel.modelController.tasteResults.last, parent == last {
+                if let last = modelController.tasteResults.last, parent == last {
                     isLoadingNextPage = true
-                    Task {
+                    Task { @MainActor in
                         do {
-                            chatModel.modelController.tasteResults = try await chatModel.modelController.placeSearchService.refreshTastes(page: chatModel.modelController.placeSearchService.lastFetchedTastePage + 1, currentTasteResults: chatModel.modelController.tasteResults, cacheManager: cacheManager)
+                            modelController.tasteResults = try await modelController.placeSearchService.refreshTastes(page: modelController.placeSearchService.lastFetchedTastePage + 1, currentTasteResults: modelController.tasteResults, cacheManager: cacheManager)
                         } catch {
-                            chatModel.modelController.analyticsManager.trackError(error:error, additionalInfo: ["page": chatModel.modelController.placeSearchService.lastFetchedTastePage + 1])
+                            modelController.analyticsManager.trackError(error:error, additionalInfo: ["page": modelController.placeSearchService.lastFetchedTastePage + 1])
                         }
                         isLoadingNextPage = false
                     }
@@ -32,24 +34,20 @@ struct SearchTasteView: View {
             }
         }
         .onAppear {
-            guard chatModel.modelController.tasteResults.isEmpty else {
-                return
-            }
-            
-            Task {
+            Task { @MainActor in
                 do {
-                    chatModel.modelController.tasteResults = try await chatModel.modelController.placeSearchService.refreshTastes(page:0, currentTasteResults: [], cacheManager: cacheManager)
+                    modelController.tasteResults = try await modelController.placeSearchService.refreshTastes(page:0, currentTasteResults: [], cacheManager: cacheManager)
                 } catch {
-                    chatModel.modelController.analyticsManager.trackError(error:error, additionalInfo: nil)
+                    modelController.analyticsManager.trackError(error:error, additionalInfo: nil)
                 }
             }
         }
         .refreshable {
-            Task {
+            Task { @MainActor in
                 do {
-                    chatModel.modelController.tasteResults = try await chatModel.modelController.placeSearchService.refreshTastes(page:0, currentTasteResults: [], cacheManager: cacheManager)
+                    modelController.tasteResults = try await modelController.placeSearchService.refreshTastes(page:0, currentTasteResults: [], cacheManager: cacheManager)
                 } catch {
-                    chatModel.modelController.analyticsManager.trackError(error:error, additionalInfo: nil)
+                    modelController.analyticsManager.trackError(error:error, additionalInfo: nil)
                 }
             }
         }
@@ -59,12 +57,12 @@ struct SearchTasteView: View {
             VStack(alignment: .center) {
                 TextField("", text: $tasteSearchText, prompt:Text("Search for a feature"))
                     .onSubmit() {
-                        Task {
-                            chatModel.modelController.tasteResults.removeAll()
+                        Task { @MainActor in
+                            modelController.tasteResults.removeAll()
                             do {
-                                try await chatModel.didSearch(caption:tasteSearchText, selectedDestinationChatResultID:chatModel.modelController.selectedDestinationLocationChatResult, intent:.AutocompleteTastes, cacheManager: cacheManager)
+                                try await chatModel.didSearch(caption:tasteSearchText, selectedDestinationChatResultID:modelController.selectedDestinationLocationChatResult, intent:.AutocompleteTastes, cacheManager: cacheManager, modelController: modelController)
                             } catch {
-                                chatModel.modelController.analyticsManager.trackError(error:error, additionalInfo: nil)
+                                modelController.analyticsManager.trackError(error:error, additionalInfo: nil)
                             }
                         }
                     }

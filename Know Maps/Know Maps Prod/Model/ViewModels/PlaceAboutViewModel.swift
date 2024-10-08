@@ -9,23 +9,15 @@ import SwiftUI
 import CoreLocation
 import CallKit
 
-class PlaceAboutViewModel: ObservableObject {
-    var chatModel: ChatResultViewModel
-    @Published var isSaved: Bool = false
-    @Published var isPresentingShareSheet: Bool = false
+class PlaceAboutViewModel {
     
-    init(chatModel: ChatResultViewModel) {
-        self.chatModel = chatModel
-    }
-
-    func toggleSavePlace(resultId:ChatResult.ID?, cacheManager:CacheManager) async {
-        guard let resultId = resultId, let placeResult = chatModel.modelController.placeChatResult(for: resultId), let placeResponse = placeResult.placeResponse else {
+    func toggleSavePlace(resultId:ChatResult.ID?, cacheManager:CacheManager, modelController:ModelController) async {
+        guard let resultId = resultId, let placeResult = modelController.placeChatResult(for: resultId), let placeResponse = placeResult.placeResponse else {
             return
         }
+        let saved = cacheManager.cachedPlaces(contains: placeResult.title)
         
-        isSaved = cacheManager.cachedPlaces(contains: placeResult.title)
-        
-        if isSaved {
+        if saved {
             // Delete from cache
             if let cachedPlaceResults = cacheManager.cachedResults(for: "Place", identity: placeResponse.fsqID), let cachedPlaceResult = cachedPlaceResults.first {
                 do {
@@ -46,8 +38,6 @@ class PlaceAboutViewModel: ObservableObject {
                 print(error)
             }
         }
-        
-        isSaved.toggle()
     }
     
     func getCallURL(tel: String) -> URL? {

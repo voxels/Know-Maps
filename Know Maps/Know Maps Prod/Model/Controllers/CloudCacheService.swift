@@ -25,13 +25,11 @@ public enum CloudCacheServiceKey: String {
     case revenuecat
 }
 
-public final class CloudCacheService: NSObject, ObservableObject, CloudCache {
+public final class CloudCacheService: NSObject, CloudCache {
     var analyticsManager:AnalyticsService
     @MainActor public var hasFsqAccess: Bool {
         fsqUserId.isEmpty ? false : true
     }
-    @Published public var isFetchingCachedRecords: Bool = false
-    @Published public var queuedGroups = Set<String>()
     let cacheContainer = CKContainer(identifier: "iCloud.com.secretatomics.knowmaps.Cache")
     let keysContainer = CKContainer(identifier: "iCloud.com.secretatomics.knowmaps.Keys")
     @MainActor private var fsqid: String = ""
@@ -409,9 +407,6 @@ public final class CloudCacheService: NSObject, ObservableObject, CloudCache {
     }
     
     public func fetchGroupedUserCachedRecords(for group: String) async throws -> [UserCachedRecord] {
-        await MainActor.run {
-            isFetchingCachedRecords = true
-        }
         var retval = [UserCachedRecord]()
         let predicate = NSPredicate(format: "Group == %@", group)
         let query = CKQuery(recordType: "UserCachedRecord", predicate: predicate)
@@ -467,10 +462,6 @@ public final class CloudCacheService: NSObject, ObservableObject, CloudCache {
         }
         
         self.removeCacheOperation(operation)
-        
-        await MainActor.run {
-            isFetchingCachedRecords = false
-        }
         
         return retval
     }

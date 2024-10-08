@@ -11,13 +11,14 @@ import MapKit
 
 struct MapResultsView: View {
     @ObservedObject public var model:ChatResultViewModel
-    @Binding public var selectedMapItem: String?
+    @ObservedObject public var modelController:DefaultModelController
+    @State private var selectedMapItem: String?
     @Binding public var cameraPosition:MapCameraPosition
     
     var body: some View {
         
         Map(position: $cameraPosition, interactionModes: .all, selection: $selectedMapItem) {
-            ForEach(model.modelController.filteredPlaceResults) { result in
+            ForEach(modelController.filteredPlaceResults) { result in
                 if let placeResponse = result.placeResponse {
                     Marker(result.title, coordinate: CLLocationCoordinate2D(latitude: placeResponse.latitude, longitude: placeResponse.longitude)).tag(placeResponse.fsqID)
                 }
@@ -34,11 +35,11 @@ struct MapResultsView: View {
             .task {
                 cameraPosition = .automatic
             }
-            .onChange(of: model.modelController.selectedDestinationLocationChatResult) { oldValue, newValue in
+            .onChange(of: modelController.selectedDestinationLocationChatResult) { oldValue, newValue in
                 if let newLocation = newValue {
                     updateCamera(for: newLocation)
                 } else {
-                    updateCamera(for: model.modelController.currentLocationResult.id)
+                    updateCamera(for: modelController.currentLocationResult.id)
                 }
             }
     }
