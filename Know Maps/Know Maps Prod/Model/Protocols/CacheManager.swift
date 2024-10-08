@@ -33,12 +33,6 @@ public protocol CacheManager {
     func refreshCachedPlaces() async
     func refreshCachedLocations() async
     
-    // Append to cached data
-    func appendCachedCategory(record: UserCachedRecord) async
-    func appendCachedTaste(record: UserCachedRecord) async
-    func appendCachedPlace(record: UserCachedRecord) async
-    func appendCachedLocation(record: UserCachedRecord) async
-    
     // Fetch all saved results
     func getAllCachedResults() -> [CategoryResult]
     

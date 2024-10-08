@@ -13,6 +13,7 @@ struct PlaceAboutView: View {
     @Environment(\.openURL) private var openURL
     @Environment(\.horizontalSizeClass) var sizeClass
     @ObservedObject var chatModel:ChatResultViewModel
+    @ObservedObject var cacheManager:CloudCacheManager
     @Binding var resultId:ChatResult.ID?
     @Binding var tabItem: Int
     @StateObject var viewModel: PlaceAboutViewModel
@@ -21,8 +22,9 @@ struct PlaceAboutView: View {
     static let mapFrameConstraint: Double = 50000
     static let buttonHeight: Double = 44
     
-    public init(chatModel:ChatResultViewModel, resultId:Binding<ChatResult.ID?>, tabItem:Binding<Int>) {
+    public init(chatModel:ChatResultViewModel, cacheManager:CloudCacheManager, resultId:Binding<ChatResult.ID?>, tabItem:Binding<Int>) {
         self._chatModel = ObservedObject(wrappedValue: chatModel)
+        self._cacheManager = ObservedObject(wrappedValue: cacheManager)
         self._resultId = resultId
         self._tabItem = tabItem
         _viewModel = StateObject(wrappedValue: PlaceAboutViewModel(chatModel: chatModel))
@@ -81,7 +83,7 @@ struct PlaceAboutView: View {
                                 Label(viewModel.isSaved ? "Delete" : "Add to List", systemImage: viewModel.isSaved ? "minus.circle" : "square.and.arrow.down")
                                     .onTapGesture {
                                         Task {
-                                            await viewModel.toggleSavePlace(resultId: resultId)
+                                            await viewModel.toggleSavePlace(resultId: resultId, cacheManager:cacheManager)
                                         }
                                     }
                             }

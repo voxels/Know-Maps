@@ -13,6 +13,7 @@ import Segment
 struct PlaceDirectionsView: View {
     @ObservedObject public var chatModel:ChatResultViewModel
     @ObservedObject public var model:PlaceDirectionsViewModel
+    @ObservedObject public var cacheManager:CloudCacheManager
     @Binding public var resultId:ChatResult.ID?
         
     static let mapFrameConstraint:Double = 200000
@@ -77,7 +78,7 @@ struct PlaceDirectionsView: View {
                                 HStack {
                                     Text("Route start:")
                                     Picker("", selection:$model.rawLocationIdent) {
-                                        ForEach(chatModel.modelController.filteredLocationResults, id:\.self) { result in
+                                        ForEach(chatModel.modelController.filteredLocationResults(cacheManager: cacheManager), id:\.self) { result in
                                             Text(result.locationName).tag(result.id.uuidString)
                                         }
                                     }.foregroundStyle(.primary)

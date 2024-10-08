@@ -9,6 +9,7 @@ import SwiftUI
 
 struct SearchCategoryView: View {
     @ObservedObject public var chatModel:ChatResultViewModel
+    @ObservedObject public var cacheManager:CloudCacheManager
     
     var body: some View {
         List(selection:$chatModel.modelController.selectedCategoryResult) {
@@ -18,7 +19,7 @@ struct SearchCategoryView: View {
                     set: { parent.isExpanded = $0 }
                 )){
                     ForEach(parent.children, id:\.id) { child in
-                        let isSaved = chatModel.modelController.cacheManager.cachedCategories(contains: child.parentCategory)
+                        let isSaved = cacheManager.cachedCategories(contains: child.parentCategory)
                         HStack {
                             Text("\(child.parentCategory)")
                             Spacer()
@@ -37,7 +38,7 @@ struct SearchCategoryView: View {
         .refreshable {
             Task {
                 do{
-                    try await chatModel.modelController.cacheManager.refreshCache()
+                    try await cacheManager.refreshCache()
                 } catch {
                     chatModel.modelController.analyticsManager.trackError(error:error, additionalInfo:nil)
                 }

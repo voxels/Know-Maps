@@ -13,7 +13,6 @@ import CoreLocation
 public protocol ModelController {
     
     var assistiveHostDelegate: AssistiveChatHost { get }
-    var cacheManager:CacheManager { get }
     var locationService:LocationService { get }
     var locationProvider: LocationProvider { get }
     var placeSearchService: PlaceSearchService { get }
@@ -51,11 +50,9 @@ public protocol ModelController {
     // MARK: - Filtered Results
     var filteredRecommendedPlaceResults: [ChatResult] { get }
     
-    var filteredLocationResults: [LocationResult] { get }
+    func filteredLocationResults(cacheManager:CacheManager) -> [LocationResult]
     
-    var filteredSourceLocationResults: [LocationResult] { get }
-    
-    func filteredDestinationLocationResults(with searchText:String) async -> [LocationResult]
+    func filteredDestinationLocationResults(with searchText:String, cacheManager:CacheManager) async -> [LocationResult]
     
     var filteredResults: [CategoryResult] { get }
     
@@ -107,13 +104,13 @@ public protocol ModelController {
     
     func tasteCategoryResult(for id: CategoryResult.ID) -> CategoryResult?
     
-    func cachedCategoricalResult(for id:CategoryResult.ID)->CategoryResult?
+    func cachedCategoricalResult(for id:CategoryResult.ID, cacheManager:CacheManager)->CategoryResult?
     
-    func cachedPlaceResult(for id: CategoryResult.ID) -> CategoryResult?
+    func cachedPlaceResult(for id: CategoryResult.ID, cacheManager:CacheManager) -> CategoryResult?
     
-    func cachedChatResult(for id: CategoryResult.ID) -> ChatResult?
+    func cachedChatResult(for id: CategoryResult.ID, cacheManager:CacheManager) -> ChatResult?
     
-    func cachedTasteResult(for id: CategoryResult.ID) -> CategoryResult? 
+    func cachedTasteResult(for id: CategoryResult.ID, cacheManager:CacheManager) -> CategoryResult?
     
     // MARK: - Model Building and Query Handling
     
@@ -122,14 +119,16 @@ public protocol ModelController {
         query: String,
         queryIntents: [AssistiveChatHostIntent]?,
         locationResults: inout [LocationResult],
-        currentLocationResult: LocationResult
+        currentLocationResult: LocationResult,
+        cacheManager:CacheManager
     ) async throws -> [ChatResult]
     
     /// Builds the model based on the given intent.
     func model(
         intent: AssistiveChatHostIntent,
         locationResults: inout [LocationResult],
-        currentLocationResult: LocationResult
+        currentLocationResult: LocationResult,
+        cacheManager:CacheManager
     ) async throws -> [ChatResult]
     
     // MARK: - Place Query Models
@@ -160,14 +159,15 @@ public protocol ModelController {
     /// Processes a search intent based on the given intent and location.
     func searchIntent(
         intent: AssistiveChatHostIntent,
-        location: CLLocation?
+        location: CLLocation?,
+        cacheManager:CacheManager
     ) async throws
     
-    func addReceivedMessage(caption:String, parameters:AssistiveChatHostQueryParameters, isLocalParticipant:Bool) async throws
+    func addReceivedMessage(caption:String, parameters:AssistiveChatHostQueryParameters, isLocalParticipant:Bool, cacheManager:CacheManager) async throws
 
-    func didUpdateQuery(with query:String, parameters: AssistiveChatHostQueryParameters) async throws
+    func didUpdateQuery(with query:String, parameters: AssistiveChatHostQueryParameters, cacheManager:CacheManager) async throws
 
-    func updateLastIntentParameter(for placeChatResult:ChatResult, selectedDestinationChatResultID:LocationResult.ID?) async throws
+    func updateLastIntentParameter(for placeChatResult:ChatResult, selectedDestinationChatResultID:LocationResult.ID?, cacheManager:CacheManager) async throws
     
     func updateQueryParametersHistory(with parameters: AssistiveChatHostQueryParameters)
 }

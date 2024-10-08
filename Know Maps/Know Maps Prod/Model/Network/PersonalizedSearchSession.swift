@@ -57,13 +57,12 @@ public enum PersonalizedSearchSection : String, Hashable, CaseIterable {
     
     public func categoryResult()->CategoryResult {
         let chatResult = ChatResult(title: rawValue, list:self.rawValue, icon:"", rating: 1, section:self,  placeResponse: nil, recommendedPlaceResponse: nil)
-        let categoryResult = CategoryResult(parentCategory: rawValue, list:self.rawValue, icon: "", rating: 1, section:self, categoricalChatResults: [chatResult])
+        let categoryResult = CategoryResult(parentCategory: rawValue, recordId: "", list:self.rawValue, icon: "", rating: 1, section:self, categoricalChatResults: [chatResult])
         return categoryResult
     }
 }
 
 public actor PersonalizedSearchSession {
-    public let cacheManager:CacheManager
     public var fsqIdentity:String?
     public var fsqAccessToken:String?
     private var fsqServiceAPIKey:String?
@@ -80,18 +79,13 @@ public actor PersonalizedSearchSession {
     static let relatedVenuePath = "/related"
     static let foursquareVersionDate = "20240101"
     
-    public init(cacheManager: CacheManager, searchSession:URLSession? = nil) {
-        self.cacheManager = cacheManager
-        self.searchSession = searchSession
-    }
-    
     @discardableResult
-    public func fetchManagedUserIdentity() async throws ->String? {
+    public func fetchManagedUserIdentity(cacheManager:CacheManager) async throws ->String? {
         let cloudFsqIdentity = try await cacheManager.cloudCache.fetchFsqIdentity()
         
         if cloudFsqIdentity.isEmpty {
-            try await addFoursquareManagedUserIdentity()
-            return try await fetchManagedUserIdentity()
+            try await addFoursquareManagedUserIdentity(cacheManager: cacheManager)
+            return try await fetchManagedUserIdentity(cacheManager: cacheManager)
         }
         
         fsqIdentity = cloudFsqIdentity
@@ -100,13 +94,13 @@ public actor PersonalizedSearchSession {
     }
     
     @discardableResult
-    public func fetchManagedUserAccessToken() async throws ->String {
+    public func fetchManagedUserAccessToken(cacheManager:CacheManager) async throws ->String {
         guard cacheManager.cloudCache.hasFsqAccess else {
             return ""
         }
         
         if fsqIdentity == nil, cacheManager.cloudCache.hasFsqAccess {
-            try await fetchManagedUserIdentity()
+            try await fetchManagedUserIdentity(cacheManager: cacheManager)
         }
         
         guard let fsqIdentity = fsqIdentity, !fsqIdentity.isEmpty else {
@@ -124,7 +118,7 @@ public actor PersonalizedSearchSession {
     }
     
     @discardableResult
-    public func addFoursquareManagedUserIdentity() async throws -> Bool {
+    public func addFoursquareManagedUserIdentity(cacheManager:CacheManager) async throws -> Bool {
         let apiKey = try await fetchFoursquareServiceAPIKey()
         
         if searchSession == nil {
@@ -169,9 +163,9 @@ public actor PersonalizedSearchSession {
         return true
     }
 
-    public func autocompleteTastes(caption:String, parameters:[String:Any]?) async throws -> [String:Any] {
+    public func autocompleteTastes(caption:String, parameters:[String:Any]?, cacheManager:CacheManager) async throws -> [String:Any] {
         
-        let apiKey = try await fetchManagedUserAccessToken()
+        let apiKey = try await fetchManagedUserAccessToken(cacheManager: cacheManager)
         
         if searchSession == nil {
             let sessionConfiguration = URLSessionConfiguration.default
@@ -229,9 +223,9 @@ public actor PersonalizedSearchSession {
         return retval
     }
     
-    public func autocomplete(caption:String, parameters:[String:Any]?, location:CLLocation) async throws -> [String:Any] {
+    public func autocomplete(caption:String, parameters:[String:Any]?, location:CLLocation, cacheManager:CacheManager) async throws -> [String:Any] {
         
-        let apiKey = try await fetchManagedUserAccessToken()
+        let apiKey = try await fetchManagedUserAccessToken(cacheManager: cacheManager)
         
         if searchSession == nil {
             let sessionConfiguration = URLSessionConfiguration.default
@@ -322,8 +316,8 @@ public actor PersonalizedSearchSession {
         return retval
     }
     
-    public func fetchRecommendedVenues(with request:RecommendedPlaceSearchRequest, location:CLLocation?) async throws -> [String:Any]{
-        let apiKey = try await fetchManagedUserAccessToken()
+    public func fetchRecommendedVenues(with request:RecommendedPlaceSearchRequest, location:CLLocation?, cacheManager:CacheManager) async throws -> [String:Any]{
+        let apiKey = try await fetchManagedUserAccessToken(cacheManager: cacheManager)
         
         if searchSession == nil {
             let sessionConfiguration = URLSessionConfiguration.default
@@ -408,8 +402,8 @@ public actor PersonalizedSearchSession {
         return retval
     }
     
-    public func fetchTastes(page:Int) async throws -> [String] {
-        let apiKey = try await fetchManagedUserAccessToken()
+    public func fetchTastes(page:Int, cacheManager:CacheManager) async throws -> [String] {
+        let apiKey = try await fetchManagedUserAccessToken(cacheManager: cacheManager)
         
         if searchSession == nil {
             let sessionConfiguration = URLSessionConfiguration.default
@@ -449,8 +443,8 @@ public actor PersonalizedSearchSession {
         return retval
     }
     
-    public func fetchRelatedVenues(for fsqID:String) async throws -> [String:Any] {
-        let apiKey = try await fetchManagedUserAccessToken()
+    public func fetchRelatedVenues(for fsqID:String, cacheManager:CacheManager) async throws -> [String:Any] {
+        let apiKey = try await fetchManagedUserAccessToken(cacheManager: cacheManager)
         
         if searchSession == nil {
             let sessionConfiguration = URLSessionConfiguration.default

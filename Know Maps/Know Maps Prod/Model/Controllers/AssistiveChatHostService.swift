@@ -268,11 +268,11 @@ public final class AssistiveChatHostService : AssistiveChatHost, ObservableObjec
         queryIntentParameters.queryIntents = [AssistiveChatHostIntent]()
     }
     
-    public func receiveMessage(caption:String, isLocalParticipant:Bool ) async throws {
+    public func receiveMessage(caption:String, isLocalParticipant:Bool, cacheManager:CacheManager ) async throws {
         guard let queryIntentParameters = queryIntentParameters else {
             return
         }
-        try await messagesDelegate?.addReceivedMessage(caption: caption, parameters: queryIntentParameters, isLocalParticipant: isLocalParticipant)
+        try await messagesDelegate?.addReceivedMessage(caption: caption, parameters: queryIntentParameters, isLocalParticipant: isLocalParticipant, cacheManager: cacheManager)
     }
 
     

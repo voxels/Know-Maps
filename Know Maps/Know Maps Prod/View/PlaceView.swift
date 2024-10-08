@@ -10,6 +10,7 @@ import MapKit
 
 struct PlaceView: View {
     @ObservedObject public var chatModel:ChatResultViewModel
+    @ObservedObject public var cacheManager:CloudCacheManager
     @ObservedObject public var placeDirectionsViewModel:PlaceDirectionsViewModel
     @Binding public var resultId:ChatResult.ID?
     @State private var tabItem = 0
@@ -31,7 +32,7 @@ struct PlaceView: View {
                 .pickerStyle(.palette)
                 switch tabItem {
                 case 0:
-                    PlaceAboutView(chatModel: chatModel, resultId: $resultId, tabItem: $tabItem)
+                    PlaceAboutView(chatModel: chatModel, cacheManager: cacheManager, resultId: $resultId, tabItem: $tabItem)
                         .tabItem {
                             Label("About", systemImage: "target")
                         }
@@ -40,7 +41,7 @@ struct PlaceView: View {
                             chatModel.modelController.analyticsManager.track(event:"PlaceAboutView", properties: nil)
                         })
                 case 1:
-                    PlaceDirectionsView( chatModel: chatModel, model: placeDirectionsViewModel, resultId: $resultId)
+                    PlaceDirectionsView( chatModel: chatModel, model: placeDirectionsViewModel, cacheManager: cacheManager, resultId: $resultId)
                         .tabItem {
                             Label("Directions", systemImage: "map")
                         }

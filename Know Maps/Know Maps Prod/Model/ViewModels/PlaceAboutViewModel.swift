@@ -10,7 +10,7 @@ import CoreLocation
 import CallKit
 
 class PlaceAboutViewModel: ObservableObject {
-    @Published var chatModel: ChatResultViewModel
+    var chatModel: ChatResultViewModel
     @Published var isSaved: Bool = false
     @Published var isPresentingShareSheet: Bool = false
     
@@ -18,19 +18,19 @@ class PlaceAboutViewModel: ObservableObject {
         self.chatModel = chatModel
     }
 
-    func toggleSavePlace(resultId:ChatResult.ID?) async {
+    func toggleSavePlace(resultId:ChatResult.ID?, cacheManager:CacheManager) async {
         guard let resultId = resultId, let placeResult = chatModel.modelController.placeChatResult(for: resultId), let placeResponse = placeResult.placeResponse else {
             return
         }
         
-        isSaved = chatModel.modelController.cacheManager.cachedPlaces(contains: placeResult.title)
+        isSaved = cacheManager.cachedPlaces(contains: placeResult.title)
         
         if isSaved {
             // Delete from cache
-            if let cachedPlaceResults = chatModel.modelController.cacheManager.cachedResults(for: "Place", identity: placeResponse.fsqID), let cachedPlaceResult = cachedPlaceResults.first {
+            if let cachedPlaceResults = cacheManager.cachedResults(for: "Place", identity: placeResponse.fsqID), let cachedPlaceResult = cachedPlaceResults.first {
                 do {
-                    try await chatModel.modelController.cacheManager.cloudCache.deleteUserCachedRecord(for: cachedPlaceResult)
-                    try await chatModel.modelController.cacheManager.refreshCache()
+                    try await cacheManager.cloudCache.deleteUserCachedRecord(for: cachedPlaceResult)
+                    try await cacheManager.refreshCache()
                 } catch {
                     print(error)
                 }
@@ -39,10 +39,9 @@ class PlaceAboutViewModel: ObservableObject {
             // Save to cache
             do {
                 var userRecord = UserCachedRecord(recordId: "", group: "Place", identity: placeResponse.fsqID, title: placeResult.title, icons: "", list: placeResult.list, section: placeResult.section.rawValue, rating:1)
-                let record = try await chatModel.modelController.cacheManager.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, icons: userRecord.icons, list: userRecord.list, section: userRecord.section, rating:userRecord.rating)
+                let record = try await cacheManager.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, icons: userRecord.icons, list: userRecord.list, section: userRecord.section, rating:userRecord.rating)
                 userRecord.setRecordId(to: record)
-                try await Task.sleep(nanoseconds: 1_000_000_000)
-                try await chatModel.modelController.cacheManager.refreshCache()
+                try await cacheManager.refreshCache()
             } catch {
                 print(error)
             }

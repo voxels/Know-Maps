@@ -11,11 +11,13 @@ import AuthenticationServices
 struct SettingsView: View {
     @Environment(\.openWindow) private var openWindow
     @EnvironmentObject public var model:AppleAuthenticationService
+    @ObservedObject public var chatModel:ChatResultViewModel
+    @ObservedObject public var cacheManager:CloudCacheManager
+    @Binding public var showOnboarding:Bool
     @State private var popoverPresented:Bool = false
     @State private var signInErrorMessage:String = "Error"
     @State private var isAuthenticated = false
-    @ObservedObject public var chatModel:ChatResultViewModel
-    @Binding public var showOnboarding:Bool
+
     var body: some View {
         VStack {
             if model.isAuthorized {
@@ -79,8 +81,8 @@ struct SettingsView: View {
             Button(action:{
                 Task {
                     do {
-                        try await chatModel.modelController.cacheManager.cloudCache.deleteAllUserCachedGroups()
-                        try await chatModel.modelController.cacheManager.refreshCache()
+                        try await cacheManager.cloudCache.deleteAllUserCachedGroups()
+                        try await cacheManager.refreshCache()
                         await MainActor.run {
                             showOnboarding = true
                         }

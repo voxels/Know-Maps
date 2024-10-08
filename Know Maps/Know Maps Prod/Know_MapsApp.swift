@@ -32,6 +32,7 @@ struct Know_MapsApp: App {
     @StateObject public var settingsModel:AppleAuthenticationService
     @StateObject public var chatModel:ChatResultViewModel
     @StateObject public var searchSavedViewModel:SearchSavedViewModel
+    @StateObject public var cacheManager:CloudCacheManager
     
     @State private var showOnboarding:Bool = true
     @State private var showSplashScreen:Bool = true
@@ -43,13 +44,15 @@ struct Know_MapsApp: App {
         .flushInterval(10)
     
     init() {
+        let analyticsManager = SegmentAnalyticsService(analytics: Analytics(configuration: Know_MapsApp.config))
          // Safely initialize chatModel first
          let chatModel = ChatResultViewModel(modelController: DefaultModelController(
              locationProvider: LocationProvider(),
-             analyticsManager: SegmentAnalyticsService(analytics: Analytics(configuration: Know_MapsApp.config)))
+             analyticsManager:analyticsManager)
          )
          
          // Now safely initialize searchSavedViewModel using chatModel
+         _cacheManager = StateObject(wrappedValue: CloudCacheManager(cloudCache: CloudCacheService(analyticsManager: analyticsManager), analyticsManager: analyticsManager))
          _settingsModel = StateObject(wrappedValue: AppleAuthenticationService(userId: ""))
          _chatModel = StateObject(wrappedValue: chatModel)
          _searchSavedViewModel = StateObject(wrappedValue: SearchSavedViewModel(chatModel: chatModel))
@@ -71,7 +74,7 @@ struct Know_MapsApp: App {
                                 .frame(width:100 , height: 100)
                                 .padding()
                             Spacer()
-                            ProgressView(value: chatModel.modelController.cacheManager.cacheFetchProgress)
+                            ProgressView(value: cacheManager.cacheFetchProgress)
                                 .frame(maxWidth:geometry.size.width / 2)
                                 .padding()
                             Spacer()
@@ -110,7 +113,7 @@ struct Know_MapsApp: App {
 #endif
                             .environmentObject(settingsModel)
                     } else {
-                        ContentView(chatModel: chatModel, searchSavedViewModel: searchSavedViewModel, showOnboarding: $showOnboarding)
+                        ContentView(chatModel: chatModel, cacheManager:cacheManager, searchSavedViewModel: searchSavedViewModel, showOnboarding: $showOnboarding)
 #if os(visionOS) || os(macOS)
                             .frame(minWidth: 1280, minHeight: 720)
 #endif
@@ -121,7 +124,7 @@ struct Know_MapsApp: App {
         }.windowResizability(.contentSize)
         
         WindowGroup(id:"SettingsView"){
-            SettingsView(chatModel:chatModel, showOnboarding: $showOnboarding)
+            SettingsView(chatModel:chatModel, cacheManager: cacheManager, showOnboarding: $showOnboarding)
                 .tag("Settings")
                 .onChange(of: settingsModel.appleUserId, { oldValue, newValue in
                     
@@ -154,7 +157,7 @@ struct Know_MapsApp: App {
     
     private func loadPurchases() async throws {
         let purchasesId =  settingsModel.purchasesId
-        let revenuecatAPIKey = try await chatModel.modelController.cacheManager.cloudCache.apiKey(for: .revenuecat)
+        let revenuecatAPIKey = try await cacheManager.cloudCache.apiKey(for: .revenuecat)
         Purchases.configure(withAPIKey: revenuecatAPIKey, appUserID: purchasesId)
         Purchases.shared.delegate = FeatureFlagService.shared
         
@@ -175,9 +178,9 @@ struct Know_MapsApp: App {
 
     private func setupChatModel(_ chatModel: ChatResultViewModel) async {
         // Perform setup tasks
-        if !chatModel.modelController.cacheManager.cloudCache.hasFsqAccess {
+        if !cacheManager.cloudCache.hasFsqAccess {
             do {
-                try await chatModel.modelController.placeSearchService.retrieveFsqUser()
+                try await chatModel.modelController.placeSearchService.retrieveFsqUser(cacheManager: cacheManager)
 
             } catch {
                 chatModel.modelController.analyticsManager.trackError(error: error, additionalInfo:nil)
@@ -197,7 +200,7 @@ struct Know_MapsApp: App {
 
         let cacheRefreshTask = Task {
             do {
-                try await chatModel.modelController.cacheManager.refreshCache()
+                try await cacheManager.refreshCache()
             } catch {
                 chatModel.modelController.analyticsManager.trackError(error: error, additionalInfo:nil)
             }
@@ -229,9 +232,9 @@ struct Know_MapsApp: App {
         }
                 
         await MainActor.run {
-            if cloudAuth, chatModel.modelController.cacheManager.cloudCache.hasFsqAccess, isLocationAuthorized {
+            if cloudAuth, cacheManager.cloudCache.hasFsqAccess, isLocationAuthorized {
                 showOnboarding = false
-            }else if cloudAuth,  chatModel.modelController.cacheManager.cloudCache.hasFsqAccess, !isLocationAuthorized {
+            }else if cloudAuth, cacheManager.cloudCache.hasFsqAccess, !isLocationAuthorized {
                 selectedOnboardingTab = "Location"
             }
             

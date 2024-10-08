@@ -17,18 +17,19 @@ public final class SearchSavedViewModel: ObservableObject {
     }
     
     // Refresh Cache
-    func refreshCache() async {
+    func refreshCache(cacheManager:CacheManager) async {
         do {
-            try await chatModel.modelController.cacheManager.refreshCache()
+            try await Task.sleep(nanoseconds: 1_000_000_000)
+            try await cacheManager.refreshCache()
         } catch {
             chatModel.modelController.analyticsManager.trackError(error:error, additionalInfo: nil)
         }
     }
     
     // Search functionality
-    func search(caption: String, selectedDestinationChatResultID: UUID?) async {
+    func search(caption: String, selectedDestinationChatResultID: UUID?, cacheManager:CacheManager) async {
         do {
-            try await chatModel.didSearch(caption: caption, selectedDestinationChatResultID: selectedDestinationChatResultID, intent: .Location)
+            try await chatModel.didSearch(caption: caption, selectedDestinationChatResultID: selectedDestinationChatResultID, intent: .Location, cacheManager: cacheManager)
         } catch {
             chatModel.modelController.analyticsManager.trackError(error:error, additionalInfo: nil)
         }
@@ -36,16 +37,15 @@ public final class SearchSavedViewModel: ObservableObject {
     
     // Add Location
     
-    func addLocation(parent:LocationResult,location:CLLocation) async throws {
-        var userRecord = UserCachedRecord(recordId: "", group: "Location", identity: chatModel.modelController.cacheManager.cachedLocationIdentity(for: location), title: parent.locationName, icons: "", list:"Places", section:PersonalizedSearchSection.location.rawValue, rating: 1)
-        let record = try await chatModel.modelController.cacheManager.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, icons: userRecord.icons, list:userRecord.list, section:userRecord.section, rating:userRecord.rating)
+    func addLocation(parent:LocationResult,location:CLLocation, cacheManager:CacheManager) async throws {
+        var userRecord = UserCachedRecord(recordId: "", group: "Location", identity: cacheManager.cachedLocationIdentity(for: location), title: parent.locationName, icons: "", list:"Places", section:PersonalizedSearchSection.location.rawValue, rating: 1)
+        let record = try await cacheManager.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, icons: userRecord.icons, list:userRecord.list, section:userRecord.section, rating:userRecord.rating)
         userRecord.setRecordId(to:record)
-        try await Task.sleep(nanoseconds: 1_000_000_000)
-        try await chatModel.modelController.cacheManager.refreshCache()
+        await refreshCache(cacheManager: cacheManager)
     }
     
     // Add Category
-    func addCategory(parent: CategoryResult) async {
+    func addCategory(parent: CategoryResult, cacheManager:CacheManager) async {
         do {
             var userRecord = UserCachedRecord(
                 recordId: "",
@@ -57,7 +57,7 @@ public final class SearchSavedViewModel: ObservableObject {
                 section: parent.section.rawValue,
                 rating: 1
             )
-            let record = try await chatModel.modelController.cacheManager.cloudCache.storeUserCachedRecord(
+            let record = try await cacheManager.cloudCache.storeUserCachedRecord(
                 for: userRecord.group,
                 identity: userRecord.identity,
                 title: userRecord.title, icons: userRecord.icons,
@@ -66,29 +66,28 @@ public final class SearchSavedViewModel: ObservableObject {
                 rating:userRecord.rating
             )
             userRecord.setRecordId(to: record)
-            try await Task.sleep(nanoseconds: 1_000_000_000)
-            await refreshCache()
+            await refreshCache(cacheManager: cacheManager)
         } catch {
             chatModel.modelController.analyticsManager.trackError(error:error, additionalInfo: nil)
         }
     }
     
     // Remove Category
-    func removeCategory(parent: CategoryResult) async {
-        if let cachedResults = chatModel.modelController.cacheManager.cachedResults(for: "Category", identity: parent.parentCategory) {
+    func removeCategory(parent: CategoryResult, cacheManager:CacheManager) async {
+        if let cachedResults = cacheManager.cachedResults(for: "Category", identity: parent.parentCategory) {
             for result in cachedResults {
                 do {
-                    try await chatModel.modelController.cacheManager.cloudCache.deleteUserCachedRecord(for: result)
+                    try await cacheManager.cloudCache.deleteUserCachedRecord(for: result)
                 } catch {
                     chatModel.modelController.analyticsManager.trackError(error:error, additionalInfo: nil)
                 }
             }
-            await refreshCache()
+            await refreshCache(cacheManager: cacheManager)
         }
     }
     
     // Add Taste
-    func addTaste(parent: CategoryResult) async {
+    func addTaste(parent: CategoryResult, cacheManager:CacheManager) async {
         do {
             var userRecord = UserCachedRecord(
                 recordId: "",
@@ -100,7 +99,7 @@ public final class SearchSavedViewModel: ObservableObject {
                 section: parent.section.rawValue,
                 rating: 1
             )
-            let record = try await chatModel.modelController.cacheManager.cloudCache.storeUserCachedRecord(
+            let record = try await cacheManager.cloudCache.storeUserCachedRecord(
                 for: userRecord.group,
                 identity: userRecord.identity,
                 title: userRecord.title, icons: userRecord.icons,
@@ -109,58 +108,63 @@ public final class SearchSavedViewModel: ObservableObject {
                 rating:userRecord.rating
             )
             userRecord.setRecordId(to: record)
-            try await Task.sleep(nanoseconds: 1_000_000_000)
-            await refreshCache()
+            await refreshCache(cacheManager: cacheManager)
         } catch {
             chatModel.modelController.analyticsManager.trackError(error:error, additionalInfo: nil)
         }
     }
     
     // Remove Taste
-    func removeTaste(parent: CategoryResult) async {
-        if let cachedResults = chatModel.modelController.cacheManager.cachedResults(for: "Taste", identity: parent.parentCategory) {
+    func removeTaste(parent: CategoryResult, cacheManager:CacheManager) async {
+        if let cachedResults = cacheManager.cachedResults(for: "Taste", identity: parent.parentCategory) {
             for result in cachedResults {
                 do {
-                    try await chatModel.modelController.cacheManager.cloudCache.deleteUserCachedRecord(for: result)
+                    try await cacheManager.cloudCache.deleteUserCachedRecord(for: result)
                 } catch {
                     chatModel.modelController.analyticsManager.trackError(error:error, additionalInfo: nil)
                 }
             }
-            await refreshCache()
+            await refreshCache(cacheManager: cacheManager)
         }
     }
     
     // Remove Cached Results
-    func removeCachedResults(group: String, identity: String) async {
-        if let cachedResults = chatModel.modelController.cacheManager.cachedResults(for: group, identity: identity) {
+    func removeCachedResults(group: String, identity: String, cacheManager:CacheManager) async {
+        if let cachedResults = cacheManager.cachedResults(for: group, identity: identity) {
             await withTaskGroup(of: Void.self) { [weak self] group in
                 guard let strongSelf = self else { return }
                 for result in cachedResults {
                     group.addTask {
                         do {
-                            try await strongSelf.chatModel.modelController.cacheManager.cloudCache.deleteUserCachedRecord(for: result)
-                            await strongSelf.refreshCache()
+                            try await cacheManager.cloudCache.deleteUserCachedRecord(for: result)
                         } catch {
                             strongSelf.chatModel.modelController.analyticsManager.trackError(error:error, additionalInfo: nil)
                         }
                     }
                 }
             }
+            await refreshCache(cacheManager: cacheManager)
         }
     }
     
     // Remove Saved Item
-    func removeSelectedItem(selectedSavedResult: UUID?) async throws {
+    func removeSelectedItem(selectedSavedResult: UUID?, cacheManager:CacheManager) async throws {
         guard let selectedSavedResult = selectedSavedResult else { return }
         
-        if let selectedTasteItem = chatModel.modelController.cachedTasteResult(for: selectedSavedResult) {
-            await removeCachedResults(group: "Taste", identity: selectedTasteItem.parentCategory)
-        } else if let selectedCategoryItem = chatModel.modelController.cachedCategoricalResult(for: selectedSavedResult) {
-            await removeCachedResults(group: "Category", identity: selectedCategoryItem.parentCategory)
-        } else if let selectedPlaceItem = chatModel.modelController.cachedPlaceResult(for: selectedSavedResult) {
+        if let selectedTasteItem = chatModel.modelController.cachedTasteResult(for: selectedSavedResult, cacheManager: cacheManager) {
+            await removeCachedResults(group: "Taste", identity: selectedTasteItem.parentCategory, cacheManager: cacheManager)
+        } else if let selectedCategoryItem = chatModel.modelController.cachedCategoricalResult(for: selectedSavedResult, cacheManager: cacheManager) {
+            await removeCachedResults(group: "Category", identity: selectedCategoryItem.parentCategory, cacheManager: cacheManager)
+        } else if let selectedPlaceItem = chatModel.modelController.cachedPlaceResult(for: selectedSavedResult, cacheManager: cacheManager) {
             if let fsqID = selectedPlaceItem.categoricalChatResults.first?.placeResponse?.fsqID {
-                await removeCachedResults(group: "Place", identity: fsqID)
+                await removeCachedResults(group: "Place", identity: fsqID, cacheManager: cacheManager)
             }
         }
+    }
+    
+    // Change rating
+    func changeRating(rating: Int, for editingResult:String, cacheManager:CacheManager) async throws {
+        try await cacheManager.cloudCache.updateUserCachedRecordRating(recordId: editingResult, newRating: rating)
+        await refreshCache(cacheManager: cacheManager)
     }
 }

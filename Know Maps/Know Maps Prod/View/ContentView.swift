@@ -25,6 +25,7 @@ struct ContentView: View {
     
     @EnvironmentObject public var settingsModel:AppleAuthenticationService
     @ObservedObject public var chatModel:ChatResultViewModel
+    @ObservedObject public var cacheManager:CloudCacheManager
     @ObservedObject public var searchSavedViewModel:SearchSavedViewModel
     
     @Binding public var showOnboarding:Bool
@@ -47,7 +48,7 @@ struct ContentView: View {
     var body: some View {
         GeometryReader() { geometry in
             NavigationSplitView(preferredCompactColumn: $preferredColumn) {
-                SearchView(chatModel: chatModel, searchSavedViewModel: searchSavedViewModel, preferredColumn: $preferredColumn, contentViewDetail: $contentViewDetail, addItemSection: $addItemSection, settingsPresented: $settingsPresented, showPlaceViewSheet: $showPlaceViewSheet, didError: $didError)
+                SearchView(chatModel: chatModel, cacheManager:cacheManager, searchSavedViewModel: searchSavedViewModel, preferredColumn: $preferredColumn, contentViewDetail: $contentViewDetail, addItemSection: $addItemSection, settingsPresented: $settingsPresented, showPlaceViewSheet: $showPlaceViewSheet, didError: $didError)
 #if os(iOS) || os(visionOS)
                     .sheet(isPresented: $settingsPresented) {
                         SettingsView(chatModel: chatModel, showOnboarding: $showOnboarding)
@@ -145,7 +146,7 @@ struct ContentView: View {
                             
                         }
                         .sheet(isPresented: $showPlaceViewSheet, content: {
-                            PlaceView( chatModel: chatModel,  placeDirectionsViewModel: placeDirectionsChatViewModel, resultId: $chatModel.modelController.selectedPlaceChatResult)
+                            PlaceView( chatModel: chatModel, cacheManager:cacheManager, placeDirectionsViewModel: placeDirectionsChatViewModel, resultId: $chatModel.modelController.selectedPlaceChatResult)
                                 .frame(minHeight: geometry.size.height - 60, maxHeight: .infinity)
                                 .presentationDetents([.large])
                                 .presentationDragIndicator(.visible)
@@ -175,13 +176,17 @@ struct ContentView: View {
                 case .add:
                         AddPromptView(
                             chatModel: chatModel,
-                            addItemSection: $addItemSection, contentViewDetail: $contentViewDetail
+                            cacheManager: cacheManager,
+                            addItemSection: $addItemSection,
+                            contentViewDetail: $contentViewDetail
                         )
                         .toolbar {
                             ToolbarItemGroup(placement: .automatic) {
                                 AddPromptToolbarView( viewModel: searchSavedViewModel,
+                                                      cacheManager: cacheManager,
                                                       addItemSection: $addItemSection,
-                                                      contentViewDetail: $contentViewDetail, preferredColumn: $preferredColumn
+                                                      contentViewDetail: $contentViewDetail,
+                                                      preferredColumn: $preferredColumn
                                 )
                             }
                         }

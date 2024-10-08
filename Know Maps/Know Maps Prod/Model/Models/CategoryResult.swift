@@ -18,6 +18,7 @@ public class CategoryResult : Identifiable, Equatable, Hashable {
     }
     
     public let id = UUID()
+    var recordId:String
     var parentCategory:String
     var list:String
     var icon:String
@@ -27,8 +28,9 @@ public class CategoryResult : Identifiable, Equatable, Hashable {
     public var children:[CategoryResult] = [CategoryResult]()
     public var isExpanded:Bool = false
     
-    public init(parentCategory: String, list:String, icon:String, rating:Int, section:PersonalizedSearchSection, categoricalChatResults: [ChatResult]) {
+    public init(parentCategory: String, recordId:String, list:String, icon:String, rating:Int, section:PersonalizedSearchSection, categoricalChatResults: [ChatResult]) {
         self.parentCategory = parentCategory
+        self.recordId = recordId
         self.list = list
         self.icon = icon
         self.section = section
@@ -50,7 +52,7 @@ public class CategoryResult : Identifiable, Equatable, Hashable {
         }
         for chatResult in chatResults {
             if chatResult.title != parentCategory {
-                let newCategoryResult = CategoryResult(parentCategory: chatResult.title, list:chatResult.list, icon: chatResult.icon, rating: chatResult.rating, section:chatResult.section, categoricalChatResults: [chatResult])
+                let newCategoryResult = CategoryResult(parentCategory: chatResult.title, recordId:"", list:chatResult.list, icon: chatResult.icon, rating: chatResult.rating, section:chatResult.section, categoricalChatResults: [chatResult])
                 retval.append(newCategoryResult)
             }
         }

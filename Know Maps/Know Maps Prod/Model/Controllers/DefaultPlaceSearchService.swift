@@ -9,6 +9,7 @@ import Foundation
 import CoreLocation
 
 public final class DefaultPlaceSearchService: PlaceSearchService {
+    
     public let assistiveHostDelegate: AssistiveChatHost
     public let placeSearchSession: PlaceSearchSession
     public let personalizedSearchSession: PersonalizedSearchSession
@@ -28,12 +29,12 @@ public final class DefaultPlaceSearchService: PlaceSearchService {
         self.analyticsManager = analyticsManager
     }
     
-    public func retrieveFsqUser() async throws {
-        try await personalizedSearchSession.fetchManagedUserIdentity()
-        try await personalizedSearchSession.fetchManagedUserAccessToken()
+    public func retrieveFsqUser(cacheManager:CacheManager) async throws {
+        try await personalizedSearchSession.fetchManagedUserIdentity(cacheManager:cacheManager)
+        try await personalizedSearchSession.fetchManagedUserAccessToken(cacheManager: cacheManager)
         
         if await personalizedSearchSession.fsqIdentity == nil {
-            try await personalizedSearchSession.addFoursquareManagedUserIdentity()
+            try await personalizedSearchSession.addFoursquareManagedUserIdentity(cacheManager: cacheManager)
         }
     }
     
@@ -106,25 +107,25 @@ public final class DefaultPlaceSearchService: PlaceSearchService {
         }
     }
     
-    public func fetchRelatedPlaces(for fsqID: String) async throws -> [RecommendedPlaceSearchResponse] {
-        let rawRelatedVenuesResponse = try await personalizedSearchSession.fetchRelatedVenues(for: fsqID)
+    public func fetchRelatedPlaces(for fsqID: String, cacheManager:CacheManager) async throws -> [RecommendedPlaceSearchResponse] {
+        let rawRelatedVenuesResponse = try await personalizedSearchSession.fetchRelatedVenues(for: fsqID, cacheManager: cacheManager)
         return try PlaceResponseFormatter.relatedPlaceSearchResponses(with: rawRelatedVenuesResponse)
     }
     
     // MARK: Autocomplete Methods
     
-    public func autocompleteTastes(lastIntent: AssistiveChatHostIntent, currentTasteResults:[CategoryResult]) async throws -> [CategoryResult] {
+    public func autocompleteTastes(lastIntent: AssistiveChatHostIntent, currentTasteResults:[CategoryResult], cacheManager:CacheManager) async throws -> [CategoryResult] {
         let query = lastIntent.caption
-        let rawResponse = try await personalizedSearchSession.autocompleteTastes(caption: query, parameters: lastIntent.queryParameters)
+        let rawResponse = try await personalizedSearchSession.autocompleteTastes(caption: query, parameters: lastIntent.queryParameters, cacheManager: cacheManager)
         let tastes = try PlaceResponseFormatter.autocompleteTastesResponses(with: rawResponse)
         let results = tasteCategoryResults(with: tastes.map(\.text), page: 0, currentTasteResults: currentTasteResults)
         
         return results
     }
     
-    public func refreshTastes(page: Int, currentTasteResults:[CategoryResult]) async throws -> [CategoryResult] {
+    public func refreshTastes(page: Int, currentTasteResults:[CategoryResult], cacheManager:CacheManager) async throws -> [CategoryResult] {
         if page > lastFetchedTastePage {
-            let tastes = try await personalizedSearchSession.fetchTastes(page: page)
+            let tastes = try await personalizedSearchSession.fetchTastes(page: page, cacheManager: cacheManager)
             let results = tasteCategoryResults(with: tastes, page: page, currentTasteResults: currentTasteResults)
             lastFetchedTastePage = page
             return results
@@ -146,7 +147,7 @@ public final class DefaultPlaceSearchService: PlaceSearchService {
         
         for taste in tastes {
             let chatResult = ChatResult(title: taste, list:"Type", icon: "", rating: 1, section:assistiveHostDelegate.section(for:taste), placeResponse: nil, recommendedPlaceResponse: nil)
-            let categoryResult = CategoryResult(parentCategory: taste, list:"Type", icon: chatResult.icon, rating: 1, section:chatResult.section, categoricalChatResults: [chatResult])
+            let categoryResult = CategoryResult(parentCategory: taste, recordId: "", list:"Type", icon: chatResult.icon, rating: 1, section:chatResult.section, categoricalChatResults: [chatResult])
             results.append(categoryResult)
         }
         
@@ -155,12 +156,12 @@ public final class DefaultPlaceSearchService: PlaceSearchService {
     
     // MARK: Detail Intent
     
-    public func detailIntent(intent: AssistiveChatHostIntent) async throws {
+    public func detailIntent(intent: AssistiveChatHostIntent, cacheManager:CacheManager) async throws {
         if intent.selectedPlaceSearchDetails == nil {
             if let placeSearchResponse = intent.selectedPlaceSearchResponse {
                 intent.selectedPlaceSearchDetails = try await fetchDetails(for: [placeSearchResponse]).first
                 intent.placeDetailsResponses = [intent.selectedPlaceSearchDetails!]
-                intent.relatedPlaceSearchResponses = try await fetchRelatedPlaces(for: placeSearchResponse.fsqID)
+                intent.relatedPlaceSearchResponses = try await fetchRelatedPlaces(for: placeSearchResponse.fsqID, cacheManager: cacheManager)
             }
         }
     }

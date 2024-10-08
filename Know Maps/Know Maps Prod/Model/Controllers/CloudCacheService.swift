@@ -506,6 +506,24 @@ public final class CloudCacheService: NSObject, ObservableObject, CloudCache {
         return record.recordID.recordName
     }
     
+    public func updateUserCachedRecordRating(recordId: String, newRating: Int) async throws {
+        let recordID = CKRecord.ID(recordName: recordId)
+        do {
+            // Fetch the existing record
+            let record = try await cacheContainer.privateCloudDatabase.record(for: recordID)
+            // Update the rating field
+            record["Rating"] = newRating as NSNumber
+            // Save the updated record
+            _ = try await cacheContainer.privateCloudDatabase.modifyRecords(
+                saving: [record],
+                deleting: []
+            )
+        } catch {
+            // Log the error using your analytics manager
+            analyticsManager.trackError(error: error, additionalInfo: nil)
+        }
+    }
+    
     public func deleteUserCachedRecord(for cachedRecord: UserCachedRecord) async throws {
         guard !cachedRecord.recordId.isEmpty else { return }
         try await cacheContainer.privateCloudDatabase.deleteRecord(withID: CKRecord.ID(recordName: cachedRecord.recordId))

@@ -9,6 +9,7 @@ import SwiftUI
 
 struct SearchView: View {
     @ObservedObject public var chatModel:ChatResultViewModel
+    @ObservedObject public var cacheManager:CloudCacheManager
     @ObservedObject public var searchSavedViewModel:SearchSavedViewModel
     @Binding public var preferredColumn:NavigationSplitViewColumn
     @Binding public var contentViewDetail:ContentDetailView
@@ -18,7 +19,7 @@ struct SearchView: View {
     @Binding public var didError:Bool
     
     var body: some View {
-        SearchSavedView(viewModel: searchSavedViewModel, preferredColumn: $preferredColumn, contentViewDetail: $contentViewDetail, addItemSection: $addItemSection, settingsPresented: $settingsPresented )
+        SearchSavedView(viewModel: searchSavedViewModel, cacheManager: cacheManager, preferredColumn: $preferredColumn, contentViewDetail: $contentViewDetail, addItemSection: $addItemSection, settingsPresented: $settingsPresented )
             .onChange(of: chatModel.modelController.selectedPlaceChatResult, { oldValue, newValue in
                 guard let newValue = newValue else {
                     showPlaceViewSheet = false
@@ -28,7 +29,7 @@ struct SearchView: View {
                 if let placeChatResult = chatModel.modelController.placeChatResult(for: newValue), placeChatResult.placeDetailsResponse == nil {
                     Task {
                         do {
-                            try await chatModel.didTap(placeChatResult: placeChatResult)
+                            try await chatModel.didTap(placeChatResult: placeChatResult, cacheManager: cacheManager)
                             await MainActor.run {
                                 showPlaceViewSheet = true
                             }
@@ -53,12 +54,12 @@ struct SearchView: View {
                 
                 Task {
                     if let selectedDestinationLocationChatResult = chatModel.modelController.selectedDestinationLocationChatResult {
-                        if let cachedResult = chatModel.modelController.cachedChatResult(for: newValue) {
-                            await chatModel.didTap(chatResult: cachedResult, selectedDestinationChatResultID: selectedDestinationLocationChatResult)
+                        if let cachedResult = chatModel.modelController.cachedChatResult(for: newValue, cacheManager: cacheManager) {
+                            await chatModel.didTap(chatResult: cachedResult, selectedDestinationChatResultID: selectedDestinationLocationChatResult, cacheManager: cacheManager)
                         }
                     } else {
-                        if let cachedResult = chatModel.modelController.cachedChatResult(for: newValue) {
-                            await chatModel.didTap(chatResult: cachedResult,  selectedDestinationChatResultID: nil)
+                        if let cachedResult = chatModel.modelController.cachedChatResult(for: newValue, cacheManager: cacheManager) {
+                            await chatModel.didTap(chatResult: cachedResult,  selectedDestinationChatResultID: nil, cacheManager: cacheManager)
                         }
                     }
                 }
@@ -68,14 +69,14 @@ struct SearchView: View {
                 Task {
                     if let newValue = newValue, let categoricalResult =
                         chatModel.modelController.categoricalChatResult(for: newValue) {
-                        await chatModel.didTap(chatResult: categoricalResult, selectedDestinationChatResultID:chatModel.modelController.selectedDestinationLocationChatResult)
+                        await chatModel.didTap(chatResult: categoricalResult, selectedDestinationChatResultID:chatModel.modelController.selectedDestinationLocationChatResult, cacheManager: cacheManager)
                     }
                 }
             }.onChange(of: chatModel.modelController.selectedTasteCategoryResult, { oldValue, newValue in
                 chatModel.modelController.resetPlaceModel()
                 Task {
                     if let newValue = newValue, let tasteResult = chatModel.modelController.tasteChatResult(for: newValue) {
-                        await chatModel.didTap(chatResult: tasteResult, selectedDestinationChatResultID:chatModel.modelController.selectedDestinationLocationChatResult)
+                        await chatModel.didTap(chatResult: tasteResult, selectedDestinationChatResultID:chatModel.modelController.selectedDestinationLocationChatResult, cacheManager: cacheManager)
                     }
                 }
             })

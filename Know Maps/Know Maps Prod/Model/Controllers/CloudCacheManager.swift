@@ -118,7 +118,10 @@ public final class CloudCacheManager: CacheManager, ObservableObject {
     
     public func refreshCachedCategories() async {
         do {
-            cachedCategoryRecords = try await cloudCache.fetchGroupedUserCachedRecords(for: "Category")
+            let records =  try await cloudCache.fetchGroupedUserCachedRecords(for: "Category")
+            await MainActor.run {
+                cachedCategoryRecords = records
+            }
             let categoryResults = savedCategoricalResults()
             await MainActor.run {
                 cachedIndustryResults = categoryResults
@@ -131,7 +134,10 @@ public final class CloudCacheManager: CacheManager, ObservableObject {
     
     public func refreshCachedTastes() async {
         do {
-            cachedTasteRecords = try await cloudCache.fetchGroupedUserCachedRecords(for: "Taste")
+            let records =  try await cloudCache.fetchGroupedUserCachedRecords(for: "Taste")
+            await MainActor.run {
+                cachedTasteRecords = records
+            }
             let tasteResults = savedTasteResults()
             await MainActor.run {
                 cachedTasteResults = tasteResults
@@ -143,7 +149,10 @@ public final class CloudCacheManager: CacheManager, ObservableObject {
     
     public func refreshCachedPlaces() async {
         do {
-            self.cachedPlaceRecords = try await cloudCache.fetchGroupedUserCachedRecords(for: "Place")
+            let records = try await cloudCache.fetchGroupedUserCachedRecords(for: "Place")
+            await MainActor.run {
+                cachedPlaceRecords = records
+            }
             let placeResults = savedPlaceResults()
             await MainActor.run {
                 cachedPlaceResults = placeResults
@@ -155,7 +164,10 @@ public final class CloudCacheManager: CacheManager, ObservableObject {
     
     public func refreshCachedLocations() async  {
         do {
-            cachedLocationRecords = try await cloudCache.fetchGroupedUserCachedRecords(for: "Location")
+            let records = try await cloudCache.fetchGroupedUserCachedRecords(for: "Location")
+            await MainActor.run {
+                cachedLocationRecords = records
+            }
             let locationResults = savedLocationResults()
             await MainActor.run {
                 cachedLocationResults = locationResults
@@ -187,55 +199,21 @@ public final class CloudCacheManager: CacheManager, ObservableObject {
         cachedLocationResults.removeAll()
     }
     
-    // MARK: Append Cached Data
-    
-    public func appendCachedLocation(record: UserCachedRecord) async {
-        cachedLocationRecords.append(record)
-        let locationResults = savedLocationResults()
-        await MainActor.run {
-            cachedLocationResults = locationResults
-        }
-    }
-    
-    public func appendCachedCategory(record: UserCachedRecord) async {
-        cachedCategoryRecords.append(record)
-        let categoricalResults = savedCategoricalResults()
-        await MainActor.run {
-            cachedIndustryResults = categoricalResults
-        }
-    }
-    
-    public func appendCachedTaste(record: UserCachedRecord) async {
-        cachedTasteRecords.append(record)
-        let tasteResults = savedTasteResults()
-        await MainActor.run {
-            cachedTasteResults = tasteResults
-        }
-    }
-    
-    
-    public func appendCachedPlace(record: UserCachedRecord) async {
-        cachedPlaceRecords.append(record)
-        let placeResults = savedPlaceResults()
-        await MainActor.run {
-            cachedPlaceResults = placeResults
-        }
-    }
     
     // MARK: - Saved Results
     
     private func savedCategoricalResults() -> [CategoryResult] {
         return cachedCategoryRecords.map {
             let chatResults = [ChatResult(title: $0.title, list:$0.list, icon: $0.icons, rating: $0.rating, section:PersonalizedSearchSection(rawValue:$0.section) ?? .none, placeResponse: nil, recommendedPlaceResponse: nil)]
-            return CategoryResult(parentCategory: $0.title, list: $0.list, icon:$0.icons, rating: $0.rating, section:PersonalizedSearchSection(rawValue:$0.section) ?? .none, categoricalChatResults: chatResults)
-        }.sorted(by: {$0.parentCategory < $1.parentCategory})
+            return CategoryResult(parentCategory: $0.title, recordId: $0.recordId, list: $0.list, icon:$0.icons, rating: $0.rating, section:PersonalizedSearchSection(rawValue:$0.section) ?? .none, categoricalChatResults: chatResults)
+        }.sorted(by: {$0.parentCategory.lowercased() < $1.parentCategory.lowercased()})
     }
     
     private func savedTasteResults() -> [CategoryResult] {
         return cachedTasteRecords.map {
             let chatResults = [ChatResult(title: $0.title, list:$0.list, icon:$0.icons, rating: $0.rating, section:PersonalizedSearchSection(rawValue:$0.section) ?? .none, placeResponse: nil, recommendedPlaceResponse: nil)]
-            return CategoryResult(parentCategory: $0.title, list: $0.list, icon:$0.icons, rating: $0.rating, section:PersonalizedSearchSection(rawValue:$0.section) ?? .none, categoricalChatResults: chatResults)
-        }.sorted(by: {$0.parentCategory < $1.parentCategory})
+            return CategoryResult(parentCategory: $0.title, recordId: $0.recordId, list: $0.list, icon:$0.icons, rating: $0.rating, section:PersonalizedSearchSection(rawValue:$0.section) ?? .none, categoricalChatResults: chatResults)
+        }.sorted(by: {$0.parentCategory.lowercased() < $1.parentCategory.lowercased()})
     }
     
     private func savedPlaceResults() -> [CategoryResult] {
@@ -264,12 +242,12 @@ public final class CloudCacheManager: CacheManager, ObservableObject {
                 
                 chatResults = [ChatResult(title: record.title, list: record.list, icon:record.icons, rating: record.rating, section:PersonalizedSearchSection(rawValue:record.section) ?? .none, placeResponse: placeResponse, recommendedPlaceResponse: nil)]
                 
-                return CategoryResult(parentCategory:record.title, list: record.list, icon:record.icons, rating: record.rating, section:PersonalizedSearchSection(rawValue:record.section) ?? .none, categoricalChatResults: chatResults)
+                return CategoryResult(parentCategory:record.title, recordId: record.recordId, list: record.list, icon:record.icons, rating: record.rating, section:PersonalizedSearchSection(rawValue:record.section) ?? .none, categoricalChatResults: chatResults)
             } else {
                 chatResults = [ChatResult(title: record.title, list: record.list, icon: record.icons, rating: record.rating, section:PersonalizedSearchSection(rawValue:record.section) ?? .none, placeResponse: nil, recommendedPlaceResponse: nil)]
             }
-            return CategoryResult(parentCategory: record.title, list: record.list, icon: record.icons, rating: record.rating, section:PersonalizedSearchSection(rawValue:record.section) ?? .none, categoricalChatResults: chatResults)
-        }.sorted(by: {$0.parentCategory < $1.parentCategory})
+            return CategoryResult(parentCategory: record.title, recordId: record.recordId, list: record.list, icon: record.icons, rating: record.rating, section:PersonalizedSearchSection(rawValue:record.section) ?? .none, categoricalChatResults: chatResults)
+        }.sorted(by: {$0.parentCategory.lowercased() < $1.parentCategory.lowercased()})
     }
     
 
