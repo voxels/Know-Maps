@@ -17,6 +17,7 @@ public struct ChatResult : Identifiable, Equatable, Hashable {
     let title:String
     let list:String
     let icon:String
+    let rating:Int
     let section:PersonalizedSearchSection
     let placeResponse:PlaceSearchResponse?
     let recommendedPlaceResponse:RecommendedPlaceSearchResponse?

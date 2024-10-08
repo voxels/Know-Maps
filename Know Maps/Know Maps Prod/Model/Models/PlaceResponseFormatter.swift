@@ -857,12 +857,12 @@ open class PlaceResponseFormatter {
         return retVal
     }
         
-    public class func placeChatResults(for intent:AssistiveChatHostIntent, place:PlaceSearchResponse, section:PersonalizedSearchSection, list:String, details:PlaceDetailsResponse?, recommendedPlaceResponse:RecommendedPlaceSearchResponse? = nil)->[ChatResult] {
-        return [PlaceResponseFormatter.chatResult(title: place.name, section:section, list:list, placeResponse: place, placeDetailsResponse: details, recommendedPlaceResponse: recommendedPlaceResponse)]
+    public class func placeChatResults(for intent:AssistiveChatHostIntent, place:PlaceSearchResponse, section:PersonalizedSearchSection, list:String, rating:Int, details:PlaceDetailsResponse?, recommendedPlaceResponse:RecommendedPlaceSearchResponse? = nil)->[ChatResult] {
+        return [PlaceResponseFormatter.chatResult(title: place.name, section:section, list:list, rating:rating, placeResponse: place, placeDetailsResponse: details, recommendedPlaceResponse: recommendedPlaceResponse)]
     }
     
-    public class func chatResult(title:String, section:PersonalizedSearchSection, list:String, placeResponse:PlaceSearchResponse?, placeDetailsResponse:PlaceDetailsResponse?, recommendedPlaceResponse:RecommendedPlaceSearchResponse? = nil)->ChatResult {
-        let result = ChatResult(title:title, list:list, icon: "", section:section, placeResponse: placeResponse, recommendedPlaceResponse: recommendedPlaceResponse, placeDetailsResponse:placeDetailsResponse)
+    public class func chatResult(title:String, section:PersonalizedSearchSection, list:String, rating:Int, placeResponse:PlaceSearchResponse?, placeDetailsResponse:PlaceDetailsResponse?, recommendedPlaceResponse:RecommendedPlaceSearchResponse? = nil)->ChatResult {
+        let result = ChatResult(title:title, list:list, icon: "", rating: rating, section:section, placeResponse: placeResponse, recommendedPlaceResponse: recommendedPlaceResponse, placeDetailsResponse:placeDetailsResponse)
                         
         return result
     }

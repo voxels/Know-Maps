@@ -226,15 +226,15 @@ public final class CloudCacheManager: CacheManager, ObservableObject {
     
     private func savedCategoricalResults() -> [CategoryResult] {
         return cachedCategoryRecords.map {
-            let chatResults = [ChatResult(title: $0.title, list:$0.list, icon: $0.icons, section:PersonalizedSearchSection(rawValue:$0.section) ?? .none, placeResponse: nil, recommendedPlaceResponse: nil)]
-            return CategoryResult(parentCategory: $0.title, list: $0.list, icon:$0.icons, section:PersonalizedSearchSection(rawValue:$0.section) ?? .none, categoricalChatResults: chatResults)
+            let chatResults = [ChatResult(title: $0.title, list:$0.list, icon: $0.icons, rating: $0.rating, section:PersonalizedSearchSection(rawValue:$0.section) ?? .none, placeResponse: nil, recommendedPlaceResponse: nil)]
+            return CategoryResult(parentCategory: $0.title, list: $0.list, icon:$0.icons, rating: $0.rating, section:PersonalizedSearchSection(rawValue:$0.section) ?? .none, categoricalChatResults: chatResults)
         }.sorted(by: {$0.parentCategory < $1.parentCategory})
     }
     
     private func savedTasteResults() -> [CategoryResult] {
         return cachedTasteRecords.map {
-            let chatResults = [ChatResult(title: $0.title, list:$0.list, icon:$0.icons, section:PersonalizedSearchSection(rawValue:$0.section) ?? .none, placeResponse: nil, recommendedPlaceResponse: nil)]
-            return CategoryResult(parentCategory: $0.title, list: $0.list, icon:$0.icons, section:PersonalizedSearchSection(rawValue:$0.section) ?? .none, categoricalChatResults: chatResults)
+            let chatResults = [ChatResult(title: $0.title, list:$0.list, icon:$0.icons, rating: $0.rating, section:PersonalizedSearchSection(rawValue:$0.section) ?? .none, placeResponse: nil, recommendedPlaceResponse: nil)]
+            return CategoryResult(parentCategory: $0.title, list: $0.list, icon:$0.icons, rating: $0.rating, section:PersonalizedSearchSection(rawValue:$0.section) ?? .none, categoricalChatResults: chatResults)
         }.sorted(by: {$0.parentCategory < $1.parentCategory})
     }
     
@@ -262,13 +262,13 @@ public final class CloudCacheManager: CacheManager, ObservableObject {
                     parentIDs: []
                 )
                 
-                chatResults = [ChatResult(title: record.title, list: record.list, icon:record.icons, section:PersonalizedSearchSection(rawValue:record.section) ?? .none, placeResponse: placeResponse, recommendedPlaceResponse: nil)]
+                chatResults = [ChatResult(title: record.title, list: record.list, icon:record.icons, rating: record.rating, section:PersonalizedSearchSection(rawValue:record.section) ?? .none, placeResponse: placeResponse, recommendedPlaceResponse: nil)]
                 
-                return CategoryResult(parentCategory:record.title, list: record.list, icon:record.icons, section:PersonalizedSearchSection(rawValue:record.section) ?? .none, categoricalChatResults: chatResults)
+                return CategoryResult(parentCategory:record.title, list: record.list, icon:record.icons, rating: record.rating, section:PersonalizedSearchSection(rawValue:record.section) ?? .none, categoricalChatResults: chatResults)
             } else {
-                chatResults = [ChatResult(title: record.title, list: record.list, icon: record.icons, section:PersonalizedSearchSection(rawValue:record.section) ?? .none, placeResponse: nil, recommendedPlaceResponse: nil)]
+                chatResults = [ChatResult(title: record.title, list: record.list, icon: record.icons, rating: record.rating, section:PersonalizedSearchSection(rawValue:record.section) ?? .none, placeResponse: nil, recommendedPlaceResponse: nil)]
             }
-            return CategoryResult(parentCategory: record.title, list: record.list, icon: record.icons, section:PersonalizedSearchSection(rawValue:record.section) ?? .none, categoricalChatResults: chatResults)
+            return CategoryResult(parentCategory: record.title, list: record.list, icon: record.icons, rating: record.rating, section:PersonalizedSearchSection(rawValue:record.section) ?? .none, categoricalChatResults: chatResults)
         }.sorted(by: {$0.parentCategory < $1.parentCategory})
     }
     

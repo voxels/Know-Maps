@@ -89,14 +89,14 @@ public final class DefaultModelController : ModelController, ObservableObject {
             for values in categoryCode.values {
                 for value in values {
                     if let category = value["category"]{
-                        let chatResult = ChatResult(title:category, list:category, icon: "", section:assistiveHostDelegate.section(for:category), placeResponse:nil, recommendedPlaceResponse: nil)
+                        let chatResult = ChatResult(title:category, list:category, icon: "", rating: 1, section:assistiveHostDelegate.section(for:category), placeResponse:nil, recommendedPlaceResponse: nil)
                         newChatResults.append(chatResult)
                     }
                 }
             }
             
             for key in categoryCode.keys {
-                newChatResults.append(ChatResult(title: key, list:key, icon:"", section:assistiveHostDelegate.section(for:key), placeResponse:nil, recommendedPlaceResponse: nil))
+                newChatResults.append(ChatResult(title: key, list:key, icon:"", rating: 1, section:assistiveHostDelegate.section(for:key), placeResponse:nil, recommendedPlaceResponse: nil))
                 
                 if retval.contains(where: { checkResult in
                     return checkResult.parentCategory == key
@@ -116,12 +116,12 @@ public final class DefaultModelController : ModelController, ObservableObject {
                             return checkResult.parentCategory == key
                         }
                         
-                        let newResult = CategoryResult(parentCategory: key, list:key, icon:"", section:assistiveHostDelegate.section(for:key), categoricalChatResults: newChatResults)
+                        let newResult = CategoryResult(parentCategory: key, list:key, icon:"", rating:1, section:assistiveHostDelegate.section(for:key), categoricalChatResults: newChatResults)
                         retval.append(newResult)
                     }
                     
                 } else {
-                    let newResult = CategoryResult(parentCategory: key, list:key, icon: "", section:assistiveHostDelegate.section(for:key), categoricalChatResults: newChatResults)
+                    let newResult = CategoryResult(parentCategory: key, list:key, icon: "", rating: 1, section:assistiveHostDelegate.section(for:key), categoricalChatResults: newChatResults)
                     retval.append(newResult)
                 }
             }
@@ -411,7 +411,7 @@ public final class DefaultModelController : ModelController, ObservableObject {
         var chatResults = [ChatResult]()
         let allResponses = intent.placeSearchResponses
         for response in allResponses {
-            let results = PlaceResponseFormatter.placeChatResults(for: intent, place: response, section: assistiveHostDelegate.section(for: intent.caption), list: intent.caption, details: nil)
+            let results = PlaceResponseFormatter.placeChatResults(for: intent, place: response, section: assistiveHostDelegate.section(for: intent.caption), list: intent.caption, rating: 1, details: nil)
             chatResults.append(contentsOf: results)
         }
         
@@ -437,6 +437,7 @@ public final class DefaultModelController : ModelController, ObservableObject {
                 place: response,
                 section: assistiveHostDelegate.section(for:intent.caption),
                 list:intent.caption,
+                rating: 1,
                 details: details,
                 recommendedPlaceResponse:nil
             )
@@ -445,7 +446,7 @@ public final class DefaultModelController : ModelController, ObservableObject {
             if !intent.placeSearchResponses.isEmpty {
                 for response in intent.placeSearchResponses {
                     if !response.name.isEmpty {
-                        let results = PlaceResponseFormatter.placeChatResults(for: intent, place: response, section:assistiveHostDelegate.section(for:intent.caption), list:intent.caption, details: nil, recommendedPlaceResponse: nil)
+                        let results = PlaceResponseFormatter.placeChatResults(for: intent, place: response, section:assistiveHostDelegate.section(for:intent.caption), list:intent.caption, rating: 1, details: nil, recommendedPlaceResponse: nil)
                         chatResults.append(contentsOf: results)
                     }
                 }
@@ -496,7 +497,7 @@ public final class DefaultModelController : ModelController, ObservableObject {
                     let results = PlaceResponseFormatter.placeChatResults(
                         for: intent,
                         place: placeResponse,
-                        section: assistiveHostDelegate.section(for: intent.caption), list: intent.caption,
+                        section: assistiveHostDelegate.section(for: intent.caption), list: intent.caption, rating: 1,
                         details: nil,
                         recommendedPlaceResponse: response
                     )
@@ -520,7 +521,7 @@ public final class DefaultModelController : ModelController, ObservableObject {
                         let results = PlaceResponseFormatter.placeChatResults(
                             for: intent,
                             place: placeSearchResponse,
-                            section: assistiveHostDelegate.section(for: intent.caption), list: intent.caption,
+                            section: assistiveHostDelegate.section(for: intent.caption), list: intent.caption, rating: 1,
                             details: intent.selectedPlaceSearchDetails,
                             recommendedPlaceResponse:nil
                         )
@@ -548,7 +549,7 @@ public final class DefaultModelController : ModelController, ObservableObject {
                         let results = PlaceResponseFormatter.placeChatResults(
                             for: intent,
                             place: placeResponse,
-                            section: assistiveHostDelegate.section(for: intent.caption), list: intent.caption,
+                            section: assistiveHostDelegate.section(for: intent.caption), list: intent.caption, rating: 1,
                             details: nil,
                             recommendedPlaceResponse: response
                         )
@@ -603,7 +604,7 @@ public final class DefaultModelController : ModelController, ObservableObject {
                 let results = PlaceResponseFormatter.placeChatResults(
                     for: intent,
                     place: detailsResponse.searchResponse,
-                    section: assistiveHostDelegate.section(for: intent.caption), list: intent.caption,
+                    section: assistiveHostDelegate.section(for: intent.caption), list: intent.caption, rating: 1,
                     details: detailsResponse
                 )
                 chatResults.append(contentsOf: results)
@@ -611,7 +612,7 @@ public final class DefaultModelController : ModelController, ObservableObject {
         }
         
         for response in intent.placeSearchResponses {
-            var results = PlaceResponseFormatter.placeChatResults(for: intent, place: response, section: assistiveHostDelegate.section(for: intent.caption), list: intent.caption, details: nil)
+            var results = PlaceResponseFormatter.placeChatResults(for: intent, place: response, section: assistiveHostDelegate.section(for: intent.caption), list: intent.caption, rating: 1, details: nil)
             results = results.filter { result in
                 !(intent.placeDetailsResponses?.contains { $0.fsqID == result.placeResponse?.fsqID } ?? false)
             }

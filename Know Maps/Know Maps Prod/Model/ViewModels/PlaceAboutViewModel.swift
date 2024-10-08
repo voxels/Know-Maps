@@ -38,8 +38,8 @@ class PlaceAboutViewModel: ObservableObject {
         } else {
             // Save to cache
             do {
-                var userRecord = UserCachedRecord(recordId: "", group: "Place", identity: placeResponse.fsqID, title: placeResult.title, icons: "", list: placeResult.list, section: placeResult.section.rawValue)
-                let record = try await chatModel.modelController.cacheManager.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, icons: userRecord.icons, list: userRecord.list, section: userRecord.section)
+                var userRecord = UserCachedRecord(recordId: "", group: "Place", identity: placeResponse.fsqID, title: placeResult.title, icons: "", list: placeResult.list, section: placeResult.section.rawValue, rating:1)
+                let record = try await chatModel.modelController.cacheManager.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, icons: userRecord.icons, list: userRecord.list, section: userRecord.section, rating:userRecord.rating)
                 userRecord.setRecordId(to: record)
                 try await Task.sleep(nanoseconds: 1_000_000_000)
                 try await chatModel.modelController.cacheManager.refreshCache()

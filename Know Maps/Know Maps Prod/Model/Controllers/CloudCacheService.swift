@@ -417,7 +417,7 @@ public final class CloudCacheService: NSObject, ObservableObject, CloudCache {
         let query = CKQuery(recordType: "UserCachedRecord", predicate: predicate)
         query.sortDescriptors = [NSSortDescriptor(key: "modificationDate", ascending: false)]
         let operation = CKQueryOperation(query: query)
-        operation.desiredKeys = ["Group", "Icons", "Identity", "Title", "List", "Section"]
+        operation.desiredKeys = ["Group", "Icons", "Identity", "Title", "List", "Section", "Rating"]
         operation.qualityOfService = .default
         operation.recordMatchedBlock = { [weak self] recordId, result in
             guard let strongSelf = self else { return }
@@ -427,13 +427,14 @@ public final class CloudCacheService: NSObject, ObservableObject, CloudCache {
                     let rawGroup = record["Group"] as? String,
                     let rawIdentity = record["Identity"] as? String,
                     let rawTitle = record["Title"] as? String
+                        
                 else {
                     return
                 }
                 let rawIcons = record["Icons"] as? String ?? ""
                 let rawList = record["List"] as? String ?? ""
                 let rawSection = record["Section"] as? String ?? PersonalizedSearchSection.none.rawValue
-                
+                let rawRating = record["Rating"] as? Int ?? 1
                 let cachedRecord = UserCachedRecord(
                     recordId: recordId.recordName,
                     group: rawGroup,
@@ -441,7 +442,8 @@ public final class CloudCacheService: NSObject, ObservableObject, CloudCache {
                     title: rawTitle,
                     icons: rawIcons,
                     list: rawList,
-                    section: PersonalizedSearchSection(rawValue: rawSection)?.rawValue ?? PersonalizedSearchSection.none.rawValue
+                    section: PersonalizedSearchSection(rawValue: rawSection)?.rawValue ?? PersonalizedSearchSection.none.rawValue,
+                    rating: rawRating
                 )
                 retval.append(cachedRecord)
             } catch {
@@ -480,7 +482,8 @@ public final class CloudCacheService: NSObject, ObservableObject, CloudCache {
         title: String,
         icons: String,
         list: String,
-        section: String
+        section: String,
+        rating:Int
     ) async throws -> String {
         let record = CKRecord(recordType: "UserCachedRecord")
         record.setObject(group as NSString, forKey: "Group")
@@ -489,6 +492,7 @@ public final class CloudCacheService: NSObject, ObservableObject, CloudCache {
         record.setObject(list as NSString, forKey: "List")
         record.setObject(section as NSString, forKey: "Section")
         record.setObject((icons) as NSString, forKey: "Icons")
+        record.setObject(rating as NSNumber, forKey: "Rating")
         
         let result = try await cacheContainer.privateCloudDatabase.modifyRecords(
             saving: [record],
@@ -522,7 +526,7 @@ public final class CloudCacheService: NSObject, ObservableObject, CloudCache {
     
     public func deleteAllUserCachedGroups() async throws {
         try await withThrowingTaskGroup(of: Void.self) { taskGroup in
-            let types = ["Location", "Category", "Taste", "Place", "List"]
+            let types = ["Location", "Category", "Taste", "Place"]
             for type in types {
                 taskGroup.addTask {
                     try await self.deleteAllUserCachedRecords(for: type)
