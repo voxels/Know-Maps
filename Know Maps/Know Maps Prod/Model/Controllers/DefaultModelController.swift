@@ -10,6 +10,7 @@ import CoreLocation
 
 public final class DefaultModelController : ModelController, ObservableObject {
     
+    
     // MARK: - Dependencies
     public var assistiveHostDelegate: AssistiveChatHost
     public var locationService:LocationService
@@ -229,6 +230,10 @@ public final class DefaultModelController : ModelController, ObservableObject {
         return cacheManager.cachedTasteResults.first { $0.id == id }
     }
     
+    
+    public func cachedTasteResult(title: String, cacheManager: any CacheManager) -> CategoryResult? {
+        return cacheManager.cachedTasteResults.first { $0.parentCategory == title}
+    }
     
     // MARK: - Location Handling
     

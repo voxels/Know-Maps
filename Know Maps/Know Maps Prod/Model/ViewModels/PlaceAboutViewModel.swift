@@ -11,6 +11,60 @@ import CallKit
 
 class PlaceAboutViewModel {
     
+    // Refresh Cache
+    func refreshCache(cacheManager:CacheManager, modelController:ModelController) async {
+        do {
+            try await Task.sleep(for:.seconds(1))
+            try await cacheManager.refreshCache()
+        } catch {
+            modelController.analyticsManager.trackError(error:error, additionalInfo: nil)
+        }
+    }
+    
+    // Add Taste
+    func addTaste(title: String, cacheManager:CacheManager, modelController:ModelController) async {
+        do {
+            let section = modelController.assistiveHostDelegate.section(for:title).rawValue
+            var userRecord = UserCachedRecord(
+                recordId: "",
+                group: "Taste",
+                identity: title,
+                title: title,
+                icons: "",
+                list: section,
+                section: section,
+                rating: 1
+            )
+            let record = try await cacheManager.cloudCache.storeUserCachedRecord(
+                for: userRecord.group,
+                identity: userRecord.identity,
+                title: userRecord.title, icons: userRecord.icons,
+                list: userRecord.list,
+                section: userRecord.section,
+                rating:userRecord.rating
+            )
+            userRecord.setRecordId(to: record)
+            await refreshCache(cacheManager: cacheManager, modelController: modelController)
+        } catch {
+            modelController.analyticsManager.trackError(error:error, additionalInfo: nil)
+        }
+    }
+    
+    // Remove Taste
+    func removeTaste(parent: CategoryResult, cacheManager:CacheManager, modelController:ModelController) async {
+        if let cachedResults = cacheManager.cachedResults(for: "Taste", identity: parent.parentCategory) {
+            for result in cachedResults {
+                do {
+                    try await cacheManager.cloudCache.deleteUserCachedRecord(for: result)
+                } catch {
+                    modelController.analyticsManager.trackError(error:error, additionalInfo: nil)
+                }
+            }
+            await refreshCache(cacheManager: cacheManager, modelController:modelController)
+        }
+    }
+
+    
     func toggleSavePlace(resultId:ChatResult.ID?, cacheManager:CacheManager, modelController:ModelController) async {
         guard let resultId = resultId, let placeResult = modelController.placeChatResult(for: resultId), let placeResponse = placeResult.placeResponse else {
             return
@@ -38,6 +92,8 @@ class PlaceAboutViewModel {
                 print(error)
             }
         }
+        await refreshCache(cacheManager: cacheManager, modelController:modelController)
+
     }
     
     func getCallURL(tel: String) -> URL? {

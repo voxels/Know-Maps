@@ -105,6 +105,8 @@ public protocol ModelController {
     
     func cachedTasteResult(for id: CategoryResult.ID, cacheManager:CacheManager) -> CategoryResult?
     
+    func cachedTasteResult(title:String, cacheManager:CacheManager) -> CategoryResult?
+    
     // MARK: - Model Building and Query Handling
     
     /// Refreshes the model based on the provided query and intents.
