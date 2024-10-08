@@ -1,5 +1,5 @@
 //
-//  AnalyticsManager.swift
+//  SegmentAnalyticsManager.swift
 //  Know Maps
 //
 //  Created by Michael A Edgcumbe on 10/7/24.
@@ -8,20 +8,7 @@
 import Foundation
 import Segment
 
-public protocol AnalyticsService {
-    // Track a generic event with optional properties
-    func track(event: String, properties: [String: Any]?)
-    
-    // Track errors with detailed error description
-    func trackError(error: Error, additionalInfo: [String: Any]?)
-    
-    // Track cache refreshes or updates
-    func trackCacheRefresh(cacheType: String, success: Bool, additionalInfo: [String: Any]?)
-    
-    func identify(userID:String)
-}
-
-public final class SegmentAnalyticsManager: AnalyticsService {
+public final class SegmentAnalyticsService: AnalyticsService {
     
     private var analytics: Analytics
     

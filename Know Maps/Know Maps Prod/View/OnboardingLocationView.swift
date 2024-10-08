@@ -13,10 +13,11 @@ import AppKit
 
 
 struct OnboardingLocationView: View {
-    @ObservedObject public var locationProvider:LocationProvider
-    @State private var isAuthorized:Bool = false
+    @ObservedObject public var chatModel:ChatResultViewModel
     @Binding public var showOnboarding:Bool
     @Binding public var selectedTab:String
+    @State private var isAuthorized:Bool = false
+
     var body: some View {
         VStack{
             Spacer()
@@ -29,7 +30,7 @@ struct OnboardingLocationView: View {
                 .multilineTextAlignment(.leading)
                 .padding()
             Button("Authorize Location Tracking") {
-                locationProvider.authorize()
+                chatModel.modelController.locationProvider.authorize()
                 showOnboarding = false
             }.padding()
                 .alert("Location Settings", isPresented: $isAuthorized, actions:                 {

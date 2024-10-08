@@ -22,7 +22,7 @@ struct SearchSectionView: View {
             guard let newValue = newValue else {
                 return
             }
-            chatModel.selectedPersonalizedSearchSection = newValue
+            chatModel.modelController.selectedPersonalizedSearchSection = newValue
             
         }
     }

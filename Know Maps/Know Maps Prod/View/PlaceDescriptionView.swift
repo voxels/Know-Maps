@@ -9,11 +9,10 @@ import SwiftUI
 
 struct PlaceDescriptionView: View {
     @ObservedObject public var chatModel:ChatResultViewModel
-    @ObservedObject public var locationProvider:LocationProvider
     @Binding public var resultId:ChatResult.ID?
     
     var body: some View {
-        if let resultId = resultId, let placeChatResult = chatModel.placeChatResult(for: resultId), let placeDetailsResponse = placeChatResult.placeDetailsResponse, let _ = placeDetailsResponse.tipsResponses {
+        if let resultId = resultId, let placeChatResult = chatModel.modelController.placeChatResult(for: resultId), let placeDetailsResponse = placeChatResult.placeDetailsResponse, let _ = placeDetailsResponse.tipsResponses {
             if let description = placeDetailsResponse.description, !description.isEmpty {
                 ZStack() {
                     Rectangle().foregroundStyle(.thickMaterial)

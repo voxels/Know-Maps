@@ -8,10 +8,8 @@
 import SwiftUI
 
 struct OnboardingView: View {    
-    @EnvironmentObject public var settingsModel:AuthenticationManager
-    @EnvironmentObject public var featureFlags:FeatureFlags
+    @EnvironmentObject public var settingsModel:AppleAuthenticationService
     @ObservedObject public var chatModel:ChatResultViewModel
-    @ObservedObject public var locationProvider:LocationProvider
     
     @Binding public var selectedTab:String
     @Binding public var showOnboarding:Bool
@@ -24,7 +22,7 @@ struct OnboardingView: View {
                 .tabItem({
                     Label("Sign In", systemImage: "person.crop.circle.badge.plus")
                 })
-            OnboardingLocationView(locationProvider: locationProvider, showOnboarding: $showOnboarding, selectedTab: $selectedTab)
+            OnboardingLocationView(chatModel:chatModel, showOnboarding: $showOnboarding, selectedTab: $selectedTab)
                 .tag("Location")
                 .tabItem({
                     Label("Location", systemImage: "map" )

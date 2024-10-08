@@ -8,7 +8,10 @@
 import Foundation
 import RevenueCat
 
-open class FeatureFlags : NSObject, ObservableObject {
+open class FeatureFlagService : NSObject, @preconcurrency FeatureFlag, @preconcurrency PurchasesDelegate, ObservableObject {
+    
+    // Shared instance (singleton)
+    public static let shared = FeatureFlagService()
     
     public enum Flag : String {
         case hasMonthlySubscription
@@ -18,12 +21,12 @@ open class FeatureFlags : NSObject, ObservableObject {
     
     @Published public var features:[Flag:Bool] = [Flag:Bool]()
     
-    public func owns(flag:FeatureFlags.Flag)->Bool{
+    public func owns(flag:FeatureFlagService.Flag)->Bool{
         return features[flag] == true
     }
     
     @MainActor
-    public func update(flag:FeatureFlags.Flag, allowed:Bool){
+    public func update(flag:FeatureFlagService.Flag, allowed:Bool){
         Task { @MainActor in
             features[flag] = allowed
         }
@@ -55,9 +58,7 @@ open class FeatureFlags : NSObject, ObservableObject {
             break
         }
     }
-}
-
-extension FeatureFlags : @preconcurrency PurchasesDelegate {
+    
     @MainActor public func purchases(_ purchases: Purchases, receivedUpdated customerInfo: CustomerInfo) {
         updateFlags(with: customerInfo)
     }

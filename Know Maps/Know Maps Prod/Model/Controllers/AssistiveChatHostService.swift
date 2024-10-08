@@ -14,7 +14,7 @@ import Segment
 
 public typealias AssistiveChatHostTaggedWord = [String: [String]]
 
-public final class AssistiveChatHost : AssistiveChatHostDelegate, ObservableObject {
+public final class AssistiveChatHostService : AssistiveChatHost, ObservableObject {
     public let analyticsManager:AnalyticsService
     public enum Intent : String {
         case Search
@@ -25,7 +25,6 @@ public final class AssistiveChatHost : AssistiveChatHostDelegate, ObservableObje
     }
     
     weak public var messagesDelegate:AssistiveChatHostMessagesDelegate?
-    public var languageDelegate:LanguageGeneratorDelegate = LanguageGenerator()
     public var placeSearchSession = PlaceSearchSession()
 
     @Published public var queryIntentParameters:AssistiveChatHostQueryParameters?

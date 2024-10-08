@@ -27,7 +27,6 @@ public actor PlaceSearchSession : ObservableObject {
     static let placePhotosAPIUrl = "/photos"
     static let placeTipsAPIUrl = "/tips"
     static let autocompleteAPIUrl = "v3/autocomplete"
-
     
     public enum PlaceSearchService : String {
         case foursquare

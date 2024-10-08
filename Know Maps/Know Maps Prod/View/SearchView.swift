@@ -9,7 +9,6 @@ import SwiftUI
 
 struct SearchView: View {
     @ObservedObject public var chatModel:ChatResultViewModel
-    @ObservedObject public var locationProvider:LocationProvider
     @ObservedObject public var searchSavedViewModel:SearchSavedViewModel
     @Binding public var preferredColumn:NavigationSplitViewColumn
     @Binding public var contentViewDetail:ContentDetailView
@@ -19,7 +18,7 @@ struct SearchView: View {
     @Binding public var didError:Bool
     
     var body: some View {
-        SearchSavedView(viewModel: searchSavedViewModel, locationProvider: locationProvider, preferredColumn: $preferredColumn, contentViewDetail: $contentViewDetail, addItemSection: $addItemSection, settingsPresented: $settingsPresented )
+        SearchSavedView(viewModel: searchSavedViewModel, preferredColumn: $preferredColumn, contentViewDetail: $contentViewDetail, addItemSection: $addItemSection, settingsPresented: $settingsPresented )
 //            .onChange(of: chatModel.selectedPlaceChatResult, { oldValue, newValue in
 //                guard let newValue = newValue else {
 //                    showPlaceViewSheet = false

@@ -11,28 +11,26 @@ import CallKit
 
 class PlaceAboutViewModel: ObservableObject {
     @Published var chatModel: ChatResultViewModel
-    @Published var locationProvider: LocationProvider
     @Published var isSaved: Bool = false
     @Published var isPresentingShareSheet: Bool = false
     
-    init(chatModel: ChatResultViewModel, locationProvider: LocationProvider) {
+    init(chatModel: ChatResultViewModel) {
         self.chatModel = chatModel
-        self.locationProvider = locationProvider
     }
 
     func toggleSavePlace(resultId:ChatResult.ID?) async {
-        guard let resultId = resultId, let placeResult = chatModel.placeChatResult(for: resultId), let placeResponse = placeResult.placeResponse else {
+        guard let resultId = resultId, let placeResult = chatModel.modelController.placeChatResult(for: resultId), let placeResponse = placeResult.placeResponse else {
             return
         }
         
-        isSaved = chatModel.cacheManager.cachedPlaces(contains: placeResult.title)
+        isSaved = chatModel.modelController.cacheManager.cachedPlaces(contains: placeResult.title)
         
         if isSaved {
             // Delete from cache
-            if let cachedPlaceResults = chatModel.cacheManager.cachedResults(for: "Place", identity: placeResponse.fsqID), let cachedPlaceResult = cachedPlaceResults.first {
+            if let cachedPlaceResults = chatModel.modelController.cacheManager.cachedResults(for: "Place", identity: placeResponse.fsqID), let cachedPlaceResult = cachedPlaceResults.first {
                 do {
-                    try await chatModel.cacheManager.cloudCache.deleteUserCachedRecord(for: cachedPlaceResult)
-                    try await chatModel.cacheManager.refreshCache()
+                    try await chatModel.modelController.cacheManager.cloudCache.deleteUserCachedRecord(for: cachedPlaceResult)
+                    try await chatModel.modelController.cacheManager.refreshCache()
                 } catch {
                     print(error)
                 }
@@ -41,10 +39,10 @@ class PlaceAboutViewModel: ObservableObject {
             // Save to cache
             do {
                 var userRecord = UserCachedRecord(recordId: "", group: "Place", identity: placeResponse.fsqID, title: placeResult.title, icons: "", list: placeResult.list, section: placeResult.section.rawValue)
-                let record = try await chatModel.cacheManager.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, icons: userRecord.icons, list: userRecord.list, section: userRecord.section)
+                let record = try await chatModel.modelController.cacheManager.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, icons: userRecord.icons, list: userRecord.list, section: userRecord.section)
                 userRecord.setRecordId(to: record)
                 try await Task.sleep(nanoseconds: 1_000_000_000)
-                try await chatModel.cacheManager.refreshCache()
+                try await chatModel.modelController.cacheManager.refreshCache()
             } catch {
                 print(error)
             }

@@ -10,7 +10,7 @@ import AuthenticationServices
 
 struct OnboardingSignInView: View {
     @Binding public var selectedTab:String
-    @EnvironmentObject public var model:AuthenticationManager
+    @EnvironmentObject public var model:AppleAuthenticationService
     @State private var popoverPresented:Bool = false
     @State private var signInErrorMessage:String = "Error"
     
@@ -43,7 +43,7 @@ struct OnboardingSignInView: View {
                                 Task {
                                     let key =  model.appleUserId.data(using: .utf8)
                                     let addquery: [String: Any] = [kSecClass as String: kSecClassKey,
-                                                                   kSecAttrApplicationTag as String: AuthenticationManager.tag,
+                                                                   kSecAttrApplicationTag as String: AppleAuthenticationService.tag,
                                                                    kSecValueData as String: key as AnyObject]
                                     let status = SecItemAdd(addquery as CFDictionary, nil)
                                     guard status == errSecSuccess else {

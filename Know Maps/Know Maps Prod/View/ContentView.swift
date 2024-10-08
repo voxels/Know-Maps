@@ -23,13 +23,10 @@ struct ContentView: View {
     @Environment(\.dismissImmersiveSpace) var dismissImmersiveSpace
 #endif
     
-    @EnvironmentObject public var settingsModel:AuthenticationManager
-    @EnvironmentObject public var featureFlags:FeatureFlags
-    
+    @EnvironmentObject public var settingsModel:AppleAuthenticationService
     @ObservedObject public var chatModel:ChatResultViewModel
-    @ObservedObject public var locationProvider:LocationProvider
     @ObservedObject public var searchSavedViewModel:SearchSavedViewModel
-
+    
     @Binding public var showOnboarding:Bool
     
     @State private var selectedItem: String?
@@ -46,12 +43,11 @@ struct ContentView: View {
     @State private var showPlaceViewSheet:Bool = false
     @State private var cameraPosition:MapCameraPosition = .automatic
     @StateObject public var placeDirectionsChatViewModel = PlaceDirectionsViewModel(rawLocationIdent: "")
-
+    
     var body: some View {
         GeometryReader() { geometry in
             NavigationSplitView(preferredCompactColumn: $preferredColumn) {
-                SearchView( chatModel: chatModel, locationProvider: locationProvider, searchSavedViewModel: searchSavedViewModel, preferredColumn: $preferredColumn, contentViewDetail: $contentViewDetail, addItemSection: $addItemSection, settingsPresented: $settingsPresented, showPlaceViewSheet: $showPlaceViewSheet, didError: $didError)
-                
+                SearchView(chatModel: chatModel, searchSavedViewModel: searchSavedViewModel, preferredColumn: $preferredColumn, contentViewDetail: $contentViewDetail, addItemSection: $addItemSection, settingsPresented: $settingsPresented, showPlaceViewSheet: $showPlaceViewSheet, didError: $didError)
 #if os(iOS) || os(visionOS)
                     .sheet(isPresented: $settingsPresented) {
                         SettingsView(chatModel: chatModel, showOnboarding: $showOnboarding)
@@ -59,41 +55,41 @@ struct ContentView: View {
                             .presentationDragIndicator(.visible)
                             .presentationCompactAdaptation(.sheet)
 #if os(macOS)
-                                .toolbar(content: {
-                                    ToolbarItem {
-                                        Button(action:{
-                                            settingsPresented.toggle()
-                                        }, label:{
-                                            Label("List", systemImage: "list.bullet")
-                                        })
-                                    }
-                                })
+                            .toolbar(content: {
+                                ToolbarItem {
+                                    Button(action:{
+                                        settingsPresented.toggle()
+                                    }, label:{
+                                        Label("List", systemImage: "list.bullet")
+                                    })
+                                }
+                            })
 #elseif os(visionOS)
-                                .toolbar(content: {
-                                    ToolbarItem(placement:.bottomOrnament) {
-                                        Button(action:{
-                                            settingsPresented.toggle()
-                                        }, label:{
-                                            Label("List", systemImage: "list.bullet")
-                                        })
-                                    }
-                                })
-                            #endif
+                            .toolbar(content: {
+                                ToolbarItem(placement:.bottomOrnament) {
+                                    Button(action:{
+                                        settingsPresented.toggle()
+                                    }, label:{
+                                        Label("List", systemImage: "list.bullet")
+                                    })
+                                }
+                            })
+#endif
                     }
                     .onAppear {
                         contentViewDetail = .places
                         preferredColumn = .sidebar
                     }
 #endif
-                 
+                
             } detail: {
                 switch contentViewDetail {
                 case .places:
-                    PlacesList(chatModel: chatModel, locationProvider: locationProvider, resultId: $chatModel.selectedPlaceChatResult, showMapsResultViewSheet: $showMapsResultViewSheet)
+                    PlacesList(chatModel: chatModel, resultId: $chatModel.modelController.selectedPlaceChatResult, showMapsResultViewSheet: $showMapsResultViewSheet)
                         .alert("Unknown Place", isPresented: $didError) {
                             Button(action: {
-                                chatModel.selectedPlaceChatResult = nil
-                                chatModel.isFetchingResults = false
+                                chatModel.modelController.selectedPlaceChatResult = nil
+                                chatModel.modelController.isFetchingResults = false
                             }, label: {
                                 Text("Go Back")
                             })
@@ -102,7 +98,7 @@ struct ContentView: View {
                         }
                         .onDisappear {
                             chatModel.resetPlaceModel()
-                            chatModel.selectedSavedResult = nil
+                            chatModel.modelController.selectedSavedResult = nil
                         }
                         .toolbar {
                             if contentViewDetail == .places {
@@ -119,10 +115,10 @@ struct ContentView: View {
                         }
                     
                         .sheet(isPresented: $showMapsResultViewSheet) {
-                            MapResultsView( model: chatModel, locationProvider: locationProvider, selectedMapItem: $selectedItem, cameraPosition:$cameraPosition)
+                            MapResultsView( model: chatModel,  selectedMapItem: $selectedItem, cameraPosition:$cameraPosition)
                                 .onChange(of: selectedItem) { oldValue, newValue in
-                                    if let newValue, let placeResponse = chatModel.filteredPlaceResults.first(where: { $0.placeResponse?.fsqID == newValue }) {
-                                        chatModel.selectedPlaceChatResult = placeResponse.id
+                                    if let newValue, let placeResponse = chatModel.modelController.filteredPlaceResults.first(where: { $0.placeResponse?.fsqID == newValue }) {
+                                        chatModel.modelController.selectedPlaceChatResult = placeResponse.id
                                     }
                                 }
 #if os(macOS)
@@ -145,7 +141,7 @@ struct ContentView: View {
                                         })
                                     }
                                 })
-                            #endif
+#endif
                                 .frame(minHeight: geometry.size.height - 60, maxHeight: .infinity)
                                 .presentationDetents([.large])
                                 .presentationDragIndicator(.visible)
@@ -153,7 +149,7 @@ struct ContentView: View {
                             
                         }
                         .sheet(isPresented: $showPlaceViewSheet, content: {
-                            PlaceView( chatModel: chatModel, locationProvider: locationProvider, placeDirectionsViewModel: placeDirectionsChatViewModel, resultId: $chatModel.selectedPlaceChatResult)
+                            PlaceView( chatModel: chatModel,  placeDirectionsViewModel: placeDirectionsChatViewModel, resultId: $chatModel.modelController.selectedPlaceChatResult)
                                 .frame(minHeight: geometry.size.height - 60, maxHeight: .infinity)
                                 .presentationDetents([.large])
                                 .presentationDragIndicator(.visible)
@@ -178,62 +174,39 @@ struct ContentView: View {
                                         })
                                     }
                                 })
-                            #endif
+#endif
                             
                             
                         })
                 case .add:
-                    if sizeClass == .compact {
                         AddPromptView(
                             chatModel: chatModel,
-                            locationProvider: locationProvider,
                             addItemSection: $addItemSection, contentViewDetail: $contentViewDetail
                         )
                         .toolbar {
                             ToolbarItemGroup(placement: .automatic) {
                                 AddPromptToolbarView( viewModel: searchSavedViewModel,
-                                    addItemSection: $addItemSection,
-                                    contentViewDetail: $contentViewDetail, preferredColumn: $preferredColumn
+                                                      addItemSection: $addItemSection,
+                                                      contentViewDetail: $contentViewDetail, preferredColumn: $preferredColumn
                                 )
                             }
                         }
-                    } else {
-                        HStack {
-                            AddPromptView(
-                                chatModel: chatModel,
-                                locationProvider: locationProvider,
-                                addItemSection: $addItemSection, contentViewDetail: $contentViewDetail
-                            )
-                            .toolbar {
-                                ToolbarItemGroup(placement: .automatic) {
-                                    AddPromptToolbarView(viewModel: searchSavedViewModel,
-                                        addItemSection: $addItemSection,
-                                        contentViewDetail: $contentViewDetail, preferredColumn: $preferredColumn
-                                    )
-                                }
-                            }
-                            .frame(maxWidth:geometry.size.width / 3)
-                            PlacesList(chatModel: chatModel, locationProvider: locationProvider, resultId: $chatModel.selectedPlaceChatResult, showMapsResultViewSheet: $showMapsResultViewSheet)
-                        }
-                    }
                 }
             }
         }
-        
         .navigationSplitViewStyle(.automatic)
         .onAppear(perform: {
-            chatModel.analyticsManager.track(event:"ContentView",properties: nil )
+            chatModel.modelController.analyticsManager.track(event:"ContentView",properties: nil )
         })
         .onChange(of: selectedItem, { oldValue, newValue in
             Task {
                 do {
                     try await chatModel.didTapMarker(with: newValue)
                 } catch {
-                    chatModel.analyticsManager.trackError(error:error, additionalInfo: nil)
+                    chatModel.modelController.analyticsManager.trackError(error:error, additionalInfo: nil)
                 }
             }
         })
-         
     }
 }
 

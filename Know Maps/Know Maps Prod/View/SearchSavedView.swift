@@ -2,7 +2,6 @@ import SwiftUI
 
 struct SearchSavedView: View {
     @ObservedObject public var viewModel: SearchSavedViewModel
-    @ObservedObject public var locationProvider: LocationProvider
     @Binding public var preferredColumn: NavigationSplitViewColumn
     @Binding public var contentViewDetail: ContentDetailView
     @Binding public var addItemSection: Int
@@ -43,13 +42,12 @@ struct SearchSavedView: View {
 
 struct AddPromptView: View {
     @ObservedObject public var chatModel: ChatResultViewModel
-    @ObservedObject public var locationProvider: LocationProvider
     @Binding public var addItemSection: Int
     @Binding public var contentViewDetail:ContentDetailView
     
     var body: some View {
         TabView(selection: $addItemSection) {
-            SearchCategoryView(chatModel: chatModel, locationProvider: locationProvider)
+            SearchCategoryView(chatModel: chatModel)
                 .tag(0)
                 .tabItem {
                     Label("Type", systemImage: "building")
@@ -80,9 +78,9 @@ struct AddPromptToolbarView: View {
     
     var body: some View {
         if addItemSection == 0,
-           let parentID = viewModel.chatModel.selectedCategoryResult,
-           let parent = viewModel.chatModel.industryCategoryResult(for: parentID) {
-            let isSaved = viewModel.chatModel.cacheManager.cachedCategories(contains: parent.parentCategory)
+           let parentID = viewModel.chatModel.modelController.selectedCategoryResult,
+           let parent = viewModel.chatModel.modelController.industryCategoryResult(for: parentID) {
+            let isSaved = viewModel.chatModel.modelController.cacheManager.cachedCategories(contains: parent.parentCategory)
             if isSaved {
                 Button(action:{
                     Task {
@@ -104,9 +102,9 @@ struct AddPromptToolbarView: View {
                 
             }
         } else if addItemSection == 1,
-                  let parentID = viewModel.chatModel.selectedTasteCategoryResult,
-                  let parent = viewModel.chatModel.tasteCategoryResult(for: parentID) {
-            let isSaved = viewModel.chatModel.cacheManager.cachedTastes(contains: parent.parentCategory)
+                  let parentID = viewModel.chatModel.modelController.selectedTasteCategoryResult,
+                  let parent = viewModel.chatModel.modelController.tasteCategoryResult(for: parentID) {
+            let isSaved = viewModel.chatModel.modelController.cacheManager.cachedTastes(contains: parent.parentCategory)
             if isSaved {
                 Button(action: {
                     Task {
@@ -146,12 +144,12 @@ struct SavedListView: View {
     var body: some View {
         List(selection: $selectedResult) {
             Section("Types") {
-                if !viewModel.chatModel.cacheManager.cachedIndustryResults.isEmpty {
-                    ForEach(viewModel.chatModel.cacheManager.cachedIndustryResults, id:\.id) { parent in
+                if !viewModel.chatModel.modelController.cacheManager.cachedIndustryResults.isEmpty {
+                    ForEach(viewModel.chatModel.modelController.cacheManager.cachedIndustryResults, id:\.id) { parent in
                         Text(parent.parentCategory)
                     }.onDelete{ indexSet in
                         let idsToDelete = indexSet.compactMap { index in
-                            viewModel.chatModel.cacheManager.cachedIndustryResults[index].id
+                            viewModel.chatModel.modelController.cacheManager.cachedIndustryResults[index].id
                         }
                         deleteCategoryItem(at: idsToDelete)
                     }
@@ -167,13 +165,13 @@ struct SavedListView: View {
             }
             
             Section("Items") {
-                if !viewModel.chatModel.cacheManager.cachedTasteResults.isEmpty {
-                    ForEach(viewModel.chatModel.cacheManager.cachedTasteResults, id:\.id) { parent in
+                if !viewModel.chatModel.modelController.cacheManager.cachedTasteResults.isEmpty {
+                    ForEach(viewModel.chatModel.modelController.cacheManager.cachedTasteResults, id:\.id) { parent in
                         Text(parent.parentCategory)
                     }
                     .onDelete{ indexSet in
                         let idsToDelete = indexSet.compactMap { index in
-                            viewModel.chatModel.cacheManager.cachedTasteResults[index].id
+                            viewModel.chatModel.modelController.cacheManager.cachedTasteResults[index].id
                         }
                         deleteTasteItem(at: idsToDelete)
                     }
@@ -188,13 +186,13 @@ struct SavedListView: View {
             }
             
             Section("Places") {
-                if !viewModel.chatModel.cacheManager.cachedPlaceResults.isEmpty {
-                    ForEach(viewModel.chatModel.cacheManager.cachedPlaceResults, id:\.id) { parent in
+                if !viewModel.chatModel.modelController.cacheManager.cachedPlaceResults.isEmpty {
+                    ForEach(viewModel.chatModel.modelController.cacheManager.cachedPlaceResults, id:\.id) { parent in
                         Text(parent.parentCategory)
                     }
                     .onDelete{ indexSet in
                         let idsToDelete = indexSet.compactMap { index in
-                            viewModel.chatModel.cacheManager.cachedPlaceResults[index].id
+                            viewModel.chatModel.modelController.cacheManager.cachedPlaceResults[index].id
                         }
                         deletePlaceItem(at: idsToDelete)
                     }
@@ -210,7 +208,7 @@ struct SavedListView: View {
             }
             
             Section("Moods") {
-                ForEach(viewModel.chatModel.cacheManager.cachedDefaultResults, id:\.id) {
+                ForEach(viewModel.chatModel.modelController.cacheManager.cachedDefaultResults, id:\.id) {
                     parent in
                     Text(parent.parentCategory)
                 }
@@ -223,28 +221,28 @@ struct SavedListView: View {
             }
             
             preferredColumn = .detail
-            viewModel.chatModel.selectedSavedResult = newValue
+            viewModel.chatModel.modelController.selectedSavedResult = newValue
         }
         .listStyle(.sidebar)
         .refreshable {
             Task {
                 do {
-                    try await viewModel.chatModel.cacheManager.refreshCache()
+                    try await viewModel.chatModel.modelController.cacheManager.refreshCache()
                 } catch {
-                    viewModel.chatModel.analyticsManager.trackError(error:error, additionalInfo: nil)
+                    viewModel.chatModel.modelController.analyticsManager.trackError(error:error, additionalInfo: nil)
                 }
             }
         }
     }
     
     func removeSelectedItem() async throws {
-        if let selectedSavedResult = viewModel.chatModel.selectedSavedResult, let selectedTasteItem = viewModel.chatModel.cachedTasteResult(for: selectedSavedResult) {
+        if let selectedSavedResult = viewModel.chatModel.modelController.selectedSavedResult, let selectedTasteItem = viewModel.chatModel.modelController.cachedTasteResult(for: selectedSavedResult) {
             let idsToDelete: [UUID] = [selectedTasteItem.id]
             deleteTasteItem(at: idsToDelete)
-        } else if let selectedSavedResult = viewModel.chatModel.selectedSavedResult, let selectedCategoryItem = viewModel.chatModel.cachedCategoricalResult(for: selectedSavedResult){
+        } else if let selectedSavedResult = viewModel.chatModel.modelController.selectedSavedResult, let selectedCategoryItem = viewModel.chatModel.modelController.cachedCategoricalResult(for: selectedSavedResult){
             let idsToDelete: [UUID] = [selectedCategoryItem.id]
             deleteCategoryItem(at: idsToDelete)
-        } else if let selectedSavedResult = viewModel.chatModel.selectedSavedResult, let selectedPlaceItem = viewModel.chatModel.cachedPlaceResult(for: selectedSavedResult) {
+        } else if let selectedSavedResult = viewModel.chatModel.modelController.selectedSavedResult, let selectedPlaceItem = viewModel.chatModel.modelController.cachedPlaceResult(for: selectedSavedResult) {
             let idsToDelete: [UUID] = [selectedPlaceItem.id]
             deletePlaceItem(at: idsToDelete)
         }
@@ -254,7 +252,7 @@ struct SavedListView: View {
         // Loop through the IDs and delete each one
         for id in idsToDelete {
             Task {
-                if let parent = viewModel.chatModel.cachedTasteResult(for: id) {
+                if let parent = viewModel.chatModel.modelController.cachedTasteResult(for: id) {
                     await viewModel.removeCachedResults(group: "Taste", identity: parent.parentCategory)
                 }
             }
@@ -266,7 +264,7 @@ struct SavedListView: View {
         // Loop through the IDs and delete each one
         for id in idsToDelete {
             Task {
-                if let parent = viewModel.chatModel.cachedCategoricalResult(for: id) {
+                if let parent = viewModel.chatModel.modelController.cachedCategoricalResult(for: id) {
                     await viewModel.removeCachedResults(group: "Category", identity: parent.parentCategory)
                 }
             }
@@ -276,7 +274,7 @@ struct SavedListView: View {
     func deletePlaceItem(at idsToDelete:[UUID]) {
         for id in idsToDelete {
             Task {
-                if let parent = viewModel.chatModel.cachedPlaceResult(for: id), let fsqID = parent.categoricalChatResults.first?.placeResponse?.fsqID {
+                if let parent = viewModel.chatModel.modelController.cachedPlaceResult(for: id), let fsqID = parent.categoricalChatResults.first?.placeResponse?.fsqID {
                     await viewModel.removeCachedResults(group: "Place", identity: fsqID)
                 }
             }
@@ -303,13 +301,13 @@ struct SavedListToolbarView: View {
             }
         }
         
-        if let savedResult = viewModel.chatModel.selectedSavedResult  {
+        if let savedResult = viewModel.chatModel.modelController.selectedSavedResult  {
             Button(action: {
                 Task {
                     do {
                         try await viewModel.removeSelectedItem(selectedSavedResult: savedResult)
                     } catch {
-                        viewModel.chatModel.analyticsManager.trackError(error:error, additionalInfo: nil)
+                        viewModel.chatModel.modelController.analyticsManager.trackError(error:error, additionalInfo: nil)
                     }
                 }
             }, label: {

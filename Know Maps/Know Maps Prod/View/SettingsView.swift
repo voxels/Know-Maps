@@ -10,7 +10,7 @@ import AuthenticationServices
 
 struct SettingsView: View {
     @Environment(\.openWindow) private var openWindow
-    @EnvironmentObject public var model:AuthenticationManager
+    @EnvironmentObject public var model:AppleAuthenticationService
     @State private var popoverPresented:Bool = false
     @State private var signInErrorMessage:String = "Error"
     @State private var isAuthenticated = false
@@ -46,7 +46,7 @@ struct SettingsView: View {
                                 Task {
                                     let key =  model.appleUserId.data(using: .utf8)
                                     let addquery: [String: Any] = [kSecClass as String: kSecClassKey,
-                                                                   kSecAttrApplicationTag as String: AuthenticationManager.tag,
+                                                                   kSecAttrApplicationTag as String: AppleAuthenticationService.tag,
                                                                    kSecValueData as String: key as AnyObject]
                                     let status = SecItemAdd(addquery as CFDictionary, nil)
                                     guard status == errSecSuccess else {
@@ -79,13 +79,13 @@ struct SettingsView: View {
             Button(action:{
                 Task {
                     do {
-                        try await chatModel.cacheManager.cloudCache.deleteAllUserCachedGroups()
-                        try await chatModel.cacheManager.refreshCache()
+                        try await chatModel.modelController.cacheManager.cloudCache.deleteAllUserCachedGroups()
+                        try await chatModel.modelController.cacheManager.refreshCache()
                         await MainActor.run {
                             showOnboarding = true
                         }
                     } catch {
-                        chatModel.analyticsManager.trackError(error:error, additionalInfo:nil)
+                        chatModel.modelController.analyticsManager.trackError(error:error, additionalInfo:nil)
                     }
                 }
             }, label:{

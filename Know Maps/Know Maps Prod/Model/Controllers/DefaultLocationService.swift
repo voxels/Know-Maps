@@ -7,14 +7,6 @@
 
 import CoreLocation
 
-// MARK: - Location Service Protocol
-public protocol LocationService {
-    func currentLocationName() async throws -> String?
-    func currentLocation() -> CLLocation?
-    func lookUpLocation(_ location: CLLocation) async throws -> [CLPlacemark]
-    func lookUpLocationName(name: String) async throws -> [CLPlacemark]
-}
-
 // MARK: - Concrete Location Service
 public final class DefaultLocationService: LocationService {
     

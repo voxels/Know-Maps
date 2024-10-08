@@ -10,11 +10,11 @@ import AuthenticationServices
 import RevenueCat
 import Security
 
-public enum AuthenticationManagerError : Error {
+public enum AuthenticationServiceError : Error {
     case failed
 }
 
-open class AuthenticationManager : NSObject, ASAuthorizationControllerDelegate,  ObservableObject {
+open class AppleAuthenticationService : NSObject, Authentication, ASAuthorizationControllerDelegate,  ObservableObject {
     public static let tag = "com.noisederived.Know-Maps.keys.appleuserid".data(using: .utf8)!
 
     public var isAuthorized:Bool {
@@ -53,11 +53,11 @@ open class AuthenticationManager : NSObject, ASAuthorizationControllerDelegate, 
             print("Authorization successful for \(String(describing: fullName)).")
             authCompletion?(.success(authorization))
         } else {
-            authCompletion?(.failure(AuthenticationManagerError.failed))
+            authCompletion?(.failure(AuthenticationServiceError.failed))
         }
     }
     
-    func retrieveUserID() -> String? {
+    public func retrieveUserID() -> String? {
         let userID = retrieveUserIDFromKeychain()
         if let userID = userID {
             appleUserId = userID
@@ -65,7 +65,7 @@ open class AuthenticationManager : NSObject, ASAuthorizationControllerDelegate, 
         return userID
     }
 
-    func storeUserIDInKeychain(_ userID: String) {
+    public func storeUserIDInKeychain(_ userID: String) {
         let account = "userIdentifier"
         let service = Bundle.main.bundleIdentifier ?? "YourAppService"
         let data = Data(userID.utf8)
@@ -87,7 +87,7 @@ open class AuthenticationManager : NSObject, ASAuthorizationControllerDelegate, 
         }
     }
 
-    func retrieveUserIDFromKeychain() -> String? {
+    public func retrieveUserIDFromKeychain() -> String? {
         let account = "userIdentifier"
         let service = Bundle.main.bundleIdentifier ?? "YourAppService"
         
@@ -125,7 +125,6 @@ open class AuthenticationManager : NSObject, ASAuthorizationControllerDelegate, 
 }
 
 class DeviceIdentifier {
-
     static let key = "com.secretatomics.knowmaps.unique_device_id"
 
     // Generate or fetch the identifier

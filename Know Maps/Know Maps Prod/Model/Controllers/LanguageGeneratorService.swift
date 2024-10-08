@@ -7,13 +7,7 @@
 
 import Foundation
 
-public protocol LanguageGeneratorDelegate {
-    func placeDescription(chatResult:ChatResult, delegate:AssistiveChatHostStreamResponseDelegate) async throws
-    func placeDescription(with description:String, chatResult:ChatResult, delegate:AssistiveChatHostStreamResponseDelegate) async
-}
-
-
-open class LanguageGenerator : LanguageGeneratorDelegate {
+open class LanguageGeneratorService : LanguageGenerator {
     private var session:LanguageGeneratorSession = LanguageGeneratorSession()
     
     public func placeDescription(with description:String, chatResult:ChatResult, delegate:AssistiveChatHostStreamResponseDelegate) async {

@@ -10,14 +10,13 @@ import SwiftUI
 struct NavigationLocationView: View {
     @State private var searchIsPresented = false
     @ObservedObject public var chatModel:ChatResultViewModel
-    @ObservedObject public var locationProvider:LocationProvider
     @State private var searchText:String = ""
     
     var body: some View {
-        List(chatModel.filteredLocationResults, selection:$chatModel.selectedDestinationLocationChatResult) { result in
-            let isSaved = chatModel.cacheManager.cachedLocation(contains:result.locationName)
+        List(chatModel.modelController.filteredLocationResults, selection:$chatModel.modelController.selectedDestinationLocationChatResult) { result in
+            let isSaved = chatModel.modelController.cacheManager.cachedLocation(contains:result.locationName)
             HStack {
-                if result.id == chatModel.selectedDestinationLocationChatResult {
+                if result.id == chatModel.modelController.selectedDestinationLocationChatResult {
                     Label(result.locationName, systemImage: "mappin")
                         .tint(.red)
                 } else {

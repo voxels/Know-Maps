@@ -9,17 +9,16 @@ import SwiftUI
 
 struct SearchCategoryView: View {
     @ObservedObject public var chatModel:ChatResultViewModel
-    @ObservedObject public var locationProvider:LocationProvider
     
     var body: some View {
-        List(selection:$chatModel.selectedCategoryResult) {
-            ForEach(chatModel.industryResults, id:\.id){ parent in
+        List(selection:$chatModel.modelController.selectedCategoryResult) {
+            ForEach(chatModel.modelController.industryResults, id:\.id){ parent in
                 DisclosureGroup(isExpanded: Binding(
                     get: { parent.isExpanded },
                     set: { parent.isExpanded = $0 }
                 )){
                     ForEach(parent.children, id:\.id) { child in
-                        let isSaved = chatModel.cacheManager.cachedCategories(contains: child.parentCategory)
+                        let isSaved = chatModel.modelController.cacheManager.cachedCategories(contains: child.parentCategory)
                         HStack {
                             Text("\(child.parentCategory)")
                             Spacer()
@@ -38,9 +37,9 @@ struct SearchCategoryView: View {
         .refreshable {
             Task {
                 do{
-                    try await chatModel.cacheManager.refreshCache()
+                    try await chatModel.modelController.cacheManager.refreshCache()
                 } catch {
-                    chatModel.analyticsManager.trackError(error:error, additionalInfo:nil)
+                    chatModel.modelController.analyticsManager.trackError(error:error, additionalInfo:nil)
                 }
             }
         }

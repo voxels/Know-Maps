@@ -12,7 +12,6 @@ import Segment
 
 struct PlaceDirectionsView: View {
     @ObservedObject public var chatModel:ChatResultViewModel
-    @ObservedObject public var locationProvider:LocationProvider
     @ObservedObject public var model:PlaceDirectionsViewModel
     @Binding public var resultId:ChatResult.ID?
         
@@ -29,10 +28,11 @@ struct PlaceDirectionsView: View {
     }
 
     var body: some View {
-        if let resultId = resultId, let result = chatModel.placeChatResult(for: resultId), let placeResponse = result.placeResponse {
+        if let resultId = resultId, let result = chatModel.modelController.placeChatResult(for: resultId), let placeResponse = result.placeResponse {
             let placeCoordinate = CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude)
             let title = placeResponse.name
             GeometryReader { geo in
+                
                 ScrollView {
                     VStack(alignment: .center) {
                         
@@ -67,7 +67,7 @@ struct PlaceDirectionsView: View {
                                                 do {
                                                     try await model.getLookAroundScene(mapItem:destination)
                                                 } catch {
-                                                    chatModel.analyticsManager.trackError(error:error, additionalInfo:nil)
+                                                    chatModel.modelController.analyticsManager.trackError(error:error, additionalInfo:nil)
                                                 }
                                             }
                                         }
@@ -77,7 +77,7 @@ struct PlaceDirectionsView: View {
                                 HStack {
                                     Text("Route start:")
                                     Picker("", selection:$model.rawLocationIdent) {
-                                        ForEach(chatModel.filteredLocationResults, id:\.self) { result in
+                                        ForEach(chatModel.modelController.filteredLocationResults, id:\.self) { result in
                                             Text(result.locationName).tag(result.id.uuidString)
                                         }
                                     }.foregroundStyle(.primary)
@@ -147,7 +147,7 @@ struct PlaceDirectionsView: View {
             }
             .onChange(of: model.rawLocationIdent, { oldValue, newValue in
                 if let ident = UUID(uuidString: newValue) {
-                    guard let sourceLocation = chatModel.locationChatResult(for: ident)?.location, let result = chatModel.placeChatResult(for: resultId), let placeResponse = result.placeResponse else {
+                    guard let sourceLocation = chatModel.modelController.locationChatResult(for: ident, in:chatModel.modelController.locationResults)?.location, let result = chatModel.modelController.placeChatResult(for: resultId), let placeResponse = result.placeResponse else {
                         return
                     }
                     
@@ -155,7 +155,7 @@ struct PlaceDirectionsView: View {
                         do {
                             try await model.refreshDirections(with: sourceLocation, destination:CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude))
                         } catch {
-                            chatModel.analyticsManager.trackError(error:error, additionalInfo:nil)
+                            chatModel.modelController.analyticsManager.trackError(error:error, additionalInfo:nil)
                         }
                     }
                 }
@@ -172,14 +172,14 @@ struct PlaceDirectionsView: View {
             }
             .onChange(of: model.transportType) { oldValue, newValue in
                 if let ident = UUID(uuidString: model.rawLocationIdent) {
-                    guard let sourceLocation = chatModel.locationChatResult(for: ident)?.location, let result = chatModel.placeChatResult(for: resultId), let placeResponse = result.placeResponse else {
+                    guard let sourceLocation = chatModel.modelController.locationChatResult(for: ident, in:chatModel.modelController.locationResults)?.location, let result = chatModel.modelController.placeChatResult(for: resultId), let placeResponse = result.placeResponse else {
                         return
                     }
                     
                     Task{
                         do {
                             try await model.refreshDirections(with: sourceLocation, destination:CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude))
-                        } catch {                            chatModel.analyticsManager.trackError(error:error, additionalInfo:nil)
+                        } catch {                            chatModel.modelController.analyticsManager.trackError(error:error, additionalInfo:nil)
                         }
                     }
                 }

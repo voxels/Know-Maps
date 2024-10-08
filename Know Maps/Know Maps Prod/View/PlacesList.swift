@@ -13,7 +13,6 @@ import MapKit
 struct PlacesList: View {
     @Environment(\.horizontalSizeClass) var sizeClass
     @ObservedObject public var chatModel:ChatResultViewModel
-    @ObservedObject public var locationProvider:LocationProvider
     @Binding public var resultId:ChatResult.ID?
     @State private var selectedItem: String?
     
@@ -33,7 +32,7 @@ struct PlacesList: View {
                 BannerView(adSize)
                         .frame(height: adSize.size.height)
                  */
-                if chatModel.isFetchingResults {
+                if chatModel.modelController.isFetchingResults {
                     VStack {
                         Spacer()
                         HStack {
@@ -43,7 +42,7 @@ struct PlacesList: View {
                         }
                         Spacer()
                     }
-                } else if chatModel.recommendedPlaceResults.count != 0 {
+                } else if chatModel.modelController.recommendedPlaceResults.count != 0 {
                     ScrollView{
                         let sizeWidth:CGFloat = sizeClass == .compact ? 1 : 3
 #if os(macOS) || os(visionOS)
@@ -52,7 +51,7 @@ struct PlacesList: View {
                         let columns = Array(repeating: GridItem(.adaptive(minimum: UIScreen.main.bounds.size.width / sizeWidth)),  count:Int(sizeWidth))
 #endif
                         LazyVGrid(columns: columns, alignment: .leading, spacing: 16) {
-                            ForEach(chatModel.filteredRecommendedPlaceResults){ result in
+                            ForEach(chatModel.modelController.filteredRecommendedPlaceResults){ result in
                                 VStack(alignment:.leading, content: {
                                     ZStack {
                                         VStack(alignment: .leading) {
@@ -99,14 +98,14 @@ struct PlacesList: View {
                                 .background()
                                 .cornerRadius(16)
                                 .onTapGesture {
-                                    chatModel.selectedPlaceChatResult = result.id
+                                    chatModel.modelController.selectedPlaceChatResult = result.id
                                 }
                             }
                         }
                     }
                     .padding()
                     
-                } else if chatModel.placeResults.count != 0 {
+                } else if chatModel.modelController.placeResults.count != 0 {
                     ScrollView{
                         let sizeWidth:CGFloat = sizeClass == .compact ? 1 : 3
 #if os(macOS) || os(visionOS)
@@ -115,7 +114,7 @@ struct PlacesList: View {
                         let columns = Array(repeating: GridItem(.adaptive(minimum: UIScreen.main.bounds.size.width / sizeWidth)),  count:Int(sizeWidth))
 #endif
                         LazyVGrid(columns: columns, alignment: .leading, spacing: 16) {
-                            ForEach(chatModel.filteredPlaceResults) { result in
+                            ForEach(chatModel.modelController.filteredPlaceResults) { result in
                                 VStack(alignment:.leading, content: {
                                     ZStack {
                                         VStack(alignment: .leading) {
@@ -154,7 +153,7 @@ struct PlacesList: View {
                                 .background()
                                 .cornerRadius(16)
                                 .onTapGesture {
-                                    chatModel.selectedPlaceChatResult = result.id
+                                    chatModel.modelController.selectedPlaceChatResult = result.id
                                 }
                             }
                         }

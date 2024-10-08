@@ -21,38 +21,11 @@ public enum CloudCacheError: Error {
     case ServiceNotFound
 }
 
-public protocol CloudCacheDelegate: AnyObject {
-    // Properties
-    var hasFsqAccess: Bool { get }
-    var isFetchingCachedRecords: Bool { get set }
-    
-    // Fetching and Caching Methods
-    func fetch(url: URL, from cloudService: CloudCacheService) async throws -> Any
-    func fetchGroupedUserCachedRecords(for group: String) async throws -> [UserCachedRecord]
-    func storeUserCachedRecord(for group: String, identity: String, title: String, icons: String, list: String, section: String) async throws -> String
-    func deleteUserCachedRecord(for cachedRecord: UserCachedRecord) async throws
-    func deleteAllUserCachedRecords(for group: String) async throws -> (saveResults: [CKRecord.ID: Result<CKRecord, Error>], deleteResults: [CKRecord.ID: Result<Void, Error>])
-    func deleteAllUserCachedGroups() async throws
-
-    // CloudKit Identity and OAuth Management
-    func fetchFsqIdentity() async throws -> String
-    func fetchToken(for fsqUserId: String) async throws -> String
-    func storeFoursquareIdentityAndToken(for fsqUserId: String, oauthToken: String)
-
-    // API Key and Session Management
-    func apiKey(for service: CloudCacheService) async throws -> String
-    func session(service: String) async throws -> URLSession
-    func fetchCloudKitUserRecordID() async throws -> CKRecord.ID?
-
-    // Background Operations
-    func clearCache()
-}
-
-public enum CloudCacheService: String {
+public enum CloudCacheServiceKey: String {
     case revenuecat
 }
 
-public final class CloudCache: NSObject, ObservableObject, CloudCacheDelegate {
+public final class CloudCacheService: NSObject, ObservableObject, CloudCache {
     var analyticsManager:AnalyticsService
     @MainActor public var hasFsqAccess: Bool {
         fsqUserId.isEmpty ? false : true
@@ -170,7 +143,7 @@ public final class CloudCache: NSObject, ObservableObject, CloudCacheDelegate {
         // Implement cache clearing logic here
     }
     
-    public func fetch(url: URL, from cloudService: CloudCacheService) async throws -> Any {
+    public func fetch(url: URL, from cloudService: CloudCacheServiceKey) async throws -> Any {
         let configuredSession = try await session(service: cloudService.rawValue)
         return try await fetch(url: url, apiKey: serviceAPIKey, session: configuredSession)
     }
@@ -253,7 +226,7 @@ public final class CloudCache: NSObject, ObservableObject, CloudCacheDelegate {
         }
     }
     
-    public func apiKey(for service: CloudCacheService) async throws -> String {
+    public func apiKey(for service: CloudCacheServiceKey) async throws -> String {
         let predicate = NSPredicate(format: "service == %@", service.rawValue)
         let query = CKQuery(recordType: "KeyString", predicate: predicate)
         let operation = CKQueryOperation(query: query)
@@ -560,7 +533,7 @@ public final class CloudCache: NSObject, ObservableObject, CloudCacheDelegate {
     }
 }
 
-private extension CloudCache {
+private extension CloudCacheService {
     func defaultSession() -> URLSession {
         let sessionConfiguration = URLSessionConfiguration.default
         return URLSession(configuration: sessionConfiguration)

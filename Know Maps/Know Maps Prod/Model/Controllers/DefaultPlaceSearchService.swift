@@ -8,23 +8,8 @@
 import Foundation
 import CoreLocation
 
-public protocol PlaceSearchService {
-    var assistiveHostDelegate: AssistiveChatHostDelegate { get }
-    var placeSearchSession: PlaceSearchSession { get }
-    var personalizedSearchSession: PersonalizedSearchSession { get }
-    var analyticsManager:AnalyticsService { get }
-    var lastFetchedTastePage: Int { get }
-    func retrieveFsqUser() async throws
-    func autocompleteTastes(lastIntent: AssistiveChatHostIntent, currentTasteResults:[CategoryResult]) async throws -> [CategoryResult]
-    func refreshTastes(page: Int, currentTasteResults:[CategoryResult]) async throws -> [CategoryResult]
-    func detailIntent(intent: AssistiveChatHostIntent) async throws
-    func placeSearchRequest(intent:AssistiveChatHostIntent, location:CLLocation?) async ->PlaceSearchRequest
-    func recommendedPlaceSearchRequest(intent:AssistiveChatHostIntent, location:CLLocation?) async -> RecommendedPlaceSearchRequest
-}
-
-
-public final class DefaultPlaceSearchService: PlaceSearchService{
-    public let assistiveHostDelegate: AssistiveChatHostDelegate
+public final class DefaultPlaceSearchService: PlaceSearchService {
+    public let assistiveHostDelegate: AssistiveChatHost
     public let placeSearchSession: PlaceSearchSession
     public let personalizedSearchSession: PersonalizedSearchSession
     public let analyticsManager: AnalyticsService
@@ -32,7 +17,7 @@ public final class DefaultPlaceSearchService: PlaceSearchService{
     public var lastFetchedTastePage: Int = 0
     
     public init(
-        assistiveHostDelegate: AssistiveChatHostDelegate,
+        assistiveHostDelegate: AssistiveChatHost,
         placeSearchSession: PlaceSearchSession,
         personalizedSearchSession: PersonalizedSearchSession,
         analyticsManager: AnalyticsService

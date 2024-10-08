@@ -10,7 +10,7 @@ import Foundation
 public class AssistiveChatHostIntent : Equatable {
     public let uuid = UUID()
     public let caption:String
-    public let intent:AssistiveChatHost.Intent
+    public let intent:AssistiveChatHostService.Intent
     public var selectedPlaceSearchResponse:PlaceSearchResponse?
     public var selectedPlaceSearchDetails:PlaceDetailsResponse?
     public var placeSearchResponses:[PlaceSearchResponse]
@@ -21,7 +21,7 @@ public class AssistiveChatHostIntent : Equatable {
     public var tasteAutocompleteResponese:[TasteAutocompleteResponse]?
     public let queryParameters:[String:Any]?
     
-    public init(caption: String, intent: AssistiveChatHost.Intent, selectedPlaceSearchResponse: PlaceSearchResponse?, selectedPlaceSearchDetails: PlaceDetailsResponse?, placeSearchResponses: [PlaceSearchResponse], selectedDestinationLocationID:LocationResult.ID?, placeDetailsResponses:[PlaceDetailsResponse]?, recommendedPlaceSearchResponses:[RecommendedPlaceSearchResponse]? = nil, relatedPlaceSearchResponses:[RecommendedPlaceSearchResponse]? = nil, queryParameters: [String : Any]?) {
+    public init(caption: String, intent: AssistiveChatHostService.Intent, selectedPlaceSearchResponse: PlaceSearchResponse?, selectedPlaceSearchDetails: PlaceDetailsResponse?, placeSearchResponses: [PlaceSearchResponse], selectedDestinationLocationID:LocationResult.ID?, placeDetailsResponses:[PlaceDetailsResponse]?, recommendedPlaceSearchResponses:[RecommendedPlaceSearchResponse]? = nil, relatedPlaceSearchResponses:[RecommendedPlaceSearchResponse]? = nil, queryParameters: [String : Any]?) {
         self.caption = caption
         self.intent = intent
         self.selectedPlaceSearchResponse = selectedPlaceSearchResponse

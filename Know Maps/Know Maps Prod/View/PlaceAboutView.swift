@@ -13,7 +13,6 @@ struct PlaceAboutView: View {
     @Environment(\.openURL) private var openURL
     @Environment(\.horizontalSizeClass) var sizeClass
     @ObservedObject var chatModel:ChatResultViewModel
-    @ObservedObject var locationProvider:LocationProvider
     @Binding var resultId:ChatResult.ID?
     @Binding var tabItem: Int
     @StateObject var viewModel: PlaceAboutViewModel
@@ -22,12 +21,11 @@ struct PlaceAboutView: View {
     static let mapFrameConstraint: Double = 50000
     static let buttonHeight: Double = 44
     
-    public init(chatModel:ChatResultViewModel, locationProvider:LocationProvider, resultId:Binding<ChatResult.ID?>, tabItem:Binding<Int>) {
+    public init(chatModel:ChatResultViewModel, resultId:Binding<ChatResult.ID?>, tabItem:Binding<Int>) {
         self._chatModel = ObservedObject(wrappedValue: chatModel)
-        self._locationProvider = ObservedObject(wrappedValue: locationProvider)
         self._resultId = resultId
         self._tabItem = tabItem
-        _viewModel = StateObject(wrappedValue: PlaceAboutViewModel(chatModel: chatModel, locationProvider: locationProvider))
+        _viewModel = StateObject(wrappedValue: PlaceAboutViewModel(chatModel: chatModel))
     }
     
     
@@ -35,7 +33,7 @@ struct PlaceAboutView: View {
         GeometryReader { geo in
             ScrollView {
                 VStack {
-                    if let resultId = resultId, let result = chatModel.placeChatResult(for: resultId), let placeResponse = result.placeResponse, let placeDetailsResponse = result.placeDetailsResponse {
+                    if let resultId = resultId, let result = chatModel.modelController.placeChatResult(for: resultId), let placeResponse = result.placeResponse, let placeDetailsResponse = result.placeDetailsResponse {
                         
                         // Title and Map
                         let placeCoordinate = CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude)

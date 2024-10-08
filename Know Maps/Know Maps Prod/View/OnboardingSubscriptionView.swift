@@ -20,10 +20,9 @@ public struct SubscriptionPlan: Identifiable, Equatable, Hashable {
 }
 
 struct OnboardingSubscriptionView: View {
+    @EnvironmentObject public var model:AppleAuthenticationService
     @Binding public var selectedTab:String
     @Binding public var showOnboarding:Bool
-    @EnvironmentObject public var featureFlags:FeatureFlags
-    @EnvironmentObject public var model:AuthenticationManager
     @State private var selectedSubscription:SubscriptionPlan?
     @State private var subscriptionIncomplete:Bool = true
     
@@ -44,7 +43,7 @@ struct OnboardingSubscriptionView: View {
             List(allPlans, selection: $selectedSubscription){ plan in
                 Button(plan.plan.rawValue, action: {
                     selectedSubscription = plan
-                    featureFlags.updateFlags(with: plan)
+                    FeatureFlagService.shared.updateFlags(with: plan)
                 })
             }.onChange(of: selectedSubscription) { oldValue, newValue in
                 if let _ = newValue {
