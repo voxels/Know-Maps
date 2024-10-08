@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		1E007ACA2CB407D200A8DC5A /* ChatResultHandling.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E007AC92CB407D200A8DC5A /* ChatResultHandling.swift */; };
 		1E007ACC2CB4089700A8DC5A /* CloudCacheManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E007ACB2CB4089400A8DC5A /* CloudCacheManager.swift */; };
 		1E007ACE2CB40B1D00A8DC5A /* SegmentAnalyticsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E007ACD2CB40B1900A8DC5A /* SegmentAnalyticsService.swift */; };
 		1E213E172CAD81F600B93697 /* Segment in Frameworks */ = {isa = PBXBuildFile; productRef = 1E213E162CAD81F600B93697 /* Segment */; };
@@ -120,7 +119,6 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		1E007AC92CB407D200A8DC5A /* ChatResultHandling.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatResultHandling.swift; sourceTree = "<group>"; };
 		1E007ACB2CB4089400A8DC5A /* CloudCacheManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudCacheManager.swift; sourceTree = "<group>"; };
 		1E007ACD2CB40B1900A8DC5A /* SegmentAnalyticsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SegmentAnalyticsService.swift; sourceTree = "<group>"; };
 		1E095AF82B778AEF00147119 /* Know Maps.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Know Maps.app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -352,7 +350,6 @@
 				1E98C7D02B18DC4100283E92 /* AssistiveChatHostStreamResponseDelegate.swift */,
 				1E98C7D42B18DC9600283E92 /* AssistiveChatHostMessagesDelegate.swift */,
 				1E96EE9F2CB52A0C0070BCDD /* CacheManager.swift */,
-				1E007AC92CB407D200A8DC5A /* ChatResultHandling.swift */,
 				1E96EE9B2CB528380070BCDD /* CloudCache.swift */,
 				1EDF93C92CB52DC100FDCFDF /* FeatureFlag.swift */,
 				1E96EE9D2CB5288B0070BCDD /* LanguageGenerator.swift */,
@@ -617,7 +614,6 @@
 			files = (
 				1EDF93D02CB53DC100FDCFDF /* LanguageGeneratorService.swift in Sources */,
 				1E6570D62C9B516400FEE9F8 /* TasteAutocompleteResponse.swift in Sources */,
-				1E007ACA2CB407D200A8DC5A /* ChatResultHandling.swift in Sources */,
 				1EF3791E2C986F96001C5E39 /* LocalMapsQueryClassifier.mlmodel in Sources */,
 				1EDF93CF2CB52F1900FDCFDF /* DefaultModelController.swift in Sources */,
 				1EF3791F2C986F96001C5E39 /* LocalMapsQueryTagger.mlmodel in Sources */,

@@ -96,10 +96,6 @@ struct ContentView: View {
                         } message: {
                             Text("We don't know much about this place.")
                         }
-                        .onDisappear {
-                            chatModel.resetPlaceModel()
-                            chatModel.modelController.selectedSavedResult = nil
-                        }
                         .toolbar {
                             if contentViewDetail == .places {
                                 
@@ -175,8 +171,6 @@ struct ContentView: View {
                                     }
                                 })
 #endif
-                            
-                            
                         })
                 case .add:
                         AddPromptView(

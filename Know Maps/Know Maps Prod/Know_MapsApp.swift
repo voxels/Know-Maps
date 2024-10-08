@@ -189,7 +189,7 @@ struct Know_MapsApp: App {
         Task {
             do {
                 try await chatModel.modelController.assistiveHostDelegate.organizeCategoryCodeList()
-                await chatModel.categoricalSearchModel()
+                await chatModel.modelController.categoricalSearchModel()
             } catch {
                 chatModel.modelController.analyticsManager.trackError(error: error, additionalInfo:nil)
             }

@@ -65,8 +65,15 @@ public protocol ModelController {
     init(
         locationProvider: LocationProvider,
         analyticsManager: AnalyticsService
-    ) 
+    )
     
+    func resetPlaceModel()
+    
+    // MARK: - Industry Category Handling
+    
+    func categoricalSearchModel() async 
+    
+    func categoricalResults()->[CategoryResult]
     
     // MARK: - Location Handling
     
@@ -155,4 +162,12 @@ public protocol ModelController {
         intent: AssistiveChatHostIntent,
         location: CLLocation?
     ) async throws
+    
+    func addReceivedMessage(caption:String, parameters:AssistiveChatHostQueryParameters, isLocalParticipant:Bool) async throws
+
+    func didUpdateQuery(with query:String, parameters: AssistiveChatHostQueryParameters) async throws
+
+    func updateLastIntentParameter(for placeChatResult:ChatResult, selectedDestinationChatResultID:LocationResult.ID?) async throws
+    
+    func updateQueryParametersHistory(with parameters: AssistiveChatHostQueryParameters)
 }

@@ -66,6 +66,71 @@ public final class DefaultModelController : ModelController, ObservableObject {
         self.locationService = DefaultLocationService(locationProvider: locationProvider)
     }
     
+    public func resetPlaceModel() {
+        placeResults.removeAll()
+        recommendedPlaceResults.removeAll()
+        relatedPlaceResults.removeAll()
+        analyticsManager.track(event:"resetPlaceModel", properties: nil)
+    }
+    
+    public func categoricalSearchModel() async {
+        let blendedResults =  categoricalResults()
+        
+        await MainActor.run {
+            industryResults = blendedResults
+        }
+    }
+    
+    public func categoricalResults()->[CategoryResult] {
+        var retval = [CategoryResult]()
+        
+        for categoryCode in assistiveHostDelegate.categoryCodes {
+            var newChatResults = [ChatResult]()
+            for values in categoryCode.values {
+                for value in values {
+                    if let category = value["category"]{
+                        let chatResult = ChatResult(title:category, list:category, section:assistiveHostDelegate.section(for:category), placeResponse:nil, recommendedPlaceResponse: nil)
+                        newChatResults.append(chatResult)
+                    }
+                }
+            }
+            
+            for key in categoryCode.keys {
+                newChatResults.append(ChatResult(title: key, list:key, section:assistiveHostDelegate.section(for:key), placeResponse:nil, recommendedPlaceResponse: nil))
+                
+                if retval.contains(where: { checkResult in
+                    return checkResult.parentCategory == key
+                }) {
+                    let existingResults = retval.compactMap { checkResult in
+                        if checkResult.parentCategory == key {
+                            return checkResult
+                        }
+                        return nil
+                    }
+                    
+                    for result in existingResults {
+                        if !result.categoricalChatResults.isEmpty {
+                            newChatResults.append(contentsOf:result.categoricalChatResults)
+                        }
+                        retval.removeAll { checkResult in
+                            return checkResult.parentCategory == key
+                        }
+                        
+                        let newResult = CategoryResult(parentCategory: key, list:key, section:assistiveHostDelegate.section(for:key), categoricalChatResults: newChatResults)
+                        retval.append(newResult)
+                    }
+                    
+                } else {
+                    let newResult = CategoryResult(parentCategory: key, list:key, section:assistiveHostDelegate.section(for:key), categoricalChatResults: newChatResults)
+                    retval.append(newResult)
+                }
+            }
+        }
+        
+        return retval
+    }
+
+    
     // MARK: - Filtered Results
     
     public var filteredRecommendedPlaceResults: [ChatResult] {
@@ -89,7 +154,7 @@ public final class DefaultModelController : ModelController, ObservableObject {
     
     public func filteredDestinationLocationResults(with searchText:String) async -> [LocationResult] {
         var results = filteredLocationResults
-        let searchLocationResult = await locationChatResult(with: searchText, in:locationResults)
+        let searchLocationResult = await locationChatResult(with: searchText, in:results)
         results.insert(searchLocationResult, at: 0)
         return results
     }
@@ -621,5 +686,86 @@ public final class DefaultModelController : ModelController, ObservableObject {
                 }
             }
         }
+    }
+    
+    public func updateLastIntentParameter(for placeChatResult:ChatResult, selectedDestinationChatResultID:LocationResult.ID?) async throws {
+        guard let lastIntent = assistiveHostDelegate.queryIntentParameters?.queryIntents.last else {
+            return
+        }
+        
+        let queryParameters = try await assistiveHostDelegate.defaultParameters(for: placeChatResult.title)
+        let newIntent = AssistiveChatHostIntent(caption: placeChatResult.title, intent: .Place, selectedPlaceSearchResponse: placeChatResult.placeResponse, selectedPlaceSearchDetails:placeChatResult.placeDetailsResponse, placeSearchResponses: lastIntent.placeSearchResponses, selectedDestinationLocationID: selectedDestinationChatResultID, placeDetailsResponses: nil, recommendedPlaceSearchResponses: lastIntent.recommendedPlaceSearchResponses, queryParameters: queryParameters)
+        
+        
+        guard placeChatResult.placeResponse != nil else {
+            assistiveHostDelegate.updateLastIntentParameters(intent: newIntent)
+            try await assistiveHostDelegate.receiveMessage(caption: newIntent.caption, isLocalParticipant: true)
+            return
+        }
+        
+        try await placeSearchService.detailIntent(intent: newIntent)
+        
+        assistiveHostDelegate.updateLastIntentParameters(intent: newIntent)
+        
+        if let queryIntentParameters = assistiveHostDelegate.queryIntentParameters {
+            try await didUpdateQuery(with: placeChatResult.title, parameters: queryIntentParameters)
+        }
+    }
+    
+    public func addReceivedMessage(caption: String, parameters: AssistiveChatHostQueryParameters, isLocalParticipant: Bool) async throws {
+        
+        var selectedDestinationChatResult = selectedDestinationLocationChatResult
+        let selectedPlaceChatResult = selectedPlaceChatResult
+        if selectedDestinationChatResult == nil, selectedPlaceChatResult == nil {
+            
+        } else if selectedDestinationChatResult == nil, selectedPlaceChatResult != nil {
+            if let firstlocationResultID = locationResults.first?.id {
+                selectedDestinationChatResult = firstlocationResultID
+            } else {
+                throw ChatResultViewModelError.missingSelectedDestinationLocationChatResult
+            }
+        } else {
+            if let destinationChatResult = selectedDestinationChatResult, let _ = locationChatResult(for: destinationChatResult, in: locationResults) {
+                
+            } else if let lastIntent = assistiveHostDelegate.queryIntentParameters?.queryIntents.last  {
+                let locationChatResult = locationChatResult(for: lastIntent.selectedDestinationLocationID ?? currentLocationResult.id, in:filteredLocationResults)
+                selectedDestinationChatResult = locationChatResult?.id
+                await MainActor.run {
+                    selectedDestinationLocationChatResult = locationChatResult?.id
+                }
+            } else {
+                throw ChatResultViewModelError.missingSelectedDestinationLocationChatResult
+            }
+        }
+        
+        if let lastIntent = queryParametersHistory.last?.queryIntents.last, lastIntent.intent != .Location {
+            let locationChatResult =  locationChatResult(for: selectedDestinationChatResult ?? currentLocationResult.id, in:filteredLocationResults)
+            
+            try await receiveMessage(caption: caption, parameters: parameters, isLocalParticipant: isLocalParticipant, locationResults: &locationResults)
+            try await searchIntent(intent: lastIntent, location: locationChatResult?.location)
+            try await didUpdateQuery(with: caption, parameters: parameters)
+        } else if let lastIntent = queryParametersHistory.last?.queryIntents.last, lastIntent.intent == .Location {
+            try await receiveMessage(caption: caption, parameters: parameters, isLocalParticipant: isLocalParticipant, locationResults: &locationResults)
+            try await searchIntent(intent: lastIntent, location: nil)
+            try await didUpdateQuery(with: caption, parameters: parameters)
+        } else {
+            let intent:AssistiveChatHostService.Intent = assistiveHostDelegate.determineIntent(for: caption, override: nil)
+            let queryParameters = try await assistiveHostDelegate.defaultParameters(for: caption)
+            let newIntent = AssistiveChatHostIntent(caption: caption, intent: intent, selectedPlaceSearchResponse: nil, selectedPlaceSearchDetails: nil, placeSearchResponses: [PlaceSearchResponse](), selectedDestinationLocationID: selectedDestinationChatResult, placeDetailsResponses:nil, queryParameters: queryParameters)
+            
+            assistiveHostDelegate.appendIntentParameters(intent: newIntent)
+            try await receiveMessage(caption: caption, parameters: parameters, isLocalParticipant: isLocalParticipant, locationResults: &locationResults)
+            try await searchIntent(intent: newIntent, location: locationChatResult(with:caption,  in:filteredLocationResults).location!  )
+            try await didUpdateQuery(with: caption, parameters: parameters)
+            
+        }
+    }
+    
+    public func didUpdateQuery(with query:String, parameters: AssistiveChatHostQueryParameters) async throws {
+        placeResults = try await refreshModel(query: query, queryIntents: parameters.queryIntents, locationResults: &locationResults, currentLocationResult: currentLocationResult)
+    }
+    
+    public func updateQueryParametersHistory(with parameters: AssistiveChatHostQueryParameters) {
+        queryParametersHistory.append(parameters)
     }
 }
