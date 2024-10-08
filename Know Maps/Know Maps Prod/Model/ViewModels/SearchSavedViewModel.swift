@@ -19,7 +19,6 @@ public final class SearchSavedViewModel: ObservableObject {
     // Refresh Cache
     func refreshCache(cacheManager:CacheManager) async {
         do {
-            try await Task.sleep(nanoseconds: 1_000_000_000)
             try await cacheManager.refreshCache()
         } catch {
             chatModel.modelController.analyticsManager.trackError(error:error, additionalInfo: nil)
