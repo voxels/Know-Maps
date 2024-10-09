@@ -16,7 +16,7 @@ struct PlaceDirectionsView: View {
     @ObservedObject public var cacheManager:CloudCacheManager
     @ObservedObject var modelController:DefaultModelController
     @Binding public var resultId:ChatResult.ID?
-        
+    
     static let mapFrameConstraint:Double = 200000
     static let mapFrameMinimumPadding:Double = 1000
     static let polylineStrokeWidth:CGFloat = 8
@@ -28,121 +28,83 @@ struct PlaceDirectionsView: View {
         formatter.allowedUnits = [.hour, .minute]
         return formatter.string(from: route.expectedTravelTime)
     }
-
+    
     var body: some View {
         if let resultId = resultId, let result = modelController.placeChatResult(for: resultId), let placeResponse = result.placeResponse {
             let placeCoordinate = CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude)
             let title = placeResponse.name
             GeometryReader { geo in
-                
                 ScrollView {
                     VStack(alignment: .center) {
-                        
                         if model.showLookAroundScene, let lookAroundScene = model.lookAroundScene {
-                                LookAroundPreview(initialScene: lookAroundScene)
-                                    .overlay {
-                                        if let source = model.source, let destination = model.destination {
-                                            let launchOptions = model.appleMapsLaunchOptions()
-                                            VStack(alignment: .center) {
-                                                HStack {
-                                                    Button("Directions", systemImage: "map.fill") {
-                                                        model.showLookAroundScene.toggle()
-                                                    }
-                                                    .padding(.horizontal, 24)
-                                                    .padding(.vertical, 64)
-                                                    .foregroundStyle(.primary)
-                                                    .background()
-                                                    Spacer()
-                                                }
-                                                Spacer()
-                                                Button("Open Apple Maps", systemImage: "apple.logo") {
-                                                    MKMapItem.openMaps(with: [source,destination], launchOptions: launchOptions)
-                                                }
-                                                .padding(8)
-                                                .foregroundStyle(.primary)
-                                            }
-                                        }
-                                    }
-                                    .onChange(of: model.destination) {
-                                        if let destination = model.destination {
-                                            Task {
-                                                do {
-                                                    try await model.getLookAroundScene(mapItem:destination)
-                                                } catch {
-                                                    modelController.analyticsManager.trackError(error:error, additionalInfo:nil)
-                                                }
-                                            }
-                                        }
-                                    }
-                                    .frame(minWidth: geo.size.width, minHeight:geo.size.height * 2.0 / 3.0)
-                            } else {
-                                HStack {
-                                    Text("Route start:")
-                                    Picker("", selection:$model.rawLocationIdent) {
-                                        ForEach(modelController.filteredLocationResults(cacheManager: cacheManager), id:\.self) { result in
-                                            Text(result.locationName).tag(result.id.uuidString)
-                                        }
-                                    }.foregroundStyle(.primary)
-                                        .pickerStyle(.menu)
-                                }.padding(.horizontal, 16)
-                                Map(initialPosition: .automatic, bounds: MapCameraBounds(minimumDistance: 1500, maximumDistance:250000)) {
-                                    Marker(title, coordinate: placeCoordinate.coordinate)
-                                    
-                                    if let polyline = model.polyline {
-                                        MapPolyline(polyline)
-                                            .stroke(.blue, lineWidth: PlaceDirectionsView.polylineStrokeWidth)
-                                    }
+                            HStack {
+                                Spacer()
+                                Button("Directions", systemImage: "map.fill") {
+                                    model.showLookAroundScene.toggle()
                                 }
-                                .mapControls {
-                                    MapPitchToggle()
-                                    MapUserLocationButton()
-                                    MapCompass()
-                                }
-                                .mapStyle(.standard)
-                                .frame(minWidth: geo.size.width-48, minHeight:geo.size.height * 2.0 / 3.0)
+                            }.padding(.horizontal, 16)
+                            LookAroundPreview(initialScene: lookAroundScene)
+                                .frame(width:geo.size.width - 32, height:geo.size.height - 64)
+                                .padding(16)
                                 .cornerRadius(16)
-                                .padding(.top, 16)
-                                .padding(.horizontal, 16)
-                                .overlay {
-                                    if let source = model.source, let destination = model.destination {
-                                        let launchOptions = model.appleMapsLaunchOptions()
-                                        VStack(alignment: .center) {
-                                            if model.lookAroundScene != nil {
-                                                HStack {
-                                                    Button("Look Around", systemImage: "binoculars.fill") {
-                                                        model.showLookAroundScene.toggle()
-                                                    }
-                                                    .padding(36)
-                                                    .foregroundStyle(.primary)
-                                                    Spacer()
-                                                }
-                                            }
-                                            Spacer()
-                                            Button("Open Apple Maps", systemImage: "apple.logo") {
-                                                MKMapItem.openMaps(with: [source,destination], launchOptions: launchOptions)
-                                            }
-                                            .padding(8)
-                                            .foregroundStyle(.primary)
+                        } else {
+                            HStack {
+                                Text("Route start:")
+                                Picker("", selection:$model.rawLocationIdent) {
+                                    ForEach(modelController.filteredLocationResults(cacheManager: cacheManager), id:\.self) { result in
+                                        Text(result.locationName).tag(result.id.uuidString)
+                                    }
+                                }.foregroundStyle(.primary)
+                                    .pickerStyle(.menu)
+                            }.padding(.horizontal, 16)
+                            if let source = model.source, let destination = model.destination {
+                                let launchOptions = model.appleMapsLaunchOptions()
+                                HStack(alignment: .center) {
+                                    Spacer()
+                                    if model.lookAroundScene != nil {
+                                        Button("Look Around", systemImage: "binoculars.fill") {
+                                            model.showLookAroundScene.toggle()
                                         }
                                     }
-                                    
+                                    Button("Open Apple Maps", systemImage: "apple.logo") {
+                                        MKMapItem.openMaps(with: [source,destination], launchOptions: launchOptions)
+                                    }
+                                }.padding(.horizontal, 16)
+                            }
+                            Map(initialPosition: .automatic, bounds: MapCameraBounds(minimumDistance: 1500, maximumDistance:250000)) {
+                                Marker(title, coordinate: placeCoordinate.coordinate)
+                                
+                                if let polyline = model.polyline {
+                                    MapPolyline(polyline)
+                                        .stroke(.blue, lineWidth: PlaceDirectionsView.polylineStrokeWidth)
                                 }
                             }
+                            .mapControls {
+                                MapPitchToggle()
+                                MapUserLocationButton()
+                                MapCompass()
+                            }
+                            .mapStyle(.standard)
+                            .frame(minWidth: geo.size.width-48, minHeight:geo.size.height * 2.0 / 3.0)
+                            .cornerRadius(16)
+                            .padding(16)
+                        }
                         if !model.showLookAroundScene {
-                                Picker("Transport Type", selection: $model.rawTransportType) {
-                                    Text(PlaceDirectionsViewModel.RawTransportType.Automobile.rawValue).tag(PlaceDirectionsViewModel.RawTransportType.Automobile)
-                                    Text(PlaceDirectionsViewModel.RawTransportType.Walking.rawValue).tag(PlaceDirectionsViewModel.RawTransportType.Walking)
-                                }.foregroundStyle(.primary)
-                                    .pickerStyle(.palette)
-                                    .padding(.horizontal, 16)
-                            }
-                        if let chatRouteResults = model.chatRouteResults, chatRouteResults.count > 0  {
-                            VStack(alignment: .leading) {
-                                ForEach(chatRouteResults) { chatRouteResult in
-                                    Text(chatRouteResult.instructions)
+                            Picker("Transport Type", selection: $model.rawTransportType) {
+                                Text(PlaceDirectionsViewModel.RawTransportType.Automobile.rawValue).tag(PlaceDirectionsViewModel.RawTransportType.Automobile)
+                                Text(PlaceDirectionsViewModel.RawTransportType.Walking.rawValue).tag(PlaceDirectionsViewModel.RawTransportType.Walking)
+                            }.foregroundStyle(.primary)
+                                .pickerStyle(.palette)
+                                .padding(.horizontal, 16)
+                            if let chatRouteResults = model.chatRouteResults, chatRouteResults.count > 0  {
+                                VStack(alignment: .leading) {
+                                    ForEach(chatRouteResults) { chatRouteResult in
+                                        Text(chatRouteResult.instructions)
+                                    }
                                 }
-                            }.padding(16)
-                         
+                                .frame(minWidth:geo.size.width - 32)
+                                .padding(16)
+                            }
                         }
                     }
                 }
@@ -162,6 +124,34 @@ struct PlaceDirectionsView: View {
                     }
                 }
             })
+            .task {
+                guard let result = modelController.placeChatResult(for: resultId), let placeResponse = result.placeResponse, let latitude = result.placeResponse?.latitude, let longitude = result.placeResponse?.longitude else {
+                    return
+                }
+                
+                let destination = CLLocation(latitude:latitude, longitude: longitude)
+                var minDistance = Double.greatestFiniteMagnitude
+                var minLocation = UUID()
+                let allLocationResults = modelController.filteredLocationResults(cacheManager: cacheManager)
+                for locationResult in allLocationResults {
+                    if let location = locationResult.location, location.distance(from:destination) < minDistance {
+                        minLocation = locationResult.id
+                        minDistance = location.distance(from:destination)
+                    }
+                }
+                
+                model.rawLocationIdent = minLocation.uuidString
+                
+                guard let sourceLocation = allLocationResults.first(where: { $0.id == minLocation})?.location else {
+                    return
+                }
+                
+                do {
+                    try await model.refreshDirections(with: sourceLocation, destination:CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude))
+                } catch {
+                    modelController.analyticsManager.trackError(error:error, additionalInfo:nil)
+                }
+            }
             .onChange(of: model.rawTransportType) { oldValue, newValue in
                 switch newValue {
                 case .Walking:
