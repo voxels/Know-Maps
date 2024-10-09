@@ -42,7 +42,7 @@ public final class CloudCacheManager: CacheManager, ObservableObject {
         }
         
         // Initialize progress variables
-        let totalTasks = 5
+        let totalTasks = 6
         
         // Create a task that encapsulates the entire operation
         let operationTask = Task {
@@ -100,7 +100,16 @@ public final class CloudCacheManager: CacheManager, ObservableObject {
                         self.cacheFetchProgress = progress
                     }
                 }
-                
+                group.addTask { [self] in
+                    try Task.checkCancellation()
+                    await self.refreshCachedRecommendationData()
+                    try Task.checkCancellation()
+                    await MainActor.run { [self] in
+                        self.completedTasks += 1
+                        let progress = Double(self.completedTasks) / Double(totalTasks)
+                        self.cacheFetchProgress = progress
+                    }
+                }
                 // Wait for all tasks to complete or handle cancellation
                 try await group.waitForAll()
             }
@@ -178,11 +187,18 @@ public final class CloudCacheManager: CacheManager, ObservableObject {
     }
     
     public func refreshCachedRecommendationData() async {
-        
+        do {
+            let records = try await cloudCache.fetchRecomendationData()
+            await MainActor.run {
+                cachedRecommendationData = records
+            }
+        } catch {
+            analyticsManager.trackError(error: error, additionalInfo: nil)
+        }
     }
     
     public func refreshCachedResults() async {
-        let savedResults = getAllCachedResults()
+        let savedResults = getAllCachedCategoryResults()
         await MainActor.run {
             allCachedResults = savedResults
         }
@@ -261,7 +277,7 @@ public final class CloudCacheManager: CacheManager, ObservableObject {
             .map({$0.categoryResult()})
     }
     
-    public func getAllCachedResults() -> [CategoryResult] {
+    public func getAllCachedCategoryResults() -> [CategoryResult] {
         var results = cachedIndustryResults + cachedTasteResults + cachedPlaceResults + cachedDefaultResults
         
         results.sort { $0.parentCategory.lowercased() < $1.parentCategory.lowercased() }

@@ -150,6 +150,7 @@ public final class SearchSavedViewModel: ObservableObject {
         } else if let selectedPlaceItem = modelController.cachedPlaceResult(for: selectedSavedResult, cacheManager: cacheManager) {
             if let fsqID = selectedPlaceItem.categoricalChatResults.first?.placeResponse?.fsqID {
                 await removeCachedResults(group: "Place", identity: fsqID, cacheManager: cacheManager, modelController: modelController)
+                _ = try await cacheManager.cloudCache.deleteRecomendationData(for: fsqID)
             }
         }
     }

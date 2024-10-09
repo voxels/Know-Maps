@@ -87,6 +87,19 @@ class PlaceAboutViewModel {
                 var userRecord = UserCachedRecord(recordId: "", group: "Place", identity: placeResponse.fsqID, title: placeResult.title, icons: "", list: placeResult.list, section: placeResult.section.rawValue, rating:1)
                 let record = try await cacheManager.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, icons: userRecord.icons, list: userRecord.list, section: userRecord.section, rating:userRecord.rating)
                 userRecord.setRecordId(to: record)
+                
+                if let placeDetailsResponse = placeResult.placeDetailsResponse {
+                    var identity = placeResponse.fsqID
+                    var attributes = placeDetailsResponse.tastes ?? []
+                    var reviews = placeDetailsResponse.tipsResponses?.compactMap({ tipsResponse in
+                        return tipsResponse.text
+                    }) ?? []
+                    
+                    var recommendation = RecommendationData(recordId: "", identity: identity, attributes: attributes, reviews: reviews)
+                    let recRecord = try await cacheManager.cloudCache.storeRecomendationData(for: recommendation.identity, attributes: recommendation.attributes, reviews: recommendation.reviews)
+                    recommendation.setRecordId(to: recRecord)
+                }
+                
                 try await cacheManager.refreshCache()
             } catch {
                 print(error)

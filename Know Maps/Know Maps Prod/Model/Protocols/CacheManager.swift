@@ -36,7 +36,7 @@ public protocol CacheManager {
     func refreshCachedRecommendationData() async
     
     // Fetch all saved results
-    func getAllCachedResults() -> [CategoryResult]
+    func getAllCachedCategoryResults() -> [CategoryResult]
     
     // Cached Records Methods
     func cachedCategories(contains category: String) -> Bool
