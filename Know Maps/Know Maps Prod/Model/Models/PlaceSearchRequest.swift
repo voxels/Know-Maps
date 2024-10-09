@@ -20,4 +20,5 @@ public struct PlaceSearchRequest {
     let nearLocation:String?
     let sort:String?
     var limit:Int = 50
+    var offset:Int = 0
 }

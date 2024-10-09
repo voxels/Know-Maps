@@ -60,7 +60,7 @@ struct PlacesList: View {
                                             }
                                         }.padding()
                                     }
-                                    if let photo = result.recommendedPlaceResponse?.photo, !photo.isEmpty, let url = URL(string: photo) {
+                                    if let aspectRatio = result.recommendedPlaceResponse?.aspectRatio, let photo = result.recommendedPlaceResponse?.photo, !photo.isEmpty, let url = URL(string: photo) {
                                         AsyncImage(url: url) { phase in
                                             switch phase {
                                             case .empty:
@@ -72,7 +72,7 @@ struct PlacesList: View {
                                                 
                                             case .success(let image):
                                                 image.resizable()
-                                                    .aspectRatio(contentMode: .fit)
+                                                    .aspectRatio(CGFloat(aspectRatio), contentMode: .fit)
                                                     .scaledToFit()
                                             case .failure:
                                                 EmptyView()
@@ -118,7 +118,7 @@ struct PlacesList: View {
                                             }
                                         }.padding()
                                     }
-                                    if let url = result.placeDetailsResponse?.photoResponses?.first?.photoUrl() {
+                                    if let aspectRatio = result.placeDetailsResponse?.photoResponses?.first?.aspectRatio, let url = result.placeDetailsResponse?.photoResponses?.first?.photoUrl() {
                                         AsyncImage(url: url) { phase in
                                             switch phase {
                                             case .empty:
@@ -129,7 +129,7 @@ struct PlacesList: View {
                                                 }
                                             case .success(let image):
                                                 image.resizable()
-                                                    .aspectRatio(contentMode: .fit)
+                                                    .aspectRatio(CGFloat(aspectRatio), contentMode: .fit)
                                                     .scaledToFit()
                                             case .failure:
                                                 EmptyView()

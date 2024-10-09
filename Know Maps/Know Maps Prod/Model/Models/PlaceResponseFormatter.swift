@@ -63,6 +63,7 @@ open class PlaceResponseFormatter {
                     var postCode:String = ""
                     var formattedAddress:String = ""
                     var photo:String? = nil
+                    var aspectRatio:Float? = nil
                     var photos:[String]  = [String]()
                     let tastes:[String] = [String]()
                     
@@ -127,6 +128,7 @@ open class PlaceResponseFormatter {
                         = photoDict["prefix"] as? String, let suffix
                         = photoDict["suffix"] as? String, let width = photoDict["width"] as? Double, let height = photoDict["height"] as? Double{
                         photo = "\(prefix)\(Int(floor(width)))x\(Int(floor(height)))\(suffix)"
+                        aspectRatio = Float(width / height)
                     }
                     
                     if let photosDict = result["photos"] as? NSDictionary,  let groups = photosDict["groups"] as? [NSDictionary] {
@@ -146,7 +148,7 @@ open class PlaceResponseFormatter {
                     }
                     
                     
-                    let response = RecommendedPlaceSearchResponse(fsqID: fsqID, name: name, categories: categories, latitude: latitude, longitude: longitude, neighborhood: neighborhood, address:address, country: country, city: city, state: state, postCode: postCode, formattedAddress: formattedAddress, photo: photo, photos: photos, tastes: tastes)
+                    let response = RecommendedPlaceSearchResponse(fsqID: fsqID, name: name, categories: categories, latitude: latitude, longitude: longitude, neighborhood: neighborhood, address:address, country: country, city: city, state: state, postCode: postCode, formattedAddress: formattedAddress, photo: photo, aspectRatio: aspectRatio, photos: photos, tastes: tastes)
                     retval.append(response)
                 }
             }
@@ -181,6 +183,7 @@ open class PlaceResponseFormatter {
                     var postCode:String = ""
                     var formattedAddress:String = ""
                     var photo:String? = nil
+                    var aspectRatio:Float? = nil
                     var photos:[String]  = [String]()
                     let tastes:[String] = [String]()
                     
@@ -245,6 +248,7 @@ open class PlaceResponseFormatter {
                         = photoDict["prefix"] as? String, let suffix
                         = photoDict["suffix"] as? String, let width = photoDict["width"] as? Double, let height = photoDict["height"] as? Double{
                         photo = "\(prefix)\(Int(floor(width)))x\(Int(floor(height)))\(suffix)"
+                        aspectRatio = Float(width/height)
                     }
                     
                     if let photosDict = result["photos"] as? NSDictionary,  let groups = photosDict["groups"] as? [NSDictionary] {
@@ -266,7 +270,7 @@ open class PlaceResponseFormatter {
 
                     
                     
-                    let response = RecommendedPlaceSearchResponse(fsqID: fsqID, name: name, categories: categories, latitude: latitude, longitude: longitude, neighborhood: neighborhood, address:address, country: country, city: city, state: state, postCode: postCode, formattedAddress: formattedAddress, photo: photo, photos: photos, tastes: tastes)
+                    let response = RecommendedPlaceSearchResponse(fsqID: fsqID, name: name, categories: categories, latitude: latitude, longitude: longitude, neighborhood: neighborhood, address:address, country: country, city: city, state: state, postCode: postCode, formattedAddress: formattedAddress, photo: photo, aspectRatio: aspectRatio, photos: photos, tastes: tastes)
                     retval.append(response)
                 }
             }
@@ -303,6 +307,7 @@ open class PlaceResponseFormatter {
                         var postCode:String = ""
                         var formattedAddress:String = ""
                         var photo:String? = nil
+                        var aspectRatio:Float? = nil
                         var photos:[String]  = [String]()
                         let tastes:[String] = [String]()
                         
@@ -367,6 +372,7 @@ open class PlaceResponseFormatter {
                             = photoDict["prefix"] as? String, let suffix
                             = photoDict["suffix"] as? String, let width = photoDict["width"] as? Double, let height = photoDict["height"] as? Double{
                             photo = "\(prefix)\(Int(floor(width)))x\(Int(floor(height)))\(suffix)"
+                            aspectRatio = Float(width/height)
                         }
                         
                         if let photosDict = result["photos"] as? NSDictionary,  let groups = photosDict["groups"] as? [NSDictionary] {
@@ -388,7 +394,7 @@ open class PlaceResponseFormatter {
                         
                         
                         
-                        let response = RecommendedPlaceSearchResponse(fsqID: fsqID, name: name, categories: categories, latitude: latitude, longitude: longitude, neighborhood: neighborhood, address:address, country: country, city: city, state: state, postCode: postCode, formattedAddress: formattedAddress, photo: photo, photos: photos, tastes: tastes)
+                        let response = RecommendedPlaceSearchResponse(fsqID: fsqID, name: name, categories: categories, latitude: latitude, longitude: longitude, neighborhood: neighborhood, address:address, country: country, city: city, state: state, postCode: postCode, formattedAddress: formattedAddress, photo: photo, aspectRatio: aspectRatio, photos: photos, tastes: tastes)
                         retval.append(response)
                     }
                 }

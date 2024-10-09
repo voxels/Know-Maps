@@ -43,26 +43,24 @@ struct PlaceAboutView: View {
                         
                         // Address and Categories
                         ZStack(alignment: .leading) {
-                            Rectangle().foregroundStyle(.thinMaterial)
-                                .cornerRadius(16)
                             VStack {
                                 Text(placeResponse.categories.joined(separator: ", ")).italic()
                                     .padding(PlaceAboutView.defaultPadding)
                                 
                                 Label(placeResponse.formattedAddress, systemImage: "mappin")
-                                    .multilineTextAlignment(.leading)
+                                    .multilineTextAlignment(.center)
                                     .padding()
                                     .labelStyle(.titleOnly)
                                     .onTapGesture {
                                         tabItem = 1
                                     }
                             }
-                            .padding()
                         }
                         .padding()
                         
                         // Action buttons
                         HStack {
+                            Spacer()
                             // Save/Unsave button
                             ZStack {
                                 Capsule()
@@ -106,8 +104,10 @@ struct PlaceAboutView: View {
                                     openURL(url)
                                 }
                             }
+                            Spacer()
                         }.padding(.horizontal, 16)
                         HStack{
+                            Spacer()
                             // Rating button
                             if placeDetailsResponse.rating > 0 {
                                 ZStack {
@@ -157,11 +157,12 @@ struct PlaceAboutView: View {
                                 }
                             }
                             #endif
+                            Spacer()
                         }
                         .padding(.horizontal, 16)
                         // Tastes Section
                         if let tastes = placeDetailsResponse.tastes, !tastes.isEmpty {
-                            Section("Tastes") {
+                            Section {
                                 let gridItems = Array(repeating: GridItem(.flexible(), spacing: PlaceAboutView.defaultPadding), count: sizeClass == .compact ? 2 : 3)
                                 
                                 LazyVGrid(columns: gridItems, alignment: .leading, spacing: 8) {

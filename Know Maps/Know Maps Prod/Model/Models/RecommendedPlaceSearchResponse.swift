@@ -22,6 +22,7 @@ public struct RecommendedPlaceSearchResponse: Equatable, Hashable {
     let postCode:String
     let formattedAddress:String
     let photo:String?
+    let aspectRatio:Float?
     let photos:[String]
     let tastes:[String]
 }
