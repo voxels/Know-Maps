@@ -46,70 +46,72 @@ public actor PlaceSearchSession : ObservableObject {
     
     public func query(request:PlaceSearchRequest, location:CLLocation?) async throws ->[String:Any] {
         var components = URLComponents(string:"\(PlaceSearchSession.serverUrl)\(PlaceSearchSession.placeSearchAPIUrl)")
-        components?.queryItems = [URLQueryItem]()
+        var queryItems = [URLQueryItem]()
         if request.query.count > 0 {
             let queryItem = URLQueryItem(name: "query", value: request.query)
-            components?.queryItems?.append(queryItem)
+            queryItems.append(queryItem)
         }
         
         if let location = location, request.nearLocation == nil {
             let rawLocation = "\(location.coordinate.latitude),\(location.coordinate.longitude)"
             let radius = request.radius
             let radiusQueryItem = URLQueryItem(name: "radius", value: "\(radius)")
-            components?.queryItems?.append(radiusQueryItem)
+            queryItems.append(radiusQueryItem)
             
             let locationQueryItem = URLQueryItem(name: "ll", value: rawLocation)
-            components?.queryItems?.append(locationQueryItem)
+            queryItems.append(locationQueryItem)
         } else {
             var value = request.radius
             if let nearLocation = request.nearLocation, !nearLocation.isEmpty {
                 value = 25000
             }
             let radiusQueryItem = URLQueryItem(name: "radius", value: "\(value)")
-            components?.queryItems?.append(radiusQueryItem)
+            queryItems.append(radiusQueryItem)
 
             if let rawLocation = request.ll {
                 let locationQueryItem = URLQueryItem(name: "ll", value: rawLocation)
-                components?.queryItems?.append(locationQueryItem)
+                queryItems.append(locationQueryItem)
             }
         }
         
         if let categories = request.categories, !categories.isEmpty {
             let categoriesQueryItem = URLQueryItem(name:"categories", value:categories)
-            components?.queryItems?.append(categoriesQueryItem)
+            queryItems.append(categoriesQueryItem)
         }
         
         if request.minPrice > 1 {
             let minPriceQueryItem = URLQueryItem(name: "min_price", value: "\(request.minPrice)")
-            components?.queryItems?.append(minPriceQueryItem)
+            queryItems.append(minPriceQueryItem)
         }
 
         if request.maxPrice < 4 {
             let maxPriceQueryItem = URLQueryItem(name: "max_price", value: "\(request.maxPrice)")
-            components?.queryItems?.append(maxPriceQueryItem)
+            queryItems.append(maxPriceQueryItem)
 
         }
         
         if let openAt = request.openAt {
             let openAtQueryItem = URLQueryItem(name:"open_at", value:openAt)
 
-            components?.queryItems?.append(openAtQueryItem)
+            queryItems.append(openAtQueryItem)
         }
         
         if request.openNow == true {
             let openNowQueryItem = URLQueryItem(name: "open_now", value: "true")
-            components?.queryItems?.append(openNowQueryItem)
+            queryItems.append(openNowQueryItem)
         }
         
 
         
         if let sort = request.sort {
             let sortQueryItem = URLQueryItem(name: "sort", value: sort)
-            components?.queryItems?.append(sortQueryItem)
+            queryItems.append(sortQueryItem)
         }
         
         let limitQueryItem = URLQueryItem(name: "limit", value: "\(request.limit)")
-        components?.queryItems?.append(limitQueryItem)
+        queryItems.append(limitQueryItem)
+        
+        components?.queryItems = queryItems
         
         guard let url = components?.url else {
             throw PlaceSearchSessionError.UnsupportedRequest
@@ -209,9 +211,12 @@ public actor PlaceSearchSession : ObservableObject {
     }
     
     public func photos(for fsqID:String) async throws -> Any {
-        let components = URLComponents(string:"\(PlaceSearchSession.serverUrl)\(PlaceSearchSession.placeDetailsAPIUrl)\(fsqID)\(PlaceSearchSession.placePhotosAPIUrl)")
+        var queryComponents = URLComponents(string:"\(PlaceSearchSession.serverUrl)\(PlaceSearchSession.placeDetailsAPIUrl)\(fsqID)\(PlaceSearchSession.placePhotosAPIUrl)")
         
-        guard let url = components?.url else {
+        let limitQueryItem = URLQueryItem(name: "limit", value: "\(50)")
+        let sortQueryItem = URLQueryItem(name:"sort", value:"newest")
+        queryComponents?.queryItems = [limitQueryItem, sortQueryItem]
+        guard let url = queryComponents?.url else {
             throw PlaceSearchSessionError.UnsupportedRequest
         }
         
@@ -219,9 +224,13 @@ public actor PlaceSearchSession : ObservableObject {
     }
     
     public func tips(for fsqID:String) async throws -> Any {
-        let components = URLComponents(string:"\(PlaceSearchSession.serverUrl)\(PlaceSearchSession.placeDetailsAPIUrl)\(fsqID)\(PlaceSearchSession.placeTipsAPIUrl)")
+        var queryComponents = URLComponents(string:"\(PlaceSearchSession.serverUrl)\(PlaceSearchSession.placeDetailsAPIUrl)\(fsqID)\(PlaceSearchSession.placeTipsAPIUrl)")
         
-        guard let url = components?.url else {
+        let limitQueryItem = URLQueryItem(name: "limit", value: "\(50)")
+        let queryItems = [limitQueryItem]
+        queryComponents?.queryItems = queryItems
+
+        guard let url = queryComponents?.url else {
             throw PlaceSearchSessionError.UnsupportedRequest
         }
         
@@ -266,33 +275,35 @@ public actor PlaceSearchSession : ObservableObject {
         }
         
         var queryComponents = URLComponents(string:"\(PlaceSearchSession.serverUrl)\(PlaceSearchSession.autocompleteAPIUrl)")
-        queryComponents?.queryItems = [URLQueryItem]()
+        var queryItems = [URLQueryItem]()
 
         if nameString.count > 0 {
             let queryUrlItem = URLQueryItem(name: "query", value: nameString.trimmingCharacters(in: .whitespacesAndNewlines))
-            queryComponents?.queryItems?.append(queryUrlItem)
+            queryItems.append(queryUrlItem)
         } else {
             let queryUrlItem = URLQueryItem(name: "query", value: caption)
-            queryComponents?.queryItems?.append(queryUrlItem)
+            queryItems.append(queryUrlItem)
         }
         
         if ll.count > 0 {
             let locationQueryItem = URLQueryItem(name: "ll", value: ll)
-            queryComponents?.queryItems?.append(locationQueryItem)
+            queryItems.append(locationQueryItem)
             
             var value = 2000
             if caption.contains("near") {
                 value = 100000
             }
             let radiusQueryItem = URLQueryItem(name: "radius", value:"\(value)")
-            queryComponents?.queryItems?.append(radiusQueryItem)
+            queryItems.append(radiusQueryItem)
         }
         
         let limitQueryItem = URLQueryItem(name: "limit", value: "\(limit)")
-        queryComponents?.queryItems?.append(limitQueryItem)
+        queryItems.append(limitQueryItem)
 
         let placeQueryItem = URLQueryItem(name: "types", value: "place")
-        queryComponents?.queryItems?.append(placeQueryItem)
+        queryItems.append(placeQueryItem)
+        
+        queryComponents?.queryItems = queryItems
 
         guard let url = queryComponents?.url else {
             throw PlaceSearchSessionError.UnsupportedRequest

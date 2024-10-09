@@ -188,7 +188,7 @@ public final class CloudCacheManager: CacheManager, ObservableObject {
     
     public func refreshCachedRecommendationData() async {
         do {
-            let records = try await cloudCache.fetchRecomendationData()
+            let records = try await cloudCache.fetchRecommendationData()
             await MainActor.run {
                 cachedRecommendationData = records
             }
