@@ -25,7 +25,7 @@ public enum CloudCacheServiceKey: String {
     case revenuecat
 }
 
-public final class CloudCacheService: NSObject, CloudCache {
+public final class CloudCacheService: NSObject, CloudCache {    
     var analyticsManager:AnalyticsService
     @MainActor public var hasFsqAccess: Bool {
         fsqUserId.isEmpty ? false : true
@@ -474,7 +474,7 @@ public final class CloudCacheService: NSObject, CloudCache {
         icons: String,
         list: String,
         section: String,
-        rating:Int
+        rating:Double
     ) async throws -> String {
         let record = CKRecord(recordType: "UserCachedRecord")
         record.setObject(group as NSString, forKey: "Group")
@@ -497,7 +497,7 @@ public final class CloudCacheService: NSObject, CloudCache {
         return record.recordID.recordName
     }
     
-    public func updateUserCachedRecordRating(recordId: String, newRating: Int) async throws {
+    public func updateUserCachedRecordRating(recordId: String, newRating: Double) async throws {
         let recordID = CKRecord.ID(recordName: recordId)
         do {
             // Fetch the existing record

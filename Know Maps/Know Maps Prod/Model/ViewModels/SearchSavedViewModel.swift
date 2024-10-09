@@ -155,7 +155,7 @@ public final class SearchSavedViewModel: ObservableObject {
     }
     
     // Change rating
-    func changeRating(rating: Int, for editingResult:String, cacheManager:CacheManager, modelController:ModelController) async throws {
+    func changeRating(rating: Double, for editingResult:String, cacheManager:CacheManager, modelController:ModelController) async throws {
         try await cacheManager.cloudCache.updateUserCachedRecordRating(recordId: editingResult, newRating: rating)
         await refreshCache(cacheManager: cacheManager, modelController: modelController)
     }

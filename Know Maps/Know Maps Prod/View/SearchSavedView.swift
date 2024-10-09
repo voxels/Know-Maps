@@ -325,7 +325,7 @@ struct SavedListView: View {
                         HStack {
                             Text(parent.parentCategory)
                             Spacer()
-                            if parent.rating == 0 {
+                            if parent.rating <= 0 {
                                 Button(action: {
                                     editingResult = parent
                                 }, label: {
@@ -333,7 +333,7 @@ struct SavedListView: View {
                                         .foregroundStyle(.red)
                                         .labelStyle(.iconOnly)
                                 })
-                            } else if parent.rating == 1 {
+                            } else if parent.rating > 0 && parent.rating < 3 {
                                 Button(action: {
                                     editingResult = parent
                                 }, label: {
@@ -341,7 +341,7 @@ struct SavedListView: View {
                                         .foregroundStyle(.accent)
                                         .labelStyle(.iconOnly)
                                 })
-                            } else if parent.rating == 2 {
+                            } else if parent.rating >= 3 {
                                 Button(action: {
                                     editingResult = parent
                                 }, label: {
@@ -376,7 +376,7 @@ struct SavedListView: View {
                         HStack {
                             Text(parent.parentCategory)
                             Spacer()
-                            if parent.rating == 0 {
+                            if parent.rating <= 0 {
                                 Button(action: {
                                     editingResult = parent
                                 }, label: {
@@ -384,7 +384,7 @@ struct SavedListView: View {
                                         .foregroundStyle(.red)
                                         .labelStyle(.iconOnly)
                                 })
-                            } else if parent.rating == 1 {
+                            } else if parent.rating > 0 && parent.rating < 3 {
                                 Button(action: {
                                     editingResult = parent
                                 }, label: {
@@ -392,7 +392,7 @@ struct SavedListView: View {
                                         .foregroundStyle(.accent)
                                         .labelStyle(.iconOnly)
                                 })
-                            } else if parent.rating == 2 {
+                            } else if parent.rating >= 3 {
                                 Button(action: {
                                     editingResult = parent
                                 }, label: {
@@ -479,21 +479,8 @@ struct SavedListView: View {
                     }
                     editingResult = nil
                 }, label: {
-                    Label("Never search", systemImage: "circle.slash")
+                    Label("Recommend rarely", systemImage: "circle.slash")
                         .foregroundStyle(.red)
-                }).padding()
-                Button(action: {
-                    Task {
-                        do {
-                            try await viewModel.changeRating(rating: 1, for: selectedResult.recordId, cacheManager: cacheManager, modelController: modelController)
-                        } catch {
-                            modelController.analyticsManager.trackError(error:error, additionalInfo: nil)
-                        }
-                    }
-                    editingResult = nil
-                }, label: {
-                    Label("Occasionally search", systemImage: "circle")
-                        .foregroundStyle(.accent)
                 }).padding()
                 Button(action: {
                     Task {
@@ -505,7 +492,20 @@ struct SavedListView: View {
                     }
                     editingResult = nil
                 }, label: {
-                    Label("Search for often", systemImage: "circle.fill")
+                    Label("Recommend occasionally", systemImage: "circle")
+                        .foregroundStyle(.accent)
+                }).padding()
+                Button(action: {
+                    Task {
+                        do {
+                            try await viewModel.changeRating(rating: 3, for: selectedResult.recordId, cacheManager: cacheManager, modelController: modelController)
+                        } catch {
+                            modelController.analyticsManager.trackError(error:error, additionalInfo: nil)
+                        }
+                    }
+                    editingResult = nil
+                }, label: {
+                    Label("Recommend often", systemImage: "circle.fill")
                         .foregroundStyle(.green)
                 }).padding()
             }.padding()
