@@ -44,6 +44,8 @@ struct ContentView: View {
     @State private var showMapsResultViewSheet:Bool = false
     @State private var showPlaceViewSheet:Bool = false
     @State private var cameraPosition:MapCameraPosition = .automatic
+    @State private var selectedMapItem:String?
+    
     @StateObject public var placeDirectionsChatViewModel = PlaceDirectionsViewModel(rawLocationIdent: "")
     
     var body: some View {
@@ -114,8 +116,13 @@ struct ContentView: View {
                         }
                     
                         .sheet(isPresented: $showMapsResultViewSheet) {
-                            MapResultsView( model: chatModel, modelController:modelController, cameraPosition:$cameraPosition)
-                                
+                            MapResultsView( model: chatModel, modelController:modelController, selectedMapItem: $selectedMapItem, cameraPosition:$cameraPosition)
+                                .onChange(of: selectedMapItem) { _,newValue in
+                                    if let newValue = newValue, let placeChatResult = modelController.placeChatResult(for: newValue) {
+                                        showMapsResultViewSheet.toggle()
+                                        modelController.selectedPlaceChatResult = placeChatResult.id
+                                    }
+                                }
 #if os(macOS)
                                 .toolbar(content: {
                                     ToolbarItem {

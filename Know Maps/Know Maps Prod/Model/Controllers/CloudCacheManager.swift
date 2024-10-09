@@ -224,21 +224,31 @@ public final class CloudCacheManager: CacheManager, ObservableObject {
     // MARK: - Saved Results
     
     private func savedCategoricalResults() -> [CategoryResult] {
-        return cachedCategoryRecords.map {
-            let chatResults = [ChatResult(title: $0.title, list:$0.list, icon: $0.icons, rating: $0.rating, section:PersonalizedSearchSection(rawValue:$0.section) ?? .none, placeResponse: nil, recommendedPlaceResponse: nil)]
-            return CategoryResult(parentCategory: $0.title, recordId: $0.recordId, list: $0.list, icon:$0.icons, rating: $0.rating, section:PersonalizedSearchSection(rawValue:$0.section) ?? .none, categoricalChatResults: chatResults)
-        }.sorted(by: {$0.parentCategory.lowercased() < $1.parentCategory.lowercased()})
+        var retval = [CategoryResult]()
+        for index in 0..<cachedCategoryRecords.count {
+            let cacheRecord = cachedCategoryRecords[index]
+            let chatResults = [ChatResult(index: index, title: cacheRecord.title, list:cacheRecord.list, icon: cacheRecord.icons, rating: cacheRecord.rating, section:PersonalizedSearchSection(rawValue:cacheRecord.section) ?? .none, placeResponse: nil, recommendedPlaceResponse: nil)]
+            retval.append( CategoryResult(parentCategory: cacheRecord.title, recordId: cacheRecord.recordId, list: cacheRecord.list, icon:cacheRecord.icons, rating: cacheRecord.rating, section:PersonalizedSearchSection(rawValue:cacheRecord.section) ?? .none, categoricalChatResults: chatResults))
+        }
+            
+        return retval.sorted(by: {$0.parentCategory.lowercased() < $1.parentCategory.lowercased()})
     }
     
     private func savedTasteResults() -> [CategoryResult] {
-        return cachedTasteRecords.map {
-            let chatResults = [ChatResult(title: $0.title, list:$0.list, icon:$0.icons, rating: $0.rating, section:PersonalizedSearchSection(rawValue:$0.section) ?? .none, placeResponse: nil, recommendedPlaceResponse: nil)]
-            return CategoryResult(parentCategory: $0.title, recordId: $0.recordId, list: $0.list, icon:$0.icons, rating: $0.rating, section:PersonalizedSearchSection(rawValue:$0.section) ?? .none, categoricalChatResults: chatResults)
-        }.sorted(by: {$0.parentCategory.lowercased() < $1.parentCategory.lowercased()})
+        var retval = [CategoryResult]()
+        for index in 0..<cachedTasteRecords.count {
+            let cacheRecord = cachedTasteRecords[index]
+            let chatResults = [ChatResult(index: index, title: cacheRecord.title, list:cacheRecord.list, icon: cacheRecord.icons, rating: cacheRecord.rating, section:PersonalizedSearchSection(rawValue:cacheRecord.section) ?? .none, placeResponse: nil, recommendedPlaceResponse: nil)]
+            retval.append( CategoryResult(parentCategory: cacheRecord.title, recordId: cacheRecord.recordId, list: cacheRecord.list, icon:cacheRecord.icons, rating: cacheRecord.rating, section:PersonalizedSearchSection(rawValue:cacheRecord.section) ?? .none, categoricalChatResults: chatResults))
+        }
+            
+        return retval.sorted(by: {$0.parentCategory.lowercased() < $1.parentCategory.lowercased()})
     }
     
     private func savedPlaceResults() -> [CategoryResult] {
-        return cachedPlaceRecords.map { record in
+        var retval = [CategoryResult]()
+        for index in 0..<cachedPlaceRecords.count {
+            let record = cachedPlaceRecords[index]
             var chatResults = [ChatResult]()
             if record.group == "Place" {
                 let placeResponse = PlaceSearchResponse(
@@ -261,14 +271,13 @@ public final class CloudCacheManager: CacheManager, ObservableObject {
                     parentIDs: []
                 )
                 
-                chatResults = [ChatResult(title: record.title, list: record.list, icon:record.icons, rating: record.rating, section:PersonalizedSearchSection(rawValue:record.section) ?? .none, placeResponse: placeResponse, recommendedPlaceResponse: nil)]
+                chatResults = [ChatResult(index:index,title: record.title, list: record.list, icon:record.icons, rating: record.rating, section:PersonalizedSearchSection(rawValue:record.section) ?? .none, placeResponse: placeResponse, recommendedPlaceResponse: nil)]
                 
-                return CategoryResult(parentCategory:record.title, recordId: record.recordId, list: record.list, icon:record.icons, rating: record.rating, section:PersonalizedSearchSection(rawValue:record.section) ?? .none, categoricalChatResults: chatResults)
-            } else {
-                chatResults = [ChatResult(title: record.title, list: record.list, icon: record.icons, rating: record.rating, section:PersonalizedSearchSection(rawValue:record.section) ?? .none, placeResponse: nil, recommendedPlaceResponse: nil)]
+                retval.append( CategoryResult(parentCategory:record.title, recordId: record.recordId, list: record.list, icon:record.icons, rating: record.rating, section:PersonalizedSearchSection(rawValue:record.section) ?? .none, categoricalChatResults: chatResults))
             }
-            return CategoryResult(parentCategory: record.title, recordId: record.recordId, list: record.list, icon: record.icons, rating: record.rating, section:PersonalizedSearchSection(rawValue:record.section) ?? .none, categoricalChatResults: chatResults)
-        }.sorted(by: {$0.parentCategory.lowercased() < $1.parentCategory.lowercased()})
+        }
+        
+        return retval.sorted(by: {$0.parentCategory.lowercased() < $1.parentCategory.lowercased()})
     }
     
 

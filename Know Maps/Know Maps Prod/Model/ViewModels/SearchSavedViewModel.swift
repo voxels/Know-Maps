@@ -48,7 +48,7 @@ public final class SearchSavedViewModel: ObservableObject {
                 icons: "",
                 list: parent.list,
                 section: parent.section.rawValue,
-                rating: 1
+                rating: 2
             )
             let record = try await cacheManager.cloudCache.storeUserCachedRecord(
                 for: userRecord.group,
@@ -90,7 +90,7 @@ public final class SearchSavedViewModel: ObservableObject {
                 icons: "",
                 list: parent.list,
                 section: parent.section.rawValue,
-                rating: 1
+                rating: 2
             )
             let record = try await cacheManager.cloudCache.storeUserCachedRecord(
                 for: userRecord.group,

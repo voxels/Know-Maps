@@ -93,7 +93,12 @@ class PlaceAboutViewModel {
                         return tipsResponse.text
                     }) ?? []
                     
-                    var recommendation = RecommendationData(recordId: "", identity: identity, attributes: attributes, reviews: reviews)
+                    var ratings = [String:Double]()
+                    for attribute in attributes {
+                        ratings[attribute] = 1.5
+                    }
+                    
+                    var recommendation = RecommendationData(recordId: "", identity: identity, attributes: attributes, reviews: reviews, attributeRatings: ratings)
                     let recRecord = try await cacheManager.cloudCache.storeRecommendationData(for: recommendation.identity, attributes: recommendation.attributes, reviews: recommendation.reviews, userCachedCKRecord: ckRecord)
                     recommendation.setRecordId(to: recRecord)
                 } else {

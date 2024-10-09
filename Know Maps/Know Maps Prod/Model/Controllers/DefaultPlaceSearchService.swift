@@ -133,8 +133,9 @@ public final class DefaultPlaceSearchService: PlaceSearchService {
     private func tasteCategoryResults(with tastes: [String], page: Int, currentTasteResults: [CategoryResult]) -> [CategoryResult] {
         var results = currentTasteResults
         
-        for taste in tastes {
-            let chatResult = ChatResult(title: taste, list:"Taste", icon: "", rating: 1, section:assistiveHostDelegate.section(for:taste), placeResponse: nil, recommendedPlaceResponse: nil)
+        for index in 0..<tastes.count {
+            let taste = tastes[index]
+            let chatResult = ChatResult(index: index, title: taste, list:"Taste", icon: "", rating: 1, section:assistiveHostDelegate.section(for:taste), placeResponse: nil, recommendedPlaceResponse: nil)
             let categoryResult = CategoryResult(parentCategory: taste, recordId: "", list:"Taste", icon: chatResult.icon, rating: 1, section:chatResult.section, categoricalChatResults: [chatResult])
             results.append(categoryResult)
         }

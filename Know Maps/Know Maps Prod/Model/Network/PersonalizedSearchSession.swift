@@ -56,7 +56,7 @@ public enum PersonalizedSearchSection : String, Hashable, CaseIterable {
     }
     
     public func categoryResult()->CategoryResult {
-        let chatResult = ChatResult(title: rawValue, list:self.rawValue, icon:"", rating: 1, section:self,  placeResponse: nil, recommendedPlaceResponse: nil)
+        let chatResult = ChatResult(index: 0, title: rawValue, list:self.rawValue, icon:"", rating: 1, section:self,  placeResponse: nil, recommendedPlaceResponse: nil)
         let categoryResult = CategoryResult(parentCategory: rawValue, recordId: "", list:self.rawValue, icon: "", rating: 1, section:self, categoricalChatResults: [chatResult])
         return categoryResult
     }

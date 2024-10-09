@@ -13,6 +13,7 @@ public struct RecommendationData : Identifiable, Hashable, Codable, Equatable {
     var identity:String
     var attributes:[String]
     var reviews:[String]
+    var attributeRatings:[String:Double]
     
     mutating public func setRecordId(to string:String) {
         recordId = string

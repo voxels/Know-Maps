@@ -8,8 +8,7 @@
 import Foundation
 import CoreLocation
 
-public final class DefaultModelController : ModelController, ObservableObject {
-    
+public final class DefaultModelController : ModelController, ObservableObject {    
     
     // MARK: - Dependencies
     public var assistiveHostDelegate: AssistiveChatHost
@@ -17,6 +16,7 @@ public final class DefaultModelController : ModelController, ObservableObject {
     public var locationProvider: LocationProvider
     public var placeSearchService: PlaceSearchService
     public var analyticsManager: AnalyticsService
+    public var recommenderService:RecommenderService
     
     // MARK: - Published Properties
         
@@ -56,6 +56,7 @@ public final class DefaultModelController : ModelController, ObservableObject {
         self.assistiveHostDelegate = AssistiveChatHostService(analyticsManager: analyticsManager)
         self.placeSearchService = DefaultPlaceSearchService(assistiveHostDelegate: assistiveHostDelegate, placeSearchSession: PlaceSearchSession(), personalizedSearchSession: PersonalizedSearchSession(), analyticsManager: analyticsManager)
         self.locationService = DefaultLocationService(locationProvider: locationProvider)
+        self.recommenderService = DefaultRecommenderService()
     }
     
     public func resetPlaceModel() async {
@@ -81,16 +82,19 @@ public final class DefaultModelController : ModelController, ObservableObject {
         for categoryCode in assistiveHostDelegate.categoryCodes {
             var newChatResults = [ChatResult]()
             for values in categoryCode.values {
-                for value in values {
+                for index in 0..<values.count {
+                    let value = values[index]
                     if let category = value["category"]{
-                        let chatResult = ChatResult(title:category, list:category, icon: "", rating: 1, section:assistiveHostDelegate.section(for:category), placeResponse:nil, recommendedPlaceResponse: nil)
+                        let chatResult = ChatResult(index: index, title:category, list:category, icon: "", rating: 1, section:assistiveHostDelegate.section(for:category), placeResponse:nil, recommendedPlaceResponse: nil)
                         newChatResults.append(chatResult)
                     }
                 }
             }
             
-            for key in categoryCode.keys {
-                newChatResults.append(ChatResult(title: key, list:key, icon:"", rating: 1, section:assistiveHostDelegate.section(for:key), placeResponse:nil, recommendedPlaceResponse: nil))
+            let keys = Array(categoryCode.keys.sorted())
+            for index in 0..<keys.count {
+                let key = keys[index]
+                newChatResults.append(ChatResult(index:index,title: key, list:key, icon:"", rating: 1, section:assistiveHostDelegate.section(for:key), placeResponse:nil, recommendedPlaceResponse: nil))
                 
                 if retval.contains(where: { checkResult in
                     return checkResult.parentCategory == key
@@ -294,10 +298,10 @@ public final class DefaultModelController : ModelController, ObservableObject {
     public func model(intent: AssistiveChatHostIntent, cacheManager:CacheManager) async throws -> [ChatResult] {
         switch intent.intent {
         case .Place:
-            await placeQueryModel(intent: intent)
+            try await placeQueryModel(intent: intent, cacheManager: cacheManager)
             analyticsManager.track(event:"modelPlaceQueryBuilt", properties: nil)
         case .Search:
-            await searchQueryModel(intent: intent)
+            try await searchQueryModel(intent: intent, cacheManager: cacheManager)
             try await placeSearchService.detailIntent(intent: intent, cacheManager: cacheManager)
             analyticsManager.track(event:"modelSearchQueryBuilt", properties: nil)
         case .Location:
@@ -328,7 +332,7 @@ public final class DefaultModelController : ModelController, ObservableObject {
             if let selectedDestinationLocationChatResult = selectedDestinationLocationChatResult,
                let locationResult = locationChatResult(for: selectedDestinationLocationChatResult, in: locationResults),
                let finalLocation = locationResult.location {
-                try await autocompletePlaceModel(caption: intent.caption, intent: intent, location: finalLocation)
+                try await autocompletePlaceModel(caption: intent.caption, intent: intent, location: finalLocation, cacheManager: cacheManager)
                 analyticsManager.track(event: "modelAutocompletePlaceModelBuilt", properties: nil)
             }
         case .AutocompleteTastes:
@@ -378,6 +382,8 @@ public final class DefaultModelController : ModelController, ObservableObject {
                     let placeSearchResponses = intent.placeSearchResponses.isEmpty ? try PlaceResponseFormatter.placeSearchResponses(with: rawQueryResponse) : intent.placeSearchResponses
                     intent.placeSearchResponses = placeSearchResponses
                 }
+            
+            
                 analyticsManager.track(event: "searchIntentWithSearch", properties: nil)
         case .Location:
             break
@@ -401,18 +407,19 @@ public final class DefaultModelController : ModelController, ObservableObject {
     // MARK: Autocomplete Place Model
     
     @discardableResult
-    public func autocompletePlaceModel(caption: String, intent: AssistiveChatHostIntent, location: CLLocation) async throws -> [ChatResult] {
+    public func autocompletePlaceModel(caption: String, intent: AssistiveChatHostIntent, location: CLLocation, cacheManager:CacheManager) async throws -> [ChatResult] {
         let autocompleteResponse = try await placeSearchService.placeSearchSession.autocomplete(caption: caption, parameters: intent.queryParameters, location: location)
         let placeSearchResponses = try PlaceResponseFormatter.autocompletePlaceSearchResponses(with: autocompleteResponse)
         intent.placeSearchResponses = placeSearchResponses
         
-        await recommendedPlaceQueryModel(intent: intent)
+        try await recommendedPlaceQueryModel(intent: intent, cacheManager: cacheManager)
         await relatedPlaceQueryModel(intent: intent)
         
         var chatResults = [ChatResult]()
         let allResponses = intent.placeSearchResponses
-        for response in allResponses {
-            let results = PlaceResponseFormatter.placeChatResults(for: intent, place: response, section: assistiveHostDelegate.section(for: intent.caption), list: intent.caption, rating: 1, details: nil)
+        for index in 0..<allResponses.count {
+            let response = allResponses[index]
+            let results = PlaceResponseFormatter.placeChatResults(for: intent, place: response, section: assistiveHostDelegate.section(for: intent.caption), list: intent.caption, index: index, rating: 1, details: nil)
             chatResults.append(contentsOf: results)
         }
         
@@ -429,7 +436,7 @@ public final class DefaultModelController : ModelController, ObservableObject {
     // MARK: Place Query Models
     
     @discardableResult
-    public func placeQueryModel(intent: AssistiveChatHostIntent) async -> [ChatResult] {
+    public func placeQueryModel(intent: AssistiveChatHostIntent, cacheManager:CacheManager) async throws -> [ChatResult] {
         var chatResults = [ChatResult]()
         
         if let response = intent.selectedPlaceSearchResponse, let details = intent.selectedPlaceSearchDetails {
@@ -437,7 +444,7 @@ public final class DefaultModelController : ModelController, ObservableObject {
                 for: intent,
                 place: response,
                 section: assistiveHostDelegate.section(for:intent.caption),
-                list:intent.caption,
+                list:intent.caption, index: 0,
                 rating: 1,
                 details: details,
                 recommendedPlaceResponse:nil
@@ -445,9 +452,10 @@ public final class DefaultModelController : ModelController, ObservableObject {
             chatResults.append(contentsOf: results)
         } else {
             if !intent.placeSearchResponses.isEmpty {
-                for response in intent.placeSearchResponses {
+                for index in 0..<intent.placeSearchResponses.count {
+                    let response = intent.placeSearchResponses[index]
                     if !response.name.isEmpty {
-                        let results = PlaceResponseFormatter.placeChatResults(for: intent, place: response, section:assistiveHostDelegate.section(for:intent.caption), list:intent.caption, rating: 1, details: nil, recommendedPlaceResponse: nil)
+                        let results = PlaceResponseFormatter.placeChatResults(for: intent, place: response, section:assistiveHostDelegate.section(for:intent.caption), list:intent.caption, index: index, rating: 1, details: nil, recommendedPlaceResponse: nil)
                         chatResults.append(contentsOf: results)
                     }
                 }
@@ -464,17 +472,23 @@ public final class DefaultModelController : ModelController, ObservableObject {
             }
         }
         
-        await recommendedPlaceQueryModel(intent: intent)
+        try await recommendedPlaceQueryModel(intent: intent, cacheManager: cacheManager)
         await relatedPlaceQueryModel(intent: intent)
         
         return chatResults
     }
     
-    public func recommendedPlaceQueryModel(intent: AssistiveChatHostIntent) async {
+    public func recommendedPlaceQueryModel(intent: AssistiveChatHostIntent, cacheManager:CacheManager) async throws {
         var recommendedChatResults = [ChatResult]()
         
         if let recommendedPlaceSearchResponses = intent.recommendedPlaceSearchResponses, !recommendedPlaceSearchResponses.isEmpty {
-            for response in recommendedPlaceSearchResponses {
+            let trainingData = recommenderService.recommendationData(tasteCategoryResults:cacheManager.cachedTasteResults, industryCategoryResults: cacheManager.cachedIndustryResults, placeRecommendationData: cacheManager.cachedRecommendationData)
+            let model = try recommenderService.model(with: trainingData)
+            let testingData = recommenderService.testingData(with:recommendedPlaceSearchResponses)
+            let results = try recommenderService.recommend(from: testingData, with: model)
+            
+            for index in 0..<recommendedPlaceSearchResponses.count {
+                let response = recommendedPlaceSearchResponses[index]
                 if !response.fsqID.isEmpty {
                     let placeResponse = PlaceSearchResponse(
                         fsqID: response.fsqID,
@@ -498,7 +512,7 @@ public final class DefaultModelController : ModelController, ObservableObject {
                     let results = PlaceResponseFormatter.placeChatResults(
                         for: intent,
                         place: placeResponse,
-                        section: assistiveHostDelegate.section(for: intent.caption), list: intent.caption, rating: 1,
+                        section: assistiveHostDelegate.section(for: intent.caption), list: intent.caption, index: index, rating: results[index].attributeRatings.first?.value ?? 1,
                         details: nil,
                         recommendedPlaceResponse: response
                     )
@@ -508,7 +522,13 @@ public final class DefaultModelController : ModelController, ObservableObject {
         }
         
         await MainActor.run { [recommendedChatResults] in
-            recommendedPlaceResults = recommendedChatResults
+            recommendedPlaceResults = recommendedChatResults.sorted(by: { result, checkResult in
+                if result.rating == checkResult.rating {
+                    return result.index < checkResult.index
+                }
+                
+                return result.rating > checkResult.rating
+            })
         }
     }
     
@@ -516,13 +536,14 @@ public final class DefaultModelController : ModelController, ObservableObject {
         var relatedChatResults = [ChatResult]()
         
         if let relatedPlaceSearchResponses = intent.relatedPlaceSearchResponses, !relatedPlaceSearchResponses.isEmpty {
-            for response in relatedPlaceSearchResponses {
+            for index in 0..<relatedPlaceSearchResponses.count {
+                let response = relatedPlaceSearchResponses[index]
                 if !response.fsqID.isEmpty {
                     if response.fsqID == intent.selectedPlaceSearchResponse?.fsqID, let placeSearchResponse = intent.selectedPlaceSearchResponse {
                         let results = PlaceResponseFormatter.placeChatResults(
                             for: intent,
                             place: placeSearchResponse,
-                            section: assistiveHostDelegate.section(for: intent.caption), list: intent.caption, rating: 1,
+                            section: assistiveHostDelegate.section(for: intent.caption), list: intent.caption, index: index, rating: 1,
                             details: intent.selectedPlaceSearchDetails,
                             recommendedPlaceResponse:nil
                         )
@@ -550,7 +571,7 @@ public final class DefaultModelController : ModelController, ObservableObject {
                         let results = PlaceResponseFormatter.placeChatResults(
                             for: intent,
                             place: placeResponse,
-                            section: assistiveHostDelegate.section(for: intent.caption), list: intent.caption, rating: 1,
+                            section: assistiveHostDelegate.section(for: intent.caption), list: intent.caption, index: index, rating: 1,
                             details: nil,
                             recommendedPlaceResponse: response
                         )
@@ -565,7 +586,7 @@ public final class DefaultModelController : ModelController, ObservableObject {
     }
     
     @discardableResult
-    public func searchQueryModel(intent: AssistiveChatHostIntent) async -> [ChatResult] {
+    public func searchQueryModel(intent: AssistiveChatHostIntent, cacheManager:CacheManager) async throws -> [ChatResult] {
         var chatResults = [ChatResult]()
         
         let existingPlaceResults = placeResults.compactMap { $0.placeResponse }
@@ -590,7 +611,7 @@ public final class DefaultModelController : ModelController, ObservableObject {
                 placeResults = newResults
             }
             
-            await recommendedPlaceQueryModel(intent: intent)
+            try await recommendedPlaceQueryModel(intent: intent, cacheManager: cacheManager)
             await relatedPlaceQueryModel(intent: intent)
             
             return chatResults
@@ -601,19 +622,21 @@ public final class DefaultModelController : ModelController, ObservableObject {
             if let selectedPlaceSearchDetails = intent.selectedPlaceSearchDetails {
                 allDetailsResponses.append(selectedPlaceSearchDetails)
             }
-            for detailsResponse in allDetailsResponses {
+            for index in 0..<allDetailsResponses.count {
+                let detailsResponse = allDetailsResponses[index]
                 let results = PlaceResponseFormatter.placeChatResults(
                     for: intent,
                     place: detailsResponse.searchResponse,
-                    section: assistiveHostDelegate.section(for: intent.caption), list: intent.caption, rating: 1,
+                    section: assistiveHostDelegate.section(for: intent.caption), list: intent.caption, index: index, rating: 1,
                     details: detailsResponse
                 )
                 chatResults.append(contentsOf: results)
             }
         }
         
-        for response in intent.placeSearchResponses {
-            var results = PlaceResponseFormatter.placeChatResults(for: intent, place: response, section: assistiveHostDelegate.section(for: intent.caption), list: intent.caption, rating: 1, details: nil)
+        for index in 0..<intent.placeSearchResponses.count {
+            let response = intent.placeSearchResponses[index]
+            var results = PlaceResponseFormatter.placeChatResults(for: intent, place: response, section: assistiveHostDelegate.section(for: intent.caption), list: intent.caption, index: index, rating: 1, details: nil)
             results = results.filter { result in
                 !(intent.placeDetailsResponses?.contains { $0.fsqID == result.placeResponse?.fsqID } ?? false)
             }
@@ -624,7 +647,7 @@ public final class DefaultModelController : ModelController, ObservableObject {
             placeResults = chatResults
         }
         
-        await recommendedPlaceQueryModel(intent: intent)
+        try await recommendedPlaceQueryModel(intent: intent, cacheManager:cacheManager)
         await relatedPlaceQueryModel(intent: intent)
         
         return chatResults
@@ -758,7 +781,6 @@ public final class DefaultModelController : ModelController, ObservableObject {
             try await receiveMessage(caption: caption, parameters: parameters, isLocalParticipant: isLocalParticipant)
             try await searchIntent(intent: newIntent, location: locationChatResult(with:caption,  in:filteredLocationResults(cacheManager: cacheManager)).location!, cacheManager: cacheManager )
             try await didUpdateQuery(with: caption, parameters: parameters, cacheManager: cacheManager)
-            
         }
     }
     

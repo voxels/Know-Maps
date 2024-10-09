@@ -17,6 +17,7 @@ public protocol ModelController {
     var locationProvider: LocationProvider { get }
     var placeSearchService: PlaceSearchService { get }
     var analyticsManager: AnalyticsService { get }
+    var recommenderService:RecommenderService { get }
     
     // MARK: - Published Properties
     
@@ -127,16 +128,17 @@ public protocol ModelController {
     // MARK: - Place Query Models
     
     /// Builds chat results for a place query intent.
-    func placeQueryModel(intent: AssistiveChatHostIntent) async -> [ChatResult]
+    func placeQueryModel(intent: AssistiveChatHostIntent, cacheManager:CacheManager) async throws -> [ChatResult]
     
     /// Builds chat results for a search query intent.
-    func searchQueryModel(intent: AssistiveChatHostIntent) async -> [ChatResult]
+    func searchQueryModel(intent: AssistiveChatHostIntent, cacheManager:CacheManager) async throws -> [ChatResult]
     
     /// Handles autocomplete place model creation.
     func autocompletePlaceModel(
         caption: String,
         intent: AssistiveChatHostIntent,
-        location: CLLocation
+        location: CLLocation,
+        cacheManager:CacheManager
     ) async throws -> [ChatResult]
     
     // MARK: - Message Handling

@@ -12,11 +12,10 @@ import MapKit
 struct MapResultsView: View {
     @ObservedObject public var model:ChatResultViewModel
     @ObservedObject public var modelController:DefaultModelController
-    @State private var selectedMapItem: String?
+    @Binding public var selectedMapItem: String?
     @Binding public var cameraPosition:MapCameraPosition
     
     var body: some View {
-        
         Map(position: $cameraPosition, interactionModes: .all, selection: $selectedMapItem) {
             ForEach(modelController.filteredPlaceResults) { result in
                 if let placeResponse = result.placeResponse {

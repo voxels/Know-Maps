@@ -453,8 +453,7 @@ public final class CloudCacheService: NSObject, CloudCache {
                         }
                     }
                     
-                    operation.queryResultBlock = { [weak self] result in
-                        guard let self = self else { return }
+                    operation.queryResultBlock = { result in
                         switch result {
                         case .success:
                             continuation.resume()
@@ -630,12 +629,17 @@ public final class CloudCacheService: NSObject, CloudCache {
                             
                             let rawAttributes = record["Attributes"] as? [String] ?? [""]
                             let rawReviews = record["Reviews"] as? [String] ?? [""]
+                            var rawRatings = [String:Double]()
+                            for attribute in rawAttributes {
+                                rawRatings[attribute] = 1.5
+                            }
                             
                             let cachedRecord = RecommendationData(
                                 recordId: recordId.recordName,
                                 identity: rawIdentity,
                                 attributes: rawAttributes,
-                                reviews: rawReviews
+                                reviews: rawReviews,
+                                attributeRatings: rawRatings
                             )
                             tempRetval.append(cachedRecord)
                         } catch {

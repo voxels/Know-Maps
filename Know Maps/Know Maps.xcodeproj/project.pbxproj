@@ -15,6 +15,8 @@
 		1E213E1E2CAD82A500B93697 /* RevenueCatUI in Frameworks */ = {isa = PBXBuildFile; productRef = 1E213E1D2CAD82A500B93697 /* RevenueCatUI */; };
 		1E24EE642CAC78250087F724 /* FoursquareSectionClassifier.mlmodel in Sources */ = {isa = PBXBuildFile; fileRef = 1E24EE632CAC78250087F724 /* FoursquareSectionClassifier.mlmodel */; };
 		1E3FE0102CB6A0000020B3CB /* RecommendationData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E3FE00F2CB69FFC0020B3CB /* RecommendationData.swift */; };
+		1E3FE0122CB6C5300020B3CB /* RecommenderService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E3FE0112CB6C52C0020B3CB /* RecommenderService.swift */; };
+		1E3FE0142CB6C6BA0020B3CB /* DefaultRecommenderService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E3FE0132CB6C6B60020B3CB /* DefaultRecommenderService.swift */; };
 		1E601F5B2CB04CF500E320D7 /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; platformFilter = ios; productRef = 1E601F5A2CB04CF500E320D7 /* GoogleMobileAds */; };
 		1E601F5D2CB0512900E320D7 /* GoogleBannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E601F5C2CB0512900E320D7 /* GoogleBannerView.swift */; };
 		1E60F4502CAC149F00891250 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1E60F44F2CAC149F00891250 /* StoreKit.framework */; };
@@ -136,6 +138,8 @@
 		1E24EE632CAC78250087F724 /* FoursquareSectionClassifier.mlmodel */ = {isa = PBXFileReference; lastKnownFileType = file.mlmodel; path = FoursquareSectionClassifier.mlmodel; sourceTree = "<group>"; };
 		1E26C7B32B2C79150050EC6A /* NavigationLocationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationLocationView.swift; sourceTree = "<group>"; };
 		1E3FE00F2CB69FFC0020B3CB /* RecommendationData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecommendationData.swift; sourceTree = "<group>"; };
+		1E3FE0112CB6C52C0020B3CB /* RecommenderService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecommenderService.swift; sourceTree = "<group>"; };
+		1E3FE0132CB6C6B60020B3CB /* DefaultRecommenderService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DefaultRecommenderService.swift; sourceTree = "<group>"; };
 		1E583F7C2B1671F300B2EC26 /* AppleAuthenticationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleAuthenticationService.swift; sourceTree = "<group>"; };
 		1E601F5C2CB0512900E320D7 /* GoogleBannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoogleBannerView.swift; sourceTree = "<group>"; };
 		1E60F44F2CAC149F00891250 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.0.sdk/System/Library/Frameworks/StoreKit.framework; sourceTree = DEVELOPER_DIR; };
@@ -339,6 +343,7 @@
 				1EA7F77A2B052D92002AE371 /* LocationProvider.swift */,
 				1EA7F7982B052E0C002AE371 /* LocalMapsQueryClassifier.mlmodel */,
 				1EA7F7992B052E0C002AE371 /* LocalMapsQueryTagger.mlmodel */,
+				1E3FE0132CB6C6B60020B3CB /* DefaultRecommenderService.swift */,
 				1E007ACD2CB40B1900A8DC5A /* SegmentAnalyticsService.swift */,
 			);
 			path = Controllers;
@@ -347,6 +352,7 @@
 		1EA588CD2B065D5F006B1F8F /* Protocols */ = {
 			isa = PBXGroup;
 			children = (
+				1E3FE0112CB6C52C0020B3CB /* RecommenderService.swift */,
 				1E96EE992CB527490070BCDD /* Authentication.swift */,
 				1E7D43602CB525EE00DC17FA /* AnalyticsService.swift */,
 				1EA588CE2B065D8B006B1F8F /* AssistiveChatHost.swift */,
@@ -679,7 +685,9 @@
 				1EF3790F2C986EE7001C5E39 /* SearchCategoryView.swift in Sources */,
 				1EF379102C986EE7001C5E39 /* SearchTasteView.swift in Sources */,
 				1EF379112C986EE7001C5E39 /* SearchSavedView.swift in Sources */,
+				1E3FE0142CB6C6BA0020B3CB /* DefaultRecommenderService.swift in Sources */,
 				1EF379122C986EE7001C5E39 /* NavigationLocationView.swift in Sources */,
+				1E3FE0122CB6C5300020B3CB /* RecommenderService.swift in Sources */,
 				1E96EE9C2CB5283D0070BCDD /* CloudCache.swift in Sources */,
 				1EF379132C986EE7001C5E39 /* PlacesList.swift in Sources */,
 				1E7D43552CB4271F00DC17FA /* SearchSavedViewModel.swift in Sources */,
