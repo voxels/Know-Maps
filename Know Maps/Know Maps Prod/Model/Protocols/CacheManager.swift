@@ -20,6 +20,7 @@ public protocol CacheManager {
     var cachedPlaceResults:[CategoryResult] { get }
     var allCachedResults:[CategoryResult] { get }
     var cachedLocationResults:[LocationResult] { get }
+    var cachedRecommendationData:[RecommendationData] { get }
     
     // Refresh the entire cache for different data types
     func refreshCache() async throws
@@ -32,6 +33,7 @@ public protocol CacheManager {
     func refreshCachedTastes() async
     func refreshCachedPlaces() async
     func refreshCachedLocations() async
+    func refreshCachedRecommendationData() async
     
     // Fetch all saved results
     func getAllCachedResults() -> [CategoryResult]

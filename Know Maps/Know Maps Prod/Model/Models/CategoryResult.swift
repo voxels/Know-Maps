@@ -22,13 +22,13 @@ public class CategoryResult : Identifiable, Equatable, Hashable {
     var parentCategory:String
     var list:String
     var icon:String
-    var rating:Int
+    var rating:Double
     var section:PersonalizedSearchSection
     private(set) var categoricalChatResults:[ChatResult] = [ChatResult]()
     public var children:[CategoryResult] = [CategoryResult]()
     public var isExpanded:Bool = false
     
-    public init(parentCategory: String, recordId:String, list:String, icon:String, rating:Int, section:PersonalizedSearchSection, categoricalChatResults: [ChatResult]) {
+    public init(parentCategory: String, recordId:String, list:String, icon:String, rating:Double, section:PersonalizedSearchSection, categoricalChatResults: [ChatResult]) {
         self.parentCategory = parentCategory
         self.recordId = recordId
         self.list = list

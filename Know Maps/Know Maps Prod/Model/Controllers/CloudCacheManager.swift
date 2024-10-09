@@ -9,7 +9,6 @@ import Foundation
 import CoreLocation
 
 public final class CloudCacheManager: CacheManager, ObservableObject {
-
     public let cloudCache: CloudCache
     private let analyticsManager:AnalyticsService
     @Published public var isRefreshingCache: Bool = false
@@ -28,6 +27,7 @@ public final class CloudCacheManager: CacheManager, ObservableObject {
     public var cachedPlaceResults = [CategoryResult]()
     public var allCachedResults = [CategoryResult]()
     public var cachedLocationResults = [LocationResult]()
+    public var cachedRecommendationData = [RecommendationData]()
     
     init(cloudCache: CloudCache, analyticsManager:AnalyticsService) {
         self.cloudCache = cloudCache
@@ -177,12 +177,17 @@ public final class CloudCacheManager: CacheManager, ObservableObject {
         }
     }
     
+    public func refreshCachedRecommendationData() async {
+        
+    }
+    
     public func refreshCachedResults() async {
         let savedResults = getAllCachedResults()
         await MainActor.run {
             allCachedResults = savedResults
         }
     }
+    
     
     public func refreshDefaultResults() async {
         let defaults = defaultResults()
@@ -296,9 +301,7 @@ public final class CloudCacheManager: CacheManager, ObservableObject {
     public func cachedLocationIdentity(for location: CLLocation) -> String {
         return "\(location.coordinate.latitude),\(location.coordinate.longitude)"
     }
-    
-    
-    
+        
     // MARK: Fetch Cached Results by Group and Identity
     
     public func cachedResults(for group: String, identity: String) -> [UserCachedRecord]? {

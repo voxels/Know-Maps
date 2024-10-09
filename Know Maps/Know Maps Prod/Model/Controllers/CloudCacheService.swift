@@ -25,7 +25,7 @@ public enum CloudCacheServiceKey: String {
     case revenuecat
 }
 
-public final class CloudCacheService: NSObject, CloudCache {    
+public final class CloudCacheService: NSObject, CloudCache {
     var analyticsManager:AnalyticsService
     @MainActor public var hasFsqAccess: Bool {
         fsqUserId.isEmpty ? false : true
@@ -429,7 +429,7 @@ public final class CloudCacheService: NSObject, CloudCache {
                 let rawIcons = record["Icons"] as? String ?? ""
                 let rawList = record["List"] as? String ?? ""
                 let rawSection = record["Section"] as? String ?? PersonalizedSearchSection.none.rawValue
-                let rawRating = record["Rating"] as? Int ?? 1
+                let rawRating = record["Rating"] as? Double ?? 1.0
                 let cachedRecord = UserCachedRecord(
                     recordId: recordId.recordName,
                     group: rawGroup,
@@ -543,6 +543,87 @@ public final class CloudCacheService: NSObject, CloudCache {
             }
             try await taskGroup.waitForAll()
         }
+    }
+    
+    public func storeRecomendationData(for identity: String, attributes: [String], reviews: [String]) async throws -> String {
+        let record = CKRecord(recordType: "RecomendationData")
+        record.setObject(identity as NSString, forKey: "Identity")
+        record.setObject(attributes as CKRecordValue?, forKey: "Attributes")
+        record.setObject(reviews as CKRecordValue?, forKey: "Reviews")
+        let result = try await cacheContainer.privateCloudDatabase.modifyRecords(
+            saving: [record],
+            deleting: [],
+            atomically: false
+        )
+        if let resultName = result.saveResults.keys.first?.recordName {
+            return resultName
+        }
+        
+        return record.recordID.recordName
+    }
+
+    
+    public func fetchRecomendationData() async throws -> [RecommendationData] {
+        var retval = [RecommendationData]()
+        let predicate = NSPredicate(value:true)
+        let query = CKQuery(recordType: "RecomendationData", predicate: predicate)
+        let operation = CKQueryOperation(query: query)
+        operation.desiredKeys = ["Identity", "Attributes", "Reviews"]
+        operation.qualityOfService = .default
+        operation.recordMatchedBlock = { [weak self] recordId, result in
+            guard let strongSelf = self else { return }
+            do {
+                let record = try result.get()
+                guard
+                    let rawIdentity = record["Identity"] as? String
+                else {
+                    return
+                }
+                
+                let rawAttributes = record["Attributes"] as? [String] ?? [""]
+                let rawReviews = record["Reviews"] as? [String] ?? [""]
+
+                let cachedRecord = RecommendationData(recordId: recordId.recordName, identity: rawIdentity, attributes: rawAttributes, reviews: rawReviews)
+                retval.append(cachedRecord)
+            } catch {
+                strongSelf.analyticsManager.trackError(error: error, additionalInfo: nil)
+            }
+        }
+        
+        let _ = try await withCheckedThrowingContinuation { continuation in
+            operation.queryResultBlock = { [weak self] result in
+                guard let strongSelf = self else { return }
+                switch result {
+                case .success:
+                    continuation.resume(returning: true)
+                case .failure(let error):
+                    strongSelf.analyticsManager.trackError(error: error, additionalInfo: nil)
+                    continuation.resume(returning: false)
+                }
+            }
+            self.insertCacheOperation(operation)
+            cacheContainer.privateCloudDatabase.add(operation)
+        }
+        
+        self.removeCacheOperation(operation)
+        
+        return retval
+    }
+    
+    @discardableResult
+    public func deleteRecomendationData(for recordId: String) async throws -> (
+        saveResults: [CKRecord.ID: Result<CKRecord, Error>],
+        deleteResults: [CKRecord.ID: Result<Void, Error>]
+    ) {
+        let existingGroups = try await fetchRecomendationData()
+        let allRecomendations = existingGroups.map { CKRecord.ID(recordName: $0.recordId) }
+        let recordsToDelete = allRecomendations.filter { record in
+            return record.recordName == recordId
+        }
+        return try await cacheContainer.privateCloudDatabase.modifyRecords(
+            saving: [],
+            deleting: recordsToDelete
+        )
     }
 }
 

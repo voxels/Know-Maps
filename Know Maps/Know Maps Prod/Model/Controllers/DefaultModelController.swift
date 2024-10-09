@@ -235,6 +235,10 @@ public final class DefaultModelController : ModelController, ObservableObject {
         return cacheManager.cachedTasteResults.first { $0.parentCategory == title}
     }
     
+    public func cachedRecommendationData(for identity: String, cacheManager: any CacheManager) -> RecommendationData? {
+        return cacheManager.cachedRecommendationData.first { $0.identity == identity }
+    }
+    
     // MARK: - Location Handling
     
     public func locationChatResult(for id: LocationResult.ID, in locationResults: [LocationResult]) -> LocationResult? {

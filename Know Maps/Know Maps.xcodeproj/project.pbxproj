@@ -14,6 +14,7 @@
 		1E213E1C2CAD82A500B93697 /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = 1E213E1B2CAD82A500B93697 /* RevenueCat */; };
 		1E213E1E2CAD82A500B93697 /* RevenueCatUI in Frameworks */ = {isa = PBXBuildFile; productRef = 1E213E1D2CAD82A500B93697 /* RevenueCatUI */; };
 		1E24EE642CAC78250087F724 /* FoursquareSectionClassifier.mlmodel in Sources */ = {isa = PBXBuildFile; fileRef = 1E24EE632CAC78250087F724 /* FoursquareSectionClassifier.mlmodel */; };
+		1E3FE0102CB6A0000020B3CB /* RecommendationData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E3FE00F2CB69FFC0020B3CB /* RecommendationData.swift */; };
 		1E601F5B2CB04CF500E320D7 /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; platformFilter = ios; productRef = 1E601F5A2CB04CF500E320D7 /* GoogleMobileAds */; };
 		1E601F5D2CB0512900E320D7 /* GoogleBannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E601F5C2CB0512900E320D7 /* GoogleBannerView.swift */; };
 		1E60F4502CAC149F00891250 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1E60F44F2CAC149F00891250 /* StoreKit.framework */; };
@@ -134,6 +135,7 @@
 		1E1F5E542B72694A008B6BAD /* OnboardingSubscriptionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingSubscriptionView.swift; sourceTree = "<group>"; };
 		1E24EE632CAC78250087F724 /* FoursquareSectionClassifier.mlmodel */ = {isa = PBXFileReference; lastKnownFileType = file.mlmodel; path = FoursquareSectionClassifier.mlmodel; sourceTree = "<group>"; };
 		1E26C7B32B2C79150050EC6A /* NavigationLocationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationLocationView.swift; sourceTree = "<group>"; };
+		1E3FE00F2CB69FFC0020B3CB /* RecommendationData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecommendationData.swift; sourceTree = "<group>"; };
 		1E583F7C2B1671F300B2EC26 /* AppleAuthenticationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleAuthenticationService.swift; sourceTree = "<group>"; };
 		1E601F5C2CB0512900E320D7 /* GoogleBannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoogleBannerView.swift; sourceTree = "<group>"; };
 		1E60F44F2CAC149F00891250 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.0.sdk/System/Library/Frameworks/StoreKit.framework; sourceTree = DEVELOPER_DIR; };
@@ -288,22 +290,23 @@
 			children = (
 				1E98C7D22B18DC7400283E92 /* AssistiveChatHostIntent.swift */,
 				1EA7F7942B052DE4002AE371 /* AssistiveChatHostQueryParameters.swift */,
-				1EA7F7812B052D92002AE371 /* ChatResult.swift */,
-				1EE068972B121F710016851A /* LocationResult.swift */,
 				1EE0688F2B0E57AD0016851A /* CategoryResult.swift */,
+				1EA7F7812B052D92002AE371 /* ChatResult.swift */,
 				1EE068912B0FBADE0016851A /* ChatRouteResult.swift */,
 				1EA7F7772B052D92002AE371 /* PlaceDetailsRequest.swift */,
 				1EA7F7722B052D92002AE371 /* LanguageGeneratorRequest.swift */,
+				1EE068972B121F710016851A /* LocationResult.swift */,
 				1EA7F77C2B052D92002AE371 /* PlaceDetailsResponse.swift */,
 				1EA7F7732B052D92002AE371 /* PlacePhotoResponse.swift */,
 				1EA7F7802B052D92002AE371 /* PlaceSearchRequest.swift */,
 				1EA7F77F2B052D92002AE371 /* PlaceSearchResponse.swift */,
 				1EA7F7792B052D92002AE371 /* PlaceTipsResponse.swift */,
 				1EA7F77E2B052D92002AE371 /* PlaceResponseFormatter.swift */,
-				1EEC48182B45A4B300248D69 /* UserCachedRecord.swift */,
+				1E3FE00F2CB69FFC0020B3CB /* RecommendationData.swift */,
 				1E71213C2B6160A500758259 /* RecommendedPlaceSearchRequest.swift */,
 				1E7121402B616C6400758259 /* RecommendedPlaceSearchResponse.swift */,
 				1E6570D52C9B516400FEE9F8 /* TasteAutocompleteResponse.swift */,
+				1EEC48182B45A4B300248D69 /* UserCachedRecord.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -621,6 +624,7 @@
 				1EF378E32C986EE7001C5E39 /* AssistiveChatHostService.swift in Sources */,
 				1EF378E42C986EE7001C5E39 /* CloudCacheService.swift in Sources */,
 				1EF378E62C986EE7001C5E39 /* LanguageGeneratorSession.swift in Sources */,
+				1E3FE0102CB6A0000020B3CB /* RecommendationData.swift in Sources */,
 				1EF378E72C986EE7001C5E39 /* LocationProvider.swift in Sources */,
 				1EF378E82C986EE7001C5E39 /* FeatureFlagsService.swift in Sources */,
 				1EF378E92C986EE7001C5E39 /* ChatResultViewModel.swift in Sources */,

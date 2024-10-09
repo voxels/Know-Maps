@@ -20,7 +20,14 @@ public protocol CloudCache: AnyObject {
     func deleteUserCachedRecord(for cachedRecord: UserCachedRecord) async throws
     func deleteAllUserCachedRecords(for group: String) async throws -> (saveResults: [CKRecord.ID: Result<CKRecord, Error>], deleteResults: [CKRecord.ID: Result<Void, Error>])
     func deleteAllUserCachedGroups() async throws
-
+    
+    func storeRecomendationData(for identity:String, attributes:[String], reviews:[String]) async throws -> String
+    func fetchRecomendationData() async throws -> [RecommendationData]
+    func deleteRecomendationData(for recordId: String) async throws -> (
+        saveResults: [CKRecord.ID: Result<CKRecord, Error>],
+        deleteResults: [CKRecord.ID: Result<Void, Error>]
+    )
+    
     // CloudKit Identity and OAuth Management
     func fetchFsqIdentity() async throws -> String
     func fetchToken(for fsqUserId: String) async throws -> String
