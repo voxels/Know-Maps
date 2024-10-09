@@ -52,6 +52,7 @@ struct PlaceAboutView: View {
                                 Label(placeResponse.formattedAddress, systemImage: "mappin")
                                     .multilineTextAlignment(.leading)
                                     .padding()
+                                    .labelStyle(.titleOnly)
                                     .onTapGesture {
                                         tabItem = 1
                                     }
@@ -69,11 +70,11 @@ struct PlaceAboutView: View {
                                     .frame(height: PlaceAboutView.buttonHeight)
                                 let isSaved = cacheManager.cachedPlaces(contains: title)
                                 Label(isSaved ? "Delete" : "Add to List", systemImage: isSaved ? "minus.circle" : "square.and.arrow.down")
-                                    .onTapGesture {
-                                        Task {
-                                            await viewModel.toggleSavePlace(resultId: resultId, cacheManager: cacheManager, modelController:modelController)
-                                        }
-                                    }
+                                    
+                            }.onTapGesture {
+                                Task {
+                                    await viewModel.toggleSavePlace(resultId: resultId, cacheManager: cacheManager, modelController:modelController)
+                                }
                             }
                             
                             // Phone button
@@ -84,11 +85,11 @@ struct PlaceAboutView: View {
                                         .frame(height: PlaceAboutView.buttonHeight)
                                     
                                     Label(tel, systemImage: "phone")
-                                        .onTapGesture {
-                                            if let url = viewModel.getCallURL(tel: tel) {
-                                                openURL(url)
-                                            }
-                                        }
+                                        
+                                }.onTapGesture {
+                                    if let url = viewModel.getCallURL(tel: tel) {
+                                        openURL(url)
+                                    }
                                 }
                             }
                             
@@ -100,9 +101,9 @@ struct PlaceAboutView: View {
                                         .frame(height: PlaceAboutView.buttonHeight)
                                     
                                     Label("Visit website", systemImage: "link")
-                                        .onTapGesture {
-                                            openURL(url)
-                                        }
+                                        
+                                }.onTapGesture {
+                                    openURL(url)
                                 }
                             }
                         }.padding(.horizontal, 16)
@@ -115,7 +116,11 @@ struct PlaceAboutView: View {
                                         .frame(height: PlaceAboutView.buttonHeight)
                                     
                                     Label(PlacesList.formatter.string(from: NSNumber(value: placeDetailsResponse.rating)) ?? "0", systemImage: "star.fill")
-                                         .labelStyle(.titleAndIcon)                                }
+                                        .labelStyle(.titleAndIcon)
+                                }
+                                .onTapGesture {
+                                    tabItem = 3
+                                }
                                 .padding(PlaceAboutView.defaultPadding)
                             }
                         
@@ -131,7 +136,7 @@ struct PlaceAboutView: View {
                                 }
                                 .padding(PlaceAboutView.defaultPadding)
                             }
-                            
+                            #if os(iOS) || os(visionOS)
                             // Share button
                             ZStack {
                                 Capsule()
@@ -147,12 +152,11 @@ struct PlaceAboutView: View {
                             .sheet(isPresented:$presentingPopover) {
                                 if let result = modelController.placeChatResult(for: resultId), let placeDetailsResponse = result.placeDetailsResponse  {
                                     let items:[Any] = [placeDetailsResponse.website ?? placeDetailsResponse.searchResponse.address]
-#if os(visionOS) || os(iOS)
                                     ActivityViewController(activityItems:items, applicationActivities:[UIActivity](), isPresentingShareSheet: $isPresentingShareSheet)
                                         .presentationCompactAdaptation(.popover)
-#endif
                                 }
                             }
+                            #endif
                         }
                         .padding(.horizontal, 16)
                         // Tastes Section
@@ -162,26 +166,26 @@ struct PlaceAboutView: View {
                                 
                                 LazyVGrid(columns: gridItems, alignment: .leading, spacing: 8) {
                                     ForEach($mutableTastes, id: \.self) { taste in
+                                        let isSaved = cacheManager.cachedTastes(contains: taste.wrappedValue)
                                         HStack {
-                                            let isSaved = cacheManager.cachedTastes(contains: taste.wrappedValue)
                                             Label("Save", systemImage: isSaved ? "minus.circle" : "square.and.arrow.down")
                                                 .labelStyle(.iconOnly)
                                                 .padding(PlaceAboutView.defaultPadding)
-                                                .onTapGesture {
-                                                    if isSaved {
-                                                        if let cachedTasteResult = modelController.cachedTasteResult(title: taste.wrappedValue, cacheManager: cacheManager) {
-                                                            Task {
-                                                                await viewModel.removeTaste(parent: cachedTasteResult, cacheManager:cacheManager, modelController: modelController)
-                                                            }
-                                                        }
-                                                    } else {
-                                                        Task {
-                                                            await viewModel.addTaste(title: taste.wrappedValue, cacheManager: cacheManager, modelController:modelController)
-                                                        }
-                                                    }
-                                                }
+                                                
                                             Text(taste.wrappedValue)
                                             Spacer()
+                                        }.onTapGesture {
+                                            if isSaved {
+                                                if let cachedTasteResult = modelController.cachedTasteResult(title: taste.wrappedValue, cacheManager: cacheManager) {
+                                                    Task {
+                                                        await viewModel.removeTaste(parent: cachedTasteResult, cacheManager:cacheManager, modelController: modelController)
+                                                    }
+                                                }
+                                            } else {
+                                                Task {
+                                                    await viewModel.addTaste(title: taste.wrappedValue, cacheManager: cacheManager, modelController:modelController)
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -203,13 +207,13 @@ struct PlaceAboutView: View {
                                                 Text(relatedPlace.title).bold().padding(8)
                                                 if let neighborhood = relatedPlace.recommendedPlaceResponse?.neighborhood, !neighborhood.isEmpty {
                                                     Text(neighborhood).italic()
-                                                }
-                                                if let address = relatedPlace.recommendedPlaceResponse?.formattedAddress {
-                                                    Text(address).italic().padding(8)
+                                                } else if let locality = relatedPlace.placeResponse?.locality {
+                                                    Text(locality).italic()
                                                 }
                                             }
                                             .padding(PlaceAboutView.defaultPadding)
-                                            .background(RoundedRectangle(cornerRadius: 16).strokeBorder())
+                                            .background(RoundedRectangle(cornerRadius: 16)
+                                            .strokeBorder())
                                         }
                                     }
                                 }.padding(.horizontal, 16)
