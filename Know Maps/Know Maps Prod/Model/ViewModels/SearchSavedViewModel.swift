@@ -29,12 +29,12 @@ public final class SearchSavedViewModel: ObservableObject {
                 title: parent.locationName,
                 icons: "",
                 list: "Places",
-                section: PersonalizedSearchSection.location.rawValue,
+                section:PersonalizedSearchSection.topPicks.rawValue,
                 rating: 1
             )
             
             // Store the record in the local cache and CloudKit
-            let recordId = try await cacheManager.cloudCache.storeUserCachedRecord(recordId: userRecord.recordId,
+            _ = try await cacheManager.cloudCache.storeUserCachedRecord(recordId: userRecord.recordId,
                 group: userRecord.group,
                 identity: userRecord.identity,
                 title: userRecord.title,
@@ -69,7 +69,7 @@ public final class SearchSavedViewModel: ObservableObject {
             )
             
             // Store the record in the local cache and CloudKit
-            let recordId = try await cacheManager.cloudCache.storeUserCachedRecord(recordId: userRecord.recordId,
+            _ = try await cacheManager.cloudCache.storeUserCachedRecord(recordId: userRecord.recordId,
                 group:userRecord.group,
                 identity: userRecord.identity,
                 title: userRecord.title,
@@ -125,7 +125,7 @@ public final class SearchSavedViewModel: ObservableObject {
             )
             
             // Save the record to the cache and CloudKit
-            let recordId = try await cacheManager.cloudCache.storeUserCachedRecord(recordId: userRecord.recordId,
+            _ = try await cacheManager.cloudCache.storeUserCachedRecord(recordId: userRecord.recordId,
                 group: userRecord.group,
                 identity: userRecord.identity,
                 title: userRecord.title,

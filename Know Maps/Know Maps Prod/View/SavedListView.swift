@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import AppIntents
 
 struct SavedListView: View {
     @ObservedObject public var viewModel: SearchSavedViewModel
@@ -25,9 +26,10 @@ struct SavedListView: View {
     
     var body: some View {
         List(selection: $selectedResult) {
+            #if !os(macOS)
             Section() {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Find places for my mood")
+                    SiriTipView(intent: ShowMoodResultsIntent())
                     Text("Find a place nearby")
                     Text("Find where to go next")
                     Text("Save this place")
@@ -36,7 +38,7 @@ struct SavedListView: View {
             } header: {
                 Text("Shortcuts").font(.headline).foregroundStyle(.primary)
             }
-            
+            #endif
             DisclosureGroup(isExpanded: $isMoodsExpanded) {
                 ForEach(cacheManager.cachedDefaultResults, id:\.id) {
                     parent in

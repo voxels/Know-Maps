@@ -9,6 +9,14 @@ import Foundation
 import Segment
 
 public final class SegmentAnalyticsService: AnalyticsService {
+    static let config = Configuration(writeKey: "igx8ZOr5NLbaBsab5j5juFECMzqulFla")
+    // Automatically track Lifecycle events
+        .trackApplicationLifecycleEvents(true)
+        .flushAt(3)
+        .flushInterval(10)
+    
+    static let shared = SegmentAnalyticsService(analytics: Analytics(configuration: SegmentAnalyticsService.config))
+    
     
     private var analytics: Analytics
     

@@ -8,7 +8,7 @@
 import Foundation
 import CoreLocation
 
-public protocol CacheManager {
+public protocol CacheManager : Sendable {
     var cloudCache:CloudCache { get }
     var isRefreshingCache: Bool  { get }
     var cacheFetchProgress:Double { get }

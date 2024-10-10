@@ -328,7 +328,7 @@ public final class DefaultPlaceSearchService: PlaceSearchService {
             }
             
             if let rawSection = rawParameters["section"] as? String {
-                section = PersonalizedSearchSection(rawValue: rawSection) ?? PersonalizedSearchSection.none
+                section = PersonalizedSearchSection(rawValue: rawSection) ?? .food
             }
         }
         
@@ -339,7 +339,7 @@ public final class DefaultPlaceSearchService: PlaceSearchService {
         
         query = query.trimmingCharacters(in: .whitespacesAndNewlines)
         
-        let request = RecommendedPlaceSearchRequest(query: query, ll: ll, radius: radius, categories: categories, minPrice:minPrice, maxPrice:maxPrice, openNow: openNow, nearLocation: nearLocation, limit: limit, section:section ?? .none, tags:tags)
+        let request = RecommendedPlaceSearchRequest(query: query, ll: ll, radius: radius, categories: categories, minPrice:minPrice, maxPrice:maxPrice, openNow: openNow, nearLocation: nearLocation, limit: limit, section:section ?? .topPicks, tags:tags)
         
         return request
     }

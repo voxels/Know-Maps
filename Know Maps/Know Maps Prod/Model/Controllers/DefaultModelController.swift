@@ -8,7 +8,11 @@
 import Foundation
 import CoreLocation
 
-public final class DefaultModelController : ModelController, ObservableObject {    
+public final class DefaultModelController : ModelController, ObservableObject {
+    
+    static let shared = DefaultModelController(
+        locationProvider: LocationProvider(),
+        analyticsManager:SegmentAnalyticsService.shared)
     
     // MARK: - Dependencies
     public var assistiveHostDelegate: AssistiveChatHost
@@ -17,6 +21,8 @@ public final class DefaultModelController : ModelController, ObservableObject {
     public var placeSearchService: PlaceSearchService
     public var analyticsManager: AnalyticsService
     public var recommenderService:RecommenderService
+    
+    
     
     // MARK: - Published Properties
         

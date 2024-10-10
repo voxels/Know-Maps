@@ -408,16 +408,16 @@ public final class AssistiveChatHostService : AssistiveChatHost {
             
         } catch {
             analyticsManager.trackError(error:error, additionalInfo:nil)
-            return .none
+            return .topPicks
         }
         
-        retval = PersonalizedSearchSection(rawValue: predictedSection.capitalized) ?? PersonalizedSearchSection.none
+        retval = PersonalizedSearchSection(rawValue: predictedSection.capitalized) ?? .topPicks
         
         return retval!
     }
     
     public func section(place:String)->PersonalizedSearchSection {
-        return .location
+        return .topPicks
     }
 }
 

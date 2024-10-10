@@ -26,7 +26,9 @@ public enum CloudCacheServiceKey: String {
 }
 
 public final class CloudCacheService: NSObject, CloudCache {
-
+    @MainActor
+    static let shared = CloudCacheService(analyticsManager: SegmentAnalyticsService.shared, modelContext: Know_MapsApp.sharedModelContainer.mainContext)
+    
     var analyticsManager: AnalyticsService
     var foursquareAuthenticationRecord: FoursquareAuthenticationRecord!
     

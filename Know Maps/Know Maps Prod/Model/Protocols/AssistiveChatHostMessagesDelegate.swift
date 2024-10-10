@@ -8,7 +8,7 @@
 import Foundation
 import Segment
 
-public protocol AssistiveChatHostMessagesDelegate : AnyObject {
+public protocol AssistiveChatHostMessagesDelegate : AnyObject, Sendable {
     func didSearch(caption: String, selectedDestinationChatResultID:LocationResult.ID?, intent: AssistiveChatHostService.Intent?, cacheManager:CacheManager, modelController:ModelController) async throws
     func didTap(placeChatResult:ChatResult, cacheManager:CacheManager, modelController: ModelController) async throws
     func didTap(chatResult: ChatResult, selectedPlaceSearchResponse: PlaceSearchResponse?, selectedPlaceSearchDetails: PlaceDetailsResponse?, selectedRecommendedPlaceSearchResponse:RecommendedPlaceSearchResponse?,

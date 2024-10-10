@@ -10,7 +10,7 @@ import CoreLocation
 
 // MARK: - ModelController
 
-public protocol ModelController {
+public protocol ModelController : Sendable {
     
     var assistiveHostDelegate: AssistiveChatHost { get }
     var locationService:LocationService { get }

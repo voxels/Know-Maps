@@ -7,6 +7,7 @@
 
 import SwiftUI
 import SwiftData
+import AppIntents
 import Segment
 import RevenueCat
 import CoreLocation
@@ -31,7 +32,7 @@ struct Know_MapsApp: App {
     
     //    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     
-    var sharedModelContainer: ModelContainer = {
+    static let sharedModelContainer: ModelContainer = {
         let schema = Schema([
             UserCachedRecord.self,
             RecommendationData.self,
@@ -55,26 +56,25 @@ struct Know_MapsApp: App {
     @State private var showOnboarding:Bool = true
     @State private var showSplashScreen:Bool = true
     @State private var selectedOnboardingTab:String = "Sign In"
-    static let config = Configuration(writeKey: "igx8ZOr5NLbaBsab5j5juFECMzqulFla")
-    // Automatically track Lifecycle events
-        .trackApplicationLifecycleEvents(true)
-        .flushAt(3)
-        .flushInterval(10)
+
     
     init() {
-        let analyticsManager = SegmentAnalyticsService(analytics: Analytics(configuration: Know_MapsApp.config))
-        let model = DefaultModelController(
-            locationProvider: LocationProvider(),
-            analyticsManager:analyticsManager)
-        let chatModel = ChatResultViewModel()
-        let mainContext = sharedModelContainer.mainContext
-        // Now safely initialize searchSavedViewModel using chatModel
-        _cacheManager = StateObject(wrappedValue: CloudCacheManager(cloudCache: CloudCacheService(analyticsManager: analyticsManager, modelContext: mainContext), analyticsManager: analyticsManager))
+        _cacheManager = StateObject(wrappedValue: CloudCacheManager.shared)
         _settingsModel = StateObject(wrappedValue: AppleAuthenticationService(userId: ""))
-        _modelController = StateObject(wrappedValue: model)
+        _modelController = StateObject(wrappedValue: DefaultModelController.shared)
         _searchSavedViewModel = StateObject(wrappedValue: SearchSavedViewModel())
-        _chatModel = StateObject(wrappedValue: chatModel)
-        model.assistiveHostDelegate.messagesDelegate = chatModel
+        _chatModel = StateObject(wrappedValue:ChatResultViewModel.shared)
+        
+        AppDependencyManager.shared.add(dependency: CloudCacheManager.shared)
+        AppDependencyManager.shared.add(dependency: DefaultModelController.shared)
+        AppDependencyManager.shared.add(dependency: ChatResultViewModel.shared)
+        
+        /**
+         Call `updateAppShortcutParameters` on `AppShortcutsProvider` so that the system updates the App Shortcut phrases with any changes to
+         the app's intent parameters. The app needs to call this function during its launch, in addition to any time the parameter values for
+         the shortcut phrases change.
+         */
+        KnowMapsShortcutsProvider.updateAppShortcutParameters()
     }
     
     var body: some Scene {
@@ -156,7 +156,7 @@ struct Know_MapsApp: App {
                 })
         }
         .environmentObject(settingsModel)
-        .modelContainer(sharedModelContainer)
+        .modelContainer(Know_MapsApp.sharedModelContainer)
         
 #if os(visionOS)
         ImmersiveSpace(id: "ImmersiveSpace") {
@@ -193,6 +193,7 @@ struct Know_MapsApp: App {
 //        } catch {
 //            modelController.analyticsManager.trackError(error: error, additionalInfo:nil)
 //        }
+        modelController.assistiveHostDelegate.messagesDelegate = chatModel
         await setupChatModel(chatModel)
         await loadData(chatModel)
     }

@@ -24,6 +24,8 @@ enum ChatResultViewModelError: Error {
 
 final class ChatResultViewModel: ObservableObject, AssistiveChatHostMessagesDelegate {
     
+    static let shared = ChatResultViewModel()
+    
     // MARK: - Model Building and Query Handling
     
     public func didSearch(caption: String, selectedDestinationChatResultID:LocationResult.ID?, intent: AssistiveChatHostService.Intent? = nil, cacheManager:CacheManager, modelController:ModelController) async throws {

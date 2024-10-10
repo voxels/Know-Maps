@@ -17,51 +17,6 @@ public enum PersonalizedSearchSessionError : Error {
     case NoTasteFound
 }
 
-public enum PersonalizedSearchSection : String, Hashable, CaseIterable {
-    case food = "Food"
-    case drinks = "Drinks"
-    case coffee = "Coffee"
-    case shops = "Shopping"
-    case arts = "Arts"
-    case outdoors = "Outdoors"
-    case sights = "Sightseeing"
-    case trending = "Trending places"
-    case topPicks = "Popular places"
-    case location = "Location"
-    case none = "none"
-    
-    public func key()->String {
-        switch self {
-        case .food:
-            return "food"
-        case .drinks:
-            return "drinks"
-        case .coffee:
-            return "coffee"
-        case .shops:
-            return "shops"
-        case .arts:
-            return "arts"
-        case .outdoors:
-            return "outdoors"
-        case .sights:
-            return "sights"
-        case .trending:
-            return "trending"
-        case .topPicks:
-            return "topPicks"
-        default:
-            return "none"
-        }
-    }
-    
-    public func categoryResult()->CategoryResult {
-        let chatResult = ChatResult(index: 0, identity: self.rawValue, title: rawValue, list:self.rawValue, icon:"", rating: 1, section:self,  placeResponse: nil, recommendedPlaceResponse: nil)
-        let categoryResult = CategoryResult(identity: self.rawValue, parentCategory: rawValue, list:self.rawValue, icon: "", rating: 1, section:self, categoricalChatResults: [chatResult])
-        return categoryResult
-    }
-}
-
 public actor PersonalizedSearchSession {
     public var fsqIdentity:String?
     public var fsqAccessToken:String?

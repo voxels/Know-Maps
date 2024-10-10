@@ -9,6 +9,9 @@ import Foundation
 import CoreLocation
 
 public final class CloudCacheManager: CacheManager, ObservableObject {
+    
+    static let shared = CloudCacheManager(cloudCache: CloudCacheService.shared, analyticsManager: SegmentAnalyticsService.shared)
+    
     public let cloudCache: CloudCache
     private let analyticsManager: AnalyticsService
     @Published public var isRefreshingCache: Bool = false
@@ -171,7 +174,7 @@ public final class CloudCacheManager: CacheManager, ObservableObject {
                 list: record.list,
                 icon: record.icons,
                 rating: record.rating,
-                section: PersonalizedSearchSection(rawValue: record.section) ?? .none,
+                section: PersonalizedSearchSection(rawValue: record.section) ?? .topPicks,
                 placeResponse: nil,
                 recommendedPlaceResponse: nil
             )]
@@ -181,7 +184,7 @@ public final class CloudCacheManager: CacheManager, ObservableObject {
                 list: record.list,
                 icon: record.icons,
                 rating: record.rating,
-                section: PersonalizedSearchSection(rawValue: record.section) ?? .none,
+                section: PersonalizedSearchSection(rawValue: record.section) ?? .topPicks,
                 categoricalChatResults: chatResults
             )
             results.append(categoryResult)
@@ -217,7 +220,7 @@ public final class CloudCacheManager: CacheManager, ObservableObject {
                 list: record.list,
                 icon: record.icons,
                 rating: record.rating,
-                section: PersonalizedSearchSection(rawValue: record.section) ?? .none,
+                section: PersonalizedSearchSection(rawValue: record.section) ?? .topPicks,
                 placeResponse: placeResponse,
                 recommendedPlaceResponse: nil
             )]
@@ -227,7 +230,7 @@ public final class CloudCacheManager: CacheManager, ObservableObject {
                 list: record.list,
                 icon: record.icons,
                 rating: record.rating,
-                section: PersonalizedSearchSection(rawValue: record.section) ?? .none,
+                section: PersonalizedSearchSection(rawValue: record.section) ?? .topPicks,
                 categoricalChatResults: chatResults
             )
             results.append(categoryResult)
@@ -252,7 +255,7 @@ public final class CloudCacheManager: CacheManager, ObservableObject {
 
     private func defaultResults() -> [CategoryResult] {
         PersonalizedSearchSection.allCases
-            .filter({ $0 != .location && $0 != .none && $0 != .trending })
+            .filter({ $0 != .trending })
             .map({ $0.categoryResult() })
     }
 
