@@ -57,7 +57,7 @@ struct SearchTasteView: View {
             VStack(alignment: .center) {
                 TextField("", text: $tasteSearchText, prompt:Text("Search for a feature"))
                     .onSubmit() {
-                        Task { @MainActor in
+                        Task(priority:.userInitiated) { @MainActor in
                             modelController.tasteResults.removeAll()
                             do {
                                 try await chatModel.didSearch(caption:tasteSearchText, selectedDestinationChatResultID:modelController.selectedDestinationLocationChatResult, intent:.AutocompleteTastes, cacheManager: cacheManager, modelController: modelController)

@@ -17,7 +17,8 @@
 		1E3FE0102CB6A0000020B3CB /* RecommendationData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E3FE00F2CB69FFC0020B3CB /* RecommendationData.swift */; };
 		1E3FE0122CB6C5300020B3CB /* RecommenderService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E3FE0112CB6C52C0020B3CB /* RecommenderService.swift */; };
 		1E3FE0142CB6C6BA0020B3CB /* DefaultRecommenderService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E3FE0132CB6C6B60020B3CB /* DefaultRecommenderService.swift */; };
-		1E601F5B2CB04CF500E320D7 /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; platformFilter = ios; productRef = 1E601F5A2CB04CF500E320D7 /* GoogleMobileAds */; };
+		1E3FE0162CB7F7B40020B3CB /* SavedListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E3FE0152CB7F7B20020B3CB /* SavedListView.swift */; };
+		1E3FE0532CB8036C0020B3CB /* FoursquareAuthenticationRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E3FE0522CB803610020B3CB /* FoursquareAuthenticationRecord.swift */; };
 		1E601F5D2CB0512900E320D7 /* GoogleBannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E601F5C2CB0512900E320D7 /* GoogleBannerView.swift */; };
 		1E60F4502CAC149F00891250 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1E60F44F2CAC149F00891250 /* StoreKit.framework */; };
 		1E6570D62C9B516400FEE9F8 /* TasteAutocompleteResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E6570D52C9B516400FEE9F8 /* TasteAutocompleteResponse.swift */; };
@@ -140,6 +141,8 @@
 		1E3FE00F2CB69FFC0020B3CB /* RecommendationData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecommendationData.swift; sourceTree = "<group>"; };
 		1E3FE0112CB6C52C0020B3CB /* RecommenderService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecommenderService.swift; sourceTree = "<group>"; };
 		1E3FE0132CB6C6B60020B3CB /* DefaultRecommenderService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DefaultRecommenderService.swift; sourceTree = "<group>"; };
+		1E3FE0152CB7F7B20020B3CB /* SavedListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedListView.swift; sourceTree = "<group>"; };
+		1E3FE0522CB803610020B3CB /* FoursquareAuthenticationRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoursquareAuthenticationRecord.swift; sourceTree = "<group>"; };
 		1E583F7C2B1671F300B2EC26 /* AppleAuthenticationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleAuthenticationService.swift; sourceTree = "<group>"; };
 		1E601F5C2CB0512900E320D7 /* GoogleBannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoogleBannerView.swift; sourceTree = "<group>"; };
 		1E60F44F2CAC149F00891250 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.0.sdk/System/Library/Frameworks/StoreKit.framework; sourceTree = DEVELOPER_DIR; };
@@ -224,7 +227,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				1E601F5B2CB04CF500E320D7 /* GoogleMobileAds in Frameworks */,
 				1E213E1C2CAD82A500B93697 /* RevenueCat in Frameworks */,
 				1E213E1A2CAD82A500B93697 /* ReceiptParser in Frameworks */,
 				1E213E172CAD81F600B93697 /* Segment in Frameworks */,
@@ -292,6 +294,7 @@
 		1E98C7D82B18E0A100283E92 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				1E3FE0522CB803610020B3CB /* FoursquareAuthenticationRecord.swift */,
 				1E98C7D22B18DC7400283E92 /* AssistiveChatHostIntent.swift */,
 				1EA7F7942B052DE4002AE371 /* AssistiveChatHostQueryParameters.swift */,
 				1EE0688F2B0E57AD0016851A /* CategoryResult.swift */,
@@ -331,7 +334,6 @@
 			children = (
 				1E583F7C2B1671F300B2EC26 /* AppleAuthenticationService.swift */,
 				1EA7F7952B052DE4002AE371 /* AssistiveChatHostService.swift */,
-				1E630C852B16440100A57CCB /* CloudCacheService.swift */,
 				1E007ACB2CB4089400A8DC5A /* CloudCacheManager.swift */,
 				1E7D43582CB4658800DC17FA /* DefaultLocationService.swift */,
 				1EDF93CE2CB52F1600FDCFDF /* DefaultModelController.swift */,
@@ -401,6 +403,7 @@
 				1EA7F7502B03FA71002AE371 /* ImmersiveView.swift */,
 				1E630C832B1636E400A57CCB /* ActivityViewController.swift */,
 				1EA7F76A2B04FF4D002AE371 /* MapResultsView.swift */,
+				1E3FE0152CB7F7B20020B3CB /* SavedListView.swift */,
 				1EE068872B0D1ADB0016851A /* SettingsView.swift */,
 				1EA7F76C2B04FFD9002AE371 /* SearchView.swift */,
 				1E91AA212CA83AAF00F63C3A /* SearchSectionView.swift */,
@@ -439,6 +442,7 @@
 				1EA7F7742B052D92002AE371 /* LanguageGeneratorSession.swift */,
 				1EA7F7752B052D92002AE371 /* PlaceSearchSession.swift */,
 				1EB4EE862B4EC072003AD112 /* PersonalizedSearchSession.swift */,
+				1E630C852B16440100A57CCB /* CloudCacheService.swift */,
 			);
 			path = Network;
 			sourceTree = "<group>";
@@ -464,7 +468,6 @@
 				1E213E192CAD82A500B93697 /* ReceiptParser */,
 				1E213E1B2CAD82A500B93697 /* RevenueCat */,
 				1E213E1D2CAD82A500B93697 /* RevenueCatUI */,
-				1E601F5A2CB04CF500E320D7 /* GoogleMobileAds */,
 			);
 			productName = "Know Maps Prod";
 			productReference = 1E095AF82B778AEF00147119 /* Know Maps.app */;
@@ -568,7 +571,6 @@
 			packageReferences = (
 				1E213E152CAD81F600B93697 /* XCRemoteSwiftPackageReference "analytics-swift" */,
 				1E213E182CAD82A500B93697 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */,
-				1E601F592CB04CF500E320D7 /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */,
 			);
 			productRefGroup = 1EA7F7462B03FA70002AE371 /* Products */;
 			projectDirPath = "";
@@ -636,6 +638,7 @@
 				1EF378E92C986EE7001C5E39 /* ChatResultViewModel.swift in Sources */,
 				1EF378EA2C986EE7001C5E39 /* PlaceDirectionsViewModel.swift in Sources */,
 				1EF378EC2C986EE7001C5E39 /* AppleAuthenticationService.swift in Sources */,
+				1E3FE0532CB8036C0020B3CB /* FoursquareAuthenticationRecord.swift in Sources */,
 				1EF378ED2C986EE7001C5E39 /* AssistiveChatHostIntent.swift in Sources */,
 				1EF378EE2C986EE7001C5E39 /* AssistiveChatHostQueryParameters.swift in Sources */,
 				1EF378EF2C986EE7001C5E39 /* ChatResult.swift in Sources */,
@@ -645,6 +648,7 @@
 				1E96EEA02CB52A160070BCDD /* CacheManager.swift in Sources */,
 				1EF378F32C986EE7001C5E39 /* PlaceDetailsRequest.swift in Sources */,
 				1EF378F42C986EE7001C5E39 /* LanguageGeneratorRequest.swift in Sources */,
+				1E3FE0162CB7F7B40020B3CB /* SavedListView.swift in Sources */,
 				1E7D43592CB4658B00DC17FA /* DefaultLocationService.swift in Sources */,
 				1E7D43612CB525F100DC17FA /* AnalyticsService.swift in Sources */,
 				1EF378F52C986EE7001C5E39 /* PlaceDetailsResponse.swift in Sources */,
@@ -1157,14 +1161,6 @@
 				minimumVersion = 5.5.0;
 			};
 		};
-		1E601F592CB04CF500E320D7 /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/googleads/swift-package-manager-google-mobile-ads.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 11.10.0;
-			};
-		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -1187,11 +1183,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 1E213E182CAD82A500B93697 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */;
 			productName = RevenueCatUI;
-		};
-		1E601F5A2CB04CF500E320D7 /* GoogleMobileAds */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 1E601F592CB04CF500E320D7 /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */;
-			productName = GoogleMobileAds;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

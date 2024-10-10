@@ -28,7 +28,7 @@ struct SearchView: View {
                 }
                 
                 if let placeChatResult = modelController.placeChatResult(for: newValue), placeChatResult.placeDetailsResponse == nil {
-                    Task {
+                    Task(priority:.userInitiated) {
                         do {
                             try await chatModel.didTap(placeChatResult: placeChatResult, cacheManager: cacheManager, modelController: modelController)
                             await MainActor.run {
@@ -51,9 +51,9 @@ struct SearchView: View {
                     return
                 }
                 
-                Task {
+                Task(priority:.userInitiated) {
                     await modelController.resetPlaceModel()
-                    
+                    await cacheManager.refreshCachedResults()
                     if let selectedDestinationLocationChatResult = modelController.selectedDestinationLocationChatResult {
                         if let cachedResult = modelController.cachedChatResult(for: newValue, cacheManager: cacheManager) {
                             await chatModel.didTap(chatResult: cachedResult, selectedDestinationChatResultID: selectedDestinationLocationChatResult, cacheManager: cacheManager, modelController: modelController)

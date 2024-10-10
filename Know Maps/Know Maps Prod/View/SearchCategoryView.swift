@@ -37,7 +37,7 @@ struct SearchCategoryView: View {
         }
         .listStyle(.sidebar)
         .refreshable {
-            Task {
+            Task(priority:.userInitiated) {
                 do{
                     try await cacheManager.refreshCache()
                 } catch {

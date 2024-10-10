@@ -92,7 +92,7 @@ public final class DefaultRecommenderService : RecommenderService {
         let results = try model.predictions(from: test)
         
         for index in 0..<results.count {
-            var retvalDatum = retval[index]
+            let retvalDatum = retval[index]
             retvalDatum.attributeRatings.removeAll()
             if let result = results[index] as? Double {
                 retvalDatum.attributeRatings = [attributes[index]:result]

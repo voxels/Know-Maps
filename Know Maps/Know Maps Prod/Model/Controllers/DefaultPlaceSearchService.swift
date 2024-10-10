@@ -135,8 +135,8 @@ public final class DefaultPlaceSearchService: PlaceSearchService {
         
         for index in 0..<tastes.count {
             let taste = tastes[index]
-            let chatResult = ChatResult(index: index, title: taste, list:"Taste", icon: "", rating: 1, section:assistiveHostDelegate.section(for:taste), placeResponse: nil, recommendedPlaceResponse: nil)
-            let categoryResult = CategoryResult(parentCategory: taste, recordId: "", list:"Taste", icon: chatResult.icon, rating: 1, section:chatResult.section, categoricalChatResults: [chatResult])
+            let chatResult = ChatResult(index: index, identity: taste, title: taste, list:"Taste", icon: "", rating: 1, section:assistiveHostDelegate.section(for:taste), placeResponse: nil, recommendedPlaceResponse: nil)
+            let categoryResult = CategoryResult(identity:taste, parentCategory: taste, list:"Taste", icon: chatResult.icon, rating: 1, section:chatResult.section, categoricalChatResults: [chatResult])
             results.append(categoryResult)
         }
         

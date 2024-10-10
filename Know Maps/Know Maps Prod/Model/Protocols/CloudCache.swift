@@ -15,19 +15,15 @@ public protocol CloudCache: AnyObject {
     // Fetching and Caching Methods
     func fetch(url: URL, from cloudService: CloudCacheServiceKey) async throws -> Any
     func fetchGroupedUserCachedRecords(for group: String) async throws -> [UserCachedRecord]
-    func userCachedCKRecord(for cachedRecord: UserCachedRecord)->CKRecord
-    func storeUserCachedRecord(for group: String, identity: String, title: String, icons: String, list: String, section: String, rating:Double) async throws -> String
-    func updateUserCachedRecordRating(recordId: String, newRating: Double) async throws
+    func storeUserCachedRecord(recordId:String, group: String, identity: String, title: String, icons: String, list: String, section: String, rating:Double) async throws -> Bool
+    func updateUserCachedRecordRating(identity: String, newRating: Double) async throws
     func deleteUserCachedRecord(for cachedRecord: UserCachedRecord) async throws
-    func deleteAllUserCachedRecords(for group: String) async throws -> (saveResults: [CKRecord.ID: Result<CKRecord, Error>], deleteResults: [CKRecord.ID: Result<Void, Error>])
+    func deleteAllUserCachedRecords(for group: String) async throws
     func deleteAllUserCachedGroups() async throws
     
-    func storeRecommendationData(for identity:String, attributes:[String], reviews:[String], userCachedCKRecord:CKRecord) async throws -> String
+    func storeRecommendationData(for identity:String, attributes:[String], reviews:[String]) async throws -> Bool
     func fetchRecommendationData() async throws -> [RecommendationData]
-    func deleteRecommendationData(for recordId: String) async throws -> (
-        saveResults: [CKRecord.ID: Result<CKRecord, Error>],
-        deleteResults: [CKRecord.ID: Result<Void, Error>]
-    )
+    func deleteRecommendationData(for identity: String) async throws
     
     // CloudKit Identity and OAuth Management
     func fetchFsqIdentity() async throws -> String

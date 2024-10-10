@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftData
 import Segment
 import RevenueCat
 import CoreLocation
@@ -29,6 +30,22 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 struct Know_MapsApp: App {
     
     //    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    
+    var sharedModelContainer: ModelContainer = {
+        let schema = Schema([
+            UserCachedRecord.self,
+            RecommendationData.self,
+        ])
+        
+        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false, cloudKitDatabase:.private("iCloud.com.secretatomics.knowmaps.Cache"))
+        
+        do {
+            return try ModelContainer(for: schema, configurations: [modelConfiguration])
+        } catch {
+            fatalError("Could not create ModelContainer: \(error)")
+        }
+    }()
+    
     @StateObject public var settingsModel:AppleAuthenticationService
     @StateObject public var chatModel:ChatResultViewModel
     @StateObject public var searchSavedViewModel:SearchSavedViewModel
@@ -50,9 +67,9 @@ struct Know_MapsApp: App {
             locationProvider: LocationProvider(),
             analyticsManager:analyticsManager)
         let chatModel = ChatResultViewModel()
-        
+        let mainContext = sharedModelContainer.mainContext
         // Now safely initialize searchSavedViewModel using chatModel
-        _cacheManager = StateObject(wrappedValue: CloudCacheManager(cloudCache: CloudCacheService(analyticsManager: analyticsManager), analyticsManager: analyticsManager))
+        _cacheManager = StateObject(wrappedValue: CloudCacheManager(cloudCache: CloudCacheService(analyticsManager: analyticsManager, modelContext: mainContext), analyticsManager: analyticsManager))
         _settingsModel = StateObject(wrappedValue: AppleAuthenticationService(userId: ""))
         _modelController = StateObject(wrappedValue: model)
         _searchSavedViewModel = StateObject(wrappedValue: SearchSavedViewModel())
@@ -76,7 +93,8 @@ struct Know_MapsApp: App {
                                 .frame(width:100 , height: 100)
                                 .padding()
                             Spacer()
-                            ProgressView(value: cacheManager.cacheFetchProgress)
+                            let cacheFetchProgress = max(cacheManager.cacheFetchProgress, 0)
+                            ProgressView(value: cacheFetchProgress)
                                 .frame(maxWidth:geometry.size.width / 2)
                                 .padding()
                             Spacer()
@@ -138,6 +156,7 @@ struct Know_MapsApp: App {
                 })
         }
         .environmentObject(settingsModel)
+        .modelContainer(sharedModelContainer)
         
 #if os(visionOS)
         ImmersiveSpace(id: "ImmersiveSpace") {

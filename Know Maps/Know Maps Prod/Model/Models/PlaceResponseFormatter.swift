@@ -867,8 +867,8 @@ open class PlaceResponseFormatter {
         return [PlaceResponseFormatter.chatResult(index: index, title: place.name, section:section, list:list, rating:rating, placeResponse: place, placeDetailsResponse: details, recommendedPlaceResponse: recommendedPlaceResponse)]
     }
     
-    public class func chatResult(index:Int, title:String, section:PersonalizedSearchSection, list:String, rating:Double, placeResponse:PlaceSearchResponse?, placeDetailsResponse:PlaceDetailsResponse?, recommendedPlaceResponse:RecommendedPlaceSearchResponse? = nil)->ChatResult {
-        let result = ChatResult(index: index, title:title, list:list, icon: "", rating: rating, section:section, placeResponse: placeResponse, recommendedPlaceResponse: recommendedPlaceResponse, placeDetailsResponse:placeDetailsResponse)
+    public class func chatResult(index:Int, title:String, section:PersonalizedSearchSection, list:String, rating:Double, placeResponse:PlaceSearchResponse, placeDetailsResponse:PlaceDetailsResponse?, recommendedPlaceResponse:RecommendedPlaceSearchResponse? = nil)->ChatResult {
+        let result = ChatResult(index: index, identity: placeResponse.fsqID, title:title, list:list, icon: "", rating: rating, section:section, placeResponse: placeResponse, recommendedPlaceResponse: recommendedPlaceResponse, placeDetailsResponse:placeDetailsResponse)
                         
         return result
     }

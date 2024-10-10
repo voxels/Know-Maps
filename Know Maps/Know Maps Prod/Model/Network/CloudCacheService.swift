@@ -1,4 +1,3 @@
-
 //
 //  CloudCache.swift
 //  Know Maps
@@ -8,6 +7,7 @@
 
 import Foundation
 import CloudKit
+import SwiftData
 import Segment
 #if os(macOS)
 import AppKit
@@ -27,17 +27,15 @@ public enum CloudCacheServiceKey: String {
 
 public final class CloudCacheService: NSObject, CloudCache {
 
-    var analyticsManager:AnalyticsService
+    var analyticsManager: AnalyticsService
+    var foursquareAuthenticationRecord: FoursquareAuthenticationRecord!
+    
     @MainActor public var hasFsqAccess: Bool {
-        fsqUserId.isEmpty ? false : true
+        return !foursquareAuthenticationRecord.fsqUserId.isEmpty
     }
     let cacheContainer = CKContainer(identifier: "iCloud.com.secretatomics.knowmaps.Cache")
     let keysContainer = CKContainer(identifier: "iCloud.com.secretatomics.knowmaps.Keys")
-    @MainActor private var fsqid: String = ""
-    @MainActor private var desc: String = ""
-    @MainActor private var fsqUserId: String = ""
-    @MainActor private var oauthToken: String = ""
-    @MainActor private var serviceAPIKey: String = ""
+    private let modelContext: ModelContext
     
     private var cacheOperations = Set<CKDatabaseOperation>()
     private var keysOperations = Set<CKDatabaseOperation>()
@@ -49,8 +47,11 @@ public final class CloudCacheService: NSObject, CloudCache {
     private var backgroundTask: UIBackgroundTaskIdentifier = .invalid
 #endif
     
-    public init(analyticsManager:AnalyticsService) {
+    public init(analyticsManager: AnalyticsService, modelContext: ModelContext) {
         self.analyticsManager = analyticsManager
+        self.modelContext = modelContext
+        self.foursquareAuthenticationRecord = FoursquareAuthenticationRecord(fsqid: "", fsqUserId: "", oauthToken: "", serviceAPIKey: "")
+        
         super.init()
 #if os(macOS)
         NotificationCenter.default.addObserver(self, selector: #selector(appDidEnterBackground), name: NSApplication.didResignActiveNotification, object: nil)
@@ -144,6 +145,7 @@ public final class CloudCacheService: NSObject, CloudCache {
     
     public func fetch(url: URL, from cloudService: CloudCacheServiceKey) async throws -> Any {
         let configuredSession = try await session(service: cloudService.rawValue)
+        let serviceAPIKey = foursquareAuthenticationRecord.serviceAPIKey
         return try await fetch(url: url, apiKey: serviceAPIKey, session: configuredSession)
     }
     
@@ -188,8 +190,8 @@ public final class CloudCacheService: NSObject, CloudCache {
                 let record = try result.get()
                 if let apiKey = record["value"] as? String {
                     print("\(String(describing: record["service"]))")
-                    Task{ @MainActor in
-                        strongSelf.serviceAPIKey = apiKey
+                    Task { @MainActor in
+                        strongSelf.foursquareAuthenticationRecord.serviceAPIKey = apiKey
                     }
                 } else {
                     print("Did not find API Key")
@@ -239,7 +241,7 @@ public final class CloudCacheService: NSObject, CloudCache {
                 if let apiKey = record["value"] as? String {
                     print("\(String(describing: record["service"]))")
                     Task { @MainActor in
-                        strongSelf.serviceAPIKey = apiKey
+                        strongSelf.foursquareAuthenticationRecord.serviceAPIKey = apiKey
                     }
                 } else {
                     print("Did not find API Key")
@@ -270,7 +272,7 @@ public final class CloudCacheService: NSObject, CloudCache {
         
         if success {
             return await MainActor.run {
-                serviceAPIKey
+                foursquareAuthenticationRecord.serviceAPIKey
             }
         } else {
             throw CloudCacheError.ServiceNotFound
@@ -306,11 +308,11 @@ public final class CloudCacheService: NSObject, CloudCache {
                 let record = try result.get()
                 if let userId = record["userId"] as? String {
                     Task { @MainActor in
-                        strongSelf.fsqUserId = userId
+                        strongSelf.foursquareAuthenticationRecord.fsqUserId = userId
                     }
                 } else {
                     Task { @MainActor in
-                        strongSelf.fsqUserId = ""
+                        strongSelf.foursquareAuthenticationRecord.fsqUserId = ""
                     }
                     print("Did not find userId")
                 }
@@ -337,7 +339,7 @@ public final class CloudCacheService: NSObject, CloudCache {
         self.removeCacheOperation(operation)
         
         if success {
-            return await MainActor.run { fsqUserId }
+            return await MainActor.run { foursquareAuthenticationRecord.fsqUserId }
         } else {
             return ""
         }
@@ -356,17 +358,17 @@ public final class CloudCacheService: NSObject, CloudCache {
                 let record = try result.get()
                 if let token = record["token"] as? String {
                     Task { @MainActor in
-                        strongSelf.fsqUserId = fsqUserId
-                        strongSelf.oauthToken = token
+                        strongSelf.foursquareAuthenticationRecord.fsqUserId = fsqUserId
+                        strongSelf.foursquareAuthenticationRecord.oauthToken = token
                     }
                 } else {
                     Task { @MainActor in
-                        strongSelf.oauthToken = ""
+                        strongSelf.foursquareAuthenticationRecord.oauthToken = ""
                     }
                     print("Did not find token")
                 }
             } catch {
-                strongSelf.analyticsManager.trackError(error:error, additionalInfo: nil)
+                strongSelf.analyticsManager.trackError(error: error, additionalInfo: nil)
             }
         }
         
@@ -388,7 +390,7 @@ public final class CloudCacheService: NSObject, CloudCache {
         self.removeCacheOperation(operation)
         if success {
             // Access oauthToken on the main actor
-            return await MainActor.run { self.oauthToken }
+            return await MainActor.run { self.foursquareAuthenticationRecord.oauthToken }
         } else {
             return ""
         }
@@ -401,317 +403,160 @@ public final class CloudCacheService: NSObject, CloudCache {
         cacheContainer.privateCloudDatabase.save(record) { [weak self] _, _ in
             guard let self = self else { return }
             Task { @MainActor in
-                self.fsqUserId = fsqUserId
-                self.oauthToken = oauthToken
+                self.foursquareAuthenticationRecord.fsqUserId = fsqUserId
+                self.foursquareAuthenticationRecord.oauthToken = oauthToken
             }
         }
     }
-    
     public func fetchGroupedUserCachedRecords(for group: String) async throws -> [UserCachedRecord] {
-        var retval = [UserCachedRecord]()
-        let maxRetries = 3
-        var retryCount = 0
-        
-        while true {
-            do {
-                try await withCheckedThrowingContinuation { continuation in
-                    let predicate = NSPredicate(format: "Group == %@", group)
-                    let query = CKQuery(recordType: "UserCachedRecord", predicate: predicate)
-                    query.sortDescriptors = [NSSortDescriptor(key: "modificationDate", ascending: false)]
-                    let operation = CKQueryOperation(query: query)
-                    operation.desiredKeys = ["Group", "Icons", "Identity", "Title", "List", "Section", "Rating"]
-                    operation.qualityOfService = .default
-                    
-                    operation.recordMatchedBlock = { [weak self] recordId, result in
-                        guard let self = self else { return }
-                        do {
-                            let record = try result.get()
-                            guard
-                                let rawGroup = record["Group"] as? String,
-                                let rawIdentity = record["Identity"] as? String,
-                                let rawTitle = record["Title"] as? String
-                            else {
-                                return
-                            }
-                            let rawIcons = record["Icons"] as? String ?? ""
-                            let rawList = record["List"] as? String ?? ""
-                            let rawSection = record["Section"] as? String ?? PersonalizedSearchSection.none.rawValue
-                            let rawRating = record["Rating"] as? Double ?? 1.0
-                            let cachedRecord = UserCachedRecord(
-                                recordId: recordId.recordName,
-                                group: rawGroup,
-                                identity: rawIdentity,
-                                title: rawTitle,
-                                icons: rawIcons,
-                                list: rawList,
-                                section: PersonalizedSearchSection(rawValue: rawSection)?.rawValue ?? PersonalizedSearchSection.none.rawValue,
-                                rating: rawRating
-                            )
-                            retval.append(cachedRecord)
-                        } catch {
-                            self.analyticsManager.trackError(error: error, additionalInfo: nil)
-                        }
-                    }
-                    
-                    operation.queryResultBlock = { result in
-                        switch result {
-                        case .success:
-                            continuation.resume()
-                        case .failure(let error):
-                            continuation.resume(throwing: error)
-                        }
-                    }
-                    
-                    self.insertCacheOperation(operation)
-                    cacheContainer.privateCloudDatabase.add(operation)
-                    self.removeCacheOperation(operation)
-                }
-                break
-            } catch let error as CKError {
-                // Check for retriable errors
-                if [.serviceUnavailable, .zoneBusy, .requestRateLimited].contains(error.code), retryCount < maxRetries {
-                    // Retrieve retry delay from error, or use default
-                    let retryAfter = (error.userInfo[CKErrorRetryAfterKey] as? TimeInterval) ?? 3.0
-                    print("Database busy, retrying after \(retryAfter) seconds")
-                    
-                    // Increment retry count and wait for the specified delay
-                    retryCount += 1
-                    try await Task.sleep(nanoseconds: UInt64(retryAfter * Double(NSEC_PER_SEC)))
-                    
-                    // Continue the loop to retry the operation
-                    continue
-                } else {
-                    // Non-retriable error or max retries reached
-                    self.analyticsManager.trackError(error: error, additionalInfo: nil)
-                    throw error
-                }
-            } catch {
-                // Other errors
-                self.analyticsManager.trackError(error: error, additionalInfo: nil)
-                throw error
+            // Fetch from local store
+            return try await MainActor.run {
+                let fetchDescriptor = FetchDescriptor<UserCachedRecord>(
+                    predicate: #Predicate { $0.group == group }
+                )
+                return try modelContext.fetch(fetchDescriptor)
             }
         }
         
-        return retval
-    }
-    
-    public func userCachedCKRecord(for cachedRecord: UserCachedRecord) -> CKRecord {
-        let record = CKRecord(recordType: "UserCachedRecord")
-        record.setObject(cachedRecord.group as NSString, forKey: "Group")
-        record.setObject(cachedRecord.identity as NSString, forKey: "Identity")
-        record.setObject(cachedRecord.title as NSString, forKey: "Title")
-        record.setObject(cachedRecord.list as NSString, forKey: "List")
-        record.setObject(cachedRecord.section as NSString, forKey: "Section")
-        record.setObject(cachedRecord.icons as NSString, forKey: "Icons")
-        record.setObject(cachedRecord.rating as NSNumber, forKey: "Rating")
-        return record
-    }
-    
-    @discardableResult
-    public func storeUserCachedRecord(
-        for group: String,
-        identity: String,
-        title: String,
-        icons: String,
-        list: String,
-        section: String,
-        rating:Double
-    ) async throws -> String {
-        let record = CKRecord(recordType: "UserCachedRecord")
-        record.setObject(group as NSString, forKey: "Group")
-        record.setObject(identity as NSString, forKey: "Identity")
-        record.setObject(title as NSString, forKey: "Title")
-        record.setObject(list as NSString, forKey: "List")
-        record.setObject(section as NSString, forKey: "Section")
-        record.setObject((icons) as NSString, forKey: "Icons")
-        record.setObject(rating as NSNumber, forKey: "Rating")
-        
-        let result = try await cacheContainer.privateCloudDatabase.modifyRecords(
-            saving: [record],
-            deleting: [],
-            atomically: false
-        )
-        if let resultName = result.saveResults.keys.first?.recordName {
-            return resultName
+        @discardableResult
+        public func storeUserCachedRecord(
+            recordId: String,
+            group: String,
+            identity: String,
+            title: String,
+            icons: String,
+            list: String,
+            section: String,
+            rating: Double
+        ) async throws -> Bool {
+            await MainActor.run {
+                let userCachedRecord = UserCachedRecord(
+                    recordId: recordId,
+                    group: group,
+                    identity: identity,
+                    title: title,
+                    icons: icons,
+                    list: list,
+                    section: section,
+                    rating: rating
+                )
+                modelContext.insert(userCachedRecord)
+                do {
+                    try modelContext.save()
+                } catch {
+                    analyticsManager.trackError(error: error, additionalInfo: nil)
+                }
+            }
+            return true
         }
         
-        return record.recordID.recordName
-    }
-    
-    public func updateUserCachedRecordRating(recordId: String, newRating: Double) async throws {
-        let recordID = CKRecord.ID(recordName: recordId)
-        do {
-            // Fetch the existing record
-            let record = try await cacheContainer.privateCloudDatabase.record(for: recordID)
-            // Update the rating field
-            record["Rating"] = newRating as NSNumber
-            // Save the updated record
-            _ = try await cacheContainer.privateCloudDatabase.modifyRecords(
-                saving: [record],
-                deleting: []
-            )
-        } catch {
-            // Log the error using your analytics manager
-            analyticsManager.trackError(error: error, additionalInfo: nil)
+        public func updateUserCachedRecordRating(identity: String, newRating: Double) async throws {
+            await MainActor.run {
+                do {
+                    let fetchDescriptor = FetchDescriptor<UserCachedRecord>(
+                        predicate: #Predicate { $0.identity == identity }
+                    )
+                    if let localRecord = try modelContext.fetch(fetchDescriptor).first {
+                        localRecord.rating = newRating
+                        try modelContext.save()
+                    } else {
+                        print("Local record not found for identity: \(identity)")
+                    }
+                } catch {
+                    analyticsManager.trackError(error: error, additionalInfo: nil)
+                }
+            }
         }
-    }
+        
+        public func deleteUserCachedRecord(for cachedRecord: UserCachedRecord) async throws {
+            await MainActor.run {
+                modelContext.delete(cachedRecord)
+                do {
+                    try modelContext.save()
+                } catch {
+                    analyticsManager.trackError(error: error, additionalInfo: nil)
+                }
+            }
+        }
+        
     
-    public func deleteUserCachedRecord(for cachedRecord: UserCachedRecord) async throws {
-        guard !cachedRecord.recordId.isEmpty else { return }
-        try await cacheContainer.privateCloudDatabase.deleteRecord(withID: CKRecord.ID(recordName: cachedRecord.recordId))
-    }
+        public func deleteAllUserCachedRecords(for group: String) async throws {
+            await MainActor.run {
+                do {
+                    let fetchDescriptor = FetchDescriptor<UserCachedRecord>(
+                        predicate: #Predicate { $0.group == group }
+                    )
+                    let localRecords = try modelContext.fetch(fetchDescriptor)
+                    localRecords.forEach { modelContext.delete($0) }
+                    try modelContext.save()
+                } catch {
+                    analyticsManager.trackError(error: error, additionalInfo: nil)
+                }
+            }
+        }
+        
+        // MARK: RecommendationData Methods
+        
+        public func fetchRecommendationData() async throws -> [RecommendationData] {
+            // Fetch from local store
+            return try await MainActor.run {
+                let fetchDescriptor = FetchDescriptor<RecommendationData>()
+                return try modelContext.fetch(fetchDescriptor)
+            }
+        }
+        
+        public func storeRecommendationData(
+            for identity: String,
+            attributes: [String],
+            reviews: [String]
+        ) async throws -> Bool {
+            // Generate a local record ID
+            let recordID = UUID().uuidString
+            
+            await MainActor.run {
+                let recommendationData = RecommendationData(
+                    recordId: recordID,
+                    identity: identity,
+                    attributes: attributes,
+                    reviews: reviews,
+                    attributeRatings: [:] // Initialize as needed
+                )
+                modelContext.insert(recommendationData)
+                do {
+                    try modelContext.save()
+                } catch {
+                    analyticsManager.trackError(error: error, additionalInfo: nil)
+                }
+            }
+            return true
+        }
+        
     
-    @discardableResult
-    public func deleteAllUserCachedRecords(for group: String) async throws -> (
-        saveResults: [CKRecord.ID: Result<CKRecord, Error>],
-        deleteResults: [CKRecord.ID: Result<Void, Error>]
-    ) {
-        let existingGroups = try await fetchGroupedUserCachedRecords(for: group)
-        let recordsToDelete = existingGroups.map { CKRecord.ID(recordName: $0.recordId) }
-        return try await cacheContainer.privateCloudDatabase.modifyRecords(
-            saving: [],
-            deleting: recordsToDelete
-        )
-    }
-    
-    public func deleteAllUserCachedGroups() async throws {
-        try await withThrowingTaskGroup(of: Void.self) { taskGroup in
+        public func deleteRecommendationData(for identity: String) async throws {
+            await MainActor.run {
+                do {
+                    let fetchDescriptor = FetchDescriptor<RecommendationData>(
+                        predicate: #Predicate { $0.identity == identity }
+                    )
+                    if let localRecord = try modelContext.fetch(fetchDescriptor).first {
+                        modelContext.delete(localRecord)
+                        try modelContext.save()
+                    }
+                } catch {
+                    analyticsManager.trackError(error: error, additionalInfo: nil)
+                }
+            }
+        }
+        
+        // MARK: - Other Methods
+        
+        public func deleteAllUserCachedGroups() async throws {
             let types = ["Location", "Category", "Taste", "Place"]
             for type in types {
-                taskGroup.addTask {
-                    try await self.deleteAllUserCachedRecords(for: type)
-                }
-            }
-            try await taskGroup.waitForAll()
-        }
-    }
-    
-    public func storeRecommendationData(for identity: String, attributes: [String], reviews: [String], userCachedCKRecord: CKRecord) async throws -> String {
-        let record = CKRecord(recordType: "RecommendationData")
-        record.setObject(identity as NSString, forKey: "Identity")
-        record.setObject(attributes as CKRecordValue?, forKey: "Attributes")
-        record.setObject(reviews as CKRecordValue?, forKey: "Reviews")
-        let result = try await cacheContainer.privateCloudDatabase.modifyRecords(
-            saving: [record, userCachedCKRecord],
-            deleting: [],
-            atomically: false
-        )
-        if let resultName = result.saveResults.keys.first?.recordName {
-            return resultName
-        }
-        
-        return record.recordID.recordName
-    }
-
-    
-    public func fetchRecommendationData() async throws -> [RecommendationData] {
-        var retval = [RecommendationData]()
-        let maxRetries = 3
-        var retryCount = 0
-        
-        while true {
-            // Reset tempRetval for each retry attempt
-            var tempRetval = [RecommendationData]()
-            
-            do {
-                try await withCheckedThrowingContinuation { continuation in
-                    let predicate = NSPredicate(value: true)
-                    let query = CKQuery(recordType: "RecommendationData", predicate: predicate)
-                    let operation = CKQueryOperation(query: query)
-                    operation.desiredKeys = ["Identity", "Attributes", "Reviews"]
-                    operation.qualityOfService = .default
-                    
-                    operation.recordMatchedBlock = { [weak self] recordId, result in
-                        guard let self = self else { return }
-                        do {
-                            let record = try result.get()
-                            guard let rawIdentity = record["Identity"] as? String else { return }
-                            
-                            let rawAttributes = record["Attributes"] as? [String] ?? [""]
-                            let rawReviews = record["Reviews"] as? [String] ?? [""]
-                            var rawRatings = [String:Double]()
-                            for attribute in rawAttributes {
-                                rawRatings[attribute] = 1.5
-                            }
-                            
-                            let cachedRecord = RecommendationData(
-                                recordId: recordId.recordName,
-                                identity: rawIdentity,
-                                attributes: rawAttributes,
-                                reviews: rawReviews,
-                                attributeRatings: rawRatings
-                            )
-                            tempRetval.append(cachedRecord)
-                        } catch {
-                            self.analyticsManager.trackError(error: error, additionalInfo: nil)
-                        }
-                    }
-                    
-                    operation.queryResultBlock = { [weak self] result in
-                        guard let self = self else { return }
-                        // Remove the operation from cache
-                        self.removeCacheOperation(operation)
-                        
-                        switch result {
-                        case .success:
-                            continuation.resume()
-                        case .failure(let error):
-                            continuation.resume(throwing: error)
-                        }
-                    }
-                    
-                    // Add the operation to the cache operations
-                    insertCacheOperation(operation)
-                    cacheContainer.privateCloudDatabase.add(operation)
-                    removeCacheOperation(operation)
-                }
-                
-                // Operation succeeded, assign tempRetval to retval and break the loop
-                retval = tempRetval
-                break
-            } catch let error as CKError {
-                // Check for retriable errors
-                if [.serviceUnavailable, .zoneBusy, .requestRateLimited].contains(error.code), retryCount < maxRetries {
-                    // Retrieve retry delay from error or use default
-                    let retryAfter = (error.userInfo[CKErrorRetryAfterKey] as? TimeInterval) ?? 3.0
-                    print("Database busy, retrying after \(retryAfter) seconds")
-                    
-                    // Increment retry count and wait for the specified delay
-                    retryCount += 1
-                    try await Task.sleep(nanoseconds: UInt64(retryAfter * Double(NSEC_PER_SEC)))
-                    
-                    // Continue to retry the operation
-                    continue
-                } else {
-                    // Non-retriable error or max retries reached
-                    self.analyticsManager.trackError(error: error, additionalInfo: nil)
-                    throw error
-                }
-            } catch {
-                // Handle other errors
-                self.analyticsManager.trackError(error: error, additionalInfo: nil)
-                throw error
+                try await deleteAllUserCachedRecords(for: type)
             }
         }
         
-        return retval
-    }
-    
-    @discardableResult
-    public func deleteRecommendationData(for recordId: String) async throws -> (
-        saveResults: [CKRecord.ID: Result<CKRecord, Error>],
-        deleteResults: [CKRecord.ID: Result<Void, Error>]
-    ) {
-        let existingGroups = try await fetchRecommendationData()
-        let allRecommendations = existingGroups.map { CKRecord.ID(recordName: $0.recordId) }
-        let recordsToDelete = allRecommendations.filter { record in
-            return record.recordName == recordId
-        }
-        return try await cacheContainer.privateCloudDatabase.modifyRecords(
-            saving: [],
-            deleting: recordsToDelete
-        )
-    }
 }
 
 private extension CloudCacheService {

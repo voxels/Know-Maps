@@ -13,6 +13,7 @@ struct PlaceAboutView: View {
     @Binding var tabItem: Int
     @State var mutableTastes: [String] = []
     @State private var presentingPopover: Bool = false
+    @State private var isPresentingShareSheet:Bool = false
     static let defaultPadding: CGFloat = 8
     static let mapFrameConstraint: Double = 50000
     static let buttonHeight: Double = 44
@@ -70,7 +71,7 @@ struct PlaceAboutView: View {
                                 Label(isSaved ? "Delete" : "Add to List", systemImage: isSaved ? "minus.circle" : "square.and.arrow.down")
                                     
                             }.onTapGesture {
-                                Task {
+                                Task(priority:.userInitiated) {
                                     await viewModel.toggleSavePlace(resultId: resultId, cacheManager: cacheManager, modelController:modelController)
                                 }
                             }
@@ -178,12 +179,12 @@ struct PlaceAboutView: View {
                                         }.onTapGesture {
                                             if isSaved {
                                                 if let cachedTasteResult = modelController.cachedTasteResult(title: taste.wrappedValue, cacheManager: cacheManager) {
-                                                    Task {
+                                                    Task(priority:.userInitiated) {
                                                         await viewModel.removeTaste(parent: cachedTasteResult, cacheManager:cacheManager, modelController: modelController)
                                                     }
                                                 }
                                             } else {
-                                                Task {
+                                                Task(priority:.userInitiated) {
                                                     await viewModel.addTaste(title: taste.wrappedValue, cacheManager: cacheManager, modelController:modelController)
                                                 }
                                             }

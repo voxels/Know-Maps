@@ -23,7 +23,7 @@ public protocol CacheManager {
     var cachedRecommendationData:[RecommendationData] { get }
     
     // Refresh the entire cache for different data types
-    func refreshCache() async throws
+    func refreshCachedResults() async
     
     // Remove all cached results
     func clearCache() async
@@ -44,7 +44,4 @@ public protocol CacheManager {
     func cachedLocation(contains location: String) -> Bool
     func cachedPlaces(contains place: String) -> Bool
     func cachedLocationIdentity(for location: CLLocation) -> String
-    
-    // Fetch Cached Results by Group and Identity
-    func cachedResults(for group: String, identity: String) -> [UserCachedRecord]?
 }

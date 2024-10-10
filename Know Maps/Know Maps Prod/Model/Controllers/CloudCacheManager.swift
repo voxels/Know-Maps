@@ -10,342 +10,277 @@ import CoreLocation
 
 public final class CloudCacheManager: CacheManager, ObservableObject {
     public let cloudCache: CloudCache
-    private let analyticsManager:AnalyticsService
+    private let analyticsManager: AnalyticsService
     @Published public var isRefreshingCache: Bool = false
-    @Published public var cacheFetchProgress:Double = 0
+    @Published public var cacheFetchProgress: Double = 0
     @Published public var completedTasks = 0
 
-    private var cachedCategoryRecords: [UserCachedRecord] = []
-    private var cachedTasteRecords: [UserCachedRecord] = []
-    private var cachedPlaceRecords: [UserCachedRecord] = []
-    private var cachedLocationRecords: [UserCachedRecord] = []
-
     // Cached Results
-    public var cachedDefaultResults = [CategoryResult]()
-    public var cachedIndustryResults = [CategoryResult]()
-    public var cachedTasteResults = [CategoryResult]()
-    public var cachedPlaceResults = [CategoryResult]()
-    public var allCachedResults = [CategoryResult]()
-    public var cachedLocationResults = [LocationResult]()
-    public var cachedRecommendationData = [RecommendationData]()
-    
-    init(cloudCache: CloudCache, analyticsManager:AnalyticsService) {
+    @Published public var cachedDefaultResults = [CategoryResult]()
+    @Published public var cachedIndustryResults = [CategoryResult]()
+    @Published public var cachedTasteResults = [CategoryResult]()
+    @Published public var cachedPlaceResults = [CategoryResult]()
+    @Published public var allCachedResults = [CategoryResult]()
+    @Published public var cachedLocationResults = [LocationResult]()
+    @Published public var cachedRecommendationData = [RecommendationData]()
+
+    public init(cloudCache: CloudCache, analyticsManager: AnalyticsService) {
         self.cloudCache = cloudCache
         self.analyticsManager = analyticsManager
     }
-    
+
     // MARK: Refresh Cache
-    
+
     public func refreshCache() async throws {
         await MainActor.run {
             isRefreshingCache = true
+            completedTasks = 0
+            cacheFetchProgress = 0
         }
-        
-        // Initialize progress variables
+
         let totalTasks = 6
-        
-        // Create a task that encapsulates the entire operation
-        let operationTask = Task {
-            // Use a throwing task group to manage tasks and handle cancellations
-            try await withThrowingTaskGroup(of: Void.self) { group in
-                // Define tasks with progress updates
-                
-                group.addTask {
-                    try Task.checkCancellation()
-                    await self.refreshDefaultResults()
-                    try Task.checkCancellation()
-                    await MainActor.run { [self] in
-                        self.completedTasks += 1
-                        let progress = Double(self.completedTasks) / Double(totalTasks)
-                        self.cacheFetchProgress = progress
-                    }
-                }
-                group.addTask { [self] in
-                    try Task.checkCancellation()
-                    await self.refreshCachedCategories()
-                    try Task.checkCancellation()
-                    await MainActor.run { [self] in
-                        self.completedTasks += 1
-                        let progress = Double(self.completedTasks) / Double(totalTasks)
-                        self.cacheFetchProgress = progress
-                    }
-                }
-                group.addTask { [self] in
-                    try Task.checkCancellation()
-                    await self.refreshCachedTastes()
-                    try Task.checkCancellation()
-                    await MainActor.run { [self] in
-                        self.completedTasks += 1
-                        let progress = Double(self.completedTasks) / Double(totalTasks)
-                        self.cacheFetchProgress = progress
-                    }
-                }
-                group.addTask { [self] in
-                    try Task.checkCancellation()
-                    await self.refreshCachedPlaces()
-                    try Task.checkCancellation()
-                    await MainActor.run { [self] in
-                        self.completedTasks += 1
-                        let progress = Double(self.completedTasks) / Double(totalTasks)
-                        self.cacheFetchProgress = progress
-                    }
-                }
-                group.addTask { [self] in
-                    try Task.checkCancellation()
-                    await self.refreshCachedLocations()
-                    try Task.checkCancellation()
-                    await MainActor.run { [self] in
-                        self.completedTasks += 1
-                        let progress = Double(self.completedTasks) / Double(totalTasks)
-                        self.cacheFetchProgress = progress
-                    }
-                }
-                group.addTask { [self] in
-                    try Task.checkCancellation()
-                    await self.refreshCachedRecommendationData()
-                    try Task.checkCancellation()
-                    await MainActor.run { [self] in
-                        self.completedTasks += 1
-                        let progress = Double(self.completedTasks) / Double(totalTasks)
-                        self.cacheFetchProgress = progress
-                    }
-                }
-                // Wait for all tasks to complete or handle cancellation
-                try await group.waitForAll()
-            }
-            
-            // Proceed with remaining tasks after the group tasks are done
-            await refreshCachedResults()
-        }
-        
-        try await operationTask.value
-        
+
+        // Fetch data from local store first and update UI
+        await refreshDefaultResults()
+        await updateProgress(for: 1, totalTasks: totalTasks)
+
+        await refreshCachedCategories()
+        await updateProgress(for: 2, totalTasks: totalTasks)
+
+        await refreshCachedTastes()
+        await updateProgress(for: 3, totalTasks: totalTasks)
+
+        await refreshCachedPlaces()
+        await updateProgress(for: 4, totalTasks: totalTasks)
+
+        await refreshCachedLocations()
+        await updateProgress(for: 5, totalTasks: totalTasks)
+
+        await refreshCachedRecommendationData()
+        await updateProgress(for: 6, totalTasks: totalTasks)
+
+        // Update allCachedResults
+        await refreshCachedResults()
+
+        // Update isRefreshingCache
         await MainActor.run {
             isRefreshingCache = false
+        }
+    }
+
+    // Helper function to update progress and completed tasks
+    private func updateProgress(for taskNumber: Int, totalTasks: Int) async {
+        await MainActor.run {
+            completedTasks = taskNumber
+            cacheFetchProgress = Double(completedTasks) / Double(totalTasks)
         }
     }
     
     public func refreshCachedCategories() async {
         do {
-            let records =  try await cloudCache.fetchGroupedUserCachedRecords(for: "Category")
+            let records = try await cloudCache.fetchGroupedUserCachedRecords(for: "Category")
+            let results = self.createCategoryResults(from: records)
             await MainActor.run {
-                cachedCategoryRecords = records
-            }
-            let categoryResults = savedCategoricalResults()
-            await MainActor.run {
-                cachedIndustryResults = categoryResults
+                self.cachedIndustryResults = results
             }
         } catch {
             analyticsManager.trackError(error: error, additionalInfo: nil)
         }
     }
-    
-    
+
     public func refreshCachedTastes() async {
         do {
-            let records =  try await cloudCache.fetchGroupedUserCachedRecords(for: "Taste")
+            let records = try await cloudCache.fetchGroupedUserCachedRecords(for: "Taste")
+            let results = self.createCategoryResults(from: records)
             await MainActor.run {
-                cachedTasteRecords = records
-            }
-            let tasteResults = savedTasteResults()
-            await MainActor.run {
-                cachedTasteResults = tasteResults
+                self.cachedTasteResults = results
             }
         } catch {
             analyticsManager.trackError(error: error, additionalInfo: nil)
         }
     }
-    
+
     public func refreshCachedPlaces() async {
         do {
             let records = try await cloudCache.fetchGroupedUserCachedRecords(for: "Place")
+            let results = self.createPlaceResults(from: records)
             await MainActor.run {
-                cachedPlaceRecords = records
-            }
-            let placeResults = savedPlaceResults()
-            await MainActor.run {
-                cachedPlaceResults = placeResults
+                self.cachedPlaceResults = results
             }
         } catch {
             analyticsManager.trackError(error: error, additionalInfo: nil)
         }
     }
-    
-    public func refreshCachedLocations() async  {
+
+    public func refreshCachedLocations() async {
         do {
             let records = try await cloudCache.fetchGroupedUserCachedRecords(for: "Location")
             await MainActor.run {
-                cachedLocationRecords = records
+                self.cachedLocationResults = self.createLocationResults(from: records)
             }
-            let locationResults = savedLocationResults()
-            await MainActor.run {
-                cachedLocationResults = locationResults
-            }
-        }   catch {
+        } catch {
             analyticsManager.trackError(error: error, additionalInfo: nil)
         }
     }
-    
+
     public func refreshCachedRecommendationData() async {
         do {
             let records = try await cloudCache.fetchRecommendationData()
             await MainActor.run {
-                cachedRecommendationData = records
+                self.cachedRecommendationData = records
             }
         } catch {
             analyticsManager.trackError(error: error, additionalInfo: nil)
         }
     }
-    
+
     public func refreshCachedResults() async {
-        let savedResults = getAllCachedCategoryResults()
+        let allCachedCategoryResults = self.getAllCachedCategoryResults()
         await MainActor.run {
-            allCachedResults = savedResults
+            self.allCachedResults = allCachedCategoryResults
         }
     }
-    
-    
+
     public func refreshDefaultResults() async {
-        let defaults = defaultResults()
+        let results = self.defaultResults()
         await MainActor.run {
-            cachedDefaultResults = defaults
+            self.cachedDefaultResults = results
         }
     }
-    
+
     @MainActor
     public func clearCache() {
-        cachedPlaceResults.removeAll()
-        cachedTasteResults.removeAll()
+        cachedDefaultResults.removeAll()
         cachedIndustryResults.removeAll()
+        cachedTasteResults.removeAll()
+        cachedPlaceResults.removeAll()
         cachedLocationResults.removeAll()
+        cachedRecommendationData.removeAll()
+        allCachedResults.removeAll()
     }
-    
-    
-    // MARK: - Saved Results
-    
-    private func savedCategoricalResults() -> [CategoryResult] {
-        var retval = [CategoryResult]()
-        for index in 0..<cachedCategoryRecords.count {
-            let cacheRecord = cachedCategoryRecords[index]
-            let chatResults = [ChatResult(index: index, title: cacheRecord.title, list:cacheRecord.list, icon: cacheRecord.icons, rating: cacheRecord.rating, section:PersonalizedSearchSection(rawValue:cacheRecord.section) ?? .none, placeResponse: nil, recommendedPlaceResponse: nil)]
-            retval.append( CategoryResult(parentCategory: cacheRecord.title, recordId: cacheRecord.recordId, list: cacheRecord.list, icon:cacheRecord.icons, rating: cacheRecord.rating, section:PersonalizedSearchSection(rawValue:cacheRecord.section) ?? .none, categoricalChatResults: chatResults))
-        }
-            
-        return retval.sorted(by: {$0.parentCategory.lowercased() < $1.parentCategory.lowercased()})
-    }
-    
-    private func savedTasteResults() -> [CategoryResult] {
-        var retval = [CategoryResult]()
-        for index in 0..<cachedTasteRecords.count {
-            let cacheRecord = cachedTasteRecords[index]
-            let chatResults = [ChatResult(index: index, title: cacheRecord.title, list:cacheRecord.list, icon: cacheRecord.icons, rating: cacheRecord.rating, section:PersonalizedSearchSection(rawValue:cacheRecord.section) ?? .none, placeResponse: nil, recommendedPlaceResponse: nil)]
-            retval.append( CategoryResult(parentCategory: cacheRecord.title, recordId: cacheRecord.recordId, list: cacheRecord.list, icon:cacheRecord.icons, rating: cacheRecord.rating, section:PersonalizedSearchSection(rawValue:cacheRecord.section) ?? .none, categoricalChatResults: chatResults))
-        }
-            
-        return retval.sorted(by: {$0.parentCategory.lowercased() < $1.parentCategory.lowercased()})
-    }
-    
-    private func savedPlaceResults() -> [CategoryResult] {
-        var retval = [CategoryResult]()
-        for index in 0..<cachedPlaceRecords.count {
-            let record = cachedPlaceRecords[index]
-            var chatResults = [ChatResult]()
-            if record.group == "Place" {
-                let placeResponse = PlaceSearchResponse(
-                    fsqID: record.identity,
-                    name: "",
-                    categories: [],
-                    latitude: 0,
-                    longitude: 0,
-                    address: "",
-                    addressExtended: "",
-                    country: "",
-                    dma: "",
-                    formattedAddress: "",
-                    locality: "",
-                    postCode: "",
-                    region: "",
-                    chains: [],
-                    link: "",
-                    childIDs: [],
-                    parentIDs: []
-                )
-                
-                chatResults = [ChatResult(index:index,title: record.title, list: record.list, icon:record.icons, rating: record.rating, section:PersonalizedSearchSection(rawValue:record.section) ?? .none, placeResponse: placeResponse, recommendedPlaceResponse: nil)]
-                
-                retval.append( CategoryResult(parentCategory:record.title, recordId: record.recordId, list: record.list, icon:record.icons, rating: record.rating, section:PersonalizedSearchSection(rawValue:record.section) ?? .none, categoricalChatResults: chatResults))
-            }
-        }
-        
-        return retval.sorted(by: {$0.parentCategory.lowercased() < $1.parentCategory.lowercased()})
-    }
-    
 
-    private func defaultResults() -> [CategoryResult] {
-        PersonalizedSearchSection.allCases.filter({$0 != .location && $0 != .none && $0 != .trending})
-            .map({$0.categoryResult()})
+    // MARK: - Helper Methods to Create Results
+
+    private func createCategoryResults(from records: [UserCachedRecord]) -> [CategoryResult] {
+        var results = [CategoryResult]()
+        for (index, record) in records.enumerated() {
+            let chatResults = [ChatResult(
+                index: index,
+                identity: record.identity,
+                title: record.title,
+                list: record.list,
+                icon: record.icons,
+                rating: record.rating,
+                section: PersonalizedSearchSection(rawValue: record.section) ?? .none,
+                placeResponse: nil,
+                recommendedPlaceResponse: nil
+            )]
+            let categoryResult = CategoryResult(
+                identity: record.identity,
+                parentCategory: record.title,
+                list: record.list,
+                icon: record.icons,
+                rating: record.rating,
+                section: PersonalizedSearchSection(rawValue: record.section) ?? .none,
+                categoricalChatResults: chatResults
+            )
+            results.append(categoryResult)
+        }
+        return results.sorted(by: { $0.parentCategory.lowercased() < $1.parentCategory.lowercased() })
     }
-    
-    public func getAllCachedCategoryResults() -> [CategoryResult] {
-        var results = cachedIndustryResults + cachedTasteResults + cachedPlaceResults + cachedDefaultResults
-        
-        results.sort { $0.parentCategory.lowercased() < $1.parentCategory.lowercased() }
-        return results
+
+    private func createPlaceResults(from records: [UserCachedRecord]) -> [CategoryResult] {
+        var results = [CategoryResult]()
+        for (index, record) in records.enumerated() {
+            let placeResponse = PlaceSearchResponse(
+                fsqID: record.identity,
+                name: "",
+                categories: [],
+                latitude: 0,
+                longitude: 0,
+                address: "",
+                addressExtended: "",
+                country: "",
+                dma: "",
+                formattedAddress: "",
+                locality: "",
+                postCode: "",
+                region: "",
+                chains: [],
+                link: "",
+                childIDs: [],
+                parentIDs: []
+            )
+            let chatResults = [ChatResult(
+                index: index,
+                identity: record.identity, title: record.title,
+                list: record.list,
+                icon: record.icons,
+                rating: record.rating,
+                section: PersonalizedSearchSection(rawValue: record.section) ?? .none,
+                placeResponse: placeResponse,
+                recommendedPlaceResponse: nil
+            )]
+            let categoryResult = CategoryResult(
+                identity: record.identity,
+                parentCategory: record.title,
+                list: record.list,
+                icon: record.icons,
+                rating: record.rating,
+                section: PersonalizedSearchSection(rawValue: record.section) ?? .none,
+                categoricalChatResults: chatResults
+            )
+            results.append(categoryResult)
+        }
+        return results.sorted(by: { $0.parentCategory.lowercased() < $1.parentCategory.lowercased() })
     }
-    
-    private func savedLocationResults() -> [LocationResult] {
-        return cachedLocationRecords.compactMap { record in
+
+    private func createLocationResults(from records: [UserCachedRecord]) -> [LocationResult] {
+        var results = [LocationResult]()
+        for record in records {
             let components = record.identity.split(separator: ",")
             if components.count == 2,
                let latitude = Double(components[0]),
                let longitude = Double(components[1]) {
-                return LocationResult(locationName: record.title, location: CLLocation(latitude: latitude, longitude: longitude))
+                let location = CLLocation(latitude: latitude, longitude: longitude)
+                let locationResult = LocationResult(locationName: record.title, location: location)
+                results.append(locationResult)
             }
-            return nil
         }
+        return results
     }
-   
-    // MARK: Cached Records Methods
-    
+
+    private func defaultResults() -> [CategoryResult] {
+        PersonalizedSearchSection.allCases
+            .filter({ $0 != .location && $0 != .none && $0 != .trending })
+            .map({ $0.categoryResult() })
+    }
+
+    public func getAllCachedCategoryResults() -> [CategoryResult] {
+        var results = cachedIndustryResults + cachedTasteResults + cachedPlaceResults + cachedDefaultResults
+        results.sort { $0.parentCategory.lowercased() < $1.parentCategory.lowercased() }
+        return results
+    }
+
+    // MARK: - Cached Records Methods
+
     public func cachedCategories(contains category: String) -> Bool {
-        return cachedCategoryRecords.contains { $0.identity == category }
+        return cachedIndustryResults.contains { $0.parentCategory == category }
     }
-    
+
     public func cachedTastes(contains taste: String) -> Bool {
-        return cachedTasteRecords.contains { $0.identity == taste }
+        return cachedTasteResults.contains { $0.parentCategory == taste }
     }
-    
+
     public func cachedLocation(contains location: String) -> Bool {
         return cachedLocationResults.contains { $0.locationName == location }
     }
-    
-    public func cachedPlaces(contains place:String) -> Bool {
+
+    public func cachedPlaces(contains place: String) -> Bool {
         return cachedPlaceResults.contains { $0.parentCategory == place }
     }
-    
+
     public func cachedLocationIdentity(for location: CLLocation) -> String {
         return "\(location.coordinate.latitude),\(location.coordinate.longitude)"
     }
-        
-    // MARK: Fetch Cached Results by Group and Identity
-    
-    public func cachedResults(for group: String, identity: String) -> [UserCachedRecord]? {
-        let allCachedRecords: [UserCachedRecord]? = {
-            switch group {
-            case "Category":
-                return cachedCategoryRecords
-            case "Taste":
-                return cachedTasteRecords
-            case "Location":
-                return cachedLocationRecords
-            case "Place":
-                return cachedPlaceRecords
-            default:
-                return nil
-            }
-        }()
-        
-        return allCachedRecords?.filter { $0.group == group && $0.identity == identity }
-    }
-    
 }

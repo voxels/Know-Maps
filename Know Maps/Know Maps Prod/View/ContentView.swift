@@ -16,6 +16,7 @@ public enum ContentDetailView {
 }
 
 struct ContentView: View {
+    @Environment(\.modelContext) private var modelContext
     @Environment(\.horizontalSizeClass) var sizeClass
     @Environment(\.openWindow) private var openWindow
 #if os(visionOS)
@@ -54,7 +55,7 @@ struct ContentView: View {
                 SearchView(chatModel: chatModel, cacheManager:cacheManager, modelController: modelController, searchSavedViewModel: searchSavedViewModel, preferredColumn: $preferredColumn, contentViewDetail: $contentViewDetail, addItemSection: $addItemSection, settingsPresented: $settingsPresented, showPlaceViewSheet: $showPlaceViewSheet, didError: $didError)
 #if os(iOS) || os(visionOS)
                     .sheet(isPresented: $settingsPresented) {
-                        SettingsView(chatModel: chatModel,modelController:modelController, showOnboarding: $showOnboarding)
+                        SettingsView(chatModel: chatModel,cacheManager: cacheManager, modelController:modelController, showOnboarding: $showOnboarding)
                             .presentationDetents([.large])
                             .presentationDragIndicator(.visible)
                             .presentationCompactAdaptation(.sheet)

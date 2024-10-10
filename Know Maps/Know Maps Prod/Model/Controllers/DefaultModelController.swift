@@ -85,7 +85,7 @@ public final class DefaultModelController : ModelController, ObservableObject {
                 for index in 0..<values.count {
                     let value = values[index]
                     if let category = value["category"]{
-                        let chatResult = ChatResult(index: index, title:category, list:category, icon: "", rating: 1, section:assistiveHostDelegate.section(for:category), placeResponse:nil, recommendedPlaceResponse: nil)
+                        let chatResult = ChatResult(index: index, identity: category, title:category, list:category, icon: "", rating: 1, section:assistiveHostDelegate.section(for:category), placeResponse:nil, recommendedPlaceResponse: nil)
                         newChatResults.append(chatResult)
                     }
                 }
@@ -94,7 +94,7 @@ public final class DefaultModelController : ModelController, ObservableObject {
             let keys = Array(categoryCode.keys.sorted())
             for index in 0..<keys.count {
                 let key = keys[index]
-                newChatResults.append(ChatResult(index:index,title: key, list:key, icon:"", rating: 1, section:assistiveHostDelegate.section(for:key), placeResponse:nil, recommendedPlaceResponse: nil))
+                newChatResults.append(ChatResult(index:index,identity: key, title: key, list:key, icon:"", rating: 1, section:assistiveHostDelegate.section(for:key), placeResponse:nil, recommendedPlaceResponse: nil))
                 
                 if retval.contains(where: { checkResult in
                     return checkResult.parentCategory == key
@@ -114,12 +114,12 @@ public final class DefaultModelController : ModelController, ObservableObject {
                             return checkResult.parentCategory == key
                         }
                         
-                        let newResult = CategoryResult(parentCategory: key, recordId: "", list:key, icon:"", rating:1, section:assistiveHostDelegate.section(for:key), categoricalChatResults: newChatResults)
+                        let newResult = CategoryResult(identity:key, parentCategory: key, list:key, icon:"", rating:1, section:assistiveHostDelegate.section(for:key), categoricalChatResults: newChatResults)
                         retval.append(newResult)
                     }
                     
                 } else {
-                    let newResult = CategoryResult(parentCategory: key, recordId: "", list:key, icon: "", rating: 1, section:assistiveHostDelegate.section(for:key), categoricalChatResults: newChatResults)
+                    let newResult = CategoryResult(identity: key, parentCategory: key, list:key, icon: "", rating: 1, section:assistiveHostDelegate.section(for:key), categoricalChatResults: newChatResults)
                     retval.append(newResult)
                 }
             }
@@ -325,9 +325,7 @@ public final class DefaultModelController : ModelController, ObservableObject {
                 await MainActor.run {
                     selectedDestinationLocationChatResult = ids.first
                 }
-            }
-            
-            try await cacheManager.refreshCache()
+            }            
         case .AutocompleteSearch:
             if let selectedDestinationLocationChatResult = selectedDestinationLocationChatResult,
                let locationResult = locationChatResult(for: selectedDestinationLocationChatResult, in: locationResults),
