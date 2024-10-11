@@ -11,7 +11,7 @@ struct SearchCategoryView: View {
     @Binding public var chatModel:ChatResultViewModel
     @Binding public var cacheManager:CloudCacheManager
     @Binding public var modelController:DefaultModelController
-    @Binding  public var selectedCategoryID:CategoryResult.ID?
+    @Binding public var selectedCategoryID:CategoryResult.ID?
     @State private var isExpanded:Bool = false
     var body: some View {
         List(selection:$selectedCategoryID) {

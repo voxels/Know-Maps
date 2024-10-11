@@ -22,6 +22,10 @@ struct SearchView: View {
     var body: some View {
         SearchSavedView(chatModel: $chatModel, viewModel: $searchSavedViewModel, cacheManager: $cacheManager, modelController: $modelController, preferredColumn: $preferredColumn, contentViewDetail: $contentViewDetail, addItemSection: $addItemSection, settingsPresented: $settingsPresented )
             .onChange(of: modelController.selectedPlaceChatResult, { oldValue, newValue in
+                
+                contentViewDetail = .places
+                preferredColumn = .detail
+                
                 guard let newValue = newValue else {
                     showPlaceViewSheet = false
                     return
@@ -50,6 +54,7 @@ struct SearchView: View {
                 guard let newValue = newValue else {
                     return
                 }
+                contentViewDetail = .places
                 preferredColumn = .detail
                 Task(priority:.userInitiated) {
                     await modelController.resetPlaceModel()

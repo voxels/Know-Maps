@@ -11,7 +11,6 @@ struct SearchSavedView: View {
     @Binding  public var settingsPresented: Bool
     @State private var showNavigationLocationSheet: Bool = false
     @State private var searchText: String = ""
-    @State private var parentLocationResult: LocationResult?
 
     var body: some View {
         GeometryReader { geometry in
@@ -50,13 +49,10 @@ struct SearchSavedView: View {
                     .padding()
 
                     NavigationLocationView(chatModel: $chatModel, cacheManager: $cacheManager, modelController:$modelController)
-                        .task {
-                            modelController.selectedSavedResult = nil
-                        await modelController.resetPlaceModel()
-                    }
 
                     HStack {
-                        if let parent = parentLocationResult {
+                        if let selectedDestinationLocationChatResult = modelController.selectedDestinationLocationChatResult, let parent =  modelController.locationChatResult(
+                            for: selectedDestinationLocationChatResult,in: modelController.filteredLocationResults(cacheManager: cacheManager)) {
                             let isSaved = cacheManager.cachedLocation(contains: parent.locationName)
                             if isSaved {
                                 Button(action: {
@@ -86,6 +82,7 @@ struct SearchSavedView: View {
                                                     cacheManager: cacheManager,
                                                     modelController: modelController
                                                 )
+                                                modelController.selectedDestinationLocationChatResult = modelController.filteredLocationResults(cacheManager:cacheManager).first(where: {$0.locationName == parent.locationName})?.id
                                             } catch {
                                                 modelController.analyticsManager.trackError(
                                                     error: error,
@@ -109,36 +106,16 @@ struct SearchSavedView: View {
                 .presentationDetents([.large])
                 .presentationDragIndicator(.visible)
                 .presentationCompactAdaptation(.sheet)
-                .onAppear {
-                    updateParentLocationResult()
-                }
-                .onChange(of: searchText) { _,_ in
-                    updateParentLocationResult()
-                }
-                .onChange(of: modelController.selectedDestinationLocationChatResult) { _,_ in
-                    updateParentLocationResult()
-                }
             }
         }
     }
-
-    func updateParentLocationResult() {
-        if let selectedResult = modelController.selectedDestinationLocationChatResult {
-            parentLocationResult = modelController.locationChatResult(
-                for: selectedResult,
-                in: modelController.filteredLocationResults(cacheManager: cacheManager)
-            )
-        } else {
-            parentLocationResult = modelController.locationResults.first { $0.locationName == searchText }
-        }
-    }
-
+    
     func search() {
         if !searchText.isEmpty {
             Task(priority:.userInitiated) {
                 await viewModel.search(
                     caption: searchText,
-                    selectedDestinationChatResultID: nil,
+                    selectedDestinationChatResultID: modelController.selectedDestinationLocationChatResult,
                     chatModel: chatModel,
                     cacheManager: cacheManager,
                     modelController: modelController
@@ -152,9 +129,9 @@ struct AddPromptView: View {
     @Binding public var chatModel: ChatResultViewModel
     @Binding public var cacheManager:CloudCacheManager
     @Binding public var modelController:DefaultModelController
-    @Binding  public var addItemSection: Int
-    @Binding  public var contentViewDetail:ContentDetailView
-    @Binding  public var selectedCategoryID:CategoryResult.ID?
+    @Binding public var addItemSection: Int
+    @Binding public var contentViewDetail:ContentDetailView
+    @Binding public var selectedCategoryID:CategoryResult.ID?
     
     var body: some View {
         TabView(selection: $addItemSection) {

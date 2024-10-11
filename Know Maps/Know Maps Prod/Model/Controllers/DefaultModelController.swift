@@ -38,6 +38,7 @@ public final class DefaultModelController : ModelController {
     public var industryResults = [CategoryResult]()
     public var tasteResults = [CategoryResult]()
     public var placeResults = [ChatResult]()
+    public var mapPlaceResults = [ChatResult]()
     public var recommendedPlaceResults = [ChatResult]()
     public var relatedPlaceResults = [ChatResult]()
     public var locationResults = [LocationResult]()
@@ -69,6 +70,7 @@ public final class DefaultModelController : ModelController {
     public func resetPlaceModel() async {
         await MainActor.run {
             placeResults.removeAll()
+            mapPlaceResults.removeAll()
             recommendedPlaceResults.removeAll()
             relatedPlaceResults.removeAll()
         }
@@ -431,6 +433,7 @@ public final class DefaultModelController : ModelController {
         
         await MainActor.run { [chatResults] in
             placeResults = chatResults
+            mapPlaceResults = chatResults
         }
         
         return chatResults
@@ -442,6 +445,7 @@ public final class DefaultModelController : ModelController {
     
     @discardableResult
     public func placeQueryModel(intent: AssistiveChatHostIntent, cacheManager:CacheManager) async throws -> [ChatResult] {
+        
         var chatResults = [ChatResult]()
         
         if let response = intent.selectedPlaceSearchResponse, let details = intent.selectedPlaceSearchDetails {
@@ -468,6 +472,11 @@ public final class DefaultModelController : ModelController {
         }
         
         await MainActor.run { [chatResults] in
+            if filteredPlaceResults.contains(where: {$0.identity == intent.selectedPlaceSearchResponse?.fsqID}) {
+                    mapPlaceResults = placeResults
+            } else {
+                mapPlaceResults = chatResults
+            }
             placeResults = chatResults
         }
         
@@ -614,6 +623,7 @@ public final class DefaultModelController : ModelController {
             
             await MainActor.run { [newResults] in
                 placeResults = newResults
+                mapPlaceResults = newResults
             }
             
             try await recommendedPlaceQueryModel(intent: intent, cacheManager: cacheManager)
@@ -650,6 +660,7 @@ public final class DefaultModelController : ModelController {
         
         await MainActor.run { [chatResults] in
             placeResults = chatResults
+            mapPlaceResults = chatResults
         }
         
         try await recommendedPlaceQueryModel(intent: intent, cacheManager:cacheManager)

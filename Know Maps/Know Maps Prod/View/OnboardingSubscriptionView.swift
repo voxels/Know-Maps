@@ -61,38 +61,3 @@ struct OnboardingSubscriptionView: View {
         }
     }
 }
-
-struct SingleSelectionList<Item: Identifiable, Content: View>: View {
-    
-    var items: [Item]
-    @Binding  var selectedItem: Item?
-    var rowContent: (Item) -> Content
-    
-    var body: some View {
-        List(items) { item in
-            rowContent(item)
-                .modifier(CheckmarkModifier(checked: item.id == self.selectedItem?.id))
-                .contentShape(Rectangle())
-        }
-    }
-}
-
-struct CheckmarkModifier: ViewModifier {
-    var checked: Bool = false
-    func body(content: Content) -> some View {
-        Group {
-            if checked {
-                HStack() {
-                    content
-                    Spacer()
-                    Image(systemName: "checkmark.circle.fill")
-                        .resizable()
-                        .frame(width: 20, height: 20)
-                        .foregroundStyle(.blue)
-                }
-            } else {
-                content
-            }
-        }
-    }
-}

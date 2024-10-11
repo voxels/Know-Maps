@@ -63,7 +63,8 @@ struct SavedListView: View {
                 Text("Add a place")
                 .onTapGesture {
                     addItemSection = 2
-                    preferredColumn = .content
+                    contentViewDetail = .add
+                    preferredColumn = .detail
                 }
                 .foregroundStyle(.accent)
             } label: {
@@ -116,7 +117,8 @@ struct SavedListView: View {
                 Text("Add a type")
                     .onTapGesture {
                         addItemSection = 0
-                        preferredColumn = .content
+                        contentViewDetail = .add
+                        preferredColumn = .detail
                     }
                     .foregroundStyle(.accent)
                 
@@ -170,7 +172,8 @@ struct SavedListView: View {
                 Text("Add an item")
                     .onTapGesture {
                         addItemSection = 1
-                        preferredColumn = .content
+                        contentViewDetail = .add
+                        preferredColumn = .detail
                     }
                     .foregroundStyle(.accent)
             } label: {
@@ -297,7 +300,8 @@ struct SavedListToolbarView: View {
     
     var body: some View {
         Button(action: {
-            preferredColumn = .content
+            contentViewDetail = .add
+            preferredColumn = .detail
         }) {
             Label("Add Prompt", systemImage: "plus.circle")
         }

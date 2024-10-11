@@ -13,9 +13,8 @@ struct NavigationLocationView: View {
     @Binding public var modelController:DefaultModelController
     @State private var searchIsPresented = false
     @State private var searchText:String = ""
-    @State private var selectedDestinationLocationChatResult: LocationResult.ID?
     var body: some View {
-        List(modelController.filteredLocationResults(cacheManager: cacheManager), selection:$selectedDestinationLocationChatResult) { result in
+        List(modelController.filteredLocationResults(cacheManager: cacheManager), selection:$modelController.selectedDestinationLocationChatResult) { result in
             let isSaved = cacheManager.cachedLocation(contains:result.locationName)
             HStack {
                 if result.id == modelController.selectedDestinationLocationChatResult {
@@ -29,8 +28,11 @@ struct NavigationLocationView: View {
                 isSaved ? Image(systemName: "checkmark.circle.fill") : Image(systemName: "circle")
             }
         }
-        .onChange(of: selectedDestinationLocationChatResult) { oldValue, newValue in
-            modelController.selectedDestinationLocationChatResult = newValue
+        .onChange(of: modelController.selectedDestinationLocationChatResult) { oldValue, newValue in
+            Task {
+                modelController.selectedSavedResult = nil
+                await modelController.resetPlaceModel()
+            }
         }
     }
 }

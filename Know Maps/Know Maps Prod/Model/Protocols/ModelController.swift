@@ -34,6 +34,7 @@ public protocol ModelController : Sendable {
     var industryResults:[CategoryResult] { get set }
     var tasteResults:[CategoryResult] { get set }
     var placeResults:[ChatResult] { get set }
+    var mapPlaceResults:[ChatResult] { get set }
     var recommendedPlaceResults:[ChatResult] { get set }
     var relatedPlaceResults:[ChatResult] { get set }
     var locationResults:[LocationResult] { get set }
