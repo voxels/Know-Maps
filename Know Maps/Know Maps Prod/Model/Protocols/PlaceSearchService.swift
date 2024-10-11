@@ -8,7 +8,7 @@
 import Foundation
 import CoreLocation
 
-public protocol PlaceSearchService {
+public protocol PlaceSearchService: Sendable {
     var assistiveHostDelegate: AssistiveChatHost { get }
     var placeSearchSession: PlaceSearchSession { get }
     var personalizedSearchSession: PersonalizedSearchSession { get }

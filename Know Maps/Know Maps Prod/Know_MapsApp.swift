@@ -47,27 +47,34 @@ struct Know_MapsApp: App {
         }
     }()
     
-    @StateObject public var settingsModel:AppleAuthenticationService
-    @StateObject public var chatModel:ChatResultViewModel
-    @StateObject public var searchSavedViewModel:SearchSavedViewModel
-    @StateObject public var cacheManager:CloudCacheManager
-    @StateObject public var modelController:DefaultModelController
+    @State public var settingsModel:AppleAuthenticationService
+    @State public var chatModel:ChatResultViewModel
+    @State public var searchSavedViewModel:SearchSavedViewModel
+    @State public var cacheManager:CloudCacheManager
+    @State public var modelController:DefaultModelController
     
+    @State private var showReload:Bool = false
     @State private var showOnboarding:Bool = true
     @State private var showSplashScreen:Bool = true
     @State private var selectedOnboardingTab:String = "Sign In"
 
     
     init() {
-        _cacheManager = StateObject(wrappedValue: CloudCacheManager.shared)
-        _settingsModel = StateObject(wrappedValue: AppleAuthenticationService(userId: ""))
-        _modelController = StateObject(wrappedValue: DefaultModelController.shared)
-        _searchSavedViewModel = StateObject(wrappedValue: SearchSavedViewModel())
-        _chatModel = StateObject(wrappedValue:ChatResultViewModel.shared)
+        let cacheManager = CloudCacheManager.shared
+        let settingsModel = AppleAuthenticationService(userId: "")
+        let modelController = DefaultModelController.shared
+        let searchSavedViewModel = SearchSavedViewModel()
+        let chatModel = ChatResultViewModel.shared
         
-        AppDependencyManager.shared.add(dependency: CloudCacheManager.shared)
-        AppDependencyManager.shared.add(dependency: DefaultModelController.shared)
-        AppDependencyManager.shared.add(dependency: ChatResultViewModel.shared)
+        _cacheManager = State(wrappedValue: cacheManager)
+        _settingsModel = State(wrappedValue: settingsModel)
+        _modelController = State(wrappedValue: modelController)
+        _searchSavedViewModel = State(wrappedValue: searchSavedViewModel)
+        _chatModel = State(wrappedValue: chatModel)
+
+        AppDependencyManager.shared.add(dependency: cacheManager)
+        AppDependencyManager.shared.add(dependency: modelController)
+        AppDependencyManager.shared.add(dependency: chatModel)
         
         /**
          Call `updateAppShortcutParameters` on `AppShortcutsProvider` so that the system updates the App Shortcut phrases with any changes to
@@ -98,6 +105,13 @@ struct Know_MapsApp: App {
                                 .frame(maxWidth:geometry.size.width / 2)
                                 .padding()
                             Spacer()
+                            if showReload {
+                                Button("Reload") {
+                                    Task(priority: .userInitiated) {
+                                        await startApp()
+                                    }
+                                }
+                            }
                         }
                         Spacer()
                     }
@@ -127,24 +141,22 @@ struct Know_MapsApp: App {
 #endif
                 } else {
                     if showOnboarding {
-                        OnboardingView( chatModel: chatModel, modelController: modelController, selectedTab: $selectedOnboardingTab, showOnboarding: $showOnboarding)
+                        OnboardingView( settingsModel: $settingsModel, chatModel: $chatModel, modelController: $modelController, selectedTab: $selectedOnboardingTab, showOnboarding: $showOnboarding)
 #if os(visionOS) || os(macOS)
                             .frame(minWidth: 1280, minHeight: 720)
 #endif
-                            .environmentObject(settingsModel)
                     } else {
-                        ContentView(chatModel: chatModel, cacheManager:cacheManager, modelController:modelController, searchSavedViewModel: searchSavedViewModel, showOnboarding: $showOnboarding)
+                        ContentView(settingsModel:$settingsModel, chatModel: $chatModel, cacheManager:$cacheManager, modelController:$modelController, searchSavedViewModel: $searchSavedViewModel, showOnboarding: $showOnboarding)
 #if os(visionOS) || os(macOS)
                             .frame(minWidth: 1280, minHeight: 720)
 #endif
-                            .environmentObject(settingsModel)
                     }
                 }
             }
         }.windowResizability(.contentSize)
         
         WindowGroup(id:"SettingsView"){
-            SettingsView(chatModel:chatModel, cacheManager: cacheManager, modelController: modelController, showOnboarding: $showOnboarding)
+            SettingsView(model:$settingsModel, chatModel:$chatModel, cacheManager: $cacheManager, modelController: $modelController, showOnboarding: $showOnboarding)
                 .tag("Settings")
                 .onChange(of: settingsModel.appleUserId, { oldValue, newValue in
                     
@@ -155,7 +167,6 @@ struct Know_MapsApp: App {
 #endif
                 })
         }
-        .environmentObject(settingsModel)
         .modelContainer(Know_MapsApp.sharedModelContainer)
         
 #if os(visionOS)
@@ -166,7 +177,7 @@ struct Know_MapsApp: App {
     }
     
     private func startApp() async {
-        await startup(chatModel: chatModel)
+        await startup()
     }
     
     func performExistingAccountSetupFlows() {
@@ -187,18 +198,17 @@ struct Know_MapsApp: App {
         FeatureFlagService.shared.updateFlags(with: customerInfo)
     }
     
-    private func startup(chatModel: ChatResultViewModel) async {
+    private func startup() async {
 //        do {
 //            try await loadPurchases()
 //        } catch {
 //            modelController.analyticsManager.trackError(error: error, additionalInfo:nil)
 //        }
-        modelController.assistiveHostDelegate.messagesDelegate = chatModel
-        await setupChatModel(chatModel)
-        await loadData(chatModel)
+        await retrieveUser()
+        await loadData()
     }
     
-    private func setupChatModel(_ chatModel: ChatResultViewModel) async {
+    private func retrieveUser() async {
         // Perform setup tasks
         if !cacheManager.cloudCache.hasFsqAccess {
             do {
@@ -210,14 +220,9 @@ struct Know_MapsApp: App {
         }
     }
     
-    private func loadData(_ chatModel: ChatResultViewModel) async {
+    private func loadData() async {
         Task {
-            do {
-                try await modelController.assistiveHostDelegate.organizeCategoryCodeList()
-                await modelController.categoricalSearchModel()
-            } catch {
-                modelController.analyticsManager.trackError(error: error, additionalInfo:nil)
-            }
+            await modelController.categoricalSearchModel()
         }
         
         let cacheRefreshTask = Task {
@@ -234,6 +239,7 @@ struct Know_MapsApp: App {
             }
         } catch {
             cacheRefreshTask.cancel()
+            showReload.toggle()
             modelController.analyticsManager.trackError(error: error, additionalInfo:nil)
         }
         

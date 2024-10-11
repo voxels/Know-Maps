@@ -8,6 +8,7 @@
 import Foundation
 import CoreLocation
 
+@Observable
 public final class DefaultPlaceSearchService: PlaceSearchService {
     
     public let assistiveHostDelegate: AssistiveChatHost
@@ -95,7 +96,7 @@ public final class DefaultPlaceSearchService: PlaceSearchService {
                         for: response,
                         placePhotosResponses: photoResponses,
                         placeTipsResponses: tipsResponses,
-                        previousDetails: self.assistiveHostDelegate.queryIntentParameters?.queryIntents.last?.placeDetailsResponses
+                        previousDetails: self.assistiveHostDelegate.queryIntentParameters.queryIntents.last?.placeDetailsResponses
                     )
                 }
             }

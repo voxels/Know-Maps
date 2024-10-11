@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct PlaceTipsResponse : Identifiable, Hashable  {
+public struct PlaceTipsResponse : Identifiable, Hashable, Sendable  {
     public var id: UUID
     let placeIdent:String
     let ident:String

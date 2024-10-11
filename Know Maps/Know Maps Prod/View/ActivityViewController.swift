@@ -14,7 +14,7 @@ struct ActivityViewController: UIViewControllerRepresentable {
     var activityItems: [Any]
     var applicationActivities: [UIActivity]
     @Environment(\.dismiss) var dismissAction
-    @Binding public var isPresentingShareSheet:Bool
+    @Binding  public var isPresentingShareSheet:Bool
 
     func makeUIViewController(context: UIViewControllerRepresentableContext<ActivityViewController>) -> UIActivityViewController {
         let controller = UIActivityViewController(activityItems: activityItems, applicationActivities: applicationActivities)
@@ -35,7 +35,7 @@ struct ActivityViewController: UIViewControllerRepresentable {
 struct ActivityViewController: NSViewControllerRepresentable {
     
     var activityItems: [Any]
-    @Binding public var isPresentingShareSheet: Bool
+    @Binding  public var isPresentingShareSheet: Bool
 
     func makeNSViewController(context: Context) -> NSViewController {
         let viewController = NSViewController()

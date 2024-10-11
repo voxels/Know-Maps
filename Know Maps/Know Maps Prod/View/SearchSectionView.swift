@@ -8,9 +8,8 @@
 import SwiftUI
 
 struct SearchSectionView: View {
-    @ObservedObject public var chatModel: ChatResultViewModel
-    @ObservedObject var modelController:DefaultModelController
-    @State private var selectedPersonalizedSearchSection: PersonalizedSearchSection?
+    @Binding public var chatModel: ChatResultViewModel
+    @Binding var modelController:DefaultModelController
 
     var body: some View {
         List(selection:$modelController.selectedPersonalizedSearchSection){

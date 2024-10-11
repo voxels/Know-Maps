@@ -8,7 +8,7 @@
 import Foundation
 import CreateML
 
-public protocol RecommenderService {
+public protocol RecommenderService : Sendable {
     func recommendationData(tasteCategoryResults: [CategoryResult], industryCategoryResults: [CategoryResult], placeRecommendationData:[RecommendationData]) -> [RecommendationData]
     func model(with recommendationData: [RecommendationData]) throws -> MLLinearRegressor
     func testingData(with responses:[RecommendedPlaceSearchResponse])->[RecommendationData]

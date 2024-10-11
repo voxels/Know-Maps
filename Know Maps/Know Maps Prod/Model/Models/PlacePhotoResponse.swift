@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct PlacePhotoResponse: Identifiable {
+public struct PlacePhotoResponse: Identifiable, Sendable {
     public var id: ObjectIdentifier
     
     let placeIdent:String

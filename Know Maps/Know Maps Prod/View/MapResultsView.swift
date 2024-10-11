@@ -10,10 +10,10 @@ import CoreLocation
 import MapKit
 
 struct MapResultsView: View {
-    @ObservedObject public var model:ChatResultViewModel
-    @ObservedObject public var modelController:DefaultModelController
-    @Binding public var selectedMapItem: String?
-    @Binding public var cameraPosition:MapCameraPosition
+    @Binding public var model:ChatResultViewModel
+    @Binding public var modelController:DefaultModelController
+    @Binding  public var selectedMapItem: String?
+    @Binding  public var cameraPosition:MapCameraPosition
     
     var body: some View {
         Map(position: $cameraPosition, interactionModes: .all, selection: $selectedMapItem) {

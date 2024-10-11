@@ -8,16 +8,17 @@
 import SwiftUI
 
 struct SearchCategoryView: View {
-    @ObservedObject public var chatModel:ChatResultViewModel
-    @ObservedObject public var cacheManager:CloudCacheManager
-    @ObservedObject public var modelController:DefaultModelController
-    @Binding public var selectedCategoryID:CategoryResult.ID?
+    @Binding public var chatModel:ChatResultViewModel
+    @Binding public var cacheManager:CloudCacheManager
+    @Binding public var modelController:DefaultModelController
+    @Binding  public var selectedCategoryID:CategoryResult.ID?
+    @State private var isExpanded:Bool = false
     var body: some View {
         List(selection:$selectedCategoryID) {
             ForEach(modelController.industryResults, id:\.id){ parent in
                 DisclosureGroup(isExpanded: Binding(
-                    get: { parent.isExpanded },
-                    set: { parent.isExpanded = $0 }
+                    get: { isExpanded },
+                    set: { isExpanded = $0 }
                 )){
                     ForEach(parent.children, id:\.id) { child in
                         let isSaved = cacheManager.cachedCategories(contains: child.parentCategory)

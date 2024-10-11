@@ -8,7 +8,8 @@
 import Foundation
 import RevenueCat
 
-open class FeatureFlagService : NSObject, @preconcurrency FeatureFlag, @preconcurrency PurchasesDelegate, ObservableObject {
+@Observable
+public final class FeatureFlagService : NSObject, @preconcurrency FeatureFlag, @preconcurrency PurchasesDelegate {
     
     // Shared instance (singleton)
     public static let shared = FeatureFlagService()
@@ -19,7 +20,7 @@ open class FeatureFlagService : NSObject, @preconcurrency FeatureFlag, @preconcu
         case hasFreeSubscription
     }
     
-    @Published public var features:[Flag:Bool] = [Flag:Bool]()
+    public var features:[Flag:Bool] = [Flag:Bool]()
     
     public func owns(flag:FeatureFlagService.Flag)->Bool{
         return features[flag] == true

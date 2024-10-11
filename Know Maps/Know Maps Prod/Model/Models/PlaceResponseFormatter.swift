@@ -749,10 +749,7 @@ open class PlaceResponseFormatter {
         if let rawPrice = response["price"] as? Int {
             price = rawPrice
         }
-        var menu:AnyObject? = nil
-        if let rawMenu = response["menu"] as? AnyObject {
-            menu = rawMenu
-        }
+        
         var dateClosed:String? = nil
         if let rawDateClosed = response["date_closed"] as? String {
             dateClosed = rawDateClosed
@@ -775,7 +772,7 @@ open class PlaceResponseFormatter {
             tipsResponses = try PlaceResponseFormatter.placeTipsResponses(with: responses, for: searchResponse.fsqID)
         }
         
-        return PlaceDetailsResponse(searchResponse: searchResponse, photoResponses: photoResponses, tipsResponses: tipsResponses, description: description, tel: tel, fax: fax, email: email, website: website, socialMedia: socialMedia, verified: verified, hours: hours, openNow: openNow, hoursPopular: hoursPopular, rating: rating, stats: stats, popularity: popularity, price: price, menu: menu, dateClosed: dateClosed, tastes: tastes, features: features)
+        return PlaceDetailsResponse(searchResponse: searchResponse, photoResponses: photoResponses, tipsResponses: tipsResponses, description: description, tel: tel, fax: fax, email: email, website: website, socialMedia: socialMedia, verified: verified, hours: hours, openNow: openNow, hoursPopular: hoursPopular, rating: rating, stats: stats, popularity: popularity, price: price, dateClosed: dateClosed, tastes: tastes, features: features)
         
     }
     

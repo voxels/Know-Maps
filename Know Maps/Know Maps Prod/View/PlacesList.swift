@@ -12,12 +12,11 @@ import MapKit
 
 struct PlacesList: View {
     @Environment(\.horizontalSizeClass) var sizeClass
-    @ObservedObject public var chatModel:ChatResultViewModel
-    @ObservedObject var modelController:DefaultModelController
-    @Binding public var resultId:ChatResult.ID?
+    @Binding public var chatModel:ChatResultViewModel
+    @Binding var modelController:DefaultModelController
     @State private var selectedItem: String?
     
-    @Binding public var showMapsResultViewSheet:Bool
+    @Binding  public var showMapsResultViewSheet:Bool
     
     static var formatter:NumberFormatter {
         let retval = NumberFormatter()

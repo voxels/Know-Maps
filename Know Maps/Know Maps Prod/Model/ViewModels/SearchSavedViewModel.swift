@@ -8,7 +8,7 @@
 import Foundation
 import CoreLocation
 
-public final class SearchSavedViewModel: ObservableObject {    
+public final class SearchSavedViewModel : Sendable {
     // Search functionality
     func search(caption: String, selectedDestinationChatResultID: UUID?, chatModel:ChatResultViewModel, cacheManager:CacheManager, modelController:ModelController) async {
         do {

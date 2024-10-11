@@ -8,19 +8,19 @@
 import SwiftUI
 
 struct SearchView: View {
-    @ObservedObject public var chatModel:ChatResultViewModel
-    @ObservedObject public var cacheManager:CloudCacheManager
-    @ObservedObject public var modelController:DefaultModelController
-    @ObservedObject public var searchSavedViewModel:SearchSavedViewModel
-    @Binding public var preferredColumn:NavigationSplitViewColumn
-    @Binding public var contentViewDetail:ContentDetailView
-    @Binding public var addItemSection:Int
-    @Binding public var settingsPresented:Bool
-    @Binding public var showPlaceViewSheet:Bool
-    @Binding public var didError:Bool
+    @Binding public var chatModel:ChatResultViewModel
+    @Binding public var cacheManager:CloudCacheManager
+    @Binding public var modelController:DefaultModelController
+    @Binding public var searchSavedViewModel:SearchSavedViewModel
+    @Binding  public var preferredColumn:NavigationSplitViewColumn
+    @Binding  public var contentViewDetail:ContentDetailView
+    @Binding  public var addItemSection:Int
+    @Binding  public var settingsPresented:Bool
+    @Binding  public var showPlaceViewSheet:Bool
+    @Binding  public var didError:Bool
     
     var body: some View {
-        SearchSavedView(chatModel: chatModel, viewModel: searchSavedViewModel, cacheManager: cacheManager, modelController: modelController, preferredColumn: $preferredColumn, contentViewDetail: $contentViewDetail, addItemSection: $addItemSection, settingsPresented: $settingsPresented )
+        SearchSavedView(chatModel: $chatModel, viewModel: $searchSavedViewModel, cacheManager: $cacheManager, modelController: $modelController, preferredColumn: $preferredColumn, contentViewDetail: $contentViewDetail, addItemSection: $addItemSection, settingsPresented: $settingsPresented )
             .onChange(of: modelController.selectedPlaceChatResult, { oldValue, newValue in
                 guard let newValue = newValue else {
                     showPlaceViewSheet = false
@@ -50,10 +50,9 @@ struct SearchView: View {
                 guard let newValue = newValue else {
                     return
                 }
-                
+                preferredColumn = .detail
                 Task(priority:.userInitiated) {
                     await modelController.resetPlaceModel()
-                    await cacheManager.refreshCachedResults()
                     if let selectedDestinationLocationChatResult = modelController.selectedDestinationLocationChatResult {
                         if let cachedResult = modelController.cachedChatResult(for: newValue, cacheManager: cacheManager) {
                             await chatModel.didTap(chatResult: cachedResult, selectedDestinationChatResultID: selectedDestinationLocationChatResult, cacheManager: cacheManager, modelController: modelController)

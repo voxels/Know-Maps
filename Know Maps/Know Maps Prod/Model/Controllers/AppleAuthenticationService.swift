@@ -14,7 +14,8 @@ public enum AuthenticationServiceError : Error {
     case failed
 }
 
-open class AppleAuthenticationService : NSObject, Authentication, ASAuthorizationControllerDelegate,  ObservableObject {
+@Observable
+public final class AppleAuthenticationService : NSObject, Authentication, ASAuthorizationControllerDelegate {
     public static let tag = "com.noisederived.Know-Maps.keys.appleuserid".data(using: .utf8)!
 
     public var isAuthorized:Bool {

@@ -9,8 +9,8 @@ import SwiftUI
 import AuthenticationServices
 
 struct OnboardingSignInView: View {
+    @Binding public var model:AppleAuthenticationService
     @Binding public var selectedTab:String
-    @EnvironmentObject public var model:AppleAuthenticationService
     @State private var popoverPresented:Bool = false
     @State private var signInErrorMessage:String = "Error"
     
@@ -99,8 +99,4 @@ func openSettingsPreferences() {
     }
 }
 #endif
-}
-
-#Preview {
-    OnboardingSignInView(selectedTab: .constant("Sign In"))
 }

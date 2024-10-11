@@ -8,14 +8,14 @@
 import SwiftUI
 
 struct NavigationLocationView: View {
-    @ObservedObject public var chatModel:ChatResultViewModel
-    @ObservedObject public var cacheManager:CloudCacheManager
-    @ObservedObject var modelController:DefaultModelController
+    @Binding public var chatModel:ChatResultViewModel
+    @Binding public var cacheManager:CloudCacheManager
+    @Binding public var modelController:DefaultModelController
     @State private var searchIsPresented = false
     @State private var searchText:String = ""
-    
+    @State private var selectedDestinationLocationChatResult: LocationResult.ID?
     var body: some View {
-        List(modelController.filteredLocationResults(cacheManager: cacheManager), selection:$modelController.selectedDestinationLocationChatResult) { result in
+        List(modelController.filteredLocationResults(cacheManager: cacheManager), selection:$selectedDestinationLocationChatResult) { result in
             let isSaved = cacheManager.cachedLocation(contains:result.locationName)
             HStack {
                 if result.id == modelController.selectedDestinationLocationChatResult {
@@ -28,6 +28,9 @@ struct NavigationLocationView: View {
                 Spacer()
                 isSaved ? Image(systemName: "checkmark.circle.fill") : Image(systemName: "circle")
             }
+        }
+        .onChange(of: selectedDestinationLocationChatResult) { oldValue, newValue in
+            modelController.selectedDestinationLocationChatResult = newValue
         }
     }
 }

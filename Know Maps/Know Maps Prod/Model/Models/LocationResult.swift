@@ -8,7 +8,7 @@
 import Foundation
 import CoreLocation
 
-public struct LocationResult : Identifiable, Equatable, Hashable {
+public struct LocationResult : Identifiable, Equatable, Hashable, Sendable {
     public static func == (lhs: LocationResult, rhs: LocationResult) -> Bool {
         lhs.locationName == rhs.locationName && lhs.location == rhs.location
     }

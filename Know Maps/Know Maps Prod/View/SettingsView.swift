@@ -10,11 +10,11 @@ import AuthenticationServices
 
 struct SettingsView: View {
     @Environment(\.openWindow) private var openWindow
-    @EnvironmentObject public var model:AppleAuthenticationService
-    @ObservedObject public var chatModel:ChatResultViewModel
-    @ObservedObject public var cacheManager:CloudCacheManager
-    @ObservedObject public var modelController:DefaultModelController
-    @Binding public var showOnboarding:Bool
+    @Binding public var model:AppleAuthenticationService
+    @Binding public var chatModel:ChatResultViewModel
+    @Binding public var cacheManager:CloudCacheManager
+    @Binding public var modelController:DefaultModelController
+    @Binding  public var showOnboarding:Bool
     @State private var popoverPresented:Bool = false
     @State private var signInErrorMessage:String = "Error"
     @State private var isAuthenticated = false

@@ -8,7 +8,7 @@
 import Foundation
 import Segment
 
-public protocol AnalyticsService {
+public protocol AnalyticsService : Sendable {
     // Track a generic event with optional properties
     func track(event: String, properties: [String: Any]?)
     

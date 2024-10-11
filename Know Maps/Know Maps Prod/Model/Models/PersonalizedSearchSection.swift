@@ -8,7 +8,7 @@
 import Foundation
 import AppIntents
 
-public enum PersonalizedSearchSection: String, Hashable, CaseIterable, AppEnum  {
+public enum PersonalizedSearchSection: String, Hashable, CaseIterable, AppEnum, Sendable  {
     
     case food = "Food"
     case drinks = "Drinks"

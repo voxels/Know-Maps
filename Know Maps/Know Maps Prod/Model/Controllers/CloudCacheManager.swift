@@ -8,24 +8,26 @@
 import Foundation
 import CoreLocation
 
-public final class CloudCacheManager: CacheManager, ObservableObject {
+@Observable
+public final class CloudCacheManager: CacheManager {
     
+    @MainActor
     static let shared = CloudCacheManager(cloudCache: CloudCacheService.shared, analyticsManager: SegmentAnalyticsService.shared)
     
     public let cloudCache: CloudCache
     private let analyticsManager: AnalyticsService
-    @Published public var isRefreshingCache: Bool = false
-    @Published public var cacheFetchProgress: Double = 0
-    @Published public var completedTasks = 0
+    public var isRefreshingCache: Bool = false
+    public var cacheFetchProgress: Double = 0
+    public var completedTasks = 0
 
     // Cached Results
-    @Published public var cachedDefaultResults = [CategoryResult]()
-    @Published public var cachedIndustryResults = [CategoryResult]()
-    @Published public var cachedTasteResults = [CategoryResult]()
-    @Published public var cachedPlaceResults = [CategoryResult]()
-    @Published public var allCachedResults = [CategoryResult]()
-    @Published public var cachedLocationResults = [LocationResult]()
-    @Published public var cachedRecommendationData = [RecommendationData]()
+     public var cachedDefaultResults = [CategoryResult]()
+     public var cachedIndustryResults = [CategoryResult]()
+     public var cachedTasteResults = [CategoryResult]()
+     public var cachedPlaceResults = [CategoryResult]()
+     public var allCachedResults = [CategoryResult]()
+     public var cachedLocationResults = [LocationResult]()
+     public var cachedRecommendationData = [RecommendationData]()
 
     public init(cloudCache: CloudCache, analyticsManager: AnalyticsService) {
         self.cloudCache = cloudCache

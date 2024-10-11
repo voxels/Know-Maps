@@ -6,11 +6,10 @@ import CallKit
 struct PlaceAboutView: View {
     @Environment(\.openURL) private var openURL
     @Environment(\.horizontalSizeClass) var sizeClass
-    @ObservedObject public var chatModel:ChatResultViewModel
-    @ObservedObject public var cacheManager:CloudCacheManager
-    @ObservedObject public var modelController:DefaultModelController
-    @Binding var resultId: ChatResult.ID?
-    @Binding var tabItem: Int
+    @Binding public var chatModel:ChatResultViewModel
+    @Binding public var cacheManager:CloudCacheManager
+    @Binding public var modelController:DefaultModelController
+    @Binding  var tabItem: Int
     @State var mutableTastes: [String] = []
     @State private var presentingPopover: Bool = false
     @State private var isPresentingShareSheet:Bool = false
@@ -24,7 +23,7 @@ struct PlaceAboutView: View {
         GeometryReader { geo in
             ScrollView {
                 VStack {
-                    if let resultId = resultId, let result = modelController.placeChatResult(for: resultId), let placeResponse = result.placeResponse, let placeDetailsResponse = result.placeDetailsResponse {
+                    if let resultId = modelController.selectedPlaceChatResult, let result = modelController.placeChatResult(for: resultId), let placeResponse = result.placeResponse, let placeDetailsResponse = result.placeDetailsResponse {
                         
                         // Title and Map
                         let placeCoordinate = CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude)

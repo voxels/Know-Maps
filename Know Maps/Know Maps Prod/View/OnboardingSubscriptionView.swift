@@ -20,9 +20,9 @@ public struct SubscriptionPlan: Identifiable, Equatable, Hashable {
 }
 
 struct OnboardingSubscriptionView: View {
-    @EnvironmentObject public var model:AppleAuthenticationService
-    @Binding public var selectedTab:String
-    @Binding public var showOnboarding:Bool
+    @Binding public var model:AppleAuthenticationService
+    @Binding  public var selectedTab:String
+    @Binding  public var showOnboarding:Bool
     @State private var selectedSubscription:SubscriptionPlan?
     @State private var subscriptionIncomplete:Bool = true
     
@@ -65,7 +65,7 @@ struct OnboardingSubscriptionView: View {
 struct SingleSelectionList<Item: Identifiable, Content: View>: View {
     
     var items: [Item]
-    @Binding var selectedItem: Item?
+    @Binding  var selectedItem: Item?
     var rowContent: (Item) -> Content
     
     var body: some View {
@@ -95,8 +95,4 @@ struct CheckmarkModifier: ViewModifier {
             }
         }
     }
-}
-
-#Preview {
-    return OnboardingSubscriptionView(selectedTab: .constant("Subscription"), showOnboarding: .constant(true))
 }

@@ -22,7 +22,7 @@ enum ChatResultViewModelError: Error {
 
 // MARK: - ChatResultViewModel
 
-final class ChatResultViewModel: ObservableObject, AssistiveChatHostMessagesDelegate {
+public final class ChatResultViewModel: AssistiveChatHostMessagesDelegate {
     
     static let shared = ChatResultViewModel()
     
@@ -36,7 +36,7 @@ final class ChatResultViewModel: ObservableObject, AssistiveChatHostMessagesDele
         
         let checkIntent:AssistiveChatHostService.Intent = intent ?? modelController.assistiveHostDelegate.determineIntent(for: checkCaption, override: nil)
         let queryParameters = try await modelController.assistiveHostDelegate.defaultParameters(for: caption)
-        if let lastIntent = modelController.assistiveHostDelegate.queryIntentParameters?.queryIntents.last, lastIntent.caption == caption {
+        if let lastIntent = modelController.assistiveHostDelegate.queryIntentParameters.queryIntents.last, lastIntent.caption == caption {
             let newIntent = AssistiveChatHostIntent(caption: checkCaption, intent: checkIntent, selectedPlaceSearchResponse: lastIntent.selectedPlaceSearchResponse, selectedPlaceSearchDetails: lastIntent.selectedPlaceSearchDetails, placeSearchResponses: lastIntent.placeSearchResponses, selectedDestinationLocationID: destinationChatResultID, placeDetailsResponses:lastIntent.placeDetailsResponses,recommendedPlaceSearchResponses: lastIntent.recommendedPlaceSearchResponses, queryParameters: queryParameters)
             
             await modelController.assistiveHostDelegate.updateLastIntentParameters(intent:newIntent, modelController: modelController)
@@ -50,7 +50,7 @@ final class ChatResultViewModel: ObservableObject, AssistiveChatHostMessagesDele
     }
     
     public func didTap(placeChatResult: ChatResult, cacheManager:CacheManager, modelController:  ModelController) async throws {
-        guard let lastIntent = modelController.assistiveHostDelegate.queryIntentParameters?.queryIntents.last, lastIntent.placeSearchResponses.count > 0 else {
+        guard let lastIntent = modelController.assistiveHostDelegate.queryIntentParameters.queryIntents.last, lastIntent.placeSearchResponses.count > 0 else {
             return
         }
                 

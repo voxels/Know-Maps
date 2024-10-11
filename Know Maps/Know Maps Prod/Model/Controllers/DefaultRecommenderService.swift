@@ -68,8 +68,7 @@ public final class DefaultRecommenderService : RecommenderService {
         }
         
         let trainingData:DataFrame = ["identity": identities,"attribute":attributes,"rating":ratings]
-        let model = try MLLinearRegressor(trainingData: trainingData, targetColumn: "rating")
-        
+        let model = try MLLinearRegressor(trainingData: trainingData, targetColumn: "rating", parameters:MLLinearRegressor.ModelParameters.init(validation: .split(strategy: .automatic), maxIterations: 100))
         
         return model
     }

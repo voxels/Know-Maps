@@ -11,11 +11,10 @@ import MapKit
 import Segment
 
 struct PlaceDirectionsView: View {
-    @ObservedObject public var chatModel:ChatResultViewModel
+    @Binding public var chatModel:ChatResultViewModel
+    @Binding public var cacheManager:CloudCacheManager
+    @Binding var modelController:DefaultModelController
     @ObservedObject public var model:PlaceDirectionsViewModel
-    @ObservedObject public var cacheManager:CloudCacheManager
-    @ObservedObject var modelController:DefaultModelController
-    @Binding public var resultId:ChatResult.ID?
     
     static let mapFrameConstraint:Double = 200000
     static let mapFrameMinimumPadding:Double = 1000
@@ -30,7 +29,7 @@ struct PlaceDirectionsView: View {
     }
     
     var body: some View {
-        if let resultId = resultId, let result = modelController.placeChatResult(for: resultId), let placeResponse = result.placeResponse {
+        if let resultId = modelController.selectedPlaceChatResult, let result = modelController.placeChatResult(for: resultId), let placeResponse = result.placeResponse {
             let placeCoordinate = CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude)
             let title = placeResponse.name
             GeometryReader { geo in

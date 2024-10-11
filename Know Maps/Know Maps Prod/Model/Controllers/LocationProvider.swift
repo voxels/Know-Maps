@@ -6,16 +6,15 @@
 //
 
 import Foundation
-import CoreLocation
+@preconcurrency import CoreLocation
 public enum LocationProviderError : Error {
     case LocationManagerFailed
 }
 
-open class LocationProvider : NSObject, ObservableObject  {
-    private var locationManager: CLLocationManager = CLLocationManager()
-    private var retryCount = 0
-    private var maxRetries = 2
-        
+
+public final class LocationProvider : NSObject, Sendable  {
+    private let locationManager: CLLocationManager = CLLocationManager()
+    
     public func isAuthorized() -> Bool {
 #if os(visionOS) || os(iOS)
         return locationManager.authorizationStatus == .authorizedWhenInUse
@@ -26,14 +25,14 @@ open class LocationProvider : NSObject, ObservableObject  {
     }
     
     public func authorize() {
-        #if os(visionOS) || os(iOS)
+#if os(visionOS) || os(iOS)
         if locationManager.authorizationStatus != .authorizedWhenInUse {
             locationManager.requestWhenInUseAuthorization()
             locationManager.delegate = self
             locationManager.requestLocation()
         }
-        #endif
-        #if os(macOS)
+#endif
+#if os(macOS)
         if locationManager.authorizationStatus != .authorizedAlways {
             locationManager.requestAlwaysAuthorization()
             locationManager.delegate = self
@@ -42,26 +41,26 @@ open class LocationProvider : NSObject, ObservableObject  {
             locationManager.delegate = self
             locationManager.requestLocation()
         }
-        #endif
+#endif
     }
-        
+    
     public func currentLocation()->CLLocation? {
 #if os(visionOS) || os(iOS)
-if locationManager.authorizationStatus != .authorizedWhenInUse {
-    authorize()
-}
+        if locationManager.authorizationStatus != .authorizedWhenInUse {
+            authorize()
+        }
 #endif
 #if os(macOS)
-if locationManager.authorizationStatus != .authorizedAlways {
-    authorize()
-}
+        if locationManager.authorizationStatus != .authorizedAlways {
+            authorize()
+        }
 #endif
         locationManager.delegate = self
         locationManager.requestLocation()
         return locationManager.location
     }
     
-
+    
 }
 
 extension LocationProvider : CLLocationManagerDelegate {

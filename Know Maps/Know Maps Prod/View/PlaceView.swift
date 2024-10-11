@@ -9,15 +9,14 @@ import SwiftUI
 import MapKit
 
 struct PlaceView: View {
-    @ObservedObject public var chatModel:ChatResultViewModel
-    @ObservedObject public var cacheManager:CloudCacheManager
-    @ObservedObject public var modelController:DefaultModelController
+    @Binding public var chatModel:ChatResultViewModel
+    @Binding public var cacheManager:CloudCacheManager
+    @Binding public var modelController:DefaultModelController
     @ObservedObject public var placeDirectionsViewModel:PlaceDirectionsViewModel
-    @Binding public var resultId:ChatResult.ID?
     @State private var tabItem = 0
     
     var body: some View {
-        if let resultId = resultId, let placeChatResult = modelController.placeChatResult(for: resultId) {
+        if let resultId = modelController.selectedPlaceChatResult, let placeChatResult = modelController.placeChatResult(for: resultId) {
             VStack {
                 Picker("", selection: $tabItem) {
                     Text("About").tag(0)
@@ -33,7 +32,7 @@ struct PlaceView: View {
                 .pickerStyle(.palette)
                 switch tabItem {
                 case 0:
-                    PlaceAboutView(chatModel: chatModel, cacheManager: cacheManager, modelController: modelController, resultId: $resultId, tabItem: $tabItem)
+                    PlaceAboutView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, tabItem: $tabItem)
                         .tabItem {
                             Label("About", systemImage: "target")
                         }
@@ -42,7 +41,7 @@ struct PlaceView: View {
                             modelController.analyticsManager.track(event:"PlaceAboutView", properties: nil)
                         })
                 case 1:
-                    PlaceDirectionsView( chatModel: chatModel, model: placeDirectionsViewModel, cacheManager: cacheManager, modelController: modelController, resultId: $resultId)
+                    PlaceDirectionsView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, model: placeDirectionsViewModel)
                         .tabItem {
                             Label("Directions", systemImage: "map")
                         }
@@ -53,7 +52,7 @@ struct PlaceView: View {
                 case 2:
                     if let detailsResponses = placeChatResult.placeDetailsResponse {
                         if let photoResponses = detailsResponses.photoResponses, photoResponses.count > 0 {
-                            PlacePhotosView(chatModel: chatModel, modelController: modelController, resultId: $resultId)
+                            PlacePhotosView(chatModel: $chatModel, modelController: $modelController)
                                 .tabItem {
                                     Label("Photos", systemImage: "photo.stack")
                                 }
@@ -66,7 +65,7 @@ struct PlaceView: View {
                 case 3:
                     if let detailsResponses = placeChatResult.placeDetailsResponse {
                         if let tipsResponses = detailsResponses.tipsResponses, tipsResponses.count > 0 {
-                            PlaceTipsView(chatModel: chatModel, modelController:modelController, resultId: $resultId)
+                            PlaceTipsView(chatModel: $chatModel, modelController: $modelController)
                                 .tabItem {
                                     Label("Tips", systemImage: "quote.bubble")
                                 }

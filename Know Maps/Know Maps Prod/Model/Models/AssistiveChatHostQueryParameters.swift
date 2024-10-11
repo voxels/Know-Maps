@@ -7,7 +7,8 @@
 
 import Foundation
 
-open class AssistiveChatHostQueryParameters : ObservableObject, Equatable {
+@Observable
+public final class AssistiveChatHostQueryParameters : ObservableObject, Equatable, Sendable {
     public let uuid = UUID()
     public var queryIntents = [AssistiveChatHostIntent]()
     

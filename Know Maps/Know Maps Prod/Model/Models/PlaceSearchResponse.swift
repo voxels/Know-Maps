@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct PlaceSearchResponse: Equatable, Hashable {
+public struct PlaceSearchResponse: Equatable, Hashable, Sendable {
     let uuid:UUID = UUID()
     let fsqID:String
     let name:String

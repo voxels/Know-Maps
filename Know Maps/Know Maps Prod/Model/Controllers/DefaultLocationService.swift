@@ -5,7 +5,7 @@
 //  Created by Michael A Edgcumbe on 10/7/24.
 //
 
-import CoreLocation
+@preconcurrency import CoreLocation
 
 // MARK: - Concrete Location Service
 public final class DefaultLocationService: LocationService {

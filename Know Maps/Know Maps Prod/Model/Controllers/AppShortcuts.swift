@@ -7,13 +7,14 @@
 
 import Foundation
 import AppIntents
+import SwiftUI
 
 struct KnowMapsShortcutsProvider: AppShortcutsProvider {
     static var appShortcuts: [AppShortcut] {
             AppShortcut(
                 intent: ShowMoodResultsIntent(),
                 phrases: [
-                    "I'm in the mood for \(\.$mood) from \(.applicationName)",
+                    "I'm in the mood for something from \(.applicationName)",
                     "Ask \(.applicationName) to find a place for \(\.$mood)",
                     "Tell \(.applicationName) I'm' in the mood for \(\.$mood)",
                 ],
@@ -35,19 +36,23 @@ struct ShowMoodResultsIntent: AppIntent {
     
     @Parameter(title: "Mood", description: "The type of places for the mood you're interested in")
     var mood: PersonalizedSearchSection
-    
     static var openAppWhenRun = true
     
+    @Dependency var modelController: DefaultModelController
+    @Dependency var cacheManager:CloudCacheManager
+    @Dependency var chatModel: ChatResultViewModel
+
     @MainActor
     func perform() async throws -> some IntentResult & ProvidesDialog{
-        var modelController:ModelController = DefaultModelController.shared
-        let cacheManager:CacheManager = CloudCacheManager.shared
-        let chatModel:AssistiveChatHostMessagesDelegate = ChatResultViewModel.shared
+        modelController.selectedPlaceChatResult = nil
+        await modelController.resetPlaceModel()
 
         modelController.selectedSavedResult = cacheManager.cachedDefaultResults.first(where: { $0.section == mood })?.id
         if let savedResult = modelController.selectedSavedResult, let chatResult = modelController.cachedChatResult(for:savedResult, cacheManager: cacheManager) {
-            await chatModel.didTap(chatResult:chatResult, selectedDestinationChatResultID: modelController.selectedDestinationLocationChatResult, cacheManager: cacheManager, modelController: modelController)
+            await chatModel.didTap(chatResult:chatResult, selectedDestinationChatResultID: modelController.selectedDestinationLocationChatResult ?? modelController.currentLocationResult.id, cacheManager: cacheManager, modelController: modelController)
         }
+        
+        
         
         // Provide feedback to the user
         return .result(dialog: "Searching for places matching \(mood.rawValue).")

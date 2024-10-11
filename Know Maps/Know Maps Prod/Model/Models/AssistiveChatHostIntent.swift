@@ -7,7 +7,8 @@
 
 import Foundation
 
-public class AssistiveChatHostIntent : Equatable {
+@Observable
+public final class AssistiveChatHostIntent : Equatable, Sendable {
     public let uuid = UUID()
     public let caption:String
     public let intent:AssistiveChatHostService.Intent

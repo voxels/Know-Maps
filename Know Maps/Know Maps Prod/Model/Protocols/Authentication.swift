@@ -10,7 +10,7 @@ import AuthenticationServices
 import RevenueCat
 
 // Define the protocol for authentication services
-public protocol Authentication {
+public protocol Authentication : Sendable {
     var isAuthorized: Bool { get }
     var appleUserId: String { get set }
     var fullName: String? { get set }

@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import Segment
+@preconcurrency import Segment
 
 public final class SegmentAnalyticsService: AnalyticsService {
     static let config = Configuration(writeKey: "igx8ZOr5NLbaBsab5j5juFECMzqulFla")

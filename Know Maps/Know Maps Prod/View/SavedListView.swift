@@ -9,13 +9,13 @@ import SwiftUI
 import AppIntents
 
 struct SavedListView: View {
-    @ObservedObject public var viewModel: SearchSavedViewModel
-    @ObservedObject public var cacheManager:CloudCacheManager
-    @ObservedObject public var modelController:DefaultModelController
+    @Binding public var viewModel: SearchSavedViewModel
+    @Binding public var cacheManager:CloudCacheManager
+    @Binding public var modelController:DefaultModelController
     @Binding public var contentViewDetail:ContentDetailView
     @Binding public var addItemSection:Int
     @Binding public var preferredColumn:NavigationSplitViewColumn
-    @State private var selectedResult:CategoryResult.ID?
+    @Binding public var selectedResult:CategoryResult.ID?
     @State private var editingResult:CategoryResult?
     
     // State variables to manage expanded/collapsed sections
@@ -63,8 +63,7 @@ struct SavedListView: View {
                 Text("Add a place")
                 .onTapGesture {
                     addItemSection = 2
-                    contentViewDetail = .add
-                    preferredColumn = .detail
+                    preferredColumn = .content
                 }
                 .foregroundStyle(.accent)
             } label: {
@@ -117,8 +116,7 @@ struct SavedListView: View {
                 Text("Add a type")
                     .onTapGesture {
                         addItemSection = 0
-                        contentViewDetail = .add
-                        preferredColumn = .detail
+                        preferredColumn = .content
                     }
                     .foregroundStyle(.accent)
                 
@@ -172,23 +170,11 @@ struct SavedListView: View {
                 Text("Add an item")
                     .onTapGesture {
                         addItemSection = 1
-                        contentViewDetail = .add
-                        preferredColumn = .detail
+                        preferredColumn = .content
                     }
                     .foregroundStyle(.accent)
             } label: {
                 Text("Items").font(.headline)
-            }
-        }
-        .onChange(of:selectedResult) { oldValue, newValue in
-            guard let newValue = newValue else {
-                preferredColumn = .sidebar
-                return
-            }
-            
-            preferredColumn = .detail
-            DispatchQueue.main.async {
-                modelController.selectedSavedResult = newValue
             }
         }
         .listStyle(.sidebar)
@@ -301,22 +287,19 @@ struct SavedListView: View {
 
 struct SavedListToolbarView: View {
     @Environment(\.openWindow) private var openWindow
-    @ObservedObject public var viewModel: SearchSavedViewModel
-    @ObservedObject public var cacheManager:CloudCacheManager
-    @ObservedObject public var modelController:DefaultModelController
-    @Binding public var settingsPresented: Bool
-    @Binding public var contentViewDetail:ContentDetailView
-    @Binding public var preferredColumn:NavigationSplitViewColumn
-    @Binding public var showNavigationLocationSheet:Bool
+    @Binding public var viewModel: SearchSavedViewModel
+    @Binding public var cacheManager:CloudCacheManager
+    @Binding public var modelController:DefaultModelController
+    @Binding  public var settingsPresented: Bool
+    @Binding  public var contentViewDetail:ContentDetailView
+    @Binding  public var preferredColumn:NavigationSplitViewColumn
+    @Binding  public var showNavigationLocationSheet:Bool
     
     var body: some View {
-        if contentViewDetail == .places {
-            Button(action: {
-                preferredColumn = .detail
-                contentViewDetail = .add
-            }) {
-                Label("Add Prompt", systemImage: "plus.circle")
-            }
+        Button(action: {
+            preferredColumn = .content
+        }) {
+            Label("Add Prompt", systemImage: "plus.circle")
         }
         
         if let savedResult = modelController.selectedSavedResult  {

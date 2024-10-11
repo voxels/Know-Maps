@@ -9,16 +9,14 @@ import Foundation
 import CoreLocation
 import Segment
 
-public protocol AssistiveChatHost:AnyObject {
+public protocol AssistiveChatHost:AnyObject, Sendable{
     
-    var messagesDelegate:AssistiveChatHostMessagesDelegate? { get set }
+    var messagesDelegate:AssistiveChatHostMessagesDelegate { get }
     var placeSearchSession:PlaceSearchSession { get }
-    var queryIntentParameters:AssistiveChatHostQueryParameters? { get }
+    var queryIntentParameters:AssistiveChatHostQueryParameters { get }
     var categoryCodes:[[String:[[String:String]]]] { get }
-    var lastGeocodedPlacemarks:[CLPlacemark]? { get }
     
-    init(analyticsManager:AnalyticsService, messagesDelegate: AssistiveChatHostMessagesDelegate?, lastGeocodedPlacemarks: [CLPlacemark]?)
-    func organizeCategoryCodeList() async throws
+    init(analyticsManager:AnalyticsService, messagesDelegate: AssistiveChatHostMessagesDelegate)
     
     func determineIntent(for caption:String, override:AssistiveChatHostService.Intent?) -> AssistiveChatHostService.Intent
     func updateLastIntentParameters(intent:AssistiveChatHostIntent, modelController:ModelController) async

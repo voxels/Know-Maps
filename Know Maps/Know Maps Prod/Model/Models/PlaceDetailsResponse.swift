@@ -6,7 +6,7 @@
 //
 
 import Foundation
-public struct PlaceDetailsResponse: Equatable, Hashable  {
+public struct PlaceDetailsResponse: Equatable, Hashable, Sendable  {
     public static func == (lhs: PlaceDetailsResponse, rhs: PlaceDetailsResponse) -> Bool {
         return lhs.searchResponse.uuid == rhs.searchResponse.uuid
     }
@@ -32,7 +32,6 @@ public struct PlaceDetailsResponse: Equatable, Hashable  {
     let stats:Bool?
     let popularity:Float
     let price:Int?
-    let menu:AnyObject?
     let dateClosed:String?
     let tastes:[String]?
     let features:[String]?

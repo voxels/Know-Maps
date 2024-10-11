@@ -26,15 +26,21 @@ public enum CloudCacheServiceKey: String {
 }
 
 public final class CloudCacheService: NSObject, CloudCache {
+    
     @MainActor
     static let shared = CloudCacheService(analyticsManager: SegmentAnalyticsService.shared, modelContext: Know_MapsApp.sharedModelContainer.mainContext)
     
-    var analyticsManager: AnalyticsService
-    var foursquareAuthenticationRecord: FoursquareAuthenticationRecord!
+    let analyticsManager: AnalyticsService
     
     @MainActor public var hasFsqAccess: Bool {
-        return !foursquareAuthenticationRecord.fsqUserId.isEmpty
+        return !fsqUserId.isEmpty
     }
+    
+    private var fsqid: String = ""
+    private var fsqUserId: String = ""
+    private var oauthToken: String = ""
+    private var serviceAPIKey: String = ""
+    
     let cacheContainer = CKContainer(identifier: "iCloud.com.secretatomics.knowmaps.Cache")
     let keysContainer = CKContainer(identifier: "iCloud.com.secretatomics.knowmaps.Keys")
     private let modelContext: ModelContext
@@ -52,7 +58,6 @@ public final class CloudCacheService: NSObject, CloudCache {
     public init(analyticsManager: AnalyticsService, modelContext: ModelContext) {
         self.analyticsManager = analyticsManager
         self.modelContext = modelContext
-        self.foursquareAuthenticationRecord = FoursquareAuthenticationRecord(fsqid: "", fsqUserId: "", oauthToken: "", serviceAPIKey: "")
         
         super.init()
 #if os(macOS)
@@ -147,7 +152,7 @@ public final class CloudCacheService: NSObject, CloudCache {
     
     public func fetch(url: URL, from cloudService: CloudCacheServiceKey) async throws -> Any {
         let configuredSession = try await session(service: cloudService.rawValue)
-        let serviceAPIKey = foursquareAuthenticationRecord.serviceAPIKey
+        let serviceAPIKey = serviceAPIKey
         return try await fetch(url: url, apiKey: serviceAPIKey, session: configuredSession)
     }
     
@@ -193,7 +198,7 @@ public final class CloudCacheService: NSObject, CloudCache {
                 if let apiKey = record["value"] as? String {
                     print("\(String(describing: record["service"]))")
                     Task { @MainActor in
-                        strongSelf.foursquareAuthenticationRecord.serviceAPIKey = apiKey
+                        strongSelf.serviceAPIKey = apiKey
                     }
                 } else {
                     print("Did not find API Key")
@@ -243,7 +248,7 @@ public final class CloudCacheService: NSObject, CloudCache {
                 if let apiKey = record["value"] as? String {
                     print("\(String(describing: record["service"]))")
                     Task { @MainActor in
-                        strongSelf.foursquareAuthenticationRecord.serviceAPIKey = apiKey
+                        strongSelf.serviceAPIKey = apiKey
                     }
                 } else {
                     print("Did not find API Key")
@@ -274,7 +279,7 @@ public final class CloudCacheService: NSObject, CloudCache {
         
         if success {
             return await MainActor.run {
-                foursquareAuthenticationRecord.serviceAPIKey
+                serviceAPIKey
             }
         } else {
             throw CloudCacheError.ServiceNotFound
@@ -310,11 +315,11 @@ public final class CloudCacheService: NSObject, CloudCache {
                 let record = try result.get()
                 if let userId = record["userId"] as? String {
                     Task { @MainActor in
-                        strongSelf.foursquareAuthenticationRecord.fsqUserId = userId
+                        strongSelf.fsqUserId = userId
                     }
                 } else {
                     Task { @MainActor in
-                        strongSelf.foursquareAuthenticationRecord.fsqUserId = ""
+                        strongSelf.fsqUserId = ""
                     }
                     print("Did not find userId")
                 }
@@ -341,7 +346,7 @@ public final class CloudCacheService: NSObject, CloudCache {
         self.removeCacheOperation(operation)
         
         if success {
-            return await MainActor.run { foursquareAuthenticationRecord.fsqUserId }
+            return await MainActor.run { fsqUserId }
         } else {
             return ""
         }
@@ -360,12 +365,12 @@ public final class CloudCacheService: NSObject, CloudCache {
                 let record = try result.get()
                 if let token = record["token"] as? String {
                     Task { @MainActor in
-                        strongSelf.foursquareAuthenticationRecord.fsqUserId = fsqUserId
-                        strongSelf.foursquareAuthenticationRecord.oauthToken = token
+                        strongSelf.fsqUserId = fsqUserId
+                        strongSelf.oauthToken = token
                     }
                 } else {
                     Task { @MainActor in
-                        strongSelf.foursquareAuthenticationRecord.oauthToken = ""
+                        strongSelf.oauthToken = ""
                     }
                     print("Did not find token")
                 }
@@ -392,7 +397,7 @@ public final class CloudCacheService: NSObject, CloudCache {
         self.removeCacheOperation(operation)
         if success {
             // Access oauthToken on the main actor
-            return await MainActor.run { self.foursquareAuthenticationRecord.oauthToken }
+            return await MainActor.run { oauthToken }
         } else {
             return ""
         }
@@ -403,10 +408,10 @@ public final class CloudCacheService: NSObject, CloudCache {
         record.setObject(fsqUserId as NSString, forKey: "userId")
         record.setObject(oauthToken as NSString, forKey: "token")
         cacheContainer.privateCloudDatabase.save(record) { [weak self] _, _ in
-            guard let self = self else { return }
+            guard let strongSelf = self else { return }
             Task { @MainActor in
-                self.foursquareAuthenticationRecord.fsqUserId = fsqUserId
-                self.foursquareAuthenticationRecord.oauthToken = oauthToken
+                strongSelf.fsqUserId = fsqUserId
+                strongSelf.oauthToken = oauthToken
             }
         }
     }

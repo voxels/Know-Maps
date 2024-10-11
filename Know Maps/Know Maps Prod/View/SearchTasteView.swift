@@ -1,10 +1,10 @@
 import SwiftUI
 
 struct SearchTasteView: View {
-    @ObservedObject public var chatModel:ChatResultViewModel
-    @ObservedObject public var cacheManager:CloudCacheManager
-    @ObservedObject public var modelController:DefaultModelController
-    @Binding public var selectedCategoryID:CategoryResult.ID?
+    @Binding public var chatModel:ChatResultViewModel
+    @Binding public var cacheManager:CloudCacheManager
+    @Binding public var modelController:DefaultModelController
+    @Binding  public var selectedCategoryID:CategoryResult.ID?
     @State private var isPresented:Bool = true
     @State private var isLoadingNextPage = false
     @State private var tasteSearchText:String = ""

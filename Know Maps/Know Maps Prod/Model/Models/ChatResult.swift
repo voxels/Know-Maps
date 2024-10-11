@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-public struct ChatResult : Identifiable, Equatable, Hashable {
+public struct ChatResult : Identifiable, Equatable, Hashable, Sendable {
     public static func == (lhs: ChatResult, rhs: ChatResult) -> Bool {
         lhs.id == rhs.id
     }

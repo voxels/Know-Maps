@@ -1,39 +1,24 @@
 import SwiftUI
 
 struct SearchSavedView: View {
-    @ObservedObject public var chatModel: ChatResultViewModel
-    @ObservedObject public var viewModel: SearchSavedViewModel
-    @ObservedObject public var cacheManager: CloudCacheManager
-    @ObservedObject public var modelController: DefaultModelController
-    @Binding public var preferredColumn: NavigationSplitViewColumn
-    @Binding public var contentViewDetail: ContentDetailView
-    @Binding public var addItemSection: Int
-    @Binding public var settingsPresented: Bool
+    @Binding public var chatModel: ChatResultViewModel
+    @Binding public var viewModel: SearchSavedViewModel
+    @Binding public var cacheManager: CloudCacheManager
+    @Binding public var modelController: DefaultModelController
+    @Binding  public var preferredColumn: NavigationSplitViewColumn
+    @Binding  public var contentViewDetail: ContentDetailView
+    @Binding  public var addItemSection: Int
+    @Binding  public var settingsPresented: Bool
     @State private var showNavigationLocationSheet: Bool = false
     @State private var searchText: String = ""
     @State private var parentLocationResult: LocationResult?
 
     var body: some View {
         GeometryReader { geometry in
-            SavedListView(
-                viewModel: viewModel,
-                cacheManager: cacheManager,
-                modelController: modelController,
-                contentViewDetail: $contentViewDetail,
-                addItemSection: $addItemSection,
-                preferredColumn: $preferredColumn
-            )
+            SavedListView(viewModel: $viewModel, cacheManager: $cacheManager, modelController: $modelController, contentViewDetail: $contentViewDetail, addItemSection: $addItemSection, preferredColumn: $preferredColumn, selectedResult: $modelController.selectedSavedResult)
             .toolbar {
                 ToolbarItemGroup(placement: .automatic) {
-                    SavedListToolbarView(
-                        viewModel: viewModel,
-                        cacheManager: cacheManager,
-                        modelController: modelController,
-                        settingsPresented: $settingsPresented,
-                        contentViewDetail: $contentViewDetail,
-                        preferredColumn: $preferredColumn,
-                        showNavigationLocationSheet: $showNavigationLocationSheet
-                    )
+                    SavedListToolbarView(viewModel: $viewModel, cacheManager: $cacheManager, modelController: $modelController, settingsPresented: $settingsPresented, contentViewDetail: $contentViewDetail, preferredColumn: $preferredColumn, showNavigationLocationSheet: $showNavigationLocationSheet)
                 }
             }
             .sheet(isPresented: $showNavigationLocationSheet) {
@@ -64,11 +49,9 @@ struct SearchSavedView: View {
                     }
                     .padding()
 
-                    NavigationLocationView(
-                        chatModel: chatModel,
-                        cacheManager: cacheManager,
-                        modelController: modelController
-                    ).task {
+                    NavigationLocationView(chatModel: $chatModel, cacheManager: $cacheManager, modelController:$modelController)
+                        .task {
+                            modelController.selectedSavedResult = nil
                         await modelController.resetPlaceModel()
                     }
 
@@ -166,28 +149,28 @@ struct SearchSavedView: View {
 }
 
 struct AddPromptView: View {
-    @ObservedObject public var chatModel: ChatResultViewModel
-    @ObservedObject public var cacheManager:CloudCacheManager
-    @ObservedObject public var modelController:DefaultModelController
-    @Binding public var addItemSection: Int
-    @Binding public var contentViewDetail:ContentDetailView
-    @Binding public var selectedCategoryID:CategoryResult.ID?
+    @Binding public var chatModel: ChatResultViewModel
+    @Binding public var cacheManager:CloudCacheManager
+    @Binding public var modelController:DefaultModelController
+    @Binding  public var addItemSection: Int
+    @Binding  public var contentViewDetail:ContentDetailView
+    @Binding  public var selectedCategoryID:CategoryResult.ID?
     
     var body: some View {
         TabView(selection: $addItemSection) {
-            SearchCategoryView(chatModel: chatModel, cacheManager: cacheManager, modelController: modelController, selectedCategoryID: $selectedCategoryID)
+            SearchCategoryView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, selectedCategoryID: $selectedCategoryID)
                 .tag(0)
                 .tabItem {
                     Label("Type", systemImage: "building")
                 }
             
-            SearchTasteView(chatModel: chatModel, cacheManager: cacheManager, modelController: modelController, selectedCategoryID: $selectedCategoryID)
+            SearchTasteView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, selectedCategoryID: $selectedCategoryID)
                 .tag(1)
                 .tabItem {
                     Label("Item", systemImage: "heart")
                 }
             
-            SearchPlacesView(chatModel: chatModel, cacheManager: cacheManager, modelController:modelController)
+            SearchPlacesView(chatModel: $chatModel, cacheManager: $cacheManager, modelController:   $modelController)
                 .tag(2)
                 .tabItem {
                     Label("Place", systemImage: "mappin")
@@ -199,13 +182,13 @@ struct AddPromptView: View {
 struct AddPromptToolbarView: View {
     @Environment(\.horizontalSizeClass) var sizeClass
 
-    @ObservedObject public var viewModel: SearchSavedViewModel
-    @ObservedObject public var cacheManager: CloudCacheManager
-    @ObservedObject public var modelController: DefaultModelController
-    @Binding public var addItemSection: Int
-    @Binding public var selectedCategoryID:CategoryResult.ID?
-    @Binding public var contentViewDetail: ContentDetailView
-    @Binding public var preferredColumn: NavigationSplitViewColumn
+    @Binding public var viewModel: SearchSavedViewModel
+    @Binding public var cacheManager: CloudCacheManager
+    @Binding public var modelController: DefaultModelController
+    @Binding  public var addItemSection: Int
+    @Binding  public var selectedCategoryID:CategoryResult.ID?
+    @Binding  public var contentViewDetail: ContentDetailView
+    @Binding  public var preferredColumn: NavigationSplitViewColumn
 
     @State private var parent: CategoryResult?
     @State private var isSaved: Bool = false
@@ -277,7 +260,6 @@ struct AddPromptToolbarView: View {
 
         Button(action: {
             preferredColumn = .sidebar
-            contentViewDetail = .places
         }) {
             Label("Done", systemImage: "checkmark.circle")
         }

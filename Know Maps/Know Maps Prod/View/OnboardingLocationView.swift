@@ -11,12 +11,11 @@ import SwiftUI
 import AppKit
 #endif
 
-
 struct OnboardingLocationView: View {
-    @ObservedObject public var chatModel:ChatResultViewModel
-    @ObservedObject var modelController:DefaultModelController
-    @Binding public var showOnboarding:Bool
-    @Binding public var selectedTab:String
+    @Binding public var chatModel:ChatResultViewModel
+    @Binding var modelController:DefaultModelController
+    @Binding  public var showOnboarding:Bool
+    @Binding  public var selectedTab:String
     @State private var isAuthorized:Bool = false
 
     var body: some View {

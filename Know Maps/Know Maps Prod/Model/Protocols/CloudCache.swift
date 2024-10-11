@@ -8,7 +8,7 @@
 import Foundation
 import CloudKit
 
-public protocol CloudCache: AnyObject {
+public protocol CloudCache: AnyObject, Sendable {
     // Properties
     var hasFsqAccess: Bool { get }
     

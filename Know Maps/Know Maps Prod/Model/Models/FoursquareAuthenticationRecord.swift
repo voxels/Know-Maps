@@ -8,8 +8,7 @@
 import Foundation
 import SwiftData
 
-@Model
-public final class FoursquareAuthenticationRecord {
+public final class FoursquareAuthenticationRecord  {
     public var fsqid: String = ""
     public var fsqUserId: String = ""
     public var oauthToken: String = ""

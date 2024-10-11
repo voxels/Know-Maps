@@ -8,7 +8,7 @@
 import Foundation
 
 @Observable
-public class CategoryResult : Identifiable, Equatable, Hashable {
+public final class CategoryResult : Identifiable, Equatable, Hashable, Sendable {
     public static func == (lhs: CategoryResult, rhs: CategoryResult) -> Bool {
         lhs.id == rhs.id
     }
