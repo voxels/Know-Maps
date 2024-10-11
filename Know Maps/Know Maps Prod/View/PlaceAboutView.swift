@@ -67,7 +67,13 @@ struct PlaceAboutView: View {
                                     .foregroundStyle(.accent)
                                     .frame(height: PlaceAboutView.buttonHeight)
                                 let isSaved = cacheManager.cachedPlaces(contains: title)
-                                Label(isSaved ? "Delete" : "Add to List", systemImage: isSaved ? "minus.circle" : "square.and.arrow.down")
+                                if sizeClass == .compact {
+                                    Label(isSaved ? "Delete" : "Add to List", systemImage: isSaved ? "minus.circle" : "square.and.arrow.down")
+                                    .labelStyle( .iconOnly )
+                                } else {
+                                    Label(isSaved ? "Delete" : "Add to List", systemImage: isSaved ? "minus.circle" : "square.and.arrow.down")
+                                    .labelStyle(.titleAndIcon)
+                                }
                                     
                             }.onTapGesture {
                                 Task(priority:.userInitiated) {
@@ -82,7 +88,14 @@ struct PlaceAboutView: View {
                                         .foregroundStyle(.accent)
                                         .frame(height: PlaceAboutView.buttonHeight)
                                     
-                                    Label(tel, systemImage: "phone")
+                                    if sizeClass == .compact {
+                                        Label(tel, systemImage: "phone")
+                                            .labelStyle(.iconOnly)
+
+                                    } else {
+                                        Label(tel, systemImage: "phone")
+                                            .labelStyle(.titleAndIcon)
+                                    }
                                         
                                 }.onTapGesture {
                                     if let url = viewModel.getCallURL(tel: tel) {
@@ -98,7 +111,13 @@ struct PlaceAboutView: View {
                                         .foregroundStyle(.accent)
                                         .frame(height: PlaceAboutView.buttonHeight)
                                     
-                                    Label("Visit website", systemImage: "link")
+                                    if sizeClass == .compact {
+                                        Label("Visit website", systemImage: "link")
+                                            .labelStyle(.iconOnly)
+                                    } else {
+                                        Label("Visit website", systemImage: "link")
+                                            .labelStyle(.titleAndIcon)
+                                    }
                                         
                                 }.onTapGesture {
                                     openURL(url)
@@ -142,8 +161,13 @@ struct PlaceAboutView: View {
                                 Capsule()
                                     .foregroundStyle(.accent)
                                     .frame(height: PlaceAboutView.buttonHeight)
-                                
-                                Image(systemName: "square.and.arrow.up")
+                                if sizeClass == .compact {
+                                    Label("Share", systemImage: "square.and.arrow.up")
+                                        .labelStyle(.iconOnly)
+                                } else {
+                                    Label("Share", systemImage: "square.and.arrow.up")
+                                        .labelStyle(.titleAndIcon)
+                                }
                             }
                             .padding(PlaceAboutView.defaultPadding)
                             .onTapGesture {
@@ -153,7 +177,9 @@ struct PlaceAboutView: View {
                                 if let result = modelController.placeChatResult(for: resultId), let placeDetailsResponse = result.placeDetailsResponse  {
                                     let items:[Any] = [placeDetailsResponse.website ?? placeDetailsResponse.searchResponse.address]
                                     ActivityViewController(activityItems:items, applicationActivities:[UIActivity](), isPresentingShareSheet: $isPresentingShareSheet)
-                                        .presentationCompactAdaptation(.popover)
+                                        .presentationDetents([.medium])
+                                        .presentationDragIndicator(.visible)
+                                        .presentationCompactAdaptation(.sheet)
                                 }
                             }
                             #endif
