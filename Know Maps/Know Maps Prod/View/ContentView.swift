@@ -150,9 +150,6 @@ struct ContentView: View {
                                 .presentationDetents([.large])
                                 .presentationDragIndicator(.visible)
                                 .presentationCompactAdaptation(.sheet)
-                                .onDisappear {
-                                    modelController.selectedPlaceChatResult = nil
-                                }
 #if os(macOS)
                                 .toolbar(content: {
                                     ToolbarItem {

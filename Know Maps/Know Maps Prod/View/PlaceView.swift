@@ -83,11 +83,6 @@ struct PlaceView: View {
                     }
                 }
             }
-            .onDisappear {
-                DispatchQueue.main.async{
-                    modelController.selectedPlaceChatResult = nil
-                }
-            }
         } else {
             VStack {
                 Spacer()

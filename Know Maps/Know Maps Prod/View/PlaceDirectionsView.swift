@@ -59,12 +59,12 @@ struct PlaceDirectionsView: View {
                             if let source = model.source, let destination = model.destination {
                                 let launchOptions = model.appleMapsLaunchOptions()
                                 HStack(alignment: .center) {
-                                    Spacer()
                                     if model.lookAroundScene != nil {
                                         Button("Look Around", systemImage: "binoculars.fill") {
                                             model.showLookAroundScene.toggle()
                                         }
                                     }
+                                    Spacer()
                                     Button("Open Apple Maps", systemImage: "apple.logo") {
                                         MKMapItem.openMaps(with: [source,destination], launchOptions: launchOptions)
                                     }
