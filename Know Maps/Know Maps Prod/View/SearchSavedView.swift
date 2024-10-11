@@ -22,18 +22,6 @@ struct SearchSavedView: View {
             }
             .sheet(isPresented: $showNavigationLocationSheet) {
                 VStack {
-#if os(macOS)
-                    HStack {
-                        Spacer()
-                        Button(action: {
-                            showNavigationLocationSheet = false
-                        }, label: {
-                            Label("Done", systemImage: "plus.circle")
-                                .labelStyle(.titleAndIcon)
-                        })
-                        .padding()
-                    }
-#endif
                     HStack {
                         TextField("City, State", text: $searchText)
                             .onSubmit {
@@ -51,6 +39,17 @@ struct SearchSavedView: View {
                     NavigationLocationView(chatModel: $chatModel, cacheManager: $cacheManager, modelController:$modelController)
 
                     HStack {
+                        Button(action: {
+                            if modelController.selectedDestinationLocationChatResult == nil {
+                                modelController.selectedDestinationLocationChatResult = modelController.currentLocationResult.id
+                            }
+                            showNavigationLocationSheet = false
+                        }, label: {
+                            Label("List", systemImage: "list.bullet")
+                                .labelStyle(.titleAndIcon)
+                        })
+                        .padding()
+                        Spacer()
                         if let selectedDestinationLocationChatResult = modelController.selectedDestinationLocationChatResult, let parent =  modelController.locationChatResult(
                             for: selectedDestinationLocationChatResult,in: modelController.filteredLocationResults(cacheManager: cacheManager)) {
                             let isSaved = cacheManager.cachedLocation(contains: parent.locationName)
