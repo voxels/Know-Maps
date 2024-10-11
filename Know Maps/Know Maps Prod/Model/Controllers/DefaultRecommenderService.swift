@@ -53,7 +53,7 @@ public final class DefaultRecommenderService : RecommenderService {
         return retval
     }
     
-    public func model(with recommendationData: [RecommendationData]) throws -> MLLinearRegressor {
+    public func model(with recommendationData: [RecommendationData]) throws -> MLRandomForestRegressor {
         
         var identities = [String]()
         var attributes = [String]()
@@ -68,12 +68,12 @@ public final class DefaultRecommenderService : RecommenderService {
         }
         
         let trainingData:DataFrame = ["identity": identities,"attribute":attributes,"rating":ratings]
-        let model = try MLLinearRegressor(trainingData: trainingData, targetColumn: "rating", parameters:MLLinearRegressor.ModelParameters.init(validation: .split(strategy: .automatic), maxIterations: 100))
+        let model = try MLRandomForestRegressor(trainingData: trainingData, targetColumn: "rating", parameters:MLRandomForestRegressor.ModelParameters.init(validation: .split(strategy: .automatic), maxIterations: 250))
         
         return model
     }
     
-    public func recommend(from testingData: [RecommendationData], with model: MLLinearRegressor) throws -> [RecommendationData] {
+    public func recommend(from testingData: [RecommendationData], with model: MLRandomForestRegressor) throws -> [RecommendationData] {
         var retval = testingData
         
         var identities = [String]()

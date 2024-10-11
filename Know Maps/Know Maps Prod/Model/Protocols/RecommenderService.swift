@@ -10,6 +10,6 @@ import CreateML
 
 public protocol RecommenderService : Sendable {
     func recommendationData(tasteCategoryResults: [CategoryResult], industryCategoryResults: [CategoryResult], placeRecommendationData:[RecommendationData]) -> [RecommendationData]
-    func model(with recommendationData: [RecommendationData]) throws -> MLLinearRegressor
+    func model(with recommendationData: [RecommendationData]) throws -> MLRandomForestRegressor
     func testingData(with responses:[RecommendedPlaceSearchResponse])->[RecommendationData]
-    func recommend(from testingData: [RecommendationData], with model: MLLinearRegressor) throws -> [RecommendationData]}
+    func recommend(from testingData: [RecommendationData], with model: MLRandomForestRegressor) throws -> [RecommendationData]}

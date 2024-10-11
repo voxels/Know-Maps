@@ -37,7 +37,7 @@ public final class ChatResultViewModel: AssistiveChatHostMessagesDelegate {
         let checkIntent:AssistiveChatHostService.Intent = intent ?? modelController.assistiveHostDelegate.determineIntent(for: checkCaption, override: nil)
         let queryParameters = try await modelController.assistiveHostDelegate.defaultParameters(for: caption)
         if let lastIntent = modelController.assistiveHostDelegate.queryIntentParameters.queryIntents.last, lastIntent.caption == caption {
-            let newIntent = AssistiveChatHostIntent(caption: checkCaption, intent: checkIntent, selectedPlaceSearchResponse: lastIntent.selectedPlaceSearchResponse, selectedPlaceSearchDetails: lastIntent.selectedPlaceSearchDetails, placeSearchResponses: lastIntent.placeSearchResponses, selectedDestinationLocationID: destinationChatResultID, placeDetailsResponses:lastIntent.placeDetailsResponses,recommendedPlaceSearchResponses: lastIntent.recommendedPlaceSearchResponses, queryParameters: queryParameters)
+            let newIntent = AssistiveChatHostIntent(caption: checkCaption, intent: checkIntent, selectedPlaceSearchResponse: lastIntent.selectedPlaceSearchResponse, selectedPlaceSearchDetails: lastIntent.selectedPlaceSearchDetails, placeSearchResponses: lastIntent.placeSearchResponses, selectedDestinationLocationID: destinationChatResultID, placeDetailsResponses:lastIntent.placeDetailsResponses,recommendedPlaceSearchResponses: lastIntent.recommendedPlaceSearchResponses, relatedPlaceSearchResponses: lastIntent.relatedPlaceSearchResponses, queryParameters: queryParameters)
             
             await modelController.assistiveHostDelegate.updateLastIntentParameters(intent:newIntent, modelController: modelController)
         } else {

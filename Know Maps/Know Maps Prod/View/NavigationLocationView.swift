@@ -30,7 +30,6 @@ struct NavigationLocationView: View {
         }
         .onChange(of: modelController.selectedDestinationLocationChatResult) { oldValue, newValue in
             Task {
-                modelController.selectedSavedResult = nil
                 await modelController.resetPlaceModel()
             }
         }

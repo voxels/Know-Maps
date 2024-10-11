@@ -5,10 +5,10 @@ struct SearchSavedView: View {
     @Binding public var viewModel: SearchSavedViewModel
     @Binding public var cacheManager: CloudCacheManager
     @Binding public var modelController: DefaultModelController
-    @Binding  public var preferredColumn: NavigationSplitViewColumn
-    @Binding  public var contentViewDetail: ContentDetailView
-    @Binding  public var addItemSection: Int
-    @Binding  public var settingsPresented: Bool
+    @Binding public var preferredColumn: NavigationSplitViewColumn
+    @Binding public var contentViewDetail: ContentDetailView
+    @Binding public var addItemSection: Int
+    @Binding public var settingsPresented: Bool
     @State private var showNavigationLocationSheet: Bool = false
     @State private var searchText: String = ""
 

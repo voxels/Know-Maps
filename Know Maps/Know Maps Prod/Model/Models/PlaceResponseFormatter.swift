@@ -388,11 +388,7 @@ open class PlaceResponseFormatter {
                                     }
                                 }
                             }
-                            
                         }
-                        
-                        
-                        
                         
                         let response = RecommendedPlaceSearchResponse(fsqID: fsqID, name: name, categories: categories, latitude: latitude, longitude: longitude, neighborhood: neighborhood, address:address, country: country, city: city, state: state, postCode: postCode, formattedAddress: formattedAddress, photo: photo, aspectRatio: aspectRatio, photos: photos, tastes: tastes)
                         retval.append(response)

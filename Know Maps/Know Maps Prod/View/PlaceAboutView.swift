@@ -69,12 +69,12 @@ struct PlaceAboutView: View {
                                 let isSaved = cacheManager.cachedPlaces(contains: title)
                                 if sizeClass == .compact {
                                     Label(isSaved ? "Delete" : "Add to List", systemImage: isSaved ? "minus.circle" : "square.and.arrow.down")
-                                    .labelStyle( .iconOnly )
+                                        .labelStyle( .iconOnly )
                                 } else {
                                     Label(isSaved ? "Delete" : "Add to List", systemImage: isSaved ? "minus.circle" : "square.and.arrow.down")
-                                    .labelStyle(.titleAndIcon)
+                                        .labelStyle(.titleAndIcon)
                                 }
-                                    
+                                
                             }.onTapGesture {
                                 Task(priority:.userInitiated) {
                                     await viewModel.toggleSavePlace(resultId: resultId, cacheManager: cacheManager, modelController:modelController)
@@ -91,12 +91,12 @@ struct PlaceAboutView: View {
                                     if sizeClass == .compact {
                                         Label(tel, systemImage: "phone")
                                             .labelStyle(.iconOnly)
-
+                                        
                                     } else {
                                         Label(tel, systemImage: "phone")
                                             .labelStyle(.titleAndIcon)
                                     }
-                                        
+                                    
                                 }.onTapGesture {
                                     if let url = viewModel.getCallURL(tel: tel) {
                                         openURL(url)
@@ -118,7 +118,7 @@ struct PlaceAboutView: View {
                                         Label("Visit website", systemImage: "link")
                                             .labelStyle(.titleAndIcon)
                                     }
-                                        
+                                    
                                 }.onTapGesture {
                                     openURL(url)
                                 }
@@ -142,7 +142,7 @@ struct PlaceAboutView: View {
                                 }
                                 .padding(PlaceAboutView.defaultPadding)
                             }
-                        
+                            
                             
                             // Price button
                             if let price = placeDetailsResponse.price {
@@ -155,7 +155,7 @@ struct PlaceAboutView: View {
                                 }
                                 .padding(PlaceAboutView.defaultPadding)
                             }
-                            #if os(iOS) || os(visionOS)
+#if os(iOS) || os(visionOS)
                             // Share button
                             ZStack {
                                 Capsule()
@@ -182,13 +182,44 @@ struct PlaceAboutView: View {
                                         .presentationCompactAdaptation(.sheet)
                                 }
                             }
-                            #endif
+#endif
                             Spacer()
                         }
                         .padding(.horizontal, 16)
+                        // Related Places Section
+                        if !modelController.relatedPlaceResults.isEmpty {
+                            Section("Related Places") {
+                                ScrollView(.horizontal) {
+                                    HStack {
+                                        ForEach(modelController.relatedPlaceResults) { relatedPlace in
+                                            VStack {
+                                                Text(relatedPlace.title).bold().padding(8)
+                                                if let neighborhood = relatedPlace.recommendedPlaceResponse?.neighborhood, !neighborhood.isEmpty {
+                                                    Text(neighborhood).italic().padding(8)
+                                                } else if let locality = relatedPlace.placeResponse?.locality {
+                                                    Text(locality).italic().padding(8)
+                                                }
+                                            }
+                                            .padding(PlaceAboutView.defaultPadding)
+                                            .background(RoundedRectangle(cornerRadius: 16)
+                                                .strokeBorder())
+                                            .onTapGesture {
+                                                Task(priority:.userInitiated) {
+                                                    do {
+                                                        try await chatModel.didTap(placeChatResult: relatedPlace, cacheManager: cacheManager, modelController: modelController)
+                                                    } catch {
+                                                        modelController.analyticsManager.trackError(error:error, additionalInfo: nil)
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }.padding(16)
+                        }
                         // Tastes Section
                         if let tastes = placeDetailsResponse.tastes, !tastes.isEmpty {
-                            Section {
+                            Section("Items") {
                                 let gridItems = Array(repeating: GridItem(.flexible(), spacing: PlaceAboutView.defaultPadding), count: sizeClass == .compact ? 2 : 3)
                                 
                                 LazyVGrid(columns: gridItems, alignment: .leading, spacing: 8) {
@@ -198,7 +229,7 @@ struct PlaceAboutView: View {
                                             Label("Save", systemImage: isSaved ? "minus.circle" : "square.and.arrow.down")
                                                 .labelStyle(.iconOnly)
                                                 .padding(PlaceAboutView.defaultPadding)
-                                                
+                                            
                                             Text(taste.wrappedValue)
                                             Spacer()
                                         }.onTapGesture {
@@ -216,35 +247,12 @@ struct PlaceAboutView: View {
                                         }
                                     }
                                 }
-                            }.padding(.horizontal, 16)
+                            }.padding(16)
                                 .task {
                                     if let tastes = placeDetailsResponse.tastes {
                                         mutableTastes = tastes
                                     }
                                 }
-                        }
-                        
-                        // Related Places Section
-                        if !modelController.relatedPlaceResults.isEmpty {
-                            Section("Related Places") {
-                                ScrollView(.horizontal) {
-                                    HStack {
-                                        ForEach(modelController.relatedPlaceResults) { relatedPlace in
-                                            VStack {
-                                                Text(relatedPlace.title).bold().padding(8)
-                                                if let neighborhood = relatedPlace.recommendedPlaceResponse?.neighborhood, !neighborhood.isEmpty {
-                                                    Text(neighborhood).italic()
-                                                } else if let locality = relatedPlace.placeResponse?.locality {
-                                                    Text(locality).italic()
-                                                }
-                                            }
-                                            .padding(PlaceAboutView.defaultPadding)
-                                            .background(RoundedRectangle(cornerRadius: 16)
-                                            .strokeBorder())
-                                        }
-                                    }
-                                }.padding(.horizontal, 16)
-                            }.padding(.vertical, 16)
                         }
                     } else {
                         // Loading view
