@@ -139,7 +139,9 @@ struct SavedListView: View {
         .toolbarBackground(.visible, for: .navigationBar)
         #endif
         .toolbar(content: {
-            EditButton()
+            if contentViewDetail == .home {
+                EditButton()
+            }
         })
         .refreshable {
             Task(priority: .userInitiated) {

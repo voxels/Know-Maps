@@ -11,14 +11,11 @@ struct SearchTasteView: View {
     @State private var tasteSearchText:String = ""
     var body: some View {
         List(modelController.tasteResults, id:\.id, selection: $multiSelection) { parent in
+            let isSaved = cacheManager.cachedTastes(contains: parent.parentCategory)
             HStack {
-                let isSaved = cacheManager.cachedTastes(contains: parent.parentCategory)
-                
-                HStack {
-                    Text("\(parent.parentCategory)")
-                    Spacer()
-                    isSaved ? Image(systemName: "checkmark.circle.fill") : Image(systemName: "circle")
-                }
+                Text("\(parent.parentCategory)")
+                Spacer()
+                isSaved ? Image(systemName: "checkmark.circle.fill") : Image(systemName: "circle")
             }
             .onAppear {
                 if let last = modelController.tasteResults.last, parent == last {
@@ -39,7 +36,7 @@ struct SearchTasteView: View {
                 EditButton()
             }
         }
-        .onAppear {
+        .task{
             Task { @MainActor in
                 do {
                     modelController.tasteResults = try await modelController.placeSearchService.refreshTastes(page:0, currentTasteResults: [], cacheManager: cacheManager)

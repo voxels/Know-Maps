@@ -69,9 +69,9 @@ struct AddTasteView: View {
                     }
                 }
             }
-        }
-        .onAppear() {
-            multiSelectionArray = Array(multiSelection)
-        }
+        }        
+        .onChange(of: multiSelection, { oldValue, newValue in
+            multiSelectionArray = Array(newValue)
+        })
     }
 }
