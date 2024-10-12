@@ -22,7 +22,6 @@ struct PlaceTipsView: View {
                     Text(tip.text).padding()
                 }.padding()
             }
-            
         } else {
             ContentUnavailableView("No tips found for this location", systemImage: "x.circle.fill")
         }

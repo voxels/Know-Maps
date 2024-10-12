@@ -117,7 +117,7 @@ public protocol ModelController : Sendable {
     /// Refreshes the model based on the provided query and intents.
     func refreshModel(
         query: String,
-        queryIntents: [AssistiveChatHostIntent]?,
+        queryIntents: [AssistiveChatHostIntent]?, filters:[String:Any],
         cacheManager:CacheManager
     ) async throws -> [ChatResult]
     
@@ -159,11 +159,11 @@ public protocol ModelController : Sendable {
         cacheManager:CacheManager
     ) async throws
     
-    func addReceivedMessage(caption:String, parameters:AssistiveChatHostQueryParameters, isLocalParticipant:Bool, cacheManager:CacheManager) async throws
+    func addReceivedMessage(caption:String, parameters:AssistiveChatHostQueryParameters, isLocalParticipant:Bool, filters:[String:Any], cacheManager:CacheManager) async throws
 
-    func didUpdateQuery(with query:String, parameters: AssistiveChatHostQueryParameters, cacheManager:CacheManager) async throws
+    func didUpdateQuery(with query:String, parameters: AssistiveChatHostQueryParameters, filters:[String:Any], cacheManager:CacheManager) async throws
 
-    func updateLastIntentParameter(for placeChatResult:ChatResult, selectedDestinationChatResultID:LocationResult.ID?, cacheManager:CacheManager) async throws
+    func updateLastIntentParameter(for placeChatResult:ChatResult, selectedDestinationChatResultID:LocationResult.ID?, filters:[String:Any],cacheManager:CacheManager) async throws
     
     func updateQueryParametersHistory(with parameters: AssistiveChatHostQueryParameters) async
 }

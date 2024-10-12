@@ -24,7 +24,7 @@ struct SearchView: View {
         SearchSavedView(chatModel: $chatModel, viewModel: $searchSavedViewModel, cacheManager: $cacheManager, modelController: $modelController, preferredColumn: $preferredColumn, contentViewDetail: $contentViewDetail, addItemSection: $addItemSection, settingsPresented: $settingsPresented )
             .onChange(of: modelController.selectedPlaceChatResult, { oldValue, newValue in
                 
-                contentViewDetail = .places
+                contentViewDetail = .home
                 preferredColumn = .detail
                 
                 guard let newValue = newValue, oldValue != newValue else {
@@ -35,7 +35,7 @@ struct SearchView: View {
                 if let placeChatResult = modelController.placeChatResult(for: newValue), placeChatResult.placeDetailsResponse == nil {
                     Task(priority:.userInitiated) {
                         do {
-                            try await chatModel.didTap(placeChatResult: placeChatResult, cacheManager: cacheManager, modelController: modelController)
+                            try await chatModel.didTap(placeChatResult: placeChatResult, filters: searchSavedViewModel.filters, cacheManager: cacheManager, modelController: modelController)
                             await MainActor.run {
                                 showPlaceViewSheet = true
                             }
@@ -56,17 +56,17 @@ struct SearchView: View {
                     return
                 }
                 isRefreshingPlaces = true
-                contentViewDetail = .places
+                contentViewDetail = .home
                 preferredColumn = .detail
                 Task(priority:.userInitiated) {
                     await modelController.resetPlaceModel()
                     if let selectedDestinationLocationChatResult = modelController.selectedDestinationLocationChatResult {
                         if let cachedResult = modelController.cachedChatResult(for: newValue, cacheManager: cacheManager) {
-                            await chatModel.didTap(chatResult: cachedResult, selectedDestinationChatResultID: selectedDestinationLocationChatResult, cacheManager: cacheManager, modelController: modelController)
+                            await chatModel.didTap(chatResult: cachedResult, selectedDestinationChatResultID: selectedDestinationLocationChatResult, filters: searchSavedViewModel.filters, cacheManager: cacheManager, modelController: modelController)
                         }
                     } else {
                         if let cachedResult = modelController.cachedChatResult(for: newValue, cacheManager: cacheManager) {
-                            await chatModel.didTap(chatResult: cachedResult,  selectedDestinationChatResultID: nil, cacheManager: cacheManager, modelController: modelController)
+                            await chatModel.didTap(chatResult: cachedResult,  selectedDestinationChatResultID: nil, filters: searchSavedViewModel.filters, cacheManager: cacheManager, modelController: modelController)
                         }
                     }
                     await MainActor.run {

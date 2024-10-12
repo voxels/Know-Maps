@@ -28,14 +28,14 @@ public final class ChatResultViewModel: AssistiveChatHostMessagesDelegate {
     
     // MARK: - Model Building and Query Handling
     
-    public func didSearch(caption: String, selectedDestinationChatResultID:LocationResult.ID?, intent: AssistiveChatHostService.Intent? = nil, cacheManager:CacheManager, modelController:ModelController) async throws {
+    public func didSearch(caption: String, selectedDestinationChatResultID:LocationResult.ID?, intent: AssistiveChatHostService.Intent? = nil,filters:[String:Any], cacheManager:CacheManager, modelController:ModelController) async throws {
         
         let checkCaption = caption
         
         let destinationChatResultID = selectedDestinationChatResultID
         
         let checkIntent:AssistiveChatHostService.Intent = intent ?? modelController.assistiveHostDelegate.determineIntent(for: checkCaption, override: nil)
-        let queryParameters = try await modelController.assistiveHostDelegate.defaultParameters(for: caption)
+        let queryParameters = try await modelController.assistiveHostDelegate.defaultParameters(for: caption, filters: filters)
         if let lastIntent = modelController.assistiveHostDelegate.queryIntentParameters.queryIntents.last, lastIntent.caption == caption {
             let newIntent = AssistiveChatHostIntent(caption: checkCaption, intent: checkIntent, selectedPlaceSearchResponse: lastIntent.selectedPlaceSearchResponse, selectedPlaceSearchDetails: lastIntent.selectedPlaceSearchDetails, placeSearchResponses: lastIntent.placeSearchResponses, selectedDestinationLocationID: destinationChatResultID, placeDetailsResponses:lastIntent.placeDetailsResponses,recommendedPlaceSearchResponses: lastIntent.recommendedPlaceSearchResponses, relatedPlaceSearchResponses: lastIntent.relatedPlaceSearchResponses, queryParameters: queryParameters)
             
@@ -45,20 +45,20 @@ public final class ChatResultViewModel: AssistiveChatHostMessagesDelegate {
             
             await modelController.assistiveHostDelegate.appendIntentParameters(intent: newIntent, modelController: modelController)
         }
-        try await modelController.assistiveHostDelegate.receiveMessage(caption: checkCaption, isLocalParticipant:true, cacheManager: cacheManager, modelController: modelController)
+        try await modelController.assistiveHostDelegate.receiveMessage(caption: checkCaption, isLocalParticipant:true, filters: filters, cacheManager: cacheManager, modelController: modelController)
         
     }
     
-    public func didTap(placeChatResult: ChatResult, cacheManager:CacheManager, modelController:  ModelController) async throws {
+    public func didTap(placeChatResult: ChatResult, filters:[String:Any], cacheManager:CacheManager, modelController:  ModelController) async throws {
         guard let lastIntent = modelController.assistiveHostDelegate.queryIntentParameters.queryIntents.last, lastIntent.placeSearchResponses.count > 0 else {
             return
         }
                 
-        try await modelController.updateLastIntentParameter(for: placeChatResult, selectedDestinationChatResultID:modelController.selectedDestinationLocationChatResult, cacheManager: cacheManager)
+        try await modelController.updateLastIntentParameter(for: placeChatResult, selectedDestinationChatResultID:modelController.selectedDestinationLocationChatResult, filters: filters, cacheManager: cacheManager)
     }
     
     public func didTap(locationChatResult: LocationResult, cacheManager:CacheManager, modelController: ModelController) async throws {
-        let queryParameters = try await modelController.assistiveHostDelegate.defaultParameters(for: locationChatResult.locationName)
+        let queryParameters = try await modelController.assistiveHostDelegate.defaultParameters(for: locationChatResult.locationName, filters: [:])
         
         if let selectedDestinationLocationChatResult = modelController.selectedDestinationLocationChatResult {
             let newIntent = AssistiveChatHostIntent(caption: locationChatResult.locationName, intent:.Location, selectedPlaceSearchResponse: nil, selectedPlaceSearchDetails: nil, placeSearchResponses: [PlaceSearchResponse](), selectedDestinationLocationID: selectedDestinationLocationChatResult, placeDetailsResponses:nil, queryParameters: queryParameters)
@@ -70,22 +70,24 @@ public final class ChatResultViewModel: AssistiveChatHostMessagesDelegate {
             await modelController.assistiveHostDelegate.appendIntentParameters(intent: newIntent, modelController: modelController)
         }
         
-        try await modelController.assistiveHostDelegate.receiveMessage(caption: locationChatResult.locationName, isLocalParticipant:true, cacheManager: cacheManager, modelController: modelController)
+        try await modelController.assistiveHostDelegate.receiveMessage(caption: locationChatResult.locationName, isLocalParticipant:true,filters:[:], cacheManager: cacheManager, modelController: modelController)
     }
     
     public func didTap(chatResult: ChatResult, selectedPlaceSearchResponse: PlaceSearchResponse?, selectedPlaceSearchDetails: PlaceDetailsResponse?, selectedRecommendedPlaceSearchResponse:RecommendedPlaceSearchResponse?,
-                       selectedDestinationChatResultID:UUID?, intent:AssistiveChatHostService.Intent = .Search, cacheManager:CacheManager, modelController: ModelController) async {
+                       selectedDestinationChatResultID:UUID?, intent:AssistiveChatHostService.Intent = .Search,
+                       filters:[String:Any],
+                       cacheManager:CacheManager, modelController: ModelController) async {
         do {
             let caption = chatResult.title
             
-            let queryParameters = try await modelController.assistiveHostDelegate.defaultParameters(for: caption)
+            let queryParameters = try await modelController.assistiveHostDelegate.defaultParameters(for: caption, filters: filters)
             
             let placeSearchResponses = chatResult.placeResponse != nil ? [chatResult.placeResponse!] : [PlaceSearchResponse]()
             let destinationLocationChatResult = selectedDestinationChatResultID
             
             let newIntent = AssistiveChatHostIntent(caption: caption, intent: intent, selectedPlaceSearchResponse: selectedPlaceSearchResponse, selectedPlaceSearchDetails: selectedPlaceSearchDetails, placeSearchResponses: placeSearchResponses, selectedDestinationLocationID: destinationLocationChatResult, placeDetailsResponses:nil, queryParameters: queryParameters)
             await modelController.assistiveHostDelegate.appendIntentParameters(intent: newIntent, modelController: modelController)
-            try await modelController.assistiveHostDelegate.receiveMessage(caption: chatResult.title, isLocalParticipant: true, cacheManager: cacheManager, modelController: modelController)
+            try await modelController.assistiveHostDelegate.receiveMessage(caption: chatResult.title, isLocalParticipant: true, filters: filters, cacheManager: cacheManager, modelController: modelController)
             
             
         } catch {
@@ -93,18 +95,18 @@ public final class ChatResultViewModel: AssistiveChatHostMessagesDelegate {
         }
     }
     
-    public func didTap(chatResult: ChatResult, selectedDestinationChatResultID:UUID?, cacheManager:CacheManager, modelController: ModelController) async {
+    public func didTap(chatResult: ChatResult, selectedDestinationChatResultID:UUID?, filters:[String:Any], cacheManager:CacheManager, modelController: ModelController) async {
         print("Did tap result:\(chatResult.title) for place:\(chatResult.placeResponse?.fsqID ?? "")")
         var intent = AssistiveChatHostService.Intent.Search
         if let placeResponse = chatResult.placeResponse, !placeResponse.fsqID.isEmpty, placeResponse.name.isEmpty {
             intent = .Place
         }
         
-        await didTap(chatResult: chatResult, selectedPlaceSearchResponse: chatResult.placeResponse, selectedPlaceSearchDetails:chatResult.placeDetailsResponse, selectedRecommendedPlaceSearchResponse: chatResult.recommendedPlaceResponse, selectedDestinationChatResultID:selectedDestinationChatResultID, intent:intent, cacheManager: cacheManager, modelController: modelController )
+        await didTap(chatResult: chatResult, selectedPlaceSearchResponse: chatResult.placeResponse, selectedPlaceSearchDetails:chatResult.placeDetailsResponse, selectedRecommendedPlaceSearchResponse: chatResult.recommendedPlaceResponse, selectedDestinationChatResultID:selectedDestinationChatResultID, intent:intent, filters: filters, cacheManager: cacheManager, modelController: modelController )
     }
     
-    public func addReceivedMessage(caption: String, parameters: AssistiveChatHostQueryParameters, isLocalParticipant: Bool, cacheManager:CacheManager, modelController:ModelController) async throws {
-        try await modelController.addReceivedMessage(caption: caption, parameters: parameters, isLocalParticipant: isLocalParticipant, cacheManager: cacheManager)
+    public func addReceivedMessage(caption: String, parameters: AssistiveChatHostQueryParameters, isLocalParticipant: Bool, filters:[String:Any], cacheManager:CacheManager, modelController:ModelController) async throws {
+        try await modelController.addReceivedMessage(caption: caption, parameters: parameters, isLocalParticipant: isLocalParticipant, filters: filters, cacheManager: cacheManager)
     }
     
     public func updateQueryParametersHistory(with parameters: AssistiveChatHostQueryParameters, modelController:ModelController) async {

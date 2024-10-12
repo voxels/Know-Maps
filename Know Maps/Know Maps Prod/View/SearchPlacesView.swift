@@ -12,7 +12,10 @@ struct SearchPlacesView: View {
     @Binding public var chatModel:ChatResultViewModel
     @Binding public var cacheManager:CloudCacheManager
     @Binding public var modelController:DefaultModelController
+    @Binding public var addItemSection: Int
+
     var body: some View {
         Text("Hello world")
+        
     }
 }

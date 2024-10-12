@@ -11,15 +11,24 @@ struct SearchCategoryView: View {
     @Binding public var chatModel:ChatResultViewModel
     @Binding public var cacheManager:CloudCacheManager
     @Binding public var modelController:DefaultModelController
-    @Binding public var selectedCategoryID:CategoryResult.ID?
-    @State private var isExpanded:Bool = false
+    @Binding public var multiSelection: Set<UUID>
+    @Binding public var addItemSection: Int
+    @State private var expandedParents: Set<UUID> = []
     var body: some View {
-        List(selection:$selectedCategoryID) {
+        List(selection:$multiSelection) {
             ForEach(modelController.industryResults, id:\.id){ parent in
-                DisclosureGroup(isExpanded: Binding(
-                    get: { isExpanded },
-                    set: { isExpanded = $0 }
-                )){
+                DisclosureGroup(
+                    isExpanded: Binding(
+                        get: { expandedParents.contains(parent.id) },
+                        set: { isExpanded in
+                            if isExpanded {
+                                expandedParents.insert(parent.id)
+                            } else {
+                                expandedParents.remove(parent.id)
+                            }
+                        }
+                    )
+                ) {
                     ForEach(parent.children, id:\.id) { child in
                         let isSaved = cacheManager.cachedCategories(contains: child.parentCategory)
                         HStack {
@@ -36,7 +45,16 @@ struct SearchCategoryView: View {
                 }
             }
         }
+        .toolbar {
+            if addItemSection == 0 {
+                EditButton()
+            }
+        }
         .listStyle(.sidebar)
+#if os(iOS) || os(visionOS)
+        .toolbarBackground(.visible, for: .navigationBar)
+#endif
+        
         .refreshable {
             Task(priority:.userInitiated) {
                 do{

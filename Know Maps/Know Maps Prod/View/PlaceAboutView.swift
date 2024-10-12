@@ -68,10 +68,10 @@ struct PlaceAboutView: View {
                                     .frame(height: PlaceAboutView.buttonHeight)
                                 let isSaved = cacheManager.cachedPlaces(contains: title)
                                 if sizeClass == .compact {
-                                    Label(isSaved ? "Delete" : "Add to List", systemImage: isSaved ? "minus.circle" : "square.and.arrow.down")
+                                    Label(isSaved ? "Delete" : "Add to List", systemImage: isSaved ? "minus.circle" : "plus.circle")
                                         .labelStyle( .iconOnly )
                                 } else {
-                                    Label(isSaved ? "Delete" : "Add to List", systemImage: isSaved ? "minus.circle" : "square.and.arrow.down")
+                                    Label(isSaved ? "Delete" : "Add to List", systemImage: isSaved ? "minus.circle" : "plus.circle")
                                         .labelStyle(.titleAndIcon)
                                 }
                                 
@@ -206,7 +206,7 @@ struct PlaceAboutView: View {
                                             .onTapGesture {
                                                 Task(priority:.userInitiated) {
                                                     do {
-                                                        try await chatModel.didTap(placeChatResult: relatedPlace, cacheManager: cacheManager, modelController: modelController)
+                                                        try await chatModel.didTap(placeChatResult: relatedPlace,filters:[:], cacheManager: cacheManager, modelController: modelController)
                                                     } catch {
                                                         modelController.analyticsManager.trackError(error:error, additionalInfo: nil)
                                                     }
@@ -226,7 +226,7 @@ struct PlaceAboutView: View {
                                     ForEach($mutableTastes, id: \.self) { taste in
                                         let isSaved = cacheManager.cachedTastes(contains: taste.wrappedValue)
                                         HStack {
-                                            Label("Save", systemImage: isSaved ? "minus.circle" : "square.and.arrow.down")
+                                            Label("Save", systemImage: isSaved ? "minus.circle" : "plus.circle")
                                                 .labelStyle(.iconOnly)
                                                 .padding(PlaceAboutView.defaultPadding)
                                             

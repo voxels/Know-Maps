@@ -158,14 +158,20 @@ public final class AssistiveChatHostService : AssistiveChatHost {
         return .AutocompleteSearch
     }
     
-    public func defaultParameters(for query:String) async throws -> [String:Any]? {
+    public func defaultParameters(for query:String, filters:[String:Any]) async throws -> [String:Any]? {
+        var radius:Double = 20000
+        
+        if let filterDistance = filters["distance"] as? Double {
+            radius = filterDistance
+        }
+        
         let emptyParameters =
                 """
                     {
                         "query":"",
                         "parameters":
                         {
-                             "radius":20000,
+                             "radius":\(radius),
                              "sort":"distance",
                              "limit":50,
                         }
@@ -188,11 +194,7 @@ public final class AssistiveChatHostService : AssistiveChatHost {
                 
                 let tags = try tags(for: query)
                 rawParameters["tags"] = tags
-                
-                if let radius = radius(for: query) {
-                    rawParameters["radius"] = radius
-                }
-                
+                                
                 if let minPrice = minPrice(for: query) {
                     rawParameters["min_price"] = minPrice
                 }
@@ -236,9 +238,9 @@ public final class AssistiveChatHostService : AssistiveChatHost {
         }
     }
     
-    public func updateLastIntent(caption:String, selectedDestinationLocationID:LocationResult.ID, modelController:ModelController) async throws {
+    public func updateLastIntent(caption:String, selectedDestinationLocationID:LocationResult.ID, filters:[String:Any], modelController:ModelController) async throws {
         if  let lastIntent = queryIntentParameters.queryIntents.last {
-            let queryParamters = try await defaultParameters(for: caption)
+            let queryParamters = try await defaultParameters(for: caption, filters:filters)
             let intent = determineIntent(for: caption)
             let newIntent = AssistiveChatHostIntent(caption: caption, intent:intent, selectedPlaceSearchResponse: lastIntent.selectedPlaceSearchResponse, selectedPlaceSearchDetails: lastIntent.selectedPlaceSearchDetails, placeSearchResponses: lastIntent.placeSearchResponses, selectedDestinationLocationID: selectedDestinationLocationID, placeDetailsResponses: lastIntent.placeDetailsResponses, recommendedPlaceSearchResponses: lastIntent.recommendedPlaceSearchResponses, relatedPlaceSearchResponses: lastIntent.relatedPlaceSearchResponses, queryParameters: queryParamters)
             await updateLastIntentParameters(intent: newIntent, modelController: modelController)
@@ -265,8 +267,8 @@ public final class AssistiveChatHostService : AssistiveChatHost {
         queryIntentParameters.queryIntents = [AssistiveChatHostIntent]()
     }
     
-    public func receiveMessage(caption:String, isLocalParticipant:Bool, cacheManager:CacheManager, modelController:ModelController ) async throws {
-        try await messagesDelegate.addReceivedMessage(caption: caption, parameters: queryIntentParameters, isLocalParticipant: isLocalParticipant, cacheManager: cacheManager, modelController: modelController)
+    public func receiveMessage(caption:String, isLocalParticipant:Bool, filters:[String:Any], cacheManager:CacheManager, modelController:ModelController ) async throws {
+        try await messagesDelegate.addReceivedMessage(caption: caption, parameters: queryIntentParameters, isLocalParticipant: isLocalParticipant, filters: filters, cacheManager: cacheManager, modelController: modelController)
     }
 
     
@@ -488,15 +490,7 @@ extension AssistiveChatHost {
         print(locationComponents.first ?? "")
         return locationComponents.first ?? parsedQuery
     }
-    
-    internal func radius(for rawQuery:String)->Int? {
-        if rawQuery.contains("nearby") || rawQuery.contains("near me") {
-            return 1000
-        }
         
-        return nil
-    }
-    
     internal func minPrice(for rawQuery:String)->Int? {
         if !rawQuery.contains("not expensive") && !rawQuery.contains("not that expensive") && rawQuery.contains("expensive") {
             return 3

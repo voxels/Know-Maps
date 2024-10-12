@@ -8,11 +8,15 @@
 import Foundation
 import CoreLocation
 
+@Observable
 public final class SearchSavedViewModel : Sendable {
+    
+    public var filters: [String:Any] = [:]
+    
     // Search functionality
-    func search(caption: String, selectedDestinationChatResultID: UUID?, chatModel:ChatResultViewModel, cacheManager:CacheManager, modelController:ModelController) async {
+    func search(caption: String, selectedDestinationChatResultID: UUID?, intent:AssistiveChatHostService.Intent, filters:[String:Any], chatModel:ChatResultViewModel, cacheManager:CacheManager, modelController:ModelController) async {
         do {
-            try await chatModel.didSearch(caption: caption, selectedDestinationChatResultID: selectedDestinationChatResultID, intent: .Location, cacheManager: cacheManager, modelController:modelController)
+            try await chatModel.didSearch(caption: caption, selectedDestinationChatResultID: selectedDestinationChatResultID, intent:intent, filters: filters, cacheManager: cacheManager, modelController:modelController)
         } catch {
             modelController.analyticsManager.trackError(error:error, additionalInfo: nil)
         }
@@ -54,17 +58,22 @@ public final class SearchSavedViewModel : Sendable {
     }
     
     // Add Category
-    func addCategory(parent: CategoryResult, cacheManager: CacheManager, modelController: ModelController) async {
+    func addCategory(parent: CategoryResult.ID, cacheManager: CacheManager, modelController: ModelController) async {
+        
+        guard let industryCategoryResult = modelController.industryCategoryResult(for: parent) else {
+            return
+        }
+
         do {
             // Create a new UserCachedRecord for the category
             let userRecord = UserCachedRecord(
                 recordId: UUID().uuidString,
                 group: "Category",
-                identity: parent.parentCategory,
-                title: parent.parentCategory,
+                identity: industryCategoryResult.parentCategory,
+                title: industryCategoryResult.parentCategory,
                 icons: "",
-                list: parent.list,
-                section: parent.section.rawValue,
+                list: industryCategoryResult.list,
+                section: industryCategoryResult.section.rawValue,
                 rating: 2
             )
             
@@ -88,36 +97,45 @@ public final class SearchSavedViewModel : Sendable {
     }
     
     // Remove Category
-    func removeCategory(parent: CategoryResult, cacheManager: CacheManager, modelController: ModelController) async {
+    func removeCategory(parent: CategoryResult.ID, cacheManager: CacheManager, modelController: ModelController) async {
+        
+        guard let industryCategoryResult = modelController.industryCategoryResult(for: parent) else {
+            return
+        }
+        
         // Find the cached records for the given category
         do {
-            // Check if the category exists in the cache
-            if cacheManager.cachedCategories(contains: parent.parentCategory) {
-                // Attempt to delete the cached record from CloudCache
-                if let cachedRecord = try await cacheManager.cloudCache.fetchGroupedUserCachedRecords(for: "Category").first(where: { $0.title == parent.parentCategory }) {
-                    try await cacheManager.cloudCache.deleteUserCachedRecord(for: cachedRecord)
-                }
-                
-                // Refresh the cache after deletion
-                await cacheManager.refreshCachedCategories()
+            // Attempt to delete the cached record from CloudCache
+            if let cachedRecord = try await cacheManager.cloudCache.fetchGroupedUserCachedRecords(for: "Category").first(where: { $0.title == industryCategoryResult.parentCategory }) {
+                try await cacheManager.cloudCache.deleteUserCachedRecord(for: cachedRecord)
             }
+            
+            // Refresh the cache after deletion
+            await cacheManager.refreshCachedCategories()
         } catch {
             modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
         }
     }
     
     // Add Taste
-    func addTaste(title: String, cacheManager: CacheManager, modelController: ModelController) async {
+    func addTaste(parent: CategoryResult.ID, cacheManager: CacheManager, modelController: ModelController) async {
+        
+        guard let tasteCategoryResult = modelController.tasteCategoryResult(for: parent) else {
+            return
+        }
+        
         do {
+            
+            
             // Fetch the section related to the taste using assistiveHostDelegate
-            let section = modelController.assistiveHostDelegate.section(for: title).rawValue
+            let section = modelController.assistiveHostDelegate.section(for: tasteCategoryResult.parentCategory).rawValue
             
             // Create a new UserCachedRecord for the taste
             let userRecord = UserCachedRecord(
                 recordId: UUID().uuidString,
                 group: "Taste",
-                identity: title,
-                title: title,
+                identity: tasteCategoryResult.parentCategory,
+                title: tasteCategoryResult.parentCategory,
                 icons: "",
                 list: section,
                 section: section,
@@ -144,20 +162,22 @@ public final class SearchSavedViewModel : Sendable {
     }
 
     // Remove Taste
-    func removeTaste(parent: CategoryResult, cacheManager: CacheManager, modelController: ModelController) async {
-        // Check if the taste exists in the cache
-        if cacheManager.cachedTastes(contains: parent.parentCategory) {
-            do {
-                // Fetch the cached record for the given taste
-                if let cachedRecord = try await cacheManager.cloudCache.fetchGroupedUserCachedRecords(for: "Taste").first(where: { $0.title == parent.parentCategory }) {
-                    // Delete the cached record
-                    try await cacheManager.cloudCache.deleteUserCachedRecord(for: cachedRecord)
-                }
-                // Refresh the cached tastes after deletion
-                await cacheManager.refreshCachedTastes()
-            } catch {
-                modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
+    func removeTaste(parent: CategoryResult.ID, cacheManager: CacheManager, modelController: ModelController) async {
+        
+        guard let tasteCategoryResult = modelController.cachedTasteResult(for: parent, cacheManager: cacheManager) else {
+            return
+        }
+
+        do {
+            // Fetch the cached record for the given taste
+            if let cachedRecord = try await cacheManager.cloudCache.fetchGroupedUserCachedRecords(for: "Taste").first(where: { $0.title == tasteCategoryResult.parentCategory }) {
+                // Delete the cached record
+                try await cacheManager.cloudCache.deleteUserCachedRecord(for: cachedRecord)
             }
+            // Refresh the cached tastes after deletion
+            await cacheManager.refreshCachedTastes()
+        } catch {
+            modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
         }
     }
     

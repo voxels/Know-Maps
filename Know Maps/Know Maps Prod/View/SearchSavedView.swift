@@ -16,8 +16,22 @@ struct SearchSavedView: View {
         GeometryReader { geometry in
             SavedListView(viewModel: $viewModel, cacheManager: $cacheManager, modelController: $modelController, contentViewDetail: $contentViewDetail, addItemSection: $addItemSection, preferredColumn: $preferredColumn, selectedResult: $modelController.selectedSavedResult)
             .toolbar {
-                ToolbarItemGroup(placement: .automatic) {
-                    SavedListToolbarView(viewModel: $viewModel, cacheManager: $cacheManager, modelController: $modelController, settingsPresented: $settingsPresented, contentViewDetail: $contentViewDetail, preferredColumn: $preferredColumn, showNavigationLocationSheet: $showNavigationLocationSheet)
+                ToolbarItemGroup(placement: .primaryAction) {
+                    Button(action: {
+                        showNavigationLocationSheet.toggle()
+                    }) {
+                        Label("Search Location", systemImage: "location.magnifyingglass")
+                    }
+                    Button(action: {
+            #if os(iOS) || os(visionOS)
+                        settingsPresented.toggle()
+            #else
+                        openWindow(id: "SettingsView")
+            #endif
+                    }) {
+                        Label("Account Settings", systemImage: "gear")
+                    }
+
                 }
             }
             .sheet(isPresented: $showNavigationLocationSheet) {
@@ -25,11 +39,11 @@ struct SearchSavedView: View {
                     HStack {
                         TextField("City, State", text: $searchText)
                             .onSubmit {
-                                search()
+                                search(intent:.Location)
                             }
                             .textFieldStyle(.roundedBorder)
                         Button(action: {
-                            search()
+                            search(intent:.Location)
                         }, label: {
                             Label("Search", systemImage: "magnifyingglass")
                         })
@@ -39,16 +53,6 @@ struct SearchSavedView: View {
                     NavigationLocationView(chatModel: $chatModel, cacheManager: $cacheManager, modelController:$modelController)
 
                     HStack {
-                        Button(action: {
-                            if modelController.selectedDestinationLocationChatResult == nil {
-                                modelController.selectedDestinationLocationChatResult = modelController.currentLocationResult.id
-                            }
-                            showNavigationLocationSheet = false
-                        }, label: {
-                            Label("List", systemImage: "list.bullet")
-                                .labelStyle(.titleAndIcon)
-                        })
-                        .padding()
                         Spacer()
                         if let selectedDestinationLocationChatResult = modelController.selectedDestinationLocationChatResult, let parent =  modelController.locationChatResult(
                             for: selectedDestinationLocationChatResult,in: modelController.filteredLocationResults(cacheManager: cacheManager)) {
@@ -91,7 +95,7 @@ struct SearchSavedView: View {
                                         }
                                     }
                                 }, label: {
-                                    Label("Save", systemImage: "square.and.arrow.down")
+                                    Label("Save", systemImage: "plus.circle")
                                 })
                                 .labelStyle(.titleAndIcon)
                                 .padding()
@@ -101,20 +105,41 @@ struct SearchSavedView: View {
                     .padding()
                 }
                 .padding()
-                .frame(minHeight: geometry.size.height, maxHeight: .infinity)
+                .frame(minHeight: geometry.size.height - 60, maxHeight: .infinity)
                 .presentationDetents([.large])
                 .presentationDragIndicator(.visible)
                 .presentationCompactAdaptation(.sheet)
+#if os(macOS)
+                                .toolbar(content: {
+                                    ToolbarItem {
+                                        Button(action:{
+                                            settingsPresented.toggle()
+                                        }, label:{
+                                            Label("List", systemImage: "list.bullet")
+                                        })
+                                    }
+                                })
+#elseif os(visionOS)
+                                .toolbar(content: {
+                                    ToolbarItem(placement:.bottomOrnament) {
+                                        Button(action:{
+                                            settingsPresented.toggle()
+                                        }, label:{
+                                            Label("List", systemImage: "list.bullet")
+                                        })
+                                    }
+                                })
+#endif
             }
         }
     }
     
-    func search() {
+    func search(intent:AssistiveChatHostService.Intent) {
         if !searchText.isEmpty {
             Task(priority:.userInitiated) {
                 await viewModel.search(
                     caption: searchText,
-                    selectedDestinationChatResultID: modelController.selectedDestinationLocationChatResult,
+                    selectedDestinationChatResultID: modelController.selectedDestinationLocationChatResult, intent: intent, filters: viewModel.filters,
                     chatModel: chatModel,
                     cacheManager: cacheManager,
                     modelController: modelController
@@ -124,146 +149,3 @@ struct SearchSavedView: View {
     }
 }
 
-struct AddPromptView: View {
-    @Binding public var chatModel: ChatResultViewModel
-    @Binding public var cacheManager:CloudCacheManager
-    @Binding public var modelController:DefaultModelController
-    @Binding public var addItemSection: Int
-    @Binding public var contentViewDetail:ContentDetailView
-    @Binding public var selectedCategoryID:CategoryResult.ID?
-    
-    var body: some View {
-        TabView(selection: $addItemSection) {
-            SearchCategoryView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, selectedCategoryID: $selectedCategoryID)
-                .tag(0)
-                .tabItem {
-                    Label("Type", systemImage: "building")
-                }
-            
-            SearchTasteView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, selectedCategoryID: $selectedCategoryID)
-                .tag(1)
-                .tabItem {
-                    Label("Item", systemImage: "heart")
-                }
-            
-            SearchPlacesView(chatModel: $chatModel, cacheManager: $cacheManager, modelController:   $modelController)
-                .tag(2)
-                .tabItem {
-                    Label("Place", systemImage: "mappin")
-                }
-        }
-    }
-}
-
-struct AddPromptToolbarView: View {
-    @Environment(\.horizontalSizeClass) var sizeClass
-
-    @Binding public var viewModel: SearchSavedViewModel
-    @Binding public var cacheManager: CloudCacheManager
-    @Binding public var modelController: DefaultModelController
-    @Binding  public var addItemSection: Int
-    @Binding  public var selectedCategoryID:CategoryResult.ID?
-    @Binding  public var contentViewDetail: ContentDetailView
-    @Binding  public var preferredColumn: NavigationSplitViewColumn
-
-    @State private var parent: CategoryResult?
-    @State private var isSaved: Bool = false
-
-    var body: some View {
-        Group {
-            if addItemSection == 0 {
-                if let parent = parent {
-                    if isSaved {
-                        Button(action: {
-                            Task(priority:.userInitiated) {
-                                await viewModel.removeCategory(
-                                    parent: parent,
-                                    cacheManager: cacheManager,
-                                    modelController: modelController
-                                )
-                            }
-                        }) {
-                            Label("Delete", systemImage: "minus.circle")
-                        }
-                        .labelStyle(.titleAndIcon)
-                    } else {
-                        Button(action: {
-                            Task(priority:.userInitiated) {
-                                await viewModel.addCategory(
-                                    parent: parent,
-                                    cacheManager: cacheManager,
-                                    modelController: modelController
-                                )
-                            }
-                        }) {
-                            Label("Save", systemImage: "square.and.arrow.down")
-                        }
-                        .labelStyle(.titleAndIcon)
-                    }
-                }
-            } else if addItemSection == 1 {
-                if let parent = parent {
-                    if isSaved {
-                        Button(action: {
-                            Task(priority:.userInitiated) {
-                                await viewModel.removeTaste(
-                                    parent: parent,
-                                    cacheManager: cacheManager,
-                                    modelController: modelController
-                                )
-                            }
-                        }) {
-                            Label("Delete", systemImage: "minus.circle")
-                        }
-                        .labelStyle(.titleAndIcon)
-                    } else {
-                        Button(action: {
-                            Task(priority:.userInitiated) {
-                                await viewModel.addTaste(
-                                    title: parent.parentCategory,
-                                    cacheManager: cacheManager,
-                                    modelController: modelController
-                                )
-                            }
-                        }) {
-                            Label("Save", systemImage: "square.and.arrow.down")
-                        }
-                        .labelStyle(.titleAndIcon)
-                    }
-                }
-            }
-        }
-
-        Button(action: {
-            preferredColumn = .sidebar
-        }) {
-            Label("Done", systemImage: "checkmark.circle")
-        }
-        .onAppear {
-            updateParent()
-        }
-        .onChange(of: selectedCategoryID) { _,_ in
-            updateParent()
-        }
-        .onChange(of: addItemSection) { _,_ in
-            updateParent()
-        }
-    }
-
-    func updateParent() {
-        if addItemSection == 0,
-           let parentID = selectedCategoryID,
-           let parentResult = modelController.industryCategoryResult(for: parentID) {
-            parent = parentResult
-            isSaved = cacheManager.cachedCategories(contains: parentResult.parentCategory)
-        } else if addItemSection == 1,
-                  let parentID = selectedCategoryID,
-                  let parentResult = modelController.tasteCategoryResult(for: parentID) {
-            parent = parentResult
-            isSaved = cacheManager.cachedTastes(contains: parentResult.parentCategory)
-        } else {
-            parent = nil
-            isSaved = false
-        }
-    }
-}

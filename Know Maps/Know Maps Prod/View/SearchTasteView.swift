@@ -4,12 +4,13 @@ struct SearchTasteView: View {
     @Binding public var chatModel:ChatResultViewModel
     @Binding public var cacheManager:CloudCacheManager
     @Binding public var modelController:DefaultModelController
-    @Binding  public var selectedCategoryID:CategoryResult.ID?
+    @Binding public var multiSelection: Set<UUID>
+    @Binding public var addItemSection: Int
     @State private var isPresented:Bool = true
     @State private var isLoadingNextPage = false
     @State private var tasteSearchText:String = ""
     var body: some View {
-        List(modelController.tasteResults, id:\.id, selection: $selectedCategoryID) { parent in
+        List(modelController.tasteResults, id:\.id, selection: $multiSelection) { parent in
             HStack {
                 let isSaved = cacheManager.cachedTastes(contains: parent.parentCategory)
                 
@@ -33,6 +34,11 @@ struct SearchTasteView: View {
                 }
             }
         }
+        .toolbar {
+            if addItemSection == 1 {
+                EditButton()
+            }
+        }
         .onAppear {
             Task { @MainActor in
                 do {
@@ -52,6 +58,10 @@ struct SearchTasteView: View {
             }
         }
         .listStyle(.sidebar)
+#if os(iOS) || os(visionOS)
+        .toolbarBackground(.visible, for: .navigationBar)
+#endif
+        
         .padding(.top, 64)
         .overlay(alignment: .top, content: {
             VStack(alignment: .center) {
@@ -60,7 +70,7 @@ struct SearchTasteView: View {
                         Task(priority:.userInitiated) { @MainActor in
                             modelController.tasteResults.removeAll()
                             do {
-                                try await chatModel.didSearch(caption:tasteSearchText, selectedDestinationChatResultID:modelController.selectedDestinationLocationChatResult, intent:.AutocompleteTastes, cacheManager: cacheManager, modelController: modelController)
+                                try await chatModel.didSearch(caption:tasteSearchText, selectedDestinationChatResultID:modelController.selectedDestinationLocationChatResult, intent:.AutocompleteTastes, filters: [:], cacheManager: cacheManager, modelController: modelController)
                             } catch {
                                 modelController.analyticsManager.trackError(error:error, additionalInfo: nil)
                             }
