@@ -36,10 +36,9 @@ struct AddTasteView: View {
                             .foregroundColor(.red)
                             .frame(maxWidth: .infinity)
                             .padding()
-                            .background(Color(.systemGray6))
-                            .cornerRadius(8)
                     }
-                    
+                    .buttonStyle(.borderless)
+
                     Button(action: {
                         Task(priority: .userInitiated) {
                             await viewModel.addTaste(parent: tasteResult.id,rating:2, cacheManager: cacheManager, modelController:   modelController)
@@ -50,9 +49,8 @@ struct AddTasteView: View {
                             .foregroundColor(.accentColor)
                             .frame(maxWidth: .infinity)
                             .padding()
-                            .background(Color(.systemGray6))
-                            .cornerRadius(8)
                     }
+                    .buttonStyle(.borderless)
                     
                     Button(action: {
                         Task(priority: .userInitiated) {
@@ -64,9 +62,9 @@ struct AddTasteView: View {
                             .foregroundColor(.green)
                             .frame(maxWidth: .infinity)
                             .padding()
-                            .background(Color(.systemGray6))
-                            .cornerRadius(8)
                     }
+                    .buttonStyle(.borderless)
+
                 }
             }
         }        

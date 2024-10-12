@@ -36,8 +36,6 @@ struct AddCategoryView: View {
                                 .foregroundColor(.red)
                                 .frame(maxWidth: .infinity)
                                 .padding()
-                                .background(Color(.systemGray6))
-                                .cornerRadius(8)
                         }
                         .buttonStyle(.borderless)
                         
@@ -51,8 +49,6 @@ struct AddCategoryView: View {
                                 .foregroundColor(.accentColor)
                                 .frame(maxWidth: .infinity)
                                 .padding()
-                                .background(Color(.systemGray6))
-                                .cornerRadius(8)
                         }.buttonStyle(.borderless)
 
                         
@@ -67,8 +63,6 @@ struct AddCategoryView: View {
                                 .foregroundColor(.green)
                                 .frame(maxWidth: .infinity)
                                 .padding()
-                                .background(Color(.systemGray6))
-                                .cornerRadius(8)
                         }
                         .buttonStyle(.borderless)
                     }
