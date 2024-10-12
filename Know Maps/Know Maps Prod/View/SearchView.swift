@@ -24,31 +24,16 @@ struct SearchView: View {
         SearchSavedView(chatModel: $chatModel, viewModel: $searchSavedViewModel, cacheManager: $cacheManager, modelController: $modelController, preferredColumn: $preferredColumn, contentViewDetail: $contentViewDetail, addItemSection: $addItemSection, settingsPresented: $settingsPresented )
             .onChange(of: modelController.selectedPlaceChatResult, { oldValue, newValue in
                 
-                contentViewDetail = .home
-                preferredColumn = .detail
                 
-                guard let newValue = newValue, oldValue != newValue else {
-                    showPlaceViewSheet = false
+                guard newValue != nil else {
                     return
                 }
                 
-                if let placeChatResult = modelController.placeChatResult(for: newValue), placeChatResult.placeDetailsResponse == nil {
-                    Task(priority:.userInitiated) {
-                        do {
-                            try await chatModel.didTap(placeChatResult: placeChatResult, filters: searchSavedViewModel.filters, cacheManager: cacheManager, modelController: modelController)
-                            await MainActor.run {
-                                showPlaceViewSheet = true
-                            }
-                        } catch {
-                            modelController.analyticsManager.trackError(error:error, additionalInfo: nil)
-                            await MainActor.run {
-                                didError.toggle()
-                            }
-                        }
-                    }
-                }
-                else {
-                    showPlaceViewSheet = false
+                Task { @MainActor in
+                    contentViewDetail = .home
+                    preferredColumn = .detail
+
+                    showPlaceViewSheet = true
                 }
             })
             .onChange(of: modelController.selectedSavedResult) { oldValue, newValue in
@@ -64,7 +49,7 @@ struct SearchView: View {
                         if let cachedResult = modelController.cachedChatResult(for: newValue, cacheManager: cacheManager) {
                             await chatModel.didTap(chatResult: cachedResult, selectedDestinationChatResultID: selectedDestinationLocationChatResult, filters: searchSavedViewModel.filters, cacheManager: cacheManager, modelController: modelController)
                         }
-                    } else {
+                    }  else {
                         if let cachedResult = modelController.cachedChatResult(for: newValue, cacheManager: cacheManager) {
                             await chatModel.didTap(chatResult: cachedResult,  selectedDestinationChatResultID: nil, filters: searchSavedViewModel.filters, cacheManager: cacheManager, modelController: modelController)
                         }

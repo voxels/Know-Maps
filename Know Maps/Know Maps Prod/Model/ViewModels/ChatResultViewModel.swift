@@ -98,7 +98,7 @@ public final class ChatResultViewModel: AssistiveChatHostMessagesDelegate {
     public func didTap(chatResult: ChatResult, selectedDestinationChatResultID:UUID?, filters:[String:Any], cacheManager:CacheManager, modelController: ModelController) async {
         print("Did tap result:\(chatResult.title) for place:\(chatResult.placeResponse?.fsqID ?? "")")
         var intent = AssistiveChatHostService.Intent.Search
-        if let placeResponse = chatResult.placeResponse, !placeResponse.fsqID.isEmpty, placeResponse.name.isEmpty {
+        if let placeResponse = chatResult.placeResponse, !placeResponse.fsqID.isEmpty {
             intent = .Place
         }
         

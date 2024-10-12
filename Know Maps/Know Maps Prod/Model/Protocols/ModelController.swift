@@ -82,7 +82,7 @@ public protocol ModelController : Sendable {
     // MARK: Place Chat Result Methods
     func placeChatResult(for id: ChatResult.ID) -> ChatResult?
     
-    func placeChatResult(for fsqID: String) -> ChatResult?
+    func placeChatResult(with fsqID: String) -> ChatResult?
     
     // MARK: Chat Result Methods
     

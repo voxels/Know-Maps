@@ -187,7 +187,6 @@ struct PlaceAboutView: View {
                         }
                         .padding(.horizontal, 16)
                         // Related Places Section
-                        if !modelController.relatedPlaceResults.isEmpty {
                             Section("Related Places") {
                                 ScrollView(.horizontal) {
                                     HStack {
@@ -214,7 +213,7 @@ struct PlaceAboutView: View {
                                             }
                                         }
                                     }
-                                }
+                                
                             }.padding(16)
                         }
                         // Tastes Section
@@ -258,7 +257,11 @@ struct PlaceAboutView: View {
                         // Loading view
                         VStack {
                             Spacer()
-                            ProgressView()
+                            HStack {
+                                Spacer()
+                                ProgressView()
+                                Spacer()
+                            }
                             Spacer()
                         }
                     }

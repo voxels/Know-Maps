@@ -12,11 +12,14 @@ import MapKit
 
 struct PlacesList: View {
     @Environment(\.horizontalSizeClass) var sizeClass
+    @Binding public var searchSavedViewModel:SearchSavedViewModel
     @Binding public var chatModel:ChatResultViewModel
+    @Binding var cacheManager:CloudCacheManager
     @Binding var modelController:DefaultModelController
+    @Binding  public var showMapsResultViewSheet:Bool
+    @Binding public var isRefreshingPlaces:Bool
     @State private var selectedItem: String?
     
-    @Binding  public var showMapsResultViewSheet:Bool
     
     static var formatter:NumberFormatter {
         let retval = NumberFormatter()
@@ -28,9 +31,9 @@ struct PlacesList: View {
         GeometryReader{ geometry in
             VStack {
                 /*
-                let adSize = GADCurrentOrientationAnchoredAdaptiveBannerAdSizeWithWidth(geometry.size.width)
-                BannerView(adSize)
-                        .frame(height: adSize.size.height)
+                 let adSize = GADCurrentOrientationAnchoredAdaptiveBannerAdSizeWithWidth(geometry.size.width)
+                 BannerView(adSize)
+                 .frame(height: adSize.size.height)
                  */
                 if modelController.recommendedPlaceResults.count != 0 {
                     ScrollView{
@@ -41,7 +44,7 @@ struct PlacesList: View {
                         let columns = Array(repeating: GridItem(.adaptive(minimum: UIScreen.main.bounds.size.width / sizeWidth)),  count:Int(sizeWidth))
 #endif
                         LazyVGrid(columns: columns, alignment: .leading, spacing: 16) {
-                            ForEach(modelController.recommendedPlaceResults){ result in
+                            ForEach(modelController.recommendedPlaceResults, id:\.id){ result in
                                 VStack(alignment:.leading, content: {
                                     ZStack {
                                         VStack(alignment: .leading) {
@@ -63,12 +66,8 @@ struct PlacesList: View {
                                         AsyncImage(url: url) { phase in
                                             switch phase {
                                             case .empty:
-                                                HStack {
-                                                    Spacer()
                                                     ProgressView()
-                                                    Spacer()
-                                                }
-                                                
+                                                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                                             case .success(let image):
                                                 image.resizable()
                                                     .aspectRatio(CGFloat(aspectRatio), contentMode: .fit)
@@ -88,8 +87,24 @@ struct PlacesList: View {
                                 .background()
                                 .cornerRadius(16)
                                 .onTapGesture {
-                                    DispatchQueue.main.async {
-                                        modelController.selectedPlaceChatResult = result.id
+                                    if modelController.selectedPlaceChatResult == result.id {
+                                        modelController.selectedPlaceChatResult = nil
+                                        DispatchQueue.main.async{
+                                            modelController.selectedPlaceChatResult = result.id
+                                        }
+                                    } else {
+                                        if let placeChatResult = modelController.placeChatResult(for: result.id), placeChatResult.placeDetailsResponse == nil {
+                                            isRefreshingPlaces = true
+                                            Task(priority:.userInitiated) {
+                                                try await chatModel.didTap(placeChatResult: placeChatResult, filters:searchSavedViewModel.filters, cacheManager: cacheManager, modelController: modelController)
+                                                await MainActor.run {
+                                                    isRefreshingPlaces = false
+                                                }
+                                            }
+                                        }
+                                        else {
+                                            modelController.selectedPlaceChatResult = result.id
+                                        }
                                     }
                                 }
                             }
@@ -121,11 +136,8 @@ struct PlacesList: View {
                                         AsyncImage(url: url) { phase in
                                             switch phase {
                                             case .empty:
-                                                HStack {
-                                                    Spacer()
                                                     ProgressView()
-                                                    Spacer()
-                                                }
+                                                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                                             case .success(let image):
                                                 image.resizable()
                                                     .aspectRatio(CGFloat(aspectRatio), contentMode: .fit)
@@ -145,7 +157,12 @@ struct PlacesList: View {
                                 .background()
                                 .cornerRadius(16)
                                 .onTapGesture {
-                                    DispatchQueue.main.async{
+                                    if modelController.selectedPlaceChatResult == result.id {
+                                        modelController.selectedPlaceChatResult = nil
+                                        DispatchQueue.main.async {
+                                            modelController.selectedPlaceChatResult = result.id
+                                        }
+                                    } else {
                                         modelController.selectedPlaceChatResult = result.id
                                     }
                                 }
@@ -155,7 +172,7 @@ struct PlacesList: View {
                 } else {
                     EmptyView()
                 }
-            }
+            }.padding()
         }
     }
 }

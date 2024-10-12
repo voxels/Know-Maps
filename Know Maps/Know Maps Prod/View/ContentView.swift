@@ -120,7 +120,7 @@ struct ContentView: View {
                             Spacer()
                         }
                     } else {
-                        PlacesList(chatModel: $chatModel, modelController: $modelController, showMapsResultViewSheet: $showMapsResultViewSheet)
+                        PlacesList(searchSavedViewModel:$searchSavedViewModel,chatModel: $chatModel, cacheManager:$cacheManager, modelController: $modelController, showMapsResultViewSheet: $showMapsResultViewSheet, isRefreshingPlaces: $isRefreshingPlaces)
                             .alert("Unknown Place", isPresented: $didError) {
                                 Button(action: {
                                     DispatchQueue.main.async {
@@ -150,13 +150,34 @@ struct ContentView: View {
                             }
                             .sheet(isPresented: $showFiltersSheet, content: {
                                 FiltersView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, searchSavedViewModel: $searchSavedViewModel, filters: $searchSavedViewModel.filters, showFiltersPopover: $showFiltersSheet)
+#if os(macOS)
+                                .toolbar(content: {
+                                    ToolbarItem {
+                                        Button(action:{
+                                            settingsPresented.toggle()
+                                        }, label:{
+                                            Label("List", systemImage: "list.bullet")
+                                        })
+                                    }
+                                })
+#elseif os(visionOS)
+                                .toolbar(content: {
+                                    ToolbarItem(placement:.bottomOrnament) {
+                                        Button(action:{
+                                            settingsPresented.toggle()
+                                        }, label:{
+                                            Label("List", systemImage: "list.bullet")
+                                        })
+                                    }
+                                })
+#endif
                             })
                             .presentationDetents([.large])
                             .presentationDragIndicator(.visible)
                             .sheet(isPresented: $showMapsResultViewSheet) {
                                 MapResultsView(model: $chatModel, modelController: $modelController, selectedMapItem: $selectedMapItem, cameraPosition:$cameraPosition)
                                     .onChange(of: selectedMapItem) { _,newValue in
-                                        if let newValue = newValue, let placeChatResult = modelController.placeChatResult(for: newValue) {
+                                        if let newValue = newValue, let placeChatResult = modelController.placeChatResult(with: newValue) {
                                             showMapsResultViewSheet.toggle()
                                             modelController.selectedPlaceChatResult = placeChatResult.id
                                         }

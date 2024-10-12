@@ -23,11 +23,13 @@ struct SavedListView: View {
     @State private var isItemsExpanded = true
     
     var body: some View {
-        List {
+        List(selection: $selectedResult) {
             #if !os(macOS)
             Section(header: Text("Shortcuts").font(.headline).foregroundStyle(.primary)) {
                 VStack(alignment: .leading, spacing: 8) {
                     SiriTipView(intent: ShowMoodResultsIntent())
+                        .padding(.vertical,8)
+
                     Text("Find a place nearby")
                     Text("Find where to go next")
                     Text("Save this place")
@@ -40,9 +42,7 @@ struct SavedListView: View {
             DisclosureGroup("Moods", isExpanded: $isMoodsExpanded) {
                 ForEach(cacheManager.cachedDefaultResults, id: \.id) { parent in
                     Text(parent.parentCategory)
-                        .onTapGesture {
-                            selectedResult = parent.id
-                        }
+                        .padding(.vertical, 8)
                 }
             }
         
@@ -51,12 +51,11 @@ struct SavedListView: View {
                     ForEach(cacheManager.cachedIndustryResults, id: \.id) { parent in
                         HStack {
                             Text(parent.parentCategory)
-                                .onTapGesture {
-                                    selectedResult = parent.id
-                                }
                             Spacer()
                             ratingButton(for: parent)
                         }
+                        .frame(maxWidth: .infinity)
+
                     }
                     .onDelete { indexSet in
                         let idsToDelete = indexSet.map { cacheManager.cachedIndustryResults[$0].id }
@@ -71,9 +70,12 @@ struct SavedListView: View {
                     HStack {
                         Image(systemName: "plus.circle")
                         Text("Add a type")
+                        Spacer()
                     }
+                    
                     .foregroundColor(.accentColor)
                 }
+                .buttonStyle(.borderless)
             }
             
             DisclosureGroup("Items", isExpanded: $isItemsExpanded) {
@@ -81,12 +83,10 @@ struct SavedListView: View {
                     ForEach(cacheManager.cachedTasteResults, id: \.id) { parent in
                         HStack {
                             Text(parent.parentCategory)
-                                .onTapGesture {
-                                    selectedResult = parent.id
-                                }
                             Spacer()
                             ratingButton(for: parent)
                         }
+                        .frame(maxWidth: .infinity)
                     }
                     .onDelete { indexSet in
                         let idsToDelete = indexSet.map { cacheManager.cachedTasteResults[$0].id }
@@ -101,18 +101,18 @@ struct SavedListView: View {
                     HStack {
                         Image(systemName: "plus.circle")
                         Text("Add an item")
+                        Spacer()
                     }
                     .foregroundColor(.accentColor)
                 }
+                .buttonStyle(.borderless)
             }
             
             DisclosureGroup("Places", isExpanded: $isPlacesExpanded) {
                 if !cacheManager.cachedPlaceResults.isEmpty {
                     ForEach(cacheManager.cachedPlaceResults, id: \.id) { parent in
                         Text(parent.parentCategory)
-                            .onTapGesture {
-                                selectedResult = parent.id
-                            }
+                            .padding(.vertical,8)
                     }
                     .onDelete { indexSet in
                         let idsToDelete = indexSet.map { cacheManager.cachedPlaceResults[$0].id }
@@ -127,9 +127,11 @@ struct SavedListView: View {
                     HStack {
                         Image(systemName: "plus.circle")
                         Text("Add a place")
+                        Spacer()
                     }
                     .foregroundColor(.accentColor)
                 }
+                .buttonStyle(.borderless)
             }
         }
         .listStyle(InsetGroupedListStyle())
@@ -146,8 +148,10 @@ struct SavedListView: View {
         }
         .sheet(item: $viewModel.editingRecommendationWeightResult) { selectedResult in
             recommendationWeightSheet(for: selectedResult)
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
+                .presentationCompactAdaptation(.sheet)
         }
-        .presentationCompactAdaptation(.sheet)
     }
     
     // MARK: - Helper Views
@@ -162,6 +166,7 @@ struct SavedListView: View {
                 Label("Never", systemImage: "circle.slash")
                     .foregroundColor(.red)
             }
+            .frame(width: 44, height:44)
             .buttonStyle(BorderlessButtonStyle())
             .labelStyle(.iconOnly)
         case 1..<3:
@@ -171,25 +176,31 @@ struct SavedListView: View {
                 Label("Occasionally", systemImage: "circle")
                     .foregroundColor(.accentColor)
             }
+            .frame(width: 44, height:44)
             .buttonStyle(BorderlessButtonStyle())
             .labelStyle(.iconOnly)
-        default:
+        case 3:
             Button(action: {
                 viewModel.editingRecommendationWeightResult = parent
             }) {
                 Label("Often", systemImage: "circle.fill")
                     .foregroundColor(.green)
             }
+            .frame(width: 44, height:44)
             .buttonStyle(BorderlessButtonStyle())
             .labelStyle(.iconOnly)
+        default:
+            EmptyView()
         }
     }
     
     @ViewBuilder
     func recommendationWeightSheet(for selectedResult: CategoryResult) -> some View {
         VStack(spacing: 20) {
+            Spacer()
             Text(selectedResult.parentCategory)
                 .font(.headline)
+                .padding()
             
             Button(action: {
                 viewModel.updateRating(for: selectedResult, rating: 0, cacheManager: cacheManager, modelController: modelController)
@@ -197,21 +208,16 @@ struct SavedListView: View {
                 Label("Recommend rarely", systemImage: "circle.slash")
                     .foregroundColor(.red)
                     .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color(.systemGray6))
-                    .cornerRadius(8)
-            }
-            
+            }.buttonStyle(.borderless)
+                .padding()
             Button(action: {
                 viewModel.updateRating(for: selectedResult, rating: 2, cacheManager: cacheManager, modelController: modelController)
             }) {
                 Label("Recommend occasionally", systemImage: "circle")
                     .foregroundColor(.accentColor)
                     .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color(.systemGray6))
-                    .cornerRadius(8)
-            }
+            }.buttonStyle(.borderless)
+                .padding()
             
             Button(action: {
                 viewModel.updateRating(for: selectedResult, rating: 3,  cacheManager: cacheManager, modelController: modelController)
@@ -219,14 +225,11 @@ struct SavedListView: View {
                 Label("Recommend often", systemImage: "circle.fill")
                     .foregroundColor(.green)
                     .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color(.systemGray6))
-                    .cornerRadius(8)
-            }
+            }.buttonStyle(.borderless)
+                .padding()
             
             Spacer()
         }
-        .padding()
     }
     
     func deleteTasteItem(at idsToDelete: [UUID]) {

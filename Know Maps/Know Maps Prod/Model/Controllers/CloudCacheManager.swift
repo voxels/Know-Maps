@@ -262,7 +262,7 @@ public final class CloudCacheManager: CacheManager {
     }
 
     public func getAllCachedCategoryResults() -> [CategoryResult] {
-        var results = cachedIndustryResults + cachedTasteResults + cachedPlaceResults + cachedDefaultResults
+        var results = cachedIndustryResults + cachedTasteResults +  cachedDefaultResults + cachedPlaceResults
         results.sort { $0.parentCategory.lowercased() < $1.parentCategory.lowercased() }
         return results
     }

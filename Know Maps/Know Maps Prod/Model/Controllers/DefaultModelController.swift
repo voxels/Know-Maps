@@ -11,7 +11,6 @@ import CoreLocation
 @Observable
 public final class DefaultModelController : ModelController {
     
-    
     static let shared = DefaultModelController(
         locationProvider: LocationProvider(),
         analyticsManager:SegmentAnalyticsService.shared, messagesDelegate: ChatResultViewModel.shared)
@@ -180,16 +179,22 @@ public final class DefaultModelController : ModelController {
             }
         }
         
+        if !placeResults.isEmpty {
+            if let placeResult = placeResults.first(where: { $0.id == id }) {
+                return placeResult
+            }
+        }
+        
         if !relatedPlaceResults.isEmpty {
             if let recommendedResult = relatedPlaceResults.first(where: { $0.id == id }) {
                 return recommendedResult
             }
         }
         
-        return placeResults.first(where:{ $0.id == id })
+        return nil
     }
     
-    public func placeChatResult(for fsqID: String) -> ChatResult? {
+    public func placeChatResult(with fsqID: String) -> ChatResult? {
         return placeResults.first { $0.placeResponse?.fsqID == fsqID }
     }
     
@@ -485,6 +490,10 @@ public final class DefaultModelController : ModelController {
             }
         }
         
+        Task {
+            try await relatedPlaceQueryModel(intent: intent, cacheManager: cacheManager)
+        }
+
         await MainActor.run { [chatResults] in
             if filteredPlaceResults.contains(where: {$0.identity == intent.selectedPlaceSearchResponse?.fsqID}) {
                 mapPlaceResults = placeResults
@@ -492,16 +501,12 @@ public final class DefaultModelController : ModelController {
                 mapPlaceResults = chatResults
             }
             placeResults = chatResults
+            
+            selectedPlaceChatResult = placeResults.filter({ result in
+                result.placeResponse?.fsqID == intent.selectedPlaceSearchResponse?.fsqID
+            }).first?.id
         }
         
-        if let fsqID = intent.selectedPlaceSearchResponse?.fsqID, let placeChatResult = placeChatResult(for:fsqID) {
-            await MainActor.run {
-                selectedPlaceChatResult = placeChatResult.id
-            }
-        }
-        
-        try await recommendedPlaceQueryModel(intent: intent, cacheManager: cacheManager)
-        try await relatedPlaceQueryModel(intent: intent, cacheManager: cacheManager)
         
         return chatResults
     }
@@ -653,8 +658,7 @@ public final class DefaultModelController : ModelController {
             }
             
             try await recommendedPlaceQueryModel(intent: intent, cacheManager: cacheManager)
-            try await relatedPlaceQueryModel(intent: intent, cacheManager: cacheManager)
-            
+                        
             await MainActor.run { [newResults] in
                 placeResults = newResults
                 mapPlaceResults = newResults
