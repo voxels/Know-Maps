@@ -8,7 +8,75 @@
 import SwiftUI
 
 struct AddCategoryView: View {
+    @Binding public var viewModel:SearchSavedViewModel
+    @Binding public var chatModel:ChatResultViewModel
+    @Binding public var cacheManager:CloudCacheManager
+    @Binding public var modelController:DefaultModelController
+    @Binding public var preferredColumn: NavigationSplitViewColumn
+    @Binding public var multiSelection: Set<UUID>
+    @State private var multiSelectionArray: [UUID] = []
+
+    
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        List() {
+            ForEach(multiSelectionArray, id:\.self) { identifier in
+                if let industryResult = modelController.industryCategoryResult(for: identifier) {
+                    VStack {
+                        Text(industryResult.parentCategory)
+                            .font(.headline)
+                            .padding()
+                        
+                        Button(action: {
+                            Task(priority: .userInitiated) {
+                                await viewModel.addCategory(parent: industryResult.id, rating:0, cacheManager: cacheManager, modelController:   modelController)
+                                multiSelection.remove(industryResult.id)
+                            }
+                        }) {
+                            Label("Recommend rarely", systemImage: "circle.slash")
+                                .foregroundColor(.red)
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(Color(.systemGray6))
+                                .cornerRadius(8)
+                        }
+                        .buttonStyle(.borderless)
+                        
+                        Button(action: {
+                            Task(priority: .userInitiated) {
+                                await viewModel.addCategory(parent: industryResult.id,rating:2, cacheManager: cacheManager, modelController:   modelController)
+                                multiSelection.remove(industryResult.id)
+                            }
+                        }) {
+                            Label("Recommend occasionally", systemImage: "circle")
+                                .foregroundColor(.accentColor)
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(Color(.systemGray6))
+                                .cornerRadius(8)
+                        }.buttonStyle(.borderless)
+
+                        
+                        Button(action: {
+                            Task(priority: .userInitiated) {
+                                await viewModel.addCategory(parent: industryResult.id,rating:3, cacheManager: cacheManager, modelController:   modelController)
+                                
+                                multiSelection.remove(industryResult.id)
+                            }
+                        }) {
+                            Label("Recommend often", systemImage: "circle.fill")
+                                .foregroundColor(.green)
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(Color(.systemGray6))
+                                .cornerRadius(8)
+                        }
+                        .buttonStyle(.borderless)
+                    }
+                }
+            }
+        }
+        .onChange(of: multiSelection, { oldValue, newValue in
+            multiSelectionArray = Array(newValue)
+        })
     }
 }

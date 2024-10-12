@@ -55,7 +55,7 @@ struct AddPromptToolbarView: View {
                 Task(priority:.userInitiated) {
                     for parent in multiSelection {
                         await viewModel.addCategory(
-                            parent: parent,
+                            parent: parent, rating:2,
                             cacheManager: cacheManager,
                             modelController: modelController
                         )
@@ -72,7 +72,7 @@ struct AddPromptToolbarView: View {
                 Task(priority:.userInitiated) {
                     for parent in multiSelection {
                         await viewModel.addTaste(
-                            parent: parent,
+                            parent: parent, rating:2,
                             cacheManager: cacheManager,
                             modelController: modelController
                         )

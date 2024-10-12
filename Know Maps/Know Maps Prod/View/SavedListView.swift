@@ -15,7 +15,6 @@ struct SavedListView: View {
     @Binding public var addItemSection: Int
     @Binding public var preferredColumn: NavigationSplitViewColumn
     @Binding public var selectedResult: CategoryResult.ID?
-    @State private var editingRecommendationWeightResult: CategoryResult?
     
     // State variables to manage expanded/collapsed sections
     @State private var isMoodsExpanded = true
@@ -145,7 +144,7 @@ struct SavedListView: View {
                 await cacheManager.refreshCachedResults()
             }
         }
-        .sheet(item: $editingRecommendationWeightResult) { selectedResult in
+        .sheet(item: $viewModel.editingRecommendationWeightResult) { selectedResult in
             recommendationWeightSheet(for: selectedResult)
         }
         .presentationCompactAdaptation(.sheet)
@@ -158,7 +157,7 @@ struct SavedListView: View {
         switch parent.rating {
         case ..<1:
             Button(action: {
-                editingRecommendationWeightResult = parent
+                viewModel.editingRecommendationWeightResult = parent
             }) {
                 Label("Never", systemImage: "circle.slash")
                     .foregroundColor(.red)
@@ -167,7 +166,7 @@ struct SavedListView: View {
             .labelStyle(.iconOnly)
         case 1..<3:
             Button(action: {
-                editingRecommendationWeightResult = parent
+                viewModel.editingRecommendationWeightResult = parent
             }) {
                 Label("Occasionally", systemImage: "circle")
                     .foregroundColor(.accentColor)
@@ -176,7 +175,7 @@ struct SavedListView: View {
             .labelStyle(.iconOnly)
         default:
             Button(action: {
-                editingRecommendationWeightResult = parent
+                viewModel.editingRecommendationWeightResult = parent
             }) {
                 Label("Often", systemImage: "circle.fill")
                     .foregroundColor(.green)
@@ -193,7 +192,7 @@ struct SavedListView: View {
                 .font(.headline)
             
             Button(action: {
-                updateRating(for: selectedResult, rating: 0)
+                viewModel.updateRating(for: selectedResult, rating: 0, cacheManager: cacheManager, modelController: modelController)
             }) {
                 Label("Recommend rarely", systemImage: "circle.slash")
                     .foregroundColor(.red)
@@ -204,7 +203,7 @@ struct SavedListView: View {
             }
             
             Button(action: {
-                updateRating(for: selectedResult, rating: 2)
+                viewModel.updateRating(for: selectedResult, rating: 2, cacheManager: cacheManager, modelController: modelController)
             }) {
                 Label("Recommend occasionally", systemImage: "circle")
                     .foregroundColor(.accentColor)
@@ -215,7 +214,7 @@ struct SavedListView: View {
             }
             
             Button(action: {
-                updateRating(for: selectedResult, rating: 3)
+                viewModel.updateRating(for: selectedResult, rating: 3,  cacheManager: cacheManager, modelController: modelController)
             }) {
                 Label("Recommend often", systemImage: "circle.fill")
                     .foregroundColor(.green)
@@ -228,21 +227,6 @@ struct SavedListView: View {
             Spacer()
         }
         .padding()
-    }
-    
-    // MARK: - Helper Functions
-    
-    func updateRating(for result: CategoryResult, rating: Double) {
-        Task(priority: .userInitiated) {
-            do {
-                try await viewModel.changeRating(rating: rating, for: result.identity, cacheManager: cacheManager, modelController: modelController)
-                await cacheManager.refreshCachedTastes()
-                await cacheManager.refreshCachedCategories()
-            } catch {
-                modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
-            }
-            editingRecommendationWeightResult = nil
-        }
     }
     
     func deleteTasteItem(at idsToDelete: [UUID]) {

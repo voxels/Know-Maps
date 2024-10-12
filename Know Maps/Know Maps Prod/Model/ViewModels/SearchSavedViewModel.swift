@@ -12,6 +12,7 @@ import CoreLocation
 public final class SearchSavedViewModel : Sendable {
     
     public var filters: [String:Any] = [:]
+    public var editingRecommendationWeightResult: CategoryResult?
     
     // Search functionality
     func search(caption: String, selectedDestinationChatResultID: UUID?, intent:AssistiveChatHostService.Intent, filters:[String:Any], chatModel:ChatResultViewModel, cacheManager:CacheManager, modelController:ModelController) async {
@@ -19,6 +20,21 @@ public final class SearchSavedViewModel : Sendable {
             try await chatModel.didSearch(caption: caption, selectedDestinationChatResultID: selectedDestinationChatResultID, intent:intent, filters: filters, cacheManager: cacheManager, modelController:modelController)
         } catch {
             modelController.analyticsManager.trackError(error:error, additionalInfo: nil)
+        }
+    }
+    
+    // MARK: - Helper Functions
+    
+    func updateRating(for result: CategoryResult, rating: Double,  cacheManager:CacheManager, modelController:ModelController) {
+        Task(priority: .userInitiated) {
+            do {
+                try await changeRating(rating: rating, for: result.identity, cacheManager: cacheManager, modelController: modelController)
+                await cacheManager.refreshCachedTastes()
+                await cacheManager.refreshCachedCategories()
+            } catch {
+                modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
+            }
+            editingRecommendationWeightResult = nil
         }
     }
     
@@ -58,9 +74,9 @@ public final class SearchSavedViewModel : Sendable {
     }
     
     // Add Category
-    func addCategory(parent: CategoryResult.ID, cacheManager: CacheManager, modelController: ModelController) async {
+    func addCategory(parent: CategoryResult.ID, rating:Double, cacheManager: CacheManager, modelController: ModelController) async {
         
-        guard let industryCategoryResult = modelController.industryCategoryResult(for: parent) else {
+        guard let industryCategoryResult = modelController.industryCategoryResult(for: parent), !cacheManager.cachedCategories(contains: industryCategoryResult.parentCategory) else {
             return
         }
 
@@ -74,7 +90,7 @@ public final class SearchSavedViewModel : Sendable {
                 icons: "",
                 list: industryCategoryResult.list,
                 section: industryCategoryResult.section.rawValue,
-                rating: 2
+                rating: rating
             )
             
             // Store the record in the local cache and CloudKit
@@ -118,15 +134,13 @@ public final class SearchSavedViewModel : Sendable {
     }
     
     // Add Taste
-    func addTaste(parent: CategoryResult.ID, cacheManager: CacheManager, modelController: ModelController) async {
+    func addTaste(parent: CategoryResult.ID, rating:Double, cacheManager: CacheManager, modelController: ModelController) async {
         
-        guard let tasteCategoryResult = modelController.tasteCategoryResult(for: parent) else {
+        guard let tasteCategoryResult = modelController.tasteCategoryResult(for: parent), !cacheManager.cachedTastes(contains: tasteCategoryResult.parentCategory) else {
             return
         }
         
         do {
-            
-            
             // Fetch the section related to the taste using assistiveHostDelegate
             let section = modelController.assistiveHostDelegate.section(for: tasteCategoryResult.parentCategory).rawValue
             
@@ -139,7 +153,7 @@ public final class SearchSavedViewModel : Sendable {
                 icons: "",
                 list: section,
                 section: section,
-                rating: 1
+                rating: rating
             )
             
             // Save the record to the cache and CloudKit

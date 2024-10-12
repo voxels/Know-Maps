@@ -221,9 +221,9 @@ struct ContentView: View {
                 case .add:
                     switch addItemSection {
                     case 0:
-                        AddCategoryView()
+                        AddCategoryView(viewModel: $searchSavedViewModel, chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, preferredColumn: $preferredColumn, multiSelection:$multiSelection)
                     case 1:
-                        AddTasteView()
+                        AddTasteView(viewModel: $searchSavedViewModel, chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, multiSelection:$multiSelection, preferredColumn: $preferredColumn)
                     case 2:
                         AddPlaceView()
                     default:
