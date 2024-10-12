@@ -14,6 +14,7 @@ struct FiltersView: View {
     @Binding public var searchSavedViewModel:SearchSavedViewModel
     @Binding public var filters:[String:Any]
     @Binding public var showFiltersPopover:Bool
+    @Binding public var isRefreshingPlaces:Bool
     @State private var distanceFilterValue:Double = 0
     
     static var formatter:NumberFormatter {
@@ -41,9 +42,13 @@ struct FiltersView: View {
                 HStack {
                     Button(action: {
                         if let lastIntent = modelController.queryParametersHistory.last?.queryIntents.last {
+                            isRefreshingPlaces = true
                             Task(priority:.userInitiated) {
                                 await modelController.resetPlaceModel()
                                 await searchSavedViewModel.search(caption: lastIntent.caption, selectedDestinationChatResultID: lastIntent.selectedDestinationLocationID, intent: .Search, filters: searchSavedViewModel.filters, chatModel: chatModel, cacheManager: cacheManager, modelController: modelController)
+                                await MainActor.run {
+                                    isRefreshingPlaces = false
+                                }
                             }
                         }                        
                         showFiltersPopover.toggle()

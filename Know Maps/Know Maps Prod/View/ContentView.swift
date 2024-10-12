@@ -149,7 +149,7 @@ struct ContentView: View {
                                 }
                             }
                             .sheet(isPresented: $showFiltersSheet, content: {
-                                FiltersView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, searchSavedViewModel: $searchSavedViewModel, filters: $searchSavedViewModel.filters, showFiltersPopover: $showFiltersSheet)
+                                FiltersView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, searchSavedViewModel: $searchSavedViewModel, filters: $searchSavedViewModel.filters, showFiltersPopover: $showFiltersSheet, isRefreshingPlaces: $isRefreshingPlaces)
 #if os(macOS)
                                 .toolbar(content: {
                                     ToolbarItem {
