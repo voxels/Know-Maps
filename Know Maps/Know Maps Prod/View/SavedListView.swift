@@ -134,15 +134,15 @@ struct SavedListView: View {
                 .buttonStyle(.borderless)
             }
         }
+#if os(iOS) || os(visionOS)
         .listStyle(InsetGroupedListStyle())
-        #if os(iOS) || os(visionOS)
         .toolbarBackground(.visible, for: .navigationBar)
-        #endif
         .toolbar(content: {
             if contentViewDetail == .home {
                 EditButton()
             }
         })
+#endif
         .refreshable {
             Task(priority: .userInitiated) {
                 await cacheManager.refreshCachedResults()

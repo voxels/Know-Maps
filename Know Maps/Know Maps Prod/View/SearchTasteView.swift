@@ -31,11 +31,13 @@ struct SearchTasteView: View {
                 }
             }
         }
+        #if os(iOS) || os(visionOS)
         .toolbar {
             if addItemSection == 1 {
                 EditButton()
             }
         }
+        #endif
         .task{
             Task { @MainActor in
                 do {

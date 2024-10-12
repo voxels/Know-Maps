@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct SearchSavedView: View {
+    @Environment(\.openWindow) private var openWindow
     @Binding public var chatModel: ChatResultViewModel
     @Binding public var viewModel: SearchSavedViewModel
     @Binding public var cacheManager: CloudCacheManager

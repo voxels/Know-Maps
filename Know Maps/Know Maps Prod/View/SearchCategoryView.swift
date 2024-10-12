@@ -45,13 +45,13 @@ struct SearchCategoryView: View {
                 }
             }
         }
+        .listStyle(.sidebar)
+#if os(iOS) || os(visionOS)
         .toolbar {
             if addItemSection == 0 {
                 EditButton()
             }
         }
-        .listStyle(.sidebar)
-#if os(iOS) || os(visionOS)
         .toolbarBackground(.visible, for: .navigationBar)
 #endif
         
