@@ -26,17 +26,17 @@ struct FiltersView: View {
             VStack{
                 Spacer()
                     Text("Search Radius (in kilometers)")
-                    Slider(value: $distanceFilterValue,in:5...100, step:5)
+                    Slider(value: $distanceFilterValue,in:0...50, step:1)
                     {
                         Text("Kilometers")
                     } minimumValueLabel: {
-                        Text("5")
+                        Text("0")
                     } maximumValueLabel: {
-                        Text("100")
+                        Text("50")
                     } onEditingChanged: { changed in
-                        filters["distance"] = distanceFilterValue * 1000
+                        filters["distance"] = max(distanceFilterValue, 0.5)
                     }.padding()
-                Text("\(FiltersView.formatter.string(from:NSNumber(value:distanceFilterValue)) ?? "5") kilometers")
+                Text("\(FiltersView.formatter.string(from:NSNumber(value:distanceFilterValue)) ?? "1") kilometers")
                 Spacer()
                 HStack {
                     Button(action: {

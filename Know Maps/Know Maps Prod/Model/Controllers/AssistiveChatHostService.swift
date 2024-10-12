@@ -162,7 +162,7 @@ public final class AssistiveChatHostService : AssistiveChatHost {
         var radius:Double = 20000
         
         if let filterDistance = filters["distance"] as? Double {
-            radius = filterDistance
+            radius = filterDistance * 1000
         }
         
         let emptyParameters =
