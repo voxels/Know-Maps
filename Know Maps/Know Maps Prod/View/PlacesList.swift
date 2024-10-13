@@ -17,7 +17,6 @@ struct PlacesList: View {
     @Binding var cacheManager:CloudCacheManager
     @Binding var modelController:DefaultModelController
     @Binding  public var showMapsResultViewSheet:Bool
-    @Binding public var isRefreshingPlaces:Bool
     @State private var selectedItem: String?
     
     
@@ -35,13 +34,13 @@ struct PlacesList: View {
                  BannerView(adSize)
                  .frame(height: adSize.size.height)
                  */
-                if modelController.recommendedPlaceResults.count != 0 {
+                if modelController.recommendedPlaceResults.count > 0 {
                     ScrollView{
                         let sizeWidth:CGFloat = sizeClass == .compact ? 1 : 3
 #if os(macOS) || os(visionOS)
                         let columns = Array(repeating: GridItem(.adaptive(minimum: geometry.size.width / sizeWidth)),  count:Int(sizeWidth))
 #else
-                        let columns = Array(repeating: GridItem(.adaptive(minimum: UIScreen.main.bounds.size.width / sizeWidth)),  count:Int(sizeWidth))
+                        let columns = Array(repeating: GridItem(.adaptive(minimum: UIScreen.main.bounds.size.width / sizeWidth),spacing:16, alignment: .top),  count:Int(sizeWidth))
 #endif
                         LazyVGrid(columns: columns, alignment: .leading, spacing: 16) {
                             ForEach(modelController.recommendedPlaceResults, id:\.id){ result in
@@ -67,6 +66,7 @@ struct PlacesList: View {
                                             switch phase {
                                             case .empty:
                                                     ProgressView()
+                                                    .padding()
                                                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                                             case .success(let image):
                                                 image.resizable()
@@ -94,11 +94,12 @@ struct PlacesList: View {
                                         }
                                     } else {
                                         if let placeChatResult = modelController.placeChatResult(for: result.id), placeChatResult.placeDetailsResponse == nil {
-                                            isRefreshingPlaces = true
+                                            modelController.isRefreshingPlaces = true
+                                            modelController.fetchMessage = "Searching"
                                             Task(priority:.userInitiated) {
                                                 try await chatModel.didTap(placeChatResult: placeChatResult, filters:searchSavedViewModel.filters, cacheManager: cacheManager, modelController: modelController)
                                                 await MainActor.run {
-                                                    isRefreshingPlaces = false
+                                                    modelController.isRefreshingPlaces = false
                                                 }
                                             }
                                         }
@@ -112,7 +113,7 @@ struct PlacesList: View {
                     }
                     .padding()
                     
-                } else if modelController.placeResults.count != 0 {
+                } else if modelController.placeResults.count > 0 {
                     ScrollView{
                         let sizeWidth:CGFloat = sizeClass == .compact ? 1 : 3
 #if os(macOS) || os(visionOS)
@@ -168,11 +169,26 @@ struct PlacesList: View {
                                 }
                             }
                         }
-                    }
+                    }.padding()
                 } else {
-                    EmptyView()
+                    VStack {
+                        Spacer()
+                        HStack {
+                            Spacer()
+                            if let selectedDestinationLocationChatResult = modelController.selectedDestinationLocationChatResult, let locationChatResult = modelController.locationChatResult(for: selectedDestinationLocationChatResult, in: modelController.filteredLocationResults(cacheManager: cacheManager)), !locationChatResult.locationName.isEmpty {
+                                Text("No places near \(locationChatResult.locationName) matching query.")
+                            } else {
+                                Text("No places nearby matching query.")
+                            }
+                            Spacer()
+                        }.frame(maxWidth: .infinity, alignment: .init(horizontal: .center, vertical: .center))
+                        Spacer()
+                    }.frame(maxWidth: .infinity, alignment: .init(horizontal: .center, vertical: .center))
+                        .padding()
                 }
-            }.padding()
+            }
+            .background(.regularMaterial)
+            .ignoresSafeArea(.all)
         }
     }
 }

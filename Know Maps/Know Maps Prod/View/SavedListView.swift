@@ -25,24 +25,28 @@ struct SavedListView: View {
     var body: some View {
         List(selection: $selectedResult) {
             #if !os(macOS)
-            Section(header: Text("Shortcuts").font(.headline).foregroundStyle(.primary)) {
+            Section() {
                 VStack(alignment: .leading, spacing: 8) {
                     SiriTipView(intent: ShowMoodResultsIntent())
                         .padding(.vertical,8)
 
-                    Text("Find a place nearby")
-                    Text("Find where to go next")
-                    Text("Save this place")
-                    Text("Visit a new area")
+//                    Text("Find a place nearby")
+//                    Text("Find where to go next")
+//                    Text("Save this place")
+//                    Text("Visit a new area")
                 }
                 .padding(.vertical, 4)
+            } header: {
+                Text("Shortcuts")
+                    .font(.headline)
+                    .foregroundStyle(.primary)
             }
             #endif
             
             DisclosureGroup("Moods", isExpanded: $isMoodsExpanded) {
                 ForEach(cacheManager.cachedDefaultResults, id: \.id) { parent in
                     Text(parent.parentCategory)
-                        .padding(.vertical, 8)
+                        .padding(.vertical, 12)
                 }
             }
         
@@ -55,7 +59,6 @@ struct SavedListView: View {
                             ratingButton(for: parent)
                         }
                         .frame(maxWidth: .infinity)
-
                     }
                     .onDelete { indexSet in
                         let idsToDelete = indexSet.map { cacheManager.cachedIndustryResults[$0].id }
@@ -103,6 +106,7 @@ struct SavedListView: View {
                         Text("Add an item")
                         Spacer()
                     }
+                    
                     .foregroundColor(.accentColor)
                 }
                 .buttonStyle(.borderless)
@@ -112,7 +116,7 @@ struct SavedListView: View {
                 if !cacheManager.cachedPlaceResults.isEmpty {
                     ForEach(cacheManager.cachedPlaceResults, id: \.id) { parent in
                         Text(parent.parentCategory)
-                            .padding(.vertical,8)
+                            .padding(.vertical,12)
                     }
                     .onDelete { indexSet in
                         let idsToDelete = indexSet.map { cacheManager.cachedPlaceResults[$0].id }
@@ -145,6 +149,11 @@ struct SavedListView: View {
 #endif
         .refreshable {
             Task(priority: .userInitiated) {
+                await cacheManager.refreshCachedResults()
+            }
+        }
+        .task {
+            Task(priority: .high) {
                 await cacheManager.refreshCachedResults()
             }
         }

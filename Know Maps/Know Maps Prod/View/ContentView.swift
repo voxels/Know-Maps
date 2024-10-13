@@ -38,7 +38,6 @@ struct ContentView: View {
     @State private var selectedCategoryID:CategoryResult.ID?
     @State public var multiSelection = Set<UUID>()
     @State private var settingsPresented:Bool = false
-    @State private var isRefreshingPlaces:Bool = false
     @State private var didError = false
     @State private var contentViewDetail:ContentDetailView = .home
     @State private var preferredColumn:NavigationSplitViewColumn = .sidebar
@@ -56,7 +55,7 @@ struct ContentView: View {
             NavigationSplitView(preferredCompactColumn: $preferredColumn) {
                 switch contentViewDetail {
                 case .home:
-                    SearchView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, searchSavedViewModel: $searchSavedViewModel, preferredColumn: $preferredColumn, contentViewDetail: $contentViewDetail, addItemSection: $addItemSection, settingsPresented: $settingsPresented, showPlaceViewSheet: $showPlaceViewSheet, isRefreshingPlaces: $isRefreshingPlaces, didError: $didError)
+                    SearchView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, searchSavedViewModel: $searchSavedViewModel, preferredColumn: $preferredColumn, contentViewDetail: $contentViewDetail, addItemSection: $addItemSection, settingsPresented: $settingsPresented, showPlaceViewSheet: $showPlaceViewSheet, didError: $didError)
                         .sheet(isPresented: $settingsPresented) {
                             SettingsView(model: $settingsModel, chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, showOnboarding: $showOnboarding)
                                 .presentationDetents([.large])
@@ -109,18 +108,18 @@ struct ContentView: View {
                 switch contentViewDetail {
                 case .home:
                     
-                    if isRefreshingPlaces {
+                    if modelController.isRefreshingPlaces {
                         VStack {
                             Spacer()
                             HStack {
                                 Spacer()
-                                ProgressView("Fetching results...")
+                                ProgressView(modelController.fetchMessage)
                                 Spacer()
                             }
                             Spacer()
                         }
                     } else {
-                        PlacesList(searchSavedViewModel:$searchSavedViewModel,chatModel: $chatModel, cacheManager:$cacheManager, modelController: $modelController, showMapsResultViewSheet: $showMapsResultViewSheet, isRefreshingPlaces: $isRefreshingPlaces)
+                        PlacesList(searchSavedViewModel:$searchSavedViewModel,chatModel: $chatModel, cacheManager:$cacheManager, modelController: $modelController, showMapsResultViewSheet: $showMapsResultViewSheet)
                             .alert("Unknown Place", isPresented: $didError) {
                                 Button(action: {
                                     DispatchQueue.main.async {
@@ -149,7 +148,7 @@ struct ContentView: View {
                                 }
                             }
                             .sheet(isPresented: $showFiltersSheet, content: {
-                                FiltersView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, searchSavedViewModel: $searchSavedViewModel, filters: $searchSavedViewModel.filters, showFiltersPopover: $showFiltersSheet, isRefreshingPlaces: $isRefreshingPlaces)
+                                FiltersView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, searchSavedViewModel: $searchSavedViewModel, filters: $searchSavedViewModel.filters, showFiltersPopover: $showFiltersSheet)
 #if os(macOS)
                                 .toolbar(content: {
                                     ToolbarItem {

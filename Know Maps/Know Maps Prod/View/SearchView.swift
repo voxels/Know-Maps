@@ -17,7 +17,6 @@ struct SearchView: View {
     @Binding public var addItemSection:Int
     @Binding public var settingsPresented:Bool
     @Binding public var showPlaceViewSheet:Bool
-    @Binding public var isRefreshingPlaces:Bool
     @Binding public var didError:Bool
     
     var body: some View {
@@ -40,9 +39,10 @@ struct SearchView: View {
                 guard let newValue = newValue, newValue != oldValue else {
                     return
                 }
-                isRefreshingPlaces = true
                 contentViewDetail = .home
                 preferredColumn = .detail
+                modelController.isRefreshingPlaces = true
+                modelController.fetchMessage = "Searching"
                 Task(priority:.userInitiated) {
                     await modelController.resetPlaceModel()
                     if let selectedDestinationLocationChatResult = modelController.selectedDestinationLocationChatResult {
@@ -55,7 +55,7 @@ struct SearchView: View {
                         }
                     }
                     await MainActor.run {
-                        self.isRefreshingPlaces = false
+                        modelController.isRefreshingPlaces = false
                     }
                 }
             }

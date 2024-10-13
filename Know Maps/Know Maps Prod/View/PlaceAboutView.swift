@@ -19,250 +19,317 @@ struct PlaceAboutView: View {
     
     var viewModel: PlaceAboutViewModel = .init()
     
+    @Namespace var topID
+    
     var body: some View {
         GeometryReader { geo in
-            ScrollView {
-                VStack {
-                    if let resultId = modelController.selectedPlaceChatResult, let result = modelController.placeChatResult(for: resultId), let placeResponse = result.placeResponse, let placeDetailsResponse = result.placeDetailsResponse {
-                        
-                        // Title and Map
-                        let placeCoordinate = CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude)
-                        let title = placeResponse.name
-                        
-                        Text(title)
-                            .font(.headline)
-                            .padding()
-                        
-                        Map(initialPosition: .automatic, bounds: MapCameraBounds(minimumDistance: 5000, maximumDistance: 250000), interactionModes: [.zoom, .rotate]) {
-                            Marker(title, coordinate: placeCoordinate.coordinate)
-                        }
-                        .mapStyle(.hybrid)
-                        .frame(minHeight: geo.size.height / 2.0)
-                        .cornerRadius(16)
-                        .padding()
-                        
-                        // Address and Categories
-                        ZStack(alignment: .leading) {
-                            VStack {
-                                Text(placeResponse.categories.joined(separator: ", ")).italic()
-                                    .padding(PlaceAboutView.defaultPadding)
-                                
-                                Label(placeResponse.formattedAddress, systemImage: "mappin")
-                                    .multilineTextAlignment(.center)
-                                    .padding()
-                                    .labelStyle(.titleOnly)
-                                    .onTapGesture {
-                                        tabItem = 1
-                                    }
-                            }
-                        }
-                        .padding()
-                        
-                        // Action buttons
-                        HStack {
-                            Spacer()
-                            // Save/Unsave button
-                            ZStack {
-                                Capsule()
-                                    .foregroundStyle(.accent)
-                                    .frame(height: PlaceAboutView.buttonHeight)
-                                let isSaved = cacheManager.cachedPlaces(contains: title)
-                                if sizeClass == .compact {
-                                    Label(isSaved ? "Delete" : "Add to List", systemImage: isSaved ? "minus.circle" : "plus.circle")
-                                        .labelStyle( .iconOnly )
+            ScrollViewReader { proxy in
+                ScrollView {
+                    VStack {
+                        if let resultId = modelController.selectedPlaceChatResult, let result = modelController.placeChatResult(for: resultId), let placeResponse = result.placeResponse, let placeDetailsResponse = result.placeDetailsResponse {
+                            
+                            // Title and Map
+                            let placeCoordinate = CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude)
+                            let title = placeResponse.name
+                            
+                            
+                            Text(title)
+                                .font(.title)
+                                .padding()
+                                .id(topID)
+                            
+                            if let aspectRatio = result.placeDetailsResponse?.photoResponses?.first?.aspectRatio, let url = result.placeDetailsResponse?.photoResponses?.first?.photoUrl() {
+                                if modelController.isRefreshingPlaces {
+                                    Image(systemName: "photo").aspectRatio(CGFloat(aspectRatio), contentMode: .fit)
+                                        .scaledToFit()
+                                        .cornerRadius(16)
+                                        .frame(width: geo.size.width - 32, height:geo.size.width - 32)
                                 } else {
-                                    Label(isSaved ? "Delete" : "Add to List", systemImage: isSaved ? "minus.circle" : "plus.circle")
-                                        .labelStyle(.titleAndIcon)
-                                }
-                                
-                            }.onTapGesture {
-                                Task(priority:.userInitiated) {
-                                    await viewModel.toggleSavePlace(resultId: resultId, cacheManager: cacheManager, modelController:modelController)
+                                    withAnimation {
+                                        
+                                        AsyncImage(url: url) { phase in
+                                            switch phase {
+                                            case .empty:
+                                                Image(systemName: "photo").aspectRatio(CGFloat(aspectRatio), contentMode: .fit)
+                                                    .scaledToFit()
+                                                    .cornerRadius(16)
+                                                    .frame(width: geo.size.width - 32, height:geo.size.width - 32)
+                                            case .success(let image):
+                                                
+                                                image.resizable()
+                                                    .aspectRatio(CGFloat(aspectRatio), contentMode: .fit)
+                                                    .scaledToFit()
+                                                    .cornerRadius(16)
+                                                
+                                            case .failure:
+                                                EmptyView()
+                                            @unknown default:
+                                                EmptyView()
+                                            }
+                                        }.frame(maxWidth: geo.size.width - 32, maxHeight:geo.size.width - 32)
+                                    }
                                 }
                             }
                             
-                            // Phone button
-                            if let tel = placeDetailsResponse.tel {
+                            
+                            // Address and Categories
+                            ZStack(alignment: .leading) {
+                                VStack {
+                                    Text(placeResponse.categories.joined(separator: ", ")).italic()
+                                        .padding(PlaceAboutView.defaultPadding)
+                                    
+                                    if let description = placeDetailsResponse.description, !description.isEmpty {
+                                        Text(description).padding(PlaceAboutView.defaultPadding)
+                                    }
+                                    
+                                    Label(placeResponse.formattedAddress, systemImage: "mappin")
+                                        .multilineTextAlignment(.center)
+                                        .padding()
+                                        .labelStyle(.titleOnly)
+                                        .padding(PlaceAboutView.defaultPadding)
+                                        .onTapGesture {
+                                            tabItem = 1
+                                        }
+                                }
+                            }
+                            .padding()
+                            
+                            // Action buttons
+                            HStack {
+                                Spacer()
+                                // Save/Unsave button
                                 ZStack {
                                     Capsule()
                                         .foregroundStyle(.accent)
                                         .frame(height: PlaceAboutView.buttonHeight)
-                                    
+                                    let isSaved = cacheManager.cachedPlaces(contains: title)
                                     if sizeClass == .compact {
-                                        Label(tel, systemImage: "phone")
-                                            .labelStyle(.iconOnly)
-                                        
+                                        Label(isSaved ? "Delete" : "Add to List", systemImage: isSaved ? "minus.circle" : "plus.circle")
+                                            .labelStyle( .iconOnly )
                                     } else {
-                                        Label(tel, systemImage: "phone")
+                                        Label(isSaved ? "Delete" : "Add to List", systemImage: isSaved ? "minus.circle" : "plus.circle")
                                             .labelStyle(.titleAndIcon)
                                     }
                                     
                                 }.onTapGesture {
-                                    if let url = viewModel.getCallURL(tel: tel) {
+                                    Task(priority:.userInitiated) {
+                                        await viewModel.toggleSavePlace(resultId: resultId, cacheManager: cacheManager, modelController:modelController)
+                                    }
+                                }
+                                
+                                // Phone button
+                                if let tel = placeDetailsResponse.tel {
+                                    ZStack {
+                                        Capsule()
+                                            .foregroundStyle(.accent)
+                                            .frame(height: PlaceAboutView.buttonHeight)
+                                        
+                                        if sizeClass == .compact {
+                                            Label(tel, systemImage: "phone")
+                                                .labelStyle(.iconOnly)
+                                            
+                                        } else {
+                                            Label(tel, systemImage: "phone")
+                                                .labelStyle(.titleAndIcon)
+                                        }
+                                        
+                                    }.onTapGesture {
+                                        if let url = viewModel.getCallURL(tel: tel) {
+                                            openURL(url)
+                                        }
+                                    }
+                                }
+                                
+                                // Website button
+                                if let website = placeDetailsResponse.website, let url = viewModel.getWebsiteURL(website: website) {
+                                    ZStack {
+                                        Capsule()
+                                            .foregroundStyle(.accent)
+                                            .frame(height: PlaceAboutView.buttonHeight)
+                                        
+                                        if sizeClass == .compact {
+                                            Label("Visit website", systemImage: "link")
+                                                .labelStyle(.iconOnly)
+                                        } else {
+                                            Label("Visit website", systemImage: "link")
+                                                .labelStyle(.titleAndIcon)
+                                        }
+                                        
+                                    }.onTapGesture {
                                         openURL(url)
                                     }
                                 }
-                            }
-                            
-                            // Website button
-                            if let website = placeDetailsResponse.website, let url = viewModel.getWebsiteURL(website: website) {
-                                ZStack {
-                                    Capsule()
-                                        .foregroundStyle(.accent)
-                                        .frame(height: PlaceAboutView.buttonHeight)
-                                    
-                                    if sizeClass == .compact {
-                                        Label("Visit website", systemImage: "link")
-                                            .labelStyle(.iconOnly)
-                                    } else {
-                                        Label("Visit website", systemImage: "link")
+                                Spacer()
+                            }.padding(.horizontal, 16)
+                            HStack{
+                                Spacer()
+                                // Rating button
+                                if placeDetailsResponse.rating > 0 {
+                                    ZStack {
+                                        Capsule()
+                                            .foregroundStyle(.accent)
+                                            .frame(height: PlaceAboutView.buttonHeight)
+                                        
+                                        Label(PlacesList.formatter.string(from: NSNumber(value: placeDetailsResponse.rating)) ?? "0", systemImage: "star.fill")
                                             .labelStyle(.titleAndIcon)
                                     }
-                                    
-                                }.onTapGesture {
-                                    openURL(url)
+                                    .onTapGesture {
+                                        tabItem = 3
+                                    }
+                                    .padding(PlaceAboutView.defaultPadding)
                                 }
-                            }
-                            Spacer()
-                        }.padding(.horizontal, 16)
-                        HStack{
-                            Spacer()
-                            // Rating button
-                            if placeDetailsResponse.rating > 0 {
-                                ZStack {
-                                    Capsule()
-                                        .foregroundStyle(.accent)
-                                        .frame(height: PlaceAboutView.buttonHeight)
-                                    
-                                    Label(PlacesList.formatter.string(from: NSNumber(value: placeDetailsResponse.rating)) ?? "0", systemImage: "star.fill")
-                                        .labelStyle(.titleAndIcon)
+                                
+                                
+                                // Price button
+                                if let price = placeDetailsResponse.price {
+                                    ZStack {
+                                        Capsule()
+                                            .foregroundStyle(.accent)
+                                            .frame(height: PlaceAboutView.buttonHeight)
+                                        
+                                        Text(priceToString(price: price))
+                                    }
+                                    .padding(PlaceAboutView.defaultPadding)
                                 }
-                                .onTapGesture {
-                                    tabItem = 3
-                                }
-                                .padding(PlaceAboutView.defaultPadding)
-                            }
-                            
-                            
-                            // Price button
-                            if let price = placeDetailsResponse.price {
-                                ZStack {
-                                    Capsule()
-                                        .foregroundStyle(.accent)
-                                        .frame(height: PlaceAboutView.buttonHeight)
-                                    
-                                    Text(priceToString(price: price))
-                                }
-                                .padding(PlaceAboutView.defaultPadding)
-                            }
 #if os(iOS) || os(visionOS)
-                            // Share button
-                            ZStack {
-                                Capsule()
-                                    .foregroundStyle(.accent)
-                                    .frame(height: PlaceAboutView.buttonHeight)
-                                if sizeClass == .compact {
-                                    Label("Share", systemImage: "square.and.arrow.up")
-                                        .labelStyle(.iconOnly)
-                                } else {
-                                    Label("Share", systemImage: "square.and.arrow.up")
-                                        .labelStyle(.titleAndIcon)
+                                // Share button
+                                ZStack {
+                                    Capsule()
+                                        .foregroundStyle(.accent)
+                                        .frame(height: PlaceAboutView.buttonHeight)
+                                    if sizeClass == .compact {
+                                        Label("Share", systemImage: "square.and.arrow.up")
+                                            .labelStyle(.iconOnly)
+                                    } else {
+                                        Label("Share", systemImage: "square.and.arrow.up")
+                                            .labelStyle(.titleAndIcon)
+                                    }
                                 }
-                            }
-                            .padding(PlaceAboutView.defaultPadding)
-                            .onTapGesture {
-                                presentingPopover.toggle()
-                            }
-                            .sheet(isPresented:$presentingPopover) {
-                                if let result = modelController.placeChatResult(for: resultId), let placeDetailsResponse = result.placeDetailsResponse  {
-                                    let items:[Any] = [placeDetailsResponse.website ?? placeDetailsResponse.searchResponse.address]
-                                    ActivityViewController(activityItems:items, applicationActivities:[UIActivity](), isPresentingShareSheet: $isPresentingShareSheet)
-                                        .presentationDetents([.medium])
-                                        .presentationDragIndicator(.visible)
-                                        .presentationCompactAdaptation(.sheet)
+                                .padding(PlaceAboutView.defaultPadding)
+                                .onTapGesture {
+                                    presentingPopover.toggle()
                                 }
-                            }
+                                .sheet(isPresented:$presentingPopover) {
+                                    if let result = modelController.placeChatResult(for: resultId), let placeDetailsResponse = result.placeDetailsResponse  {
+                                        let items:[Any] = [placeDetailsResponse.website ?? placeDetailsResponse.searchResponse.address]
+                                        ActivityViewController(activityItems:items, applicationActivities:[UIActivity](), isPresentingShareSheet: $isPresentingShareSheet)
+                                            .presentationDetents([.medium])
+                                            .presentationDragIndicator(.visible)
+                                            .presentationCompactAdaptation(.sheet)
+                                    }
+                                }
 #endif
-                            Spacer()
-                        }
-                        .padding(.horizontal, 16)
-                        // Related Places Section
-                            Section("Related Places") {
-                                ScrollView(.horizontal) {
-                                    HStack {
-                                        ForEach(modelController.relatedPlaceResults) { relatedPlace in
-                                            VStack {
-                                                Text(relatedPlace.title).bold().padding(8)
-                                                if let neighborhood = relatedPlace.recommendedPlaceResponse?.neighborhood, !neighborhood.isEmpty {
-                                                    Text(neighborhood).italic().padding(8)
-                                                } else if let locality = relatedPlace.placeResponse?.locality {
-                                                    Text(locality).italic().padding(8)
-                                                }
-                                            }
-                                            .padding(PlaceAboutView.defaultPadding)
-                                            .background(RoundedRectangle(cornerRadius: 16)
-                                                .strokeBorder())
-                                            .onTapGesture {
-                                                Task(priority:.userInitiated) {
-                                                    do {
-                                                        try await chatModel.didTap(placeChatResult: relatedPlace,filters:[:], cacheManager: cacheManager, modelController: modelController)
-                                                    } catch {
-                                                        modelController.analyticsManager.trackError(error:error, additionalInfo: nil)
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                
-                            }.padding(16)
-                        }
-                        // Tastes Section
-                        if let tastes = placeDetailsResponse.tastes, !tastes.isEmpty {
-                            Section("Items") {
-                                let gridItems = Array(repeating: GridItem(.flexible(), spacing: PlaceAboutView.defaultPadding), count: sizeClass == .compact ? 2 : 3)
-                                
-                                LazyVGrid(columns: gridItems, alignment: .leading, spacing: 8) {
-                                    ForEach($mutableTastes, id: \.self) { taste in
-                                        let isSaved = cacheManager.cachedTastes(contains: taste.wrappedValue)
+                                Spacer()
+                            }
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 24)
+                            // Related Places Section
+                            Section {
+                                if modelController.relatedPlaceResults.count == 0 {
+                                    ProgressView("Personalizing Related Places")
+                                        .padding(.vertical, 24)
+                                } else {
+                                    ScrollView(.horizontal) {
                                         HStack {
-                                            Label("Save", systemImage: isSaved ? "minus.circle" : "plus.circle")
-                                                .labelStyle(.iconOnly)
-                                                .padding(PlaceAboutView.defaultPadding)
-                                            
-                                            Text(taste.wrappedValue)
-                                            Spacer()
-                                        }.onTapGesture {
-                                            if isSaved {
-                                                if let cachedTasteResult = modelController.cachedTasteResult(title: taste.wrappedValue, cacheManager: cacheManager) {
-                                                    Task(priority:.userInitiated) {
-                                                        await viewModel.removeTaste(parent: cachedTasteResult, cacheManager:cacheManager, modelController: modelController)
+                                            ForEach(modelController.relatedPlaceResults) { relatedPlace in
+                                                VStack {
+                                                    Text(relatedPlace.title).bold().padding(8)
+                                                    if let neighborhood = relatedPlace.recommendedPlaceResponse?.neighborhood, !neighborhood.isEmpty {
+                                                        Text(neighborhood).italic().padding(8)
+                                                    } else if let locality = relatedPlace.placeResponse?.locality {
+                                                        Text(locality).italic().padding(8)
                                                     }
                                                 }
-                                            } else {
-                                                Task(priority:.userInitiated) {
-                                                    await viewModel.addTaste(title: taste.wrappedValue, cacheManager: cacheManager, modelController:modelController)
+                                                .padding(PlaceAboutView.defaultPadding)
+                                                .background(RoundedRectangle(cornerRadius: 16)
+                                                    .strokeBorder())
+                                                .onTapGesture {
+                                                    Task(priority:.userInitiated) {
+                                                        withAnimation {
+                                                            proxy.scrollTo(topID)
+                                                        }
+                                                        do {
+                                                            try await chatModel.didTap(placeChatResult: relatedPlace,filters:[:], cacheManager: cacheManager, modelController: modelController)
+                                                        } catch {
+                                                            modelController.analyticsManager.trackError(error:error, additionalInfo: nil)
+                                                        }
+                                                    }
                                                 }
                                             }
                                         }
+                                        
                                     }
                                 }
-                            }.padding(16)
+                            } header: {
+                                Text("Related Places").font(.headline)
+                            }.padding(.horizontal,16)
+                                .padding(.vertical, 24)
+                            
+                            // Tastes Section
+                            if let tastes = placeDetailsResponse.tastes, !tastes.isEmpty {
+                                Section {
+                                    let gridItems = Array(repeating: GridItem(.flexible(), spacing: PlaceAboutView.defaultPadding), count: sizeClass == .compact ? 2 : 3)
+                                    
+                                    LazyVGrid(columns: gridItems, alignment: .leading, spacing: 8) {
+                                        ForEach($mutableTastes, id: \.self) { taste in
+                                            let isSaved = cacheManager.cachedTastes(contains: taste.wrappedValue)
+                                            HStack {
+                                                Label("Save", systemImage: isSaved ? "minus.circle" : "plus.circle")
+                                                    .labelStyle(.iconOnly)
+                                                    .padding(PlaceAboutView.defaultPadding)
+                                                
+                                                Text(taste.wrappedValue)
+                                                Spacer()
+                                            }.onTapGesture {
+                                                if isSaved {
+                                                    if let cachedTasteResult = modelController.cachedTasteResult(title: taste.wrappedValue, cacheManager: cacheManager) {
+                                                        Task(priority:.userInitiated) {
+                                                            await viewModel.removeTaste(parent: cachedTasteResult, cacheManager:cacheManager, modelController: modelController)
+                                                        }
+                                                    }
+                                                } else {
+                                                    Task(priority:.userInitiated) {
+                                                        await viewModel.addTaste(title: taste.wrappedValue, cacheManager: cacheManager, modelController:modelController)
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                } header: {
+                                    Text("Items").font(.headline)
+                                }
+                                .padding(.horizontal,16)
+                                .padding(.vertical, 24)
                                 .task {
                                     if let tastes = placeDetailsResponse.tastes {
                                         mutableTastes = tastes
                                     }
                                 }
-                        }
-                    } else {
-                        // Loading view
-                        VStack {
-                            Spacer()
-                            HStack {
+                                
+                                Section {
+                                    Map(initialPosition: .automatic, bounds: MapCameraBounds(minimumDistance: 5000, maximumDistance: 250000), interactionModes: [.zoom, .rotate]) {
+                                        Marker(title, coordinate: placeCoordinate.coordinate)
+                                    }
+                                    .mapStyle(.hybrid)
+                                    .frame(minHeight: geo.size.height / 2.0)
+                                    .cornerRadius(16)
+                                } header: {
+                                    Text("Location").font(.headline)
+                                }
+                                .padding(.horizontal,16)
+                                .padding(.vertical, 24)
+                            }
+                        } else {
+                            // Loading view
+                            VStack {
                                 Spacer()
-                                ProgressView()
+                                HStack {
+                                    Spacer()
+                                    ProgressView()
+                                    Spacer()
+                                }
                                 Spacer()
                             }
-                            Spacer()
                         }
                     }
                 }

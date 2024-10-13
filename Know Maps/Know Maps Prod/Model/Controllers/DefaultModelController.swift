@@ -33,6 +33,8 @@ public final class DefaultModelController : ModelController {
     
     // Fetching States
     public var isFetchingPlaceDescription: Bool = false
+    public var isRefreshingPlaces:Bool = false
+    public var fetchMessage:String = ""
     
     // Results
     public var industryResults = [CategoryResult]()
@@ -514,14 +516,48 @@ public final class DefaultModelController : ModelController {
     public func recommendedPlaceQueryModel(intent: AssistiveChatHostIntent, cacheManager:CacheManager) async throws {
         var recommendedChatResults = [ChatResult]()
         
-        if let recommendedPlaceSearchResponses = intent.recommendedPlaceSearchResponses, !recommendedPlaceSearchResponses.isEmpty {
-            let trainingData = recommenderService.recommendationData(tasteCategoryResults:cacheManager.cachedTasteResults, industryCategoryResults: cacheManager.cachedIndustryResults, placeRecommendationData: cacheManager.cachedRecommendationData)
-            let model = try recommenderService.model(with: trainingData)
-            let testingData = recommenderService.testingData(with:recommendedPlaceSearchResponses)
-            let recommenderResults = try recommenderService.recommend(from: testingData, with: model)
-            
-            for index in 0..<recommendedPlaceSearchResponses.count {
-                let response = recommendedPlaceSearchResponses[index]
+        if let recommendedPlaceSearchResponses = intent.recommendedPlaceSearchResponses {
+            if recommendedPlaceSearchResponses.count > 1 {
+                fetchMessage = "Personalizing results"
+                let trainingData = recommenderService.recommendationData(tasteCategoryResults:cacheManager.cachedTasteResults, industryCategoryResults: cacheManager.cachedIndustryResults, placeRecommendationData: cacheManager.cachedRecommendationData)
+                let model = try recommenderService.model(with: trainingData)
+                let testingData = recommenderService.testingData(with:recommendedPlaceSearchResponses)
+                let recommenderResults = try recommenderService.recommend(from: testingData, with: model)
+                
+                for index in 0..<recommendedPlaceSearchResponses.count {
+                    let response = recommendedPlaceSearchResponses[index]
+                    if !response.fsqID.isEmpty {
+                        let placeResponse = PlaceSearchResponse(
+                            fsqID: response.fsqID,
+                            name: response.name,
+                            categories: response.categories,
+                            latitude: response.latitude,
+                            longitude: response.longitude,
+                            address: response.address,
+                            addressExtended: response.formattedAddress,
+                            country: response.country,
+                            dma: response.neighborhood,
+                            formattedAddress: response.formattedAddress,
+                            locality: response.city,
+                            postCode: response.postCode,
+                            region: response.state,
+                            chains: [],
+                            link: "",
+                            childIDs: [],
+                            parentIDs: []
+                        )
+                        let results = PlaceResponseFormatter.placeChatResults(
+                            for: intent,
+                            place: placeResponse,
+                            section: assistiveHostDelegate.section(for: intent.caption), list: intent.caption, index: index, rating: recommenderResults[index].attributeRatings.first?.value ?? 1,
+                            details: nil,
+                            recommendedPlaceResponse: response
+                        )
+                        recommendedChatResults.append(contentsOf: results)
+                    }
+                }
+            } else if !recommendedPlaceSearchResponses.isEmpty {
+                let response = recommendedPlaceSearchResponses[0]
                 if !response.fsqID.isEmpty {
                     let placeResponse = PlaceSearchResponse(
                         fsqID: response.fsqID,
@@ -545,7 +581,7 @@ public final class DefaultModelController : ModelController {
                     let results = PlaceResponseFormatter.placeChatResults(
                         for: intent,
                         place: placeResponse,
-                        section: assistiveHostDelegate.section(for: intent.caption), list: intent.caption, index: index, rating: recommenderResults[index].attributeRatings.first?.value ?? 1,
+                        section: assistiveHostDelegate.section(for: intent.caption), list: intent.caption, index: 0, rating: 1,
                         details: nil,
                         recommendedPlaceResponse: response
                     )
