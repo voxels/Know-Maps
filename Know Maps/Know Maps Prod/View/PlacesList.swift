@@ -188,7 +188,7 @@ struct PlacesList: View {
                 }
             }
             .background(.regularMaterial)
-            .ignoresSafeArea(.all)
+            .ignoresSafeArea(.all, edges: .horizontal)
         }
     }
 }

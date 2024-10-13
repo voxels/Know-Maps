@@ -17,10 +17,10 @@ struct SavedListView: View {
     @Binding public var selectedResult: CategoryResult.ID?
     
     // State variables to manage expanded/collapsed sections
-    @State private var isMoodsExpanded = true
-    @State private var isPlacesExpanded = true
-    @State private var isTypesExpanded = true
-    @State private var isItemsExpanded = true
+    @AppStorage("isMoodsExpanded") private var isMoodsExpanded = true
+    @AppStorage("isPlacesExpanded") private var isPlacesExpanded = true
+    @AppStorage("isTypesExpanded") private var isTypesExpanded = true
+    @AppStorage("isItemsExpanded") private var isItemsExpanded = true
     
     var body: some View {
         List(selection: $selectedResult) {
@@ -112,7 +112,7 @@ struct SavedListView: View {
                 .buttonStyle(.borderless)
             }
             
-            DisclosureGroup("Places", isExpanded: $isPlacesExpanded) {
+            DisclosureGroup("Favorite Places", isExpanded: $isPlacesExpanded) {
                 if !cacheManager.cachedPlaceResults.isEmpty {
                     ForEach(cacheManager.cachedPlaceResults, id: \.id) { parent in
                         Text(parent.parentCategory)
