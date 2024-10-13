@@ -39,7 +39,6 @@ struct ContentView: View {
     @State public var multiSelection = Set<UUID>()
     @State private var settingsPresented:Bool = false
     @State private var didError = false
-    @State private var contentViewDetail:ContentDetailView = .home
     @State private var preferredColumn:NavigationSplitViewColumn = .sidebar
     
     @State private var showMapsResultViewSheet:Bool = false
@@ -52,10 +51,9 @@ struct ContentView: View {
     
     var body: some View {
         GeometryReader() { geometry in
-            NavigationSplitView(preferredCompactColumn: $preferredColumn) {
-                switch contentViewDetail {
-                case .home:
-                    SearchView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, searchSavedViewModel: $searchSavedViewModel, preferredColumn: $preferredColumn, contentViewDetail: $contentViewDetail, addItemSection: $addItemSection, settingsPresented: $settingsPresented, showPlaceViewSheet: $showPlaceViewSheet, didError: $didError)
+            TabView(selection: $addItemSection) {
+                NavigationSplitView {
+                    SearchView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, searchSavedViewModel: $searchSavedViewModel, preferredColumn: $preferredColumn,  addItemSection: $addItemSection, settingsPresented: $settingsPresented, showPlaceViewSheet: $showPlaceViewSheet, didError: $didError)
                         .sheet(isPresented: $settingsPresented) {
                             SettingsView(model: $settingsModel, chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, showOnboarding: $showOnboarding)
                                 .presentationDetents([.large])
@@ -83,31 +81,7 @@ struct ContentView: View {
                                 })
 #endif
                         }
-                case .add:
-                    AddPromptView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController,
-                                  addItemSection: $addItemSection,
-                                  contentViewDetail: $contentViewDetail, multiSelection: $multiSelection
-                    )
-                    .toolbar {
-                        ToolbarItemGroup(placement: .primaryAction) {
-                            Button(action: {
-                                contentViewDetail = .home
-                                preferredColumn = .sidebar
-                            }) {
-                                Label("List", systemImage: "list.bullet")
-                            }
-                            AddPromptToolbarView(viewModel: $searchSavedViewModel, cacheManager: $cacheManager, modelController: $modelController,
-                                                 addItemSection: $addItemSection,
-                                                 multiSelection: $multiSelection, contentViewDetail: $contentViewDetail,
-                                                 preferredColumn: $preferredColumn
-                            )
-                        }
-                    }
-                }
-            } detail: {
-                switch contentViewDetail {
-                case .home:
-                    
+                } detail: {
                     if modelController.isRefreshingPlaces {
                         VStack {
                             Spacer()
@@ -132,7 +106,7 @@ struct ContentView: View {
                                 Text("We don't know much about this place.")
                             }
                             .toolbar {
-                                if contentViewDetail == .home, modelController.filteredPlaceResults.count > 0 {
+                                if modelController.filteredPlaceResults.count > 0 {
                                     ToolbarItemGroup {
                                         Button {
                                             showFiltersSheet.toggle()
@@ -150,25 +124,25 @@ struct ContentView: View {
                             .sheet(isPresented: $showFiltersSheet, content: {
                                 FiltersView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, searchSavedViewModel: $searchSavedViewModel, filters: $searchSavedViewModel.filters, showFiltersPopover: $showFiltersSheet)
 #if os(macOS)
-                                .toolbar(content: {
-                                    ToolbarItem {
-                                        Button(action:{
-                                            settingsPresented.toggle()
-                                        }, label:{
-                                            Label("List", systemImage: "list.bullet")
-                                        })
-                                    }
-                                })
+                                    .toolbar(content: {
+                                        ToolbarItem {
+                                            Button(action:{
+                                                settingsPresented.toggle()
+                                            }, label:{
+                                                Label("List", systemImage: "list.bullet")
+                                            })
+                                        }
+                                    })
 #elseif os(visionOS)
-                                .toolbar(content: {
-                                    ToolbarItem(placement:.bottomOrnament) {
-                                        Button(action:{
-                                            settingsPresented.toggle()
-                                        }, label:{
-                                            Label("List", systemImage: "list.bullet")
-                                        })
-                                    }
-                                })
+                                    .toolbar(content: {
+                                        ToolbarItem(placement:.bottomOrnament) {
+                                            Button(action:{
+                                                settingsPresented.toggle()
+                                            }, label:{
+                                                Label("List", systemImage: "list.bullet")
+                                            })
+                                        }
+                                    })
 #endif
                             })
                             .presentationDetents([.large])
@@ -238,21 +212,63 @@ struct ContentView: View {
 #endif
                             })
                     }
-                case .add:
-                    switch addItemSection {
-                    case 0:
-                        AddCategoryView(viewModel: $searchSavedViewModel, chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, preferredColumn: $preferredColumn, multiSelection:$multiSelection)
-                    case 1:
-                        AddTasteView(viewModel: $searchSavedViewModel, chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, multiSelection:$multiSelection, preferredColumn: $preferredColumn)
-                    case 2:
-                        AddPlaceView()
-                    default:
-                        EmptyView()
+                }
+                .navigationSplitViewStyle(.balanced)
+                .tag (0)
+                .tabItem {
+                    Label("Favorites", systemImage: "heart")
+                }
+                NavigationSplitView {
+                    SearchCategoryView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, multiSelection: $multiSelection, addItemSection: $addItemSection)
+                    
+                } detail: {
+                    AddCategoryView(viewModel: $searchSavedViewModel, chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, preferredColumn: $preferredColumn, multiSelection:$multiSelection)
+                }
+                .navigationSplitViewStyle(.balanced)
+                .tag(1)
+                .tabItem {
+                    Label("Types", systemImage: "building.2")
+                }
+                
+                NavigationSplitView {
+                    SearchTasteView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, multiSelection: $multiSelection, addItemSection: $addItemSection)
+                } detail: {
+                    AddTasteView(viewModel: $searchSavedViewModel, chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, multiSelection:$multiSelection, preferredColumn: $preferredColumn)
+                }
+                .navigationSplitViewStyle(.balanced)
+                .tag(2)
+                .tabItem {
+                    Label("Items", systemImage: "checklist")
+                }
+                NavigationSplitView {
+                    SearchPlacesView(chatModel: $chatModel, cacheManager: $cacheManager, modelController:   $modelController, addItemSection: $addItemSection)
+                    
+                } detail: {
+                    AddPlaceView()
+                }
+                .navigationSplitViewStyle(.balanced)
+                .tag(3)
+                .tabItem {
+                    Label("Places", systemImage: "mappin")
+                }
+            }
+            .tabViewStyle(.tabBarOnly)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .toolbar {
+                ToolbarItemGroup(placement: .primaryAction) {
+                    Button(action: {
+                        preferredColumn = .sidebar
+                    }) {
+                        Label("List", systemImage: "list.bullet")
                     }
+                    AddPromptToolbarView(viewModel: $searchSavedViewModel, cacheManager: $cacheManager, modelController: $modelController,
+                                         addItemSection: $addItemSection,
+                                         multiSelection: $multiSelection,
+                                         preferredColumn: $preferredColumn
+                    )
                 }
             }
         }
-        .navigationSplitViewStyle(.automatic)
         .onAppear(perform: {
             modelController.analyticsManager.track(event:"ContentView",properties: nil )
         })

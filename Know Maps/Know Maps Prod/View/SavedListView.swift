@@ -11,7 +11,6 @@ struct SavedListView: View {
     @Binding public var viewModel: SearchSavedViewModel
     @Binding public var cacheManager: CloudCacheManager
     @Binding public var modelController: DefaultModelController
-    @Binding public var contentViewDetail: ContentDetailView
     @Binding public var addItemSection: Int
     @Binding public var preferredColumn: NavigationSplitViewColumn
     @Binding public var selectedResult: CategoryResult.ID?
@@ -22,37 +21,47 @@ struct SavedListView: View {
     @AppStorage("isTypesExpanded") private var isTypesExpanded = true
     @AppStorage("isItemsExpanded") private var isItemsExpanded = true
     
+    @State private var searchText:String = ""
+    
     var body: some View {
         List(selection: $selectedResult) {
-            #if !os(macOS)
+#if !os(macOS)
             Section() {
                 VStack(alignment: .leading, spacing: 8) {
                     SiriTipView(intent: ShowMoodResultsIntent())
                         .padding(.vertical,8)
-
-//                    Text("Find a place nearby")
-//                    Text("Find where to go next")
-//                    Text("Save this place")
-//                    Text("Visit a new area")
+                    
+                    //                    Text("Find a place nearby")
+                    //                    Text("Find where to go next")
+                    //                    Text("Save this place")
+                    //                    Text("Visit a new area")
                 }
-                .padding(.vertical, 4)
             } header: {
                 Text("Shortcuts")
-                    .font(.headline)
-                    .foregroundStyle(.primary)
+                    .font(.subheadline)
             }
-            #endif
+#endif
             
             DisclosureGroup("Moods", isExpanded: $isMoodsExpanded) {
-                ForEach(cacheManager.cachedDefaultResults, id: \.id) { parent in
+                ForEach(cacheManager.cachedDefaultResults.filter({ result in
+                    if searchText.isEmpty { return true }
+                    else {
+                        return result.parentCategory.lowercased().contains(searchText.lowercased())
+                    }
+                }), id: \.id) { parent in
                     Text(parent.parentCategory)
                         .padding(.vertical, 12)
                 }
             }
-        
+            
             DisclosureGroup("Types", isExpanded: $isTypesExpanded) {
                 if !cacheManager.cachedIndustryResults.isEmpty {
-                    ForEach(cacheManager.cachedIndustryResults, id: \.id) { parent in
+                    ForEach(cacheManager.cachedIndustryResults.filter({ result in
+                        if searchText.isEmpty { return true }
+                        else {
+                            return result.parentCategory.lowercased().contains(searchText.lowercased())
+                        }
+                    }), id: \.id) { parent in
                         HStack {
                             Text(parent.parentCategory)
                             Spacer()
@@ -66,8 +75,7 @@ struct SavedListView: View {
                     }
                 }
                 Button(action: {
-                    addItemSection = 0
-                    contentViewDetail = .add
+                    addItemSection = 1
                     preferredColumn = .sidebar
                 }) {
                     HStack {
@@ -83,7 +91,12 @@ struct SavedListView: View {
             
             DisclosureGroup("Items", isExpanded: $isItemsExpanded) {
                 if !cacheManager.cachedTasteResults.isEmpty {
-                    ForEach(cacheManager.cachedTasteResults, id: \.id) { parent in
+                    ForEach(cacheManager.cachedTasteResults.filter({ result in
+                        if searchText.isEmpty { return true }
+                        else {
+                            return result.parentCategory.lowercased().contains(searchText.lowercased())
+                        }
+                    }), id: \.id) { parent in
                         HStack {
                             Text(parent.parentCategory)
                             Spacer()
@@ -97,8 +110,7 @@ struct SavedListView: View {
                     }
                 }
                 Button(action: {
-                    addItemSection = 1
-                    contentViewDetail = .add
+                    addItemSection = 2
                     preferredColumn = .sidebar
                 }) {
                     HStack {
@@ -114,7 +126,12 @@ struct SavedListView: View {
             
             DisclosureGroup("Favorite Places", isExpanded: $isPlacesExpanded) {
                 if !cacheManager.cachedPlaceResults.isEmpty {
-                    ForEach(cacheManager.cachedPlaceResults, id: \.id) { parent in
+                    ForEach(cacheManager.cachedPlaceResults.filter({ result in
+                        if searchText.isEmpty { return true }
+                        else {
+                            return result.parentCategory.lowercased().contains(searchText.lowercased())
+                        }
+                    }), id: \.id) { parent in
                         Text(parent.parentCategory)
                             .padding(.vertical,12)
                     }
@@ -124,9 +141,8 @@ struct SavedListView: View {
                     }
                 }
                 Button(action: {
-                    addItemSection = 2
+                    addItemSection = 3
                     preferredColumn = .sidebar
-                    contentViewDetail = .add
                 }) {
                     HStack {
                         Image(systemName: "plus.circle")
@@ -142,9 +158,7 @@ struct SavedListView: View {
         .listStyle(InsetGroupedListStyle())
         .toolbarBackground(.visible, for: .navigationBar)
         .toolbar(content: {
-            if contentViewDetail == .home {
-                EditButton()
-            }
+            EditButton()
         })
 #endif
         .refreshable {
@@ -152,6 +166,7 @@ struct SavedListView: View {
                 await cacheManager.refreshCachedResults()
             }
         }
+        .searchable(text: $searchText, prompt: "Search for a saved item")
         .task {
             Task(priority: .high) {
                 await cacheManager.refreshCachedResults()

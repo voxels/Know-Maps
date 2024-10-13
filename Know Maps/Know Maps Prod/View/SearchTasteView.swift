@@ -31,13 +31,6 @@ struct SearchTasteView: View {
                 }
             }
         }
-        #if os(iOS) || os(visionOS)
-        .toolbar {
-            if addItemSection == 1 {
-                EditButton()
-            }
-        }
-        #endif
         .task{
             Task { @MainActor in
                 do {
@@ -56,28 +49,33 @@ struct SearchTasteView: View {
                 }
             }
         }
-        .listStyle(.sidebar)
-#if os(iOS) || os(visionOS)
-        .toolbarBackground(.visible, for: .navigationBar)
-#endif
-        
-        .padding(.top, 64)
-        .overlay(alignment: .top, content: {
-            VStack(alignment: .center) {
-                TextField("", text: $tasteSearchText, prompt:Text("Search for a feature"))
-                    .onSubmit() {
-                        Task(priority:.userInitiated) { @MainActor in
-                            modelController.tasteResults.removeAll()
-                            do {
-                                try await chatModel.didSearch(caption:tasteSearchText, selectedDestinationChatResultID:modelController.selectedDestinationLocationChatResult, intent:.AutocompleteTastes, filters: [:], cacheManager: cacheManager, modelController: modelController)
-                            } catch {
-                                modelController.analyticsManager.trackError(error:error, additionalInfo: nil)
-                            }
-                        }
-                    }
-                    .textFieldStyle(.roundedBorder)
-                    .padding()
+        .searchable(text:  $tasteSearchText, prompt: "Search for an item")
+        .onSubmit(of: .search, {
+            Task(priority:.userInitiated) { @MainActor in
+                modelController.tasteResults.removeAll()
+                do {
+                    try await chatModel.didSearch(caption:tasteSearchText, selectedDestinationChatResultID:modelController.selectedDestinationLocationChatResult, intent:.AutocompleteTastes, filters: [:], cacheManager: cacheManager, modelController: modelController)
+                } catch {
+                    modelController.analyticsManager.trackError(error:error, additionalInfo: nil)
+                }
             }
         })
+        .listStyle(.sidebar)
+#if os(iOS) || os(visionOS)
+        .toolbar {
+            EditButton()
+        }
+        .toolbarBackground(.visible, for: .navigationBar)
+#endif
+//        .overlay(alignment: .top, content: {
+//            VStack(alignment: .center) {
+//                TextField("", text: $tasteSearchText, prompt:Text("Search for a feature"))
+//                    .onSubmit() {
+//
+//                    }
+//                    .textFieldStyle(.roundedBorder)
+//                    .padding()
+//            }
+//        })
     }
 }

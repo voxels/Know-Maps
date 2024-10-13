@@ -7,7 +7,6 @@ struct SearchSavedView: View {
     @Binding public var cacheManager: CloudCacheManager
     @Binding public var modelController: DefaultModelController
     @Binding public var preferredColumn: NavigationSplitViewColumn
-    @Binding public var contentViewDetail: ContentDetailView
     @Binding public var addItemSection: Int
     @Binding public var settingsPresented: Bool
     @State private var showNavigationLocationSheet: Bool = false
@@ -15,7 +14,7 @@ struct SearchSavedView: View {
 
     var body: some View {
         GeometryReader { geometry in
-            SavedListView(viewModel: $viewModel, cacheManager: $cacheManager, modelController: $modelController, contentViewDetail: $contentViewDetail, addItemSection: $addItemSection, preferredColumn: $preferredColumn, selectedResult: $modelController.selectedSavedResult)
+            SavedListView(viewModel: $viewModel, cacheManager: $cacheManager, modelController: $modelController, addItemSection: $addItemSection, preferredColumn: $preferredColumn, selectedResult: $modelController.selectedSavedResult)
             .toolbar {
                 ToolbarItemGroup(placement: .primaryAction) {
                     Button(action: {

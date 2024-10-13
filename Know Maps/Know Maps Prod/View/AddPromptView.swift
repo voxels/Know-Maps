@@ -12,29 +12,10 @@ struct AddPromptView: View {
     @Binding public var cacheManager:CloudCacheManager
     @Binding public var modelController:DefaultModelController
     @Binding public var addItemSection: Int
-    @Binding public var contentViewDetail:ContentDetailView
     @Binding public var multiSelection: Set<UUID>
     
     var body: some View {
-        TabView(selection: $addItemSection) {
-            SearchCategoryView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, multiSelection: $multiSelection, addItemSection: $addItemSection)
-                .tag(0)
-                .tabItem {
-                    Label("Type", systemImage: "building.2")
-                }
-            
-            SearchTasteView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, multiSelection: $multiSelection, addItemSection: $addItemSection)
-                .tag(1)
-                .tabItem {
-                    Label("Item", systemImage: "heart")
-                }
-            
-            SearchPlacesView(chatModel: $chatModel, cacheManager: $cacheManager, modelController:   $modelController, addItemSection: $addItemSection)
-                .tag(2)
-                .tabItem {
-                    Label("Place", systemImage: "mappin")
-                }
-        }
+        Text("Hello world")
     }
 }
 
@@ -46,11 +27,10 @@ struct AddPromptToolbarView: View {
     @Binding public var modelController: DefaultModelController
     @Binding public var addItemSection: Int
     @Binding public var multiSelection: Set<UUID>
-    @Binding public var contentViewDetail: ContentDetailView
     @Binding public var preferredColumn: NavigationSplitViewColumn
     
     var body: some View {
-        if addItemSection == 0 {
+        if addItemSection == 1 {
             Button(action: {
                 Task(priority:.userInitiated) {
                     for parent in multiSelection {
@@ -67,7 +47,7 @@ struct AddPromptToolbarView: View {
             }
             .disabled(multiSelection.count == 0)
             .labelStyle(.titleAndIcon)
-        } else if addItemSection == 1 {
+        } else if addItemSection == 2 {
             Button(action: {
                 Task(priority:.userInitiated) {
                     for parent in multiSelection {

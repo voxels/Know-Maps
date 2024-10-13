@@ -151,7 +151,7 @@ public final class DefaultModelController : ModelController {
         results.append(currentLocationResult)
         results.append(contentsOf: cacheManager.cachedLocationResults)
         results.append(contentsOf: locationResults.filter({ result in
-            !cacheManager.cachedLocationResults.contains(where: { $0.locationName == result.locationName })
+            !cacheManager.cachedLocationResults.contains(where: { $0.locationName.lowercased() == result.locationName.lowercased() })
         }))
         
         return results.sorted(by: { $0.locationName < $1.locationName })

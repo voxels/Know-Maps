@@ -257,7 +257,6 @@ public final class CloudCacheManager: CacheManager {
 
     private func defaultResults() -> [CategoryResult] {
         PersonalizedSearchSection.allCases
-            .filter({ $0 != .trending })
             .map({ $0.categoryResult() })
     }
 
