@@ -53,33 +53,12 @@ struct ContentView: View {
         GeometryReader() { geometry in
             TabView(selection: $addItemSection) {
                 NavigationSplitView {
-                    SearchView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, searchSavedViewModel: $searchSavedViewModel, preferredColumn: $preferredColumn,  addItemSection: $addItemSection, settingsPresented: $settingsPresented, showPlaceViewSheet: $showPlaceViewSheet, didError: $didError)
+                    SearchView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, searchSavedViewModel: $searchSavedViewModel, preferredColumn: $preferredColumn,  addItemSection: $addItemSection, settingsPresented: $settingsPresented, showPlaceViewSheet: $showPlaceViewSheet, showMapsResultViewSheet: $showMapsResultViewSheet, didError: $didError)
                         .sheet(isPresented: $settingsPresented) {
-                            SettingsView(model: $settingsModel, chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, showOnboarding: $showOnboarding)
+                            SettingsView(model: $settingsModel, chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, showOnboarding: $showOnboarding, settingsPresented: $settingsPresented)
                                 .presentationDetents([.large])
                                 .presentationDragIndicator(.visible)
                                 .presentationCompactAdaptation(.sheet)
-#if os(macOS)
-                                .toolbar(content: {
-                                    ToolbarItem {
-                                        Button(action:{
-                                            settingsPresented.toggle()
-                                        }, label:{
-                                            Label("List", systemImage: "list.bullet")
-                                        })
-                                    }
-                                })
-#elseif os(visionOS)
-                                .toolbar(content: {
-                                    ToolbarItem(placement:.bottomOrnament) {
-                                        Button(action:{
-                                            settingsPresented.toggle()
-                                        }, label:{
-                                            Label("List", systemImage: "list.bullet")
-                                        })
-                                    }
-                                })
-#endif
                         }
                 } detail: {
                     if modelController.isRefreshingPlaces {
@@ -114,7 +93,9 @@ struct ContentView: View {
                                             Label("Show Filters", systemImage: "line.3.horizontal.decrease")
                                         }
                                         Button {
-                                            showMapsResultViewSheet.toggle()
+                                            if !showPlaceViewSheet {
+                                                showMapsResultViewSheet.toggle()
+                                            }
                                         } label: {
                                             Label("Show Map", systemImage: "map")
                                         }
@@ -123,59 +104,18 @@ struct ContentView: View {
                             }
                             .sheet(isPresented: $showFiltersSheet, content: {
                                 FiltersView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, searchSavedViewModel: $searchSavedViewModel, filters: $searchSavedViewModel.filters, showFiltersPopover: $showFiltersSheet)
-#if os(macOS)
-                                    .toolbar(content: {
-                                        ToolbarItem {
-                                            Button(action:{
-                                                settingsPresented.toggle()
-                                            }, label:{
-                                                Label("List", systemImage: "list.bullet")
-                                            })
-                                        }
-                                    })
-#elseif os(visionOS)
-                                    .toolbar(content: {
-                                        ToolbarItem(placement:.bottomOrnament) {
-                                            Button(action:{
-                                                settingsPresented.toggle()
-                                            }, label:{
-                                                Label("List", systemImage: "list.bullet")
-                                            })
-                                        }
-                                    })
-#endif
                             })
                             .presentationDetents([.large])
                             .presentationDragIndicator(.visible)
                             .sheet(isPresented: $showMapsResultViewSheet) {
-                                MapResultsView(model: $chatModel, modelController: $modelController, selectedMapItem: $selectedMapItem, cameraPosition:$cameraPosition)
+                                MapResultsView(model: $chatModel, modelController: $modelController, selectedMapItem: $selectedMapItem, cameraPosition:$cameraPosition, showMapsResultViewSheet: $showMapsResultViewSheet, showPlaceViewSheet: $showPlaceViewSheet)
                                     .onChange(of: selectedMapItem) { _,newValue in
                                         if let newValue = newValue, let placeChatResult = modelController.placeChatResult(with: newValue) {
                                             showMapsResultViewSheet.toggle()
                                             modelController.selectedPlaceChatResult = placeChatResult.id
                                         }
                                     }
-#if os(macOS)
-                                    .toolbar(content: {
-                                        ToolbarItem {
-                                            Button(action:{
-                                                showMapsResultViewSheet.toggle()
-                                            }, label:{
-                                                Label("List", systemImage: "list.bullet")
-                                            })
-                                        }
-                                    })
-#elseif os(visionOS)
-                                    .toolbar(content: {
-                                        ToolbarItem(placement:.bottomOrnament) {
-                                            Button(action:{
-                                                showMapsResultViewSheet.toggle()
-                                            }, label:{
-                                                Label("List", systemImage: "list.bullet")
-                                            })
-                                        }
-                                    })
-#endif
+
                                     .frame(minHeight: geometry.size.height - 60, maxHeight: .infinity)
                                     .presentationDetents([.large])
                                     .presentationDragIndicator(.visible)
@@ -183,33 +123,11 @@ struct ContentView: View {
                                 
                             }
                             .sheet(isPresented: $showPlaceViewSheet, content: {
-                                PlaceView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, placeDirectionsViewModel: placeDirectionsChatViewModel)
-                                
+                                PlaceView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, placeDirectionsViewModel: placeDirectionsChatViewModel, showPlaceViewSheet: $showPlaceViewSheet)
                                     .frame(minHeight: geometry.size.height - 60, maxHeight: .infinity)
                                     .presentationDetents([.large])
                                     .presentationDragIndicator(.visible)
                                     .presentationCompactAdaptation(.sheet)
-#if os(macOS)
-                                    .toolbar(content: {
-                                        ToolbarItem {
-                                            Button(action:{
-                                                showPlaceViewSheet.toggle()
-                                            }, label:{
-                                                Label("List", systemImage: "list.bullet")
-                                            })
-                                        }
-                                    })
-#elseif os(visionOS)
-                                    .toolbar(content: {
-                                        ToolbarItem(placement:.bottomOrnament) {
-                                            Button(action:{
-                                                showPlaceViewSheet.toggle()
-                                            }, label:{
-                                                Label("List", systemImage: "list.bullet")
-                                            })
-                                        }
-                                    })
-#endif
                             })
                     }
                 }
@@ -260,6 +178,7 @@ struct ContentView: View {
                         preferredColumn = .sidebar
                     }) {
                         Label("List", systemImage: "list.bullet")
+                            
                     }
                     AddPromptToolbarView(viewModel: $searchSavedViewModel, cacheManager: $cacheManager, modelController: $modelController,
                                          addItemSection: $addItemSection,

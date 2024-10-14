@@ -9,7 +9,7 @@ struct SearchSavedView: View {
     @Binding public var preferredColumn: NavigationSplitViewColumn
     @Binding public var addItemSection: Int
     @Binding public var settingsPresented: Bool
-    @State private var showNavigationLocationSheet: Bool = false
+    @Binding public var showNavigationLocationSheet: Bool
     @State private var searchText: String = ""
 
     var body: some View {
@@ -53,6 +53,11 @@ struct SearchSavedView: View {
                     NavigationLocationView(chatModel: $chatModel, cacheManager: $cacheManager, modelController:$modelController)
 
                     HStack {
+                        Button(action:{
+                            showNavigationLocationSheet.toggle()
+                        }, label:{
+                            Label("List", systemImage: "list.bullet")
+                        }).padding()
                         Spacer()
                         if let selectedDestinationLocationChatResult = modelController.selectedDestinationLocationChatResult, let parent =  modelController.locationChatResult(
                             for: selectedDestinationLocationChatResult,in: modelController.filteredLocationResults(cacheManager: cacheManager)) {
@@ -109,27 +114,6 @@ struct SearchSavedView: View {
                 .presentationDetents([.large])
                 .presentationDragIndicator(.visible)
                 .presentationCompactAdaptation(.sheet)
-#if os(macOS)
-                                .toolbar(content: {
-                                    ToolbarItem {
-                                        Button(action:{
-                                            settingsPresented.toggle()
-                                        }, label:{
-                                            Label("List", systemImage: "list.bullet")
-                                        })
-                                    }
-                                })
-#elseif os(visionOS)
-                                .toolbar(content: {
-                                    ToolbarItem(placement:.bottomOrnament) {
-                                        Button(action:{
-                                            settingsPresented.toggle()
-                                        }, label:{
-                                            Label("List", systemImage: "list.bullet")
-                                        })
-                                    }
-                                })
-#endif
             }
         }
     }

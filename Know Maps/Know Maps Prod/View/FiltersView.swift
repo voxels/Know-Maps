@@ -39,6 +39,12 @@ struct FiltersView: View {
                 Text("\(FiltersView.formatter.string(from:NSNumber(value:distanceFilterValue)) ?? "1") kilometers")
                 Spacer()
                 HStack {
+                    Button(action:{
+                        showFiltersPopover.toggle()
+                    }, label:{
+                        Label("List", systemImage: "list.bullet")
+                        
+                    }).padding()
                     Button(action: {
                         if let lastIntent = modelController.queryParametersHistory.last?.queryIntents.last {
                             modelController.isRefreshingPlaces = true
@@ -54,9 +60,8 @@ struct FiltersView: View {
                         showFiltersPopover.toggle()
                     }) {
                         Label("Apply Filters", systemImage: "line.3.horizontal.decrease.circle.fill")
-                    }
-                }
-                Spacer()
+                    }.padding()
+                }.padding()
             }
             .task {
                 if let distance = filters["distance"] as? Double {

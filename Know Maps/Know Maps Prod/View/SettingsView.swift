@@ -14,7 +14,8 @@ struct SettingsView: View {
     @Binding public var chatModel:ChatResultViewModel
     @Binding public var cacheManager:CloudCacheManager
     @Binding public var modelController:DefaultModelController
-    @Binding  public var showOnboarding:Bool
+    @Binding public var showOnboarding:Bool
+    @Binding public var settingsPresented:Bool
     @State private var popoverPresented:Bool = false
     @State private var signInErrorMessage:String = "Error"
     @State private var isAuthenticated = false
@@ -94,6 +95,15 @@ struct SettingsView: View {
             }, label:{
               Text("Delete all of my saved groups")
             }).padding()
+            Spacer()
+            HStack {
+                Button(action:{
+                    settingsPresented.toggle()
+                }, label:{
+                    Label("List", systemImage: "list.bullet")
+                }).padding()
+                Spacer()
+            }.padding()
         }
         .padding()
     }

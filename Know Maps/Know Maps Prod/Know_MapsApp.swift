@@ -57,6 +57,7 @@ struct Know_MapsApp: App {
     @State private var showOnboarding:Bool = true
     @State private var showSplashScreen:Bool = true
     @State private var selectedOnboardingTab:String = "Sign In"
+    @State private var settingsPresented:Bool = false
 
     
     init() {
@@ -156,7 +157,7 @@ struct Know_MapsApp: App {
         }.windowResizability(.contentSize)
         
         WindowGroup(id:"SettingsView"){
-            SettingsView(model:$settingsModel, chatModel:$chatModel, cacheManager: $cacheManager, modelController: $modelController, showOnboarding: $showOnboarding)
+            SettingsView(model:$settingsModel, chatModel:$chatModel, cacheManager: $cacheManager, modelController: $modelController, showOnboarding: $showOnboarding, settingsPresented: $settingsPresented)
                 .tag("Settings")
                 .onChange(of: settingsModel.appleUserId, { oldValue, newValue in
                     

@@ -16,10 +16,12 @@ struct SearchView: View {
     @Binding public var addItemSection:Int
     @Binding public var settingsPresented:Bool
     @Binding public var showPlaceViewSheet:Bool
+    @Binding public var showMapsResultViewSheet:Bool
     @Binding public var didError:Bool
-    
+    @State private var showNavigationLocationSheet:Bool = false
+
     var body: some View {
-        SearchSavedView(chatModel: $chatModel, viewModel: $searchSavedViewModel, cacheManager: $cacheManager, modelController: $modelController, preferredColumn: $preferredColumn, addItemSection: $addItemSection, settingsPresented: $settingsPresented )
+        SearchSavedView(chatModel: $chatModel, viewModel: $searchSavedViewModel, cacheManager: $cacheManager, modelController: $modelController, preferredColumn: $preferredColumn, addItemSection: $addItemSection, settingsPresented: $settingsPresented, showNavigationLocationSheet: $showNavigationLocationSheet )
             .onChange(of: modelController.selectedPlaceChatResult, { oldValue, newValue in
                 
                 
@@ -29,8 +31,10 @@ struct SearchView: View {
                 
                 Task { @MainActor in
                     preferredColumn = .detail
-
-                    showPlaceViewSheet = true
+                    
+                    if !showMapsResultViewSheet {
+                        showPlaceViewSheet = true
+                    }
                 }
             })
             .onChange(of: modelController.selectedSavedResult) { oldValue, newValue in
