@@ -36,6 +36,9 @@ public final class DefaultModelController : ModelController {
     public var isRefreshingPlaces:Bool = false
     public var fetchMessage:String = ""
     
+    // TabView
+    public var addItemSection:Int = 0
+    
     // Results
     public var industryResults = [CategoryResult]()
     public var tasteResults = [CategoryResult]()
@@ -349,13 +352,9 @@ public final class DefaultModelController : ModelController {
                     selectedDestinationLocationChatResult = ids.first
                 }
             }
-        case .AutocompleteSearch:
-            if let selectedDestinationLocationChatResult = selectedDestinationLocationChatResult,
-               let locationResult = locationChatResult(for: selectedDestinationLocationChatResult, in: locationResults),
-               let finalLocation = locationResult.location {
-                try await autocompletePlaceModel(caption: intent.caption, intent: intent, location: finalLocation, cacheManager: cacheManager)
-                analyticsManager.track(event: "modelAutocompletePlaceModelBuilt", properties: nil)
-            }
+        case .AutocompletePlaceSearch:
+            try await autocompletePlaceModel(caption: intent.caption, intent: intent)
+            analyticsManager.track(event: "modelAutocompletePlaceModelBuilt", properties: nil)
         case .AutocompleteTastes:
             let results = try await placeSearchService.autocompleteTastes(lastIntent: intent, currentTasteResults: tasteResults, cacheManager: cacheManager)
             await MainActor.run {
@@ -415,12 +414,12 @@ public final class DefaultModelController : ModelController {
             analyticsManager.track(event: "searchIntentWithSearch", properties: nil)
         case .Location:
             break
-        case .AutocompleteSearch:
+        case .AutocompletePlaceSearch:
             guard let location = location else {
                 return
             }
-            let autocompleteResponse = try await placeSearchService.personalizedSearchSession.autocomplete(caption: intent.caption, parameters: intent.queryParameters, location: location, cacheManager: cacheManager)
-            let placeSearchResponses = intent.placeSearchResponses.isEmpty ? try PlaceResponseFormatter.autocompletePlaceSearchResponses(with: autocompleteResponse) : intent.placeSearchResponses
+            let autocompleteResponse = try await placeSearchService.placeSearchSession.autocomplete(caption: intent.caption, parameters: intent.queryParameters, location: location)
+            let placeSearchResponses = try PlaceResponseFormatter.autocompletePlaceSearchResponses(with: autocompleteResponse)
             intent.placeSearchResponses = placeSearchResponses
             analyticsManager.track(event: "searchIntentWithPersonalizedAutocomplete", properties: nil)
             
@@ -435,26 +434,22 @@ public final class DefaultModelController : ModelController {
     // MARK: Autocomplete Place Model
     
     @discardableResult
-    public func autocompletePlaceModel(caption: String, intent: AssistiveChatHostIntent, location: CLLocation, cacheManager:CacheManager) async throws -> [ChatResult] {
-        let autocompleteResponse = try await placeSearchService.placeSearchSession.autocomplete(caption: caption, parameters: intent.queryParameters, location: location)
-        let placeSearchResponses = try PlaceResponseFormatter.autocompletePlaceSearchResponses(with: autocompleteResponse)
-        intent.placeSearchResponses = placeSearchResponses
-        
-        try await recommendedPlaceQueryModel(intent: intent, cacheManager: cacheManager)
-        try await relatedPlaceQueryModel(intent: intent, cacheManager: cacheManager)
-        
+    public func autocompletePlaceModel(caption: String, intent: AssistiveChatHostIntent) async throws -> [ChatResult] {
         var chatResults = [ChatResult]()
-        let allResponses = intent.placeSearchResponses
-        for index in 0..<allResponses.count {
-            let response = allResponses[index]
-            let results = PlaceResponseFormatter.placeChatResults(for: intent, place: response, section: assistiveHostDelegate.section(for: intent.caption), list: intent.caption, index: index, rating: 1, details: nil)
-            chatResults.append(contentsOf: results)
+
+        if !intent.placeSearchResponses.isEmpty {
+            for index in 0..<intent.placeSearchResponses.count {
+                let response = intent.placeSearchResponses[index]
+                if !response.name.isEmpty {
+                    let results = PlaceResponseFormatter.placeChatResults(for: intent, place: response, section:assistiveHostDelegate.section(for:intent.caption), list:intent.caption, index: index, rating: 1, details: nil, recommendedPlaceResponse: nil)
+                    chatResults.append(contentsOf: results)
+                }
+            }
         }
         
-        
         await MainActor.run { [chatResults] in
-            placeResults = chatResults
             mapPlaceResults = chatResults
+            placeResults = chatResults
         }
         
         return chatResults

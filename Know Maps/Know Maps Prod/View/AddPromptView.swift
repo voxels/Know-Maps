@@ -30,7 +30,27 @@ struct AddPromptToolbarView: View {
     @Binding public var preferredColumn: NavigationSplitViewColumn
     
     var body: some View {
-        if addItemSection == 1 {
+        if addItemSection == 0 || addItemSection == 3 {
+            Button(action:{
+                modelController.selectedPlaceChatResult = nil
+                modelController.selectedSavedResult = nil
+            }, label:{
+                Label("List", systemImage: "list.bullet")
+            }).padding()
+
+            
+            if let selectedPlaceChatResult = modelController.selectedPlaceChatResult,let placeChatResult = modelController.placeChatResult(for: selectedPlaceChatResult), !cacheManager.cachedPlaces(contains:placeChatResult.title){
+                Button(action: {
+                    Task(priority:.userInitiated) {
+                        await viewModel.addPlace(parent: selectedPlaceChatResult, rating: 3, cacheManager: cacheManager, modelController: modelController)
+                    }
+                }) {
+                    Label("Save", systemImage: "plus.circle")
+                }
+                .disabled(modelController.selectedPlaceChatResult == nil)
+                .labelStyle(.titleAndIcon)
+            }
+        } else if addItemSection == 1 {
             Button(action: {
                 Task(priority:.userInitiated) {
                     for parent in multiSelection {

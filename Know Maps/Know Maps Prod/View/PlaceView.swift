@@ -13,7 +13,7 @@ struct PlaceView: View {
     @Binding public var cacheManager:CloudCacheManager
     @Binding public var modelController:DefaultModelController
     @ObservedObject public var placeDirectionsViewModel:PlaceDirectionsViewModel
-    @Binding public var showPlaceViewSheet:Bool
+    @Binding public var addItemSection:Int
     @State private var tabItem = 0
     
     var body: some View {
@@ -83,14 +83,6 @@ struct PlaceView: View {
                         Spacer()
                     }
                 }
-                HStack {
-                    Button(action:{
-                        showPlaceViewSheet.toggle()
-                    }, label:{
-                        Label("List", systemImage: "list.bullet")
-                    }).padding()
-                    Spacer()
-                }.padding()
             }
         } else {
             VStack {

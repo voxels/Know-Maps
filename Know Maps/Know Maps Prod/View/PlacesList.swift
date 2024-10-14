@@ -17,8 +17,6 @@ struct PlacesList: View {
     @Binding var cacheManager:CloudCacheManager
     @Binding var modelController:DefaultModelController
     @Binding  public var showMapsResultViewSheet:Bool
-    @State private var selectedItem: String?
-    
     
     static var formatter:NumberFormatter {
         let retval = NumberFormatter()
@@ -65,7 +63,7 @@ struct PlacesList: View {
                                         AsyncImage(url: url) { phase in
                                             switch phase {
                                             case .empty:
-                                                    ProgressView()
+                                                ProgressView()
                                                     .padding()
                                                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                                             case .success(let image):
@@ -86,25 +84,30 @@ struct PlacesList: View {
                                 })
                                 .background()
                                 .cornerRadius(16)
+                                #if os(visionOS)
+                                .hoverEffect(.lift)
+                                #endif
+                                .clipShape(RoundedRectangle(cornerRadius: 16))
                                 .onTapGesture {
                                     if modelController.selectedPlaceChatResult == result.id {
-                                        modelController.selectedPlaceChatResult = nil
+                                        withAnimation {
+                                            modelController.selectedPlaceChatResult = nil
+                                        }
                                         DispatchQueue.main.async{
-                                            modelController.selectedPlaceChatResult = result.id
+                                            withAnimation {
+                                                modelController.selectedPlaceChatResult = result.id
+                                            }
                                         }
                                     } else {
                                         if let placeChatResult = modelController.placeChatResult(for: result.id), placeChatResult.placeDetailsResponse == nil {
                                             modelController.isRefreshingPlaces = true
-                                            modelController.fetchMessage = "Searching"
+                                            modelController.fetchMessage = "Fetching Place Details"
                                             Task(priority:.userInitiated) {
                                                 try await chatModel.didTap(placeChatResult: placeChatResult, filters:searchSavedViewModel.filters, cacheManager: cacheManager, modelController: modelController)
                                                 await MainActor.run {
                                                     modelController.isRefreshingPlaces = false
                                                 }
                                             }
-                                        }
-                                        else {
-                                            modelController.selectedPlaceChatResult = result.id
                                         }
                                     }
                                 }
@@ -127,64 +130,50 @@ struct PlacesList: View {
                                     ZStack {
                                         VStack(alignment: .leading) {
                                             Text(result.title).bold()
-                                            if let placeResponse = result.placeResponse, !placeResponse.address.isEmpty {
-                                                Text(placeResponse.address)
-                                                Text(placeResponse.locality)
+                                            if let placeResponse = result.placeResponse, !placeResponse.formattedAddress.isEmpty {
+                                                Text(placeResponse.formattedAddress)
                                             }
                                         }.padding()
-                                    }
-                                    if let aspectRatio = result.placeDetailsResponse?.photoResponses?.first?.aspectRatio, let url = result.placeDetailsResponse?.photoResponses?.first?.photoUrl() {
-                                        AsyncImage(url: url) { phase in
-                                            switch phase {
-                                            case .empty:
-                                                    ProgressView()
-                                                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-                                            case .success(let image):
-                                                image.resizable()
-                                                    .aspectRatio(CGFloat(aspectRatio), contentMode: .fit)
-                                                    .scaledToFit()
-                                            case .failure:
-                                                EmptyView()
-                                            @unknown default:
-                                                // Since the AsyncImagePhase enum isn't frozen,
-                                                // we need to add this currently unused fallback
-                                                // to handle any new cases that might be added
-                                                // in the future:
-                                                EmptyView()
-                                            }
-                                        }
                                     }
                                 })
                                 .background()
                                 .cornerRadius(16)
+#if os(visionOS)
+.hoverEffect(.lift)
+#endif
                                 .onTapGesture {
-                                    if modelController.selectedPlaceChatResult == result.id {
-                                        modelController.selectedPlaceChatResult = nil
-                                        DispatchQueue.main.async {
-                                            modelController.selectedPlaceChatResult = result.id
+                                        if let placeChatResult = modelController.placeChatResult(for: result.id), placeChatResult.placeDetailsResponse == nil {
+                                            modelController.isRefreshingPlaces = true
+                                            modelController.fetchMessage = "Fetching Place Details"
+                                            Task(priority:.userInitiated) {
+                                                try await chatModel.didTap(placeChatResult: placeChatResult, filters:searchSavedViewModel.filters, cacheManager: cacheManager, modelController: modelController)
+                                                await MainActor.run {
+                                                    modelController.isRefreshingPlaces = false
+                                                }
+                                            }
                                         }
-                                    } else {
-                                        modelController.selectedPlaceChatResult = result.id
                                     }
-                                }
                             }
                         }
                     }.padding()
                 } else {
-                    VStack {
-                        Spacer()
-                        HStack {
+                    if !modelController.queryParametersHistory.isEmpty {
+                        
+                        VStack {
                             Spacer()
-                            if let selectedDestinationLocationChatResult = modelController.selectedDestinationLocationChatResult, let locationChatResult = modelController.locationChatResult(for: selectedDestinationLocationChatResult, in: modelController.filteredLocationResults(cacheManager: cacheManager)), !locationChatResult.locationName.isEmpty {
-                                Text("No places near \(locationChatResult.locationName) matching query.")
-                            } else {
-                                Text("No places nearby matching query.")
-                            }
+                            HStack {
+                                Spacer()
+                                if let selectedDestinationLocationChatResult = modelController.selectedDestinationLocationChatResult, let locationChatResult = modelController.locationChatResult(for: selectedDestinationLocationChatResult, in: modelController.filteredLocationResults(cacheManager: cacheManager)), !locationChatResult.locationName.isEmpty {
+                                    Text("No places near \(locationChatResult.locationName) matching query.")
+                                } else {
+                                    Text("No places nearby matching query.")
+                                }
+                                Spacer()
+                            }.frame(maxWidth: .infinity, alignment: .init(horizontal: .center, vertical: .center))
                             Spacer()
                         }.frame(maxWidth: .infinity, alignment: .init(horizontal: .center, vertical: .center))
-                        Spacer()
-                    }.frame(maxWidth: .infinity, alignment: .init(horizontal: .center, vertical: .center))
-                        .padding()
+                            .padding()
+                    }
                 }
             }
             .background(.regularMaterial)

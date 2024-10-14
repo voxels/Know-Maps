@@ -29,6 +29,11 @@ public protocol ModelController : Sendable {
     
     // Fetching States
     var isFetchingPlaceDescription: Bool { get set }
+    var isRefreshingPlaces:Bool { get set }
+    var fetchMessage:String { get }
+    
+    // TabView
+    var addItemSection:Int { get set }
     
     // Results
     var industryResults:[CategoryResult] { get set }
@@ -136,12 +141,7 @@ public protocol ModelController : Sendable {
     func searchQueryModel(intent: AssistiveChatHostIntent, cacheManager:CacheManager) async throws -> [ChatResult]
     
     /// Handles autocomplete place model creation.
-    func autocompletePlaceModel(
-        caption: String,
-        intent: AssistiveChatHostIntent,
-        location: CLLocation,
-        cacheManager:CacheManager
-    ) async throws -> [ChatResult]
+    func autocompletePlaceModel(caption: String, intent: AssistiveChatHostIntent) async throws -> [ChatResult]
     
     // MARK: - Message Handling
     

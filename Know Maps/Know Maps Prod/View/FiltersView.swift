@@ -48,7 +48,7 @@ struct FiltersView: View {
                     Button(action: {
                         if let lastIntent = modelController.queryParametersHistory.last?.queryIntents.last {
                             modelController.isRefreshingPlaces = true
-                            modelController.fetchMessage = "Searching"
+                            modelController.fetchMessage = "Searching for places"
                             Task(priority:.userInitiated) {
                                 await modelController.resetPlaceModel()
                                 await searchSavedViewModel.search(caption: lastIntent.caption, selectedDestinationChatResultID: lastIntent.selectedDestinationLocationID, intent: .Search, filters: searchSavedViewModel.filters, chatModel: chatModel, cacheManager: cacheManager, modelController: modelController)

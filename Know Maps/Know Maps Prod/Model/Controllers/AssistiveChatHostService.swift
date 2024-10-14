@@ -19,7 +19,7 @@ public final class AssistiveChatHostService : AssistiveChatHost {
     public enum Intent : String, Sendable {
         case Search
         case Place
-        case AutocompleteSearch
+        case AutocompletePlaceSearch
         case AutocompleteTastes
         case Location
     }
@@ -155,7 +155,7 @@ public final class AssistiveChatHostService : AssistiveChatHost {
             #endif
         }
                 
-        return .AutocompleteSearch
+        return .AutocompletePlaceSearch
     }
     
     public func defaultParameters(for query:String, filters:[String:Any]) async throws -> [String:Any]? {

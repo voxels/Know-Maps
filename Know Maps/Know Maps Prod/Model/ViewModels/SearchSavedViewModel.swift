@@ -74,6 +74,47 @@ public final class SearchSavedViewModel : Sendable {
     }
     
     // Add Category
+    func addPlace(parent: ChatResult.ID, rating:Double, cacheManager: CacheManager, modelController: ModelController) async {
+        
+        guard let placeChatResult = modelController.placeChatResult(for: parent), let placeResponse = placeChatResult.placeResponse, !cacheManager.cachedPlaces(contains: placeChatResult.title) else {
+            return
+        }
+
+        do {
+            // Create a new UserCachedRecord for the category
+            let userRecord = UserCachedRecord(
+                recordId: UUID().uuidString,
+                group: "Place",
+                identity: placeResponse.fsqID,
+                title: placeChatResult.title,
+                icons: "",
+                list: placeChatResult.list,
+                section: placeChatResult.section.rawValue,
+                rating: rating
+            )
+            
+            // Store the record in the local cache and CloudKit
+            _ = try await cacheManager.cloudCache.storeUserCachedRecord(recordId: userRecord.recordId,
+                group:userRecord.group,
+                identity: userRecord.identity,
+                title: userRecord.title,
+                icons: userRecord.icons,
+                list: userRecord.list,
+                section: userRecord.section,
+                rating: userRecord.rating
+            )
+            
+            // Refresh the cached categories after adding the new category
+            await cacheManager.refreshCachedPlaces()
+            await cacheManager.refreshCachedResults()
+        } catch {
+            // Log any errors with the analytics manager
+            modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
+        }
+    }
+
+    
+    // Add Category
     func addCategory(parent: CategoryResult.ID, rating:Double, cacheManager: CacheManager, modelController: ModelController) async {
         
         guard let industryCategoryResult = modelController.industryCategoryResult(for: parent), !cacheManager.cachedCategories(contains: industryCategoryResult.parentCategory) else {
@@ -106,6 +147,7 @@ public final class SearchSavedViewModel : Sendable {
             
             // Refresh the cached categories after adding the new category
             await cacheManager.refreshCachedCategories()
+            await cacheManager.refreshCachedResults()
         } catch {
             // Log any errors with the analytics manager
             modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
@@ -128,6 +170,7 @@ public final class SearchSavedViewModel : Sendable {
             
             // Refresh the cache after deletion
             await cacheManager.refreshCachedCategories()
+            await cacheManager.refreshCachedResults()
         } catch {
             modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
         }
@@ -169,6 +212,7 @@ public final class SearchSavedViewModel : Sendable {
             
             // Refresh the cached tastes after adding the new record
             await cacheManager.refreshCachedTastes()
+            await cacheManager.refreshCachedResults()
         } catch {
             // Track the error in analytics
             modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
@@ -190,6 +234,7 @@ public final class SearchSavedViewModel : Sendable {
             }
             // Refresh the cached tastes after deletion
             await cacheManager.refreshCachedTastes()
+            await cacheManager.refreshCachedResults()
         } catch {
             modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
         }

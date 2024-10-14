@@ -45,15 +45,13 @@ struct PlaceAboutView: View {
                                         .cornerRadius(16)
                                         .frame(width: geo.size.width - 32, height:geo.size.width - 32)
                                 } else {
-                                    withAnimation {
-                                        
                                         AsyncImage(url: url) { phase in
                                             switch phase {
                                             case .empty:
                                                 Image(systemName: "photo").aspectRatio(CGFloat(aspectRatio), contentMode: .fit)
                                                     .scaledToFit()
                                                     .cornerRadius(16)
-                                                    .frame(width: geo.size.width - 32, height:geo.size.width - 32)
+                                                    .frame(width: max(0, geo.size.width - 32), height:max(geo.size.width - 32,0))
                                             case .success(let image):
                                                 
                                                 image.resizable()
@@ -66,8 +64,8 @@ struct PlaceAboutView: View {
                                             @unknown default:
                                                 EmptyView()
                                             }
-                                        }.frame(maxWidth: geo.size.width - 32, maxHeight:geo.size.width - 32)
-                                    }
+                                        }.frame(maxWidth: max(0,geo.size.width - 32), maxHeight:max(geo.size.width - 32,0))
+                                    
                                 }
                             }
                             
@@ -116,6 +114,9 @@ struct PlaceAboutView: View {
                                         await viewModel.toggleSavePlace(resultId: resultId, cacheManager: cacheManager, modelController:modelController)
                                     }
                                 }
+                                #if os(visionOS)
+                                .hoverEffect(.lift)
+                                #endif
                                 
                                 // Phone button
                                 if let tel = placeDetailsResponse.tel {
@@ -138,6 +139,10 @@ struct PlaceAboutView: View {
                                             openURL(url)
                                         }
                                     }
+#if os(visionOS)
+.hoverEffect(.lift)
+#endif
+
                                 }
                                 
                                 // Website button
@@ -158,6 +163,10 @@ struct PlaceAboutView: View {
                                     }.onTapGesture {
                                         openURL(url)
                                     }
+#if os(visionOS)
+.hoverEffect(.lift)
+#endif
+
                                 }
                                 Spacer()
                             }.padding(.horizontal, 16)
@@ -177,6 +186,10 @@ struct PlaceAboutView: View {
                                         tabItem = 3
                                     }
                                     .padding(PlaceAboutView.defaultPadding)
+#if os(visionOS)
+.hoverEffect(.lift)
+#endif
+
                                 }
                                 
                                 
@@ -209,6 +222,10 @@ struct PlaceAboutView: View {
                                 .onTapGesture {
                                     presentingPopover.toggle()
                                 }
+#if os(visionOS)
+.hoverEffect(.lift)
+#endif
+
                                 .sheet(isPresented:$presentingPopover) {
                                     if let result = modelController.placeChatResult(for: resultId), let placeDetailsResponse = result.placeDetailsResponse  {
                                         let items:[Any] = [placeDetailsResponse.website ?? placeDetailsResponse.searchResponse.address]
@@ -240,9 +257,12 @@ struct PlaceAboutView: View {
                                                         Text(locality).italic().padding(8)
                                                     }
                                                 }
+#if os(visionOS)
+.hoverEffect(.lift)
+#endif
                                                 .padding(PlaceAboutView.defaultPadding)
-                                                .background(RoundedRectangle(cornerRadius: 16)
-                                                    .strokeBorder())
+                                                .background(.ultraThickMaterial)
+                                                .cornerRadius(16)
                                                 .onTapGesture {
                                                     Task(priority:.userInitiated) {
                                                         withAnimation {
@@ -293,11 +313,16 @@ struct PlaceAboutView: View {
                                                     }
                                                 }
                                             }
+                                            
+#if os(visionOS)
+.hoverEffect(.lift)
+#endif
                                         }
                                     }
                                 } header: {
                                     Text("Items").font(.headline)
                                 }
+                                
                                 .padding(.horizontal,16)
                                 .padding(.vertical, 24)
                                 .task {

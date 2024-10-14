@@ -226,7 +226,7 @@ struct Know_MapsApp: App {
             await modelController.categoricalSearchModel()
         }
         
-        let cacheRefreshTask = Task {
+        let cacheRefreshTask = Task { @MainActor in
             do {
                 try await cacheManager.refreshCache()
             } catch {

@@ -15,7 +15,6 @@ struct MapResultsView: View {
     @Binding public var selectedMapItem: String?
     @Binding public var cameraPosition:MapCameraPosition
     @Binding public var showMapsResultViewSheet:Bool
-    @Binding public var showPlaceViewSheet:Bool
     
     var body: some View {
         VStack {

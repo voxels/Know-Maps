@@ -43,18 +43,24 @@ struct ShowMoodResultsIntent: AppIntent {
     @Dependency var chatModel: ChatResultViewModel
 
     @MainActor
-    func perform() async throws -> some IntentResult & ProvidesDialog{
-        modelController.selectedPlaceChatResult = nil
+    func perform() async throws -> some IntentResult{
+        withAnimation {
+            modelController.addItemSection = 0
+            modelController.selectedPlaceChatResult = nil
+        }
+
         await modelController.resetPlaceModel()
 
-        modelController.selectedSavedResult = cacheManager.cachedDefaultResults.first(where: { $0.section == mood })?.id
+        withAnimation {
+            modelController.selectedSavedResult = cacheManager.cachedDefaultResults.first(where: { $0.section == mood })?.id
+        }
+
         if let savedResult = modelController.selectedSavedResult, let chatResult = modelController.cachedChatResult(for:savedResult, cacheManager: cacheManager) {
             await chatModel.didTap(chatResult:chatResult, selectedDestinationChatResultID: modelController.selectedDestinationLocationChatResult ?? modelController.currentLocationResult.id, filters: [:], cacheManager: cacheManager, modelController: modelController)
         }
         
         
-        
         // Provide feedback to the user
-        return .result(dialog: "Searching for places matching \(mood.rawValue).")
+        return .result()
     }
 }

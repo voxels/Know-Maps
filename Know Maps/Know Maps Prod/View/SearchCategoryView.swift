@@ -53,7 +53,11 @@ struct SearchCategoryView: View {
             }
         }
         .listStyle(.sidebar)
+        #if os(macOS)
+        .searchable(text: $searchText, prompt: "Search Categories")
+        #else
         .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .automatic), prompt: "Search Categories") // Add searchable
+        #endif
         .onSubmit(of: .search, {
             for industryResult in modelController.industryResults {
                 if !filteredChildren(for: industryResult).isEmpty {

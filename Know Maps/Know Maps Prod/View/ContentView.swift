@@ -34,7 +34,6 @@ struct ContentView: View {
     
     @State private var showImmersiveSpace = false
     @State private var immersiveSpaceIsShown = false
-    @State private var addItemSection: Int = 0
     @State private var selectedCategoryID:CategoryResult.ID?
     @State public var multiSelection = Set<UUID>()
     @State private var settingsPresented:Bool = false
@@ -42,23 +41,26 @@ struct ContentView: View {
     @State private var preferredColumn:NavigationSplitViewColumn = .sidebar
     
     @State private var showMapsResultViewSheet:Bool = false
-    @State private var showPlaceViewSheet:Bool = false
+    @State private var showContentPlaceViewSheet:Bool = false
     @State private var showFiltersSheet:Bool = false
+    @State private var showNavigationLocationSheet:Bool = false
     @State private var cameraPosition:MapCameraPosition = .automatic
     @State private var selectedMapItem:String?
     
     @StateObject public var placeDirectionsChatViewModel = PlaceDirectionsViewModel(rawLocationIdent: "")
     
     var body: some View {
-        GeometryReader() { geometry in
-            TabView(selection: $addItemSection) {
+            TabView(selection: $modelController.addItemSection) {
                 NavigationSplitView {
-                    SearchView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, searchSavedViewModel: $searchSavedViewModel, preferredColumn: $preferredColumn,  addItemSection: $addItemSection, settingsPresented: $settingsPresented, showPlaceViewSheet: $showPlaceViewSheet, showMapsResultViewSheet: $showMapsResultViewSheet, didError: $didError)
+                    SearchView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, searchSavedViewModel: $searchSavedViewModel, preferredColumn: $preferredColumn,  addItemSection: $modelController.addItemSection, settingsPresented: $settingsPresented, showMapsResultViewSheet: $showMapsResultViewSheet, showNavigationLocationSheet: $showNavigationLocationSheet, didError: $didError)
                         .sheet(isPresented: $settingsPresented) {
                             SettingsView(model: $settingsModel, chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, showOnboarding: $showOnboarding, settingsPresented: $settingsPresented)
                                 .presentationDetents([.large])
                                 .presentationDragIndicator(.visible)
                                 .presentationCompactAdaptation(.sheet)
+                        }
+                        .task {
+                            await modelController.resetPlaceModel()
                         }
                 } detail: {
                     if modelController.isRefreshingPlaces {
@@ -72,63 +74,20 @@ struct ContentView: View {
                             Spacer()
                         }
                     } else {
-                        PlacesList(searchSavedViewModel:$searchSavedViewModel,chatModel: $chatModel, cacheManager:$cacheManager, modelController: $modelController, showMapsResultViewSheet: $showMapsResultViewSheet)
-                            .alert("Unknown Place", isPresented: $didError) {
-                                Button(action: {
-                                    DispatchQueue.main.async {
-                                        modelController.selectedPlaceChatResult = nil
-                                    }
-                                }, label: {
-                                    Text("Go Back")
-                                })
-                            } message: {
-                                Text("We don't know much about this place.")
-                            }
-                            .toolbar {
-                                if modelController.filteredPlaceResults.count > 0 {
-                                    ToolbarItemGroup {
-                                        Button {
-                                            showFiltersSheet.toggle()
-                                        } label: {
-                                            Label("Show Filters", systemImage: "line.3.horizontal.decrease")
-                                        }
-                                        Button {
-                                            if !showPlaceViewSheet {
-                                                showMapsResultViewSheet.toggle()
-                                            }
-                                        } label: {
-                                            Label("Show Map", systemImage: "map")
-                                        }
+                        if let resultId = modelController.selectedPlaceChatResult, let _ = modelController.placeChatResult(for: resultId) {
+                            PlaceView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, placeDirectionsViewModel: placeDirectionsChatViewModel, addItemSection: $modelController.addItemSection)
+                                .toolbar {
+                                    ToolbarItemGroup(placement: .primaryAction) {
+                                        AddPromptToolbarView(viewModel: $searchSavedViewModel, cacheManager: $cacheManager, modelController: $modelController,
+                                                             addItemSection: $modelController.addItemSection,
+                                                             multiSelection: $multiSelection,
+                                                             preferredColumn: $preferredColumn
+                                        )
                                     }
                                 }
-                            }
-                            .sheet(isPresented: $showFiltersSheet, content: {
-                                FiltersView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, searchSavedViewModel: $searchSavedViewModel, filters: $searchSavedViewModel.filters, showFiltersPopover: $showFiltersSheet)
-                            })
-                            .presentationDetents([.large])
-                            .presentationDragIndicator(.visible)
-                            .sheet(isPresented: $showMapsResultViewSheet) {
-                                MapResultsView(model: $chatModel, modelController: $modelController, selectedMapItem: $selectedMapItem, cameraPosition:$cameraPosition, showMapsResultViewSheet: $showMapsResultViewSheet, showPlaceViewSheet: $showPlaceViewSheet)
-                                    .onChange(of: selectedMapItem) { _,newValue in
-                                        if let newValue = newValue, let placeChatResult = modelController.placeChatResult(with: newValue) {
-                                            showMapsResultViewSheet.toggle()
-                                            modelController.selectedPlaceChatResult = placeChatResult.id
-                                        }
-                                    }
-
-                                    .frame(minHeight: geometry.size.height - 60, maxHeight: .infinity)
-                                    .presentationDetents([.large])
-                                    .presentationDragIndicator(.visible)
-                                    .presentationCompactAdaptation(.sheet)
-                                
-                            }
-                            .sheet(isPresented: $showPlaceViewSheet, content: {
-                                PlaceView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, placeDirectionsViewModel: placeDirectionsChatViewModel, showPlaceViewSheet: $showPlaceViewSheet)
-                                    .frame(minHeight: geometry.size.height - 60, maxHeight: .infinity)
-                                    .presentationDetents([.large])
-                                    .presentationDragIndicator(.visible)
-                                    .presentationCompactAdaptation(.sheet)
-                            })
+                        } else {
+                            placesList()
+                        }
                     }
                 }
                 .navigationSplitViewStyle(.balanced)
@@ -137,10 +96,20 @@ struct ContentView: View {
                     Label("Favorites", systemImage: "heart")
                 }
                 NavigationSplitView {
-                    SearchCategoryView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, multiSelection: $multiSelection, addItemSection: $addItemSection)
+                    SearchCategoryView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, multiSelection: $multiSelection, addItemSection: $modelController.addItemSection)
                     
                 } detail: {
                     AddCategoryView(viewModel: $searchSavedViewModel, chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, preferredColumn: $preferredColumn, multiSelection:$multiSelection)
+                        .toolbar {
+                            ToolbarItemGroup(placement: .primaryAction) {
+                                AddPromptToolbarView(viewModel: $searchSavedViewModel, cacheManager: $cacheManager, modelController: $modelController,
+                                                     addItemSection: $modelController.addItemSection,
+                                                     multiSelection: $multiSelection,
+                                                     preferredColumn: $preferredColumn
+                                )
+                            }
+                        }
+
                 }
                 .navigationSplitViewStyle(.balanced)
                 .tag(1)
@@ -149,9 +118,19 @@ struct ContentView: View {
                 }
                 
                 NavigationSplitView {
-                    SearchTasteView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, multiSelection: $multiSelection, addItemSection: $addItemSection)
+                    SearchTasteView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, multiSelection: $multiSelection, addItemSection: $modelController.addItemSection)
                 } detail: {
                     AddTasteView(viewModel: $searchSavedViewModel, chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, multiSelection:$multiSelection, preferredColumn: $preferredColumn)
+                        .toolbar {
+                            ToolbarItemGroup(placement: .primaryAction) {
+                                AddPromptToolbarView(viewModel: $searchSavedViewModel, cacheManager: $cacheManager, modelController: $modelController,
+                                                     addItemSection: $modelController.addItemSection,
+                                                     multiSelection: $multiSelection,
+                                                     preferredColumn: $preferredColumn
+                                )
+                            }
+                        }
+
                 }
                 .navigationSplitViewStyle(.balanced)
                 .tag(2)
@@ -159,38 +138,131 @@ struct ContentView: View {
                     Label("Items", systemImage: "checklist")
                 }
                 NavigationSplitView {
-                    SearchPlacesView(chatModel: $chatModel, cacheManager: $cacheManager, modelController:   $modelController, addItemSection: $addItemSection)
+                    SearchPlacesView(searchSavedViewModel: $searchSavedViewModel, chatModel: $chatModel, cacheManager: $cacheManager, modelController:   $modelController, multiSelection: $multiSelection, addItemSection: $modelController.addItemSection, showNavigationLocationSheet: $showNavigationLocationSheet)
                     
                 } detail: {
-                    AddPlaceView()
+                    if modelController.isRefreshingPlaces {
+                        VStack {
+                            Spacer()
+                            HStack {
+                                Spacer()
+                                ProgressView(modelController.fetchMessage)
+                                Spacer()
+                            }
+                            Spacer()
+                        }
+                    } else {
+                        PlaceView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, placeDirectionsViewModel: placeDirectionsChatViewModel, addItemSection: $modelController.addItemSection)
+                            .toolbar {
+                                ToolbarItemGroup(placement: .primaryAction) {
+                                    AddPromptToolbarView(viewModel: $searchSavedViewModel, cacheManager: $cacheManager, modelController: $modelController,
+                                                         addItemSection: $modelController.addItemSection,
+                                                         multiSelection: $multiSelection,
+                                                         preferredColumn: $preferredColumn
+                                    )
+                                }
+                            }
+                    }
                 }
                 .navigationSplitViewStyle(.balanced)
                 .tag(3)
                 .tabItem {
                     Label("Places", systemImage: "mappin")
                 }
+                
             }
             .tabViewStyle(.tabBarOnly)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .toolbar {
-                ToolbarItemGroup(placement: .primaryAction) {
-                    Button(action: {
-                        preferredColumn = .sidebar
-                    }) {
-                        Label("List", systemImage: "list.bullet")
-                            
-                    }
-                    AddPromptToolbarView(viewModel: $searchSavedViewModel, cacheManager: $cacheManager, modelController: $modelController,
-                                         addItemSection: $addItemSection,
-                                         multiSelection: $multiSelection,
-                                         preferredColumn: $preferredColumn
-                    )
-                }
-            }
-        }
         .onAppear(perform: {
             modelController.analyticsManager.track(event:"ContentView",properties: nil )
         })
+        .onChange(of: modelController.selectedPlaceChatResult, { oldValue, newValue in
+        
+            guard let newValue, newValue != oldValue else {
+                
+                return
+            }
+            
+            Task { @MainActor in
+                if let placeChatResult = modelController.placeChatResult(for: newValue), modelController.addItemSection == 3, placeChatResult.placeDetailsResponse == nil {
+                    Task(priority: .userInitiated) {
+                        do {
+                            try await chatModel.didTap(placeChatResult: placeChatResult, filters: searchSavedViewModel.filters, cacheManager: cacheManager, modelController: modelController)
+                            
+                            if !showMapsResultViewSheet, modelController.addItemSection == 0 {
+                                await MainActor.run {
+                                    preferredColumn = .detail
+                                }
+                            }
+                        } catch {
+                            modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
+                        }
+                    }
+                }
+                
+            }
+        })
+    }
+    
+    @ViewBuilder
+    func placesList()-> some View {
+        GeometryReader() { geometry in
+            PlacesList(searchSavedViewModel:$searchSavedViewModel,chatModel: $chatModel, cacheManager:$cacheManager, modelController: $modelController, showMapsResultViewSheet: $showMapsResultViewSheet)
+                .alert("Unknown Place", isPresented: $didError) {
+                    Button(action: {
+                        DispatchQueue.main.async {
+                            withAnimation {
+                                modelController.selectedPlaceChatResult = nil
+                            }
+                        }
+                    }, label: {
+                        Text("Go Back")
+                    })
+                } message: {
+                    Text("We don't know much about this place.")
+                }
+                .toolbar {
+                    if modelController.filteredPlaceResults.count > 0 {
+                        ToolbarItemGroup {
+                            if modelController.placeResults.count > 1 || modelController.recommendedPlaceResults.count > 1 {
+                                Button {
+                                    showFiltersSheet.toggle()
+                                } label: {
+                                    Label("Show Filters", systemImage: "line.3.horizontal.decrease")
+                                }
+                            }
+                            Button {
+                                showMapsResultViewSheet.toggle()
+                            } label: {
+                                Label("Show Map", systemImage: "map")
+                            }
+                        }
+                    }
+                }
+                .sheet(isPresented: $showFiltersSheet, content: {
+                    FiltersView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, searchSavedViewModel: $searchSavedViewModel, filters: $searchSavedViewModel.filters, showFiltersPopover: $showFiltersSheet)
+                })
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
+                .sheet(isPresented: $showMapsResultViewSheet) {
+                    MapResultsView(model: $chatModel, modelController: $modelController, selectedMapItem: $selectedMapItem, cameraPosition:$cameraPosition, showMapsResultViewSheet: $showMapsResultViewSheet)
+                        .onChange(of: selectedMapItem) { _,newValue in
+                            if let newValue = newValue, let placeChatResult = modelController.placeChatResult(with: newValue) {
+                                withAnimation {
+                                    showMapsResultViewSheet.toggle()
+                                } completion: {
+                                    modelController.selectedPlaceChatResult = placeChatResult.id
+                                }
+                            }
+                        }
+                    
+                        .frame(minHeight: geometry.size.height, maxHeight: .infinity)
+                        .presentationDetents([.large])
+                        .presentationDragIndicator(.visible)
+                        .presentationCompactAdaptation(.sheet)
+                    
+                }
+        }
     }
 }
 

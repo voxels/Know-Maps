@@ -86,7 +86,6 @@ struct SavedListView: View {
                     
                     .foregroundColor(.accentColor)
                 }
-                .buttonStyle(.borderless)
             }
             
             DisclosureGroup("Items", isExpanded: $isItemsExpanded) {
@@ -121,7 +120,6 @@ struct SavedListView: View {
                     
                     .foregroundColor(.accentColor)
                 }
-                .buttonStyle(.borderless)
             }
             
             DisclosureGroup("Favorite Places", isExpanded: $isPlacesExpanded) {
@@ -151,7 +149,6 @@ struct SavedListView: View {
                     }
                     .foregroundColor(.accentColor)
                 }
-                .buttonStyle(.borderless)
             }
         }
 #if os(iOS) || os(visionOS)
@@ -163,10 +160,14 @@ struct SavedListView: View {
 #endif
         .refreshable {
             Task(priority: .userInitiated) {
-                await cacheManager.refreshCachedResults()
+                do {
+                    try await cacheManager.refreshCache()
+                } catch {
+                    modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
+                }
             }
         }
-        .searchable(text: $searchText, prompt: "Search for a saved item")
+        .searchable(text: $searchText, prompt: "Search for a favorite thing")
         .task {
             Task(priority: .high) {
                 await cacheManager.refreshCachedResults()
