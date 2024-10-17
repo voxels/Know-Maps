@@ -11,8 +11,39 @@ import CoreLocation
 @Observable
 public final class SearchSavedViewModel : Sendable {
     
-    public var filters: [String:Any] = [:]
+    public var filters: [String:Any] {
+        get {
+            retrieveFiltersFromUserDefaults()
+        }
+        
+        set{
+            saveFiltersToUserDefaults(filters: newValue)
+        }
+    }
     public var editingRecommendationWeightResult: CategoryResult?
+    
+    
+    func saveFiltersToUserDefaults(filters: [String: Any]) {
+        do {
+            let data = try JSONSerialization.data(withJSONObject: filters, options: [])
+            UserDefaults.standard.set(data, forKey: "savedFilters")
+        } catch {
+            print("Error saving filters: \(error.localizedDescription)")
+        }
+    }
+    
+    func retrieveFiltersFromUserDefaults() -> [String: Any] {
+        if let data = UserDefaults.standard.data(forKey: "savedFilters") {
+            do {
+                if let filters = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
+                    return filters
+                }
+            } catch {
+                print("Error retrieving filters: \(error.localizedDescription)")
+            }
+        }
+        return [:]
+    }
     
     // Search functionality
     func search(caption: String, selectedDestinationChatResultID: UUID?, intent:AssistiveChatHostService.Intent, filters:[String:Any], chatModel:ChatResultViewModel, cacheManager:CacheManager, modelController:ModelController) async {
