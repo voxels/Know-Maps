@@ -8,6 +8,7 @@
 import SwiftUI
 import CoreLocation
 import MapKit
+import NukeUI
 //import GoogleMobileAds
 
 struct PlacesList: View {
@@ -60,25 +61,18 @@ struct PlacesList: View {
                                         }.padding()
                                     }
                                     if let aspectRatio = result.recommendedPlaceResponse?.aspectRatio, let photo = result.recommendedPlaceResponse?.photo, !photo.isEmpty, let url = URL(string: photo) {
-                                        AsyncImage(url: url) { phase in
-                                            switch phase {
-                                            case .empty:
-                                                ProgressView()
-                                                    .padding()
-                                                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-                                            case .success(let image):
-                                                image.resizable()
+                                        LazyImage(url: url) { state in
+                                            if let image = state.image {
+                                                   image.resizable()
                                                     .aspectRatio(CGFloat(aspectRatio), contentMode: .fit)
                                                     .scaledToFit()
-                                            case .failure:
-                                                EmptyView()
-                                            @unknown default:
-                                                // Since the AsyncImagePhase enum isn't frozen,
-                                                // we need to add this currently unused fallback
-                                                // to handle any new cases that might be added
-                                                // in the future:
-                                                EmptyView()
-                                            }
+                                               } else if state.error != nil {
+                                                   Image(systemName: "photo")
+                                               } else {
+                                                   ProgressView()
+                                                       .padding()
+                                                       .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                                               }
                                         }
                                     }
                                 })

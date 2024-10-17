@@ -260,7 +260,7 @@ public actor PlaceSearchSession : ObservableObject {
             let locationQueryItem = URLQueryItem(name: "ll", value: ll)
             queryItems.append(locationQueryItem)
             
-            var value = 50000
+            let value = 50000
             let radiusQueryItem = URLQueryItem(name: "radius", value:"\(value)")
             queryItems.append(radiusQueryItem)
         }

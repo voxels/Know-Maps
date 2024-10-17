@@ -192,7 +192,7 @@ public actor PersonalizedSearchSession {
         
         let ll = "\(location.coordinate.latitude),\(location.coordinate.longitude)"
         var limit = 50
-        var nameString:String = ""
+        let nameString:String = ""
                 
         if let parameters = parameters, let rawParameters = parameters["parameters"] as? NSDictionary {
             

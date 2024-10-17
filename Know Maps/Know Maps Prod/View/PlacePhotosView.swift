@@ -1,4 +1,5 @@
 import SwiftUI
+import NukeUI
 
 struct PlacePhotosView: View {
     @Environment(\.horizontalSizeClass) var sizeClass
@@ -16,30 +17,23 @@ struct PlacePhotosView: View {
                             let columns = Array(repeating: GridItem(.adaptive(minimum: geo.size.width)),  count:sizeClass == .compact ? 1 : 2)
                             LazyVGrid(columns: columns, spacing: 16) {
                                 ForEach(photoResponses) { response in
+                                    let aspectRatio = response.aspectRatio
                                     if let url = response.photoUrl() {
-                                        AsyncImage(url: url) { phase in
-                                            switch phase {
-                                            case .empty:
-                                                HStack {
-                                                    Spacer()
-                                                    ProgressView()
-                                                    Spacer()
-                                                }
-                                            case .success(let image):
-                                                image.resizable()
-                                                    .aspectRatio(contentMode: .fit)
-                                                    .cornerRadius(16)
+                                        LazyImage(url: url) { state in
+                                            if let image = state.image {
+                                                   image.resizable()
+                                                    .aspectRatio(CGFloat(aspectRatio), contentMode: .fit)
                                                     .scaledToFit()
-                                            case .failure:
-                                                EmptyView()
-                                            @unknown default:
-                                                // Since the AsyncImagePhase enum isn't frozen,
-                                                // we need to add this currently unused fallback
-                                                // to handle any new cases that might be added
-                                                // in the future:
-                                                EmptyView()
-                                            }
+                                               } else if state.error != nil {
+                                                   Image(systemName: "photo")
+                                               } else {
+                                                   ProgressView()
+                                                       .padding()
+                                                       .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                                               }
                                         }
+                                    } else {
+                                        EmptyView()
                                     }
                                 }
                             }

@@ -2,6 +2,7 @@ import SwiftUI
 import CoreLocation
 import MapKit
 import CallKit
+import NukeUI
 
 struct PlaceAboutView: View {
     @Environment(\.openURL) private var openURL
@@ -45,27 +46,26 @@ struct PlaceAboutView: View {
                                         .cornerRadius(16)
                                         .frame(width: geo.size.width - 32, height:geo.size.width - 32)
                                 } else {
-                                        AsyncImage(url: url) { phase in
-                                            switch phase {
-                                            case .empty:
-                                                Image(systemName: "photo").aspectRatio(CGFloat(aspectRatio), contentMode: .fit)
-                                                    .scaledToFit()
-                                                    .cornerRadius(16)
-                                                    .frame(width: max(0, geo.size.width - 32), height:max(geo.size.width - 32,0))
-                                            case .success(let image):
-                                                
-                                                image.resizable()
-                                                    .aspectRatio(CGFloat(aspectRatio), contentMode: .fit)
-                                                    .scaledToFit()
-                                                    .cornerRadius(16)
-                                                
-                                            case .failure:
-                                                EmptyView()
-                                            @unknown default:
-                                                EmptyView()
-                                            }
-                                        }.frame(maxWidth: max(0,geo.size.width - 32), maxHeight:max(geo.size.width - 32,0))
                                     
+                                    LazyImage(url: url) { state in
+                                        if let image = state.image {
+                                            image.resizable()
+                                                .aspectRatio(CGFloat(aspectRatio), contentMode: .fit)
+                                                .scaledToFit()
+                                                .cornerRadius(16)
+                                                .frame(maxWidth: max(0,geo.size.width - 32), maxHeight:max(geo.size.width - 32,0))
+                                           } else if state.error != nil {
+                                               Image(systemName: "photo")
+                                                   .aspectRatio(CGFloat(aspectRatio), contentMode: .fit)
+                                                   .scaledToFit()
+                                                   .cornerRadius(16)
+                                                   .frame(width: max(0, geo.size.width - 32), height:max(geo.size.width - 32,0))
+                                           } else {
+                                               ProgressView()
+                                                   .padding()
+                                                   .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                                           }
+                                    }
                                 }
                             }
                             

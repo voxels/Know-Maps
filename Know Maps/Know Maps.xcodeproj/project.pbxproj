@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		1E007ACC2CB4089700A8DC5A /* CloudCacheManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E007ACB2CB4089400A8DC5A /* CloudCacheManager.swift */; };
 		1E007ACE2CB40B1D00A8DC5A /* SegmentAnalyticsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E007ACD2CB40B1900A8DC5A /* SegmentAnalyticsService.swift */; };
+		1E1E310D2CC1954F00A23434 /* Nuke in Frameworks */ = {isa = PBXBuildFile; productRef = 1E1E310C2CC1954F00A23434 /* Nuke */; };
+		1E1E310F2CC1954F00A23434 /* NukeUI in Frameworks */ = {isa = PBXBuildFile; productRef = 1E1E310E2CC1954F00A23434 /* NukeUI */; };
 		1E213E172CAD81F600B93697 /* Segment in Frameworks */ = {isa = PBXBuildFile; productRef = 1E213E162CAD81F600B93697 /* Segment */; };
 		1E24EE642CAC78250087F724 /* FoursquareSectionClassifier.mlmodel in Sources */ = {isa = PBXBuildFile; fileRef = 1E24EE632CAC78250087F724 /* FoursquareSectionClassifier.mlmodel */; };
 		1E3FE0102CB6A0000020B3CB /* RecommendationData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E3FE00F2CB69FFC0020B3CB /* RecommendationData.swift */; };
@@ -238,7 +240,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1E1E310F2CC1954F00A23434 /* NukeUI in Frameworks */,
 				1E213E172CAD81F600B93697 /* Segment in Frameworks */,
+				1E1E310D2CC1954F00A23434 /* Nuke in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -480,6 +484,8 @@
 			name = "Know Maps";
 			packageProductDependencies = (
 				1E213E162CAD81F600B93697 /* Segment */,
+				1E1E310C2CC1954F00A23434 /* Nuke */,
+				1E1E310E2CC1954F00A23434 /* NukeUI */,
 			);
 			productName = "Know Maps Prod";
 			productReference = 1E095AF82B778AEF00147119 /* Know Maps.app */;
@@ -582,6 +588,7 @@
 			mainGroup = 1EA7F73C2B03FA70002AE371;
 			packageReferences = (
 				1E213E152CAD81F600B93697 /* XCRemoteSwiftPackageReference "analytics-swift" */,
+				1E1E310B2CC1954F00A23434 /* XCRemoteSwiftPackageReference "Nuke" */,
 			);
 			productRefGroup = 1EA7F7462B03FA70002AE371 /* Products */;
 			projectDirPath = "";
@@ -1165,6 +1172,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		1E1E310B2CC1954F00A23434 /* XCRemoteSwiftPackageReference "Nuke" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/kean/Nuke";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.8.0;
+			};
+		};
 		1E213E152CAD81F600B93697 /* XCRemoteSwiftPackageReference "analytics-swift" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/segmentio/analytics-swift";
@@ -1176,6 +1191,16 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		1E1E310C2CC1954F00A23434 /* Nuke */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 1E1E310B2CC1954F00A23434 /* XCRemoteSwiftPackageReference "Nuke" */;
+			productName = Nuke;
+		};
+		1E1E310E2CC1954F00A23434 /* NukeUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 1E1E310B2CC1954F00A23434 /* XCRemoteSwiftPackageReference "Nuke" */;
+			productName = NukeUI;
+		};
 		1E213E162CAD81F600B93697 /* Segment */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 1E213E152CAD81F600B93697 /* XCRemoteSwiftPackageReference "analytics-swift" */;

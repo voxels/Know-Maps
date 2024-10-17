@@ -239,13 +239,13 @@ class AppleAuthenticationService: NSObject, ObservableObject {
             if let authorizationCodeData = appleIDCredential.authorizationCode,
                let authorizationCode = String(data: authorizationCodeData, encoding: .utf8) {
                 exchangeAuthorizationCode(authorizationCode) { [self] success in
-                    completion(success)
                     self.authCompletion?(.success(authorization))
+                    completion(success)
                 }
             } else {
                 DispatchQueue.main.async {
-                    self.signInErrorMessage = "Invalid authorization code."
                     self.authCompletion?(.failure(AppleAuthenticationServiceError.failed))
+                    self.signInErrorMessage = "Invalid authorization code."
                 }
                 completion(false)
             }

@@ -40,11 +40,9 @@ struct OnboardingSignInView: View {
             }, onCompletion: { result in
                 switch result {
                 case .success(let authResults):
-                    authService.authorizationController(controller: ASAuthorizationController(authorizationRequests: [authResults.credential as! ASAuthorizationAppleIDRequest]), didCompleteWithAuthorization: authResults)
-                    
-                    // Navigate to the next tab upon successful sign-in
-                    selectedTab = "Location"
-                    
+                    if let provider = authResults.provider as? ASAuthorizationAppleIDProvider {
+                        authService.authorizationController(controller: ASAuthorizationController(authorizationRequests: [provider.createRequest()]), didCompleteWithAuthorization: authResults)
+                    }
                 case .failure(let error):
                     // Update error message and present popover
                     signInErrorMessage = error.localizedDescription

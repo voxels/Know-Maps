@@ -160,9 +160,14 @@ public final class AssistiveChatHostService : AssistiveChatHost {
     
     public func defaultParameters(for query:String, filters:[String:Any]) async throws -> [String:Any]? {
         var radius:Double = 20000
+        var open:Bool? = nil
         
         if let filterDistance = filters["distance"] as? Double {
             radius = filterDistance * 1000
+        }
+        
+        if let openNow = filters["open_now"] as? Bool {
+            open = openNow
         }
         
         let emptyParameters =
@@ -211,7 +216,7 @@ public final class AssistiveChatHostService : AssistiveChatHost {
                     rawParameters["open_at"] = openAt
                 }
                 
-                if let openNow = openNow(for: query) {
+                if let openNow = open {
                     rawParameters["open_now"] = openNow
                 }
                 
