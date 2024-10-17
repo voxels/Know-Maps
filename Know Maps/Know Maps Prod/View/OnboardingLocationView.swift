@@ -26,10 +26,10 @@ struct OnboardingLocationView: View {
                 .resizable()
                 .scaledToFit()
                 .frame(width:100 , height: 100)
-            Text("Know Maps uses your current location to suggest places nearby.")
+            Text("Know Maps uses your current location to suggest places to go near you.")
                 .multilineTextAlignment(.leading)
                 .padding()
-            Button("Authorize Location Tracking") {
+            Button("Continue") {
                 modelController.locationProvider.authorize()
                 showOnboarding = false
             }.padding()
@@ -38,7 +38,7 @@ struct OnboardingLocationView: View {
                         openLocationPreferences()
                     }
                 }, message: {
-                    Text("Please open the location settings system preferences to allow Know Maps to access your location.")
+                    Text("Please open the location settings system preferences to allow Know Maps to find your location.")
                 })
             Spacer()
         }

@@ -166,4 +166,6 @@ public protocol ModelController : Sendable {
     func updateLastIntentParameter(for placeChatResult:ChatResult, selectedDestinationChatResultID:LocationResult.ID?, filters:[String:Any],cacheManager:CacheManager) async throws
     
     func updateQueryParametersHistory(with parameters: AssistiveChatHostQueryParameters) async
+    
+    func undoLastQueryParameterChange(filters:[String:Any], cacheManager:CacheManager) async throws
 }

@@ -43,7 +43,7 @@ struct OnboardingSubscriptionView: View {
             List(allPlans, selection: $selectedSubscription){ plan in
                 Button(plan.plan.rawValue, action: {
                     selectedSubscription = plan
-                    FeatureFlagService.shared.updateFlags(with: plan)
+//                    FeatureFlagService.shared.updateFlags(with: plan)
                 })
             }.onChange(of: selectedSubscription) { oldValue, newValue in
                 if let _ = newValue {

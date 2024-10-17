@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct OnboardingView: View {    
-    @Binding public var settingsModel:AppleAuthenticationService
+    @ObservedObject public var settingsModel:AppleAuthenticationService
     @Binding public var chatModel:ChatResultViewModel
     @Binding var modelController:DefaultModelController
     
@@ -18,7 +18,7 @@ struct OnboardingView: View {
     var body: some View {
         TabView(selection: $selectedTab,
                 content:  {
-            OnboardingSignInView(model:$settingsModel, selectedTab: $selectedTab)
+            OnboardingSignInView(authService:settingsModel, selectedTab: $selectedTab)
                 .tag("Sign In")
                 .tabItem({
                     Label("Sign In", systemImage: "person.crop.circle.badge.plus")

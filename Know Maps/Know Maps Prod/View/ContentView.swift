@@ -24,7 +24,7 @@ struct ContentView: View {
     @Environment(\.dismissImmersiveSpace) var dismissImmersiveSpace
 #endif
     
-    @Binding var settingsModel:AppleAuthenticationService
+    @ObservedObject var settingsModel:AppleAuthenticationService
     @Binding var chatModel:ChatResultViewModel
     @Binding var cacheManager:CloudCacheManager
     @Binding var modelController:DefaultModelController
@@ -54,7 +54,7 @@ struct ContentView: View {
                 NavigationSplitView {
                     SearchView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, searchSavedViewModel: $searchSavedViewModel, preferredColumn: $preferredColumn,  addItemSection: $modelController.addItemSection, settingsPresented: $settingsPresented, showMapsResultViewSheet: $showMapsResultViewSheet, showNavigationLocationSheet: $showNavigationLocationSheet, didError: $didError)
                         .sheet(isPresented: $settingsPresented) {
-                            SettingsView(model: $settingsModel, chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, showOnboarding: $showOnboarding, settingsPresented: $settingsPresented)
+                            SettingsView(model: settingsModel, chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, showOnboarding: $showOnboarding, settingsPresented: $settingsPresented)
                                 .presentationDetents([.large])
                                 .presentationDragIndicator(.visible)
                                 .presentationCompactAdaptation(.sheet)
@@ -78,7 +78,7 @@ struct ContentView: View {
                             PlaceView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, placeDirectionsViewModel: placeDirectionsChatViewModel, addItemSection: $modelController.addItemSection)
                                 .toolbar {
                                     ToolbarItemGroup(placement: .primaryAction) {
-                                        AddPromptToolbarView(viewModel: $searchSavedViewModel, cacheManager: $cacheManager, modelController: $modelController,
+                                        AddPromptToolbarView(viewModel: $searchSavedViewModel, chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController,
                                                              addItemSection: $modelController.addItemSection,
                                                              multiSelection: $multiSelection,
                                                              preferredColumn: $preferredColumn
@@ -102,7 +102,7 @@ struct ContentView: View {
                     AddCategoryView(viewModel: $searchSavedViewModel, chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, preferredColumn: $preferredColumn, multiSelection:$multiSelection)
                         .toolbar {
                             ToolbarItemGroup(placement: .primaryAction) {
-                                AddPromptToolbarView(viewModel: $searchSavedViewModel, cacheManager: $cacheManager, modelController: $modelController,
+                                AddPromptToolbarView(viewModel: $searchSavedViewModel, chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController,
                                                      addItemSection: $modelController.addItemSection,
                                                      multiSelection: $multiSelection,
                                                      preferredColumn: $preferredColumn
@@ -123,7 +123,7 @@ struct ContentView: View {
                     AddTasteView(viewModel: $searchSavedViewModel, chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, multiSelection:$multiSelection, preferredColumn: $preferredColumn)
                         .toolbar {
                             ToolbarItemGroup(placement: .primaryAction) {
-                                AddPromptToolbarView(viewModel: $searchSavedViewModel, cacheManager: $cacheManager, modelController: $modelController,
+                                AddPromptToolbarView(viewModel: $searchSavedViewModel, chatModel:$chatModel, cacheManager: $cacheManager, modelController: $modelController,
                                                      addItemSection: $modelController.addItemSection,
                                                      multiSelection: $multiSelection,
                                                      preferredColumn: $preferredColumn
@@ -155,7 +155,7 @@ struct ContentView: View {
                         PlaceView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, placeDirectionsViewModel: placeDirectionsChatViewModel, addItemSection: $modelController.addItemSection)
                             .toolbar {
                                 ToolbarItemGroup(placement: .primaryAction) {
-                                    AddPromptToolbarView(viewModel: $searchSavedViewModel, cacheManager: $cacheManager, modelController: $modelController,
+                                    AddPromptToolbarView(viewModel: $searchSavedViewModel, chatModel:$chatModel, cacheManager: $cacheManager, modelController: $modelController,
                                                          addItemSection: $modelController.addItemSection,
                                                          multiSelection: $multiSelection,
                                                          preferredColumn: $preferredColumn
@@ -179,7 +179,6 @@ struct ContentView: View {
         .onChange(of: modelController.selectedPlaceChatResult, { oldValue, newValue in
         
             guard let newValue, newValue != oldValue else {
-                
                 return
             }
             
@@ -188,12 +187,6 @@ struct ContentView: View {
                     Task(priority: .userInitiated) {
                         do {
                             try await chatModel.didTap(placeChatResult: placeChatResult, filters: searchSavedViewModel.filters, cacheManager: cacheManager, modelController: modelController)
-                            
-                            if !showMapsResultViewSheet, modelController.addItemSection == 0 {
-                                await MainActor.run {
-                                    preferredColumn = .detail
-                                }
-                            }
                         } catch {
                             modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
                         }
@@ -251,7 +244,14 @@ struct ContentView: View {
                                 withAnimation {
                                     showMapsResultViewSheet.toggle()
                                 } completion: {
-                                    modelController.selectedPlaceChatResult = placeChatResult.id
+                                    Task(priority: .userInitiated) {
+                                        do {
+                                            await modelController.resetPlaceModel()
+                                            try await  chatModel.didTap(placeChatResult: placeChatResult, filters: searchSavedViewModel.filters, cacheManager: cacheManager, modelController: modelController)
+                                        } catch {
+                                            modelController.analyticsManager.trackError(error: error, additionalInfo:nil)
+                                        }
+                                    }
                                 }
                             }
                         }

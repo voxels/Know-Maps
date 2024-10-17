@@ -112,6 +112,10 @@ public final class ChatResultViewModel: AssistiveChatHostMessagesDelegate {
     public func updateQueryParametersHistory(with parameters: AssistiveChatHostQueryParameters, modelController:ModelController) async {
         await modelController.updateQueryParametersHistory(with: parameters)
     }
+    
+    public func undoLastIntent(filters:[String:Any], cacheManager:CacheManager, modelController:ModelController) async throws {
+        try await modelController.undoLastQueryParameterChange(filters: filters, cacheManager: cacheManager)
+    }
 }
 
 /*

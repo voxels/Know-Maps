@@ -6,7 +6,9 @@
 //
 
 import Foundation
+#if canImport(CreateML)
 import CreateML
+#endif
 import TabularData
 import CoreML
 
@@ -52,7 +54,8 @@ public final class DefaultRecommenderService : RecommenderService {
         
         return retval
     }
-    
+
+    #if canImport(CreateML)
     public func model(with recommendationData: [RecommendationData]) throws -> MLRandomForestRegressor {
         
         var identities = [String]()
@@ -101,4 +104,5 @@ public final class DefaultRecommenderService : RecommenderService {
         
         return retval
     }
+    #endif
 }

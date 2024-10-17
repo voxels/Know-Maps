@@ -10,9 +10,6 @@
 		1E007ACC2CB4089700A8DC5A /* CloudCacheManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E007ACB2CB4089400A8DC5A /* CloudCacheManager.swift */; };
 		1E007ACE2CB40B1D00A8DC5A /* SegmentAnalyticsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E007ACD2CB40B1900A8DC5A /* SegmentAnalyticsService.swift */; };
 		1E213E172CAD81F600B93697 /* Segment in Frameworks */ = {isa = PBXBuildFile; productRef = 1E213E162CAD81F600B93697 /* Segment */; };
-		1E213E1A2CAD82A500B93697 /* ReceiptParser in Frameworks */ = {isa = PBXBuildFile; productRef = 1E213E192CAD82A500B93697 /* ReceiptParser */; };
-		1E213E1C2CAD82A500B93697 /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = 1E213E1B2CAD82A500B93697 /* RevenueCat */; };
-		1E213E1E2CAD82A500B93697 /* RevenueCatUI in Frameworks */ = {isa = PBXBuildFile; productRef = 1E213E1D2CAD82A500B93697 /* RevenueCatUI */; };
 		1E24EE642CAC78250087F724 /* FoursquareSectionClassifier.mlmodel in Sources */ = {isa = PBXBuildFile; fileRef = 1E24EE632CAC78250087F724 /* FoursquareSectionClassifier.mlmodel */; };
 		1E3FE0102CB6A0000020B3CB /* RecommendationData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E3FE00F2CB69FFC0020B3CB /* RecommendationData.swift */; };
 		1E3FE0122CB6C5300020B3CB /* RecommenderService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E3FE0112CB6C52C0020B3CB /* RecommenderService.swift */; };
@@ -22,7 +19,6 @@
 		1E3FE0552CB852070020B3CB /* AppShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E3FE0542CB852000020B3CB /* AppShortcuts.swift */; };
 		1E3FE0572CB855020020B3CB /* PersonalizedSearchSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E3FE0562CB854FD0020B3CB /* PersonalizedSearchSection.swift */; };
 		1E601F5D2CB0512900E320D7 /* GoogleBannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E601F5C2CB0512900E320D7 /* GoogleBannerView.swift */; };
-		1E60F4502CAC149F00891250 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1E60F44F2CAC149F00891250 /* StoreKit.framework */; };
 		1E6570D62C9B516400FEE9F8 /* TasteAutocompleteResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E6570D52C9B516400FEE9F8 /* TasteAutocompleteResponse.swift */; };
 		1E69444C2CB993C70017A81F /* FiltersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E69444B2CB993C70017A81F /* FiltersView.swift */; };
 		1E6944502CBA73060017A81F /* AddPromptView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E69444F2CBA73060017A81F /* AddPromptView.swift */; };
@@ -139,6 +135,7 @@
 		1E095B082B778AF000147119 /* Know Maps ProdTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Know Maps ProdTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		1E095B122B778AF000147119 /* Know Maps ProdUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Know Maps ProdUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		1E095B252B778EAE00147119 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS17.2.sdk/System/Library/Frameworks/StoreKit.framework; sourceTree = DEVELOPER_DIR; };
+		1E0C49662CBFFD0C0087E624 /* BlueECC */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = BlueECC; path = "/Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-himzneyjugqfhfayuscbrjgkaapl/SourcePackages/checkouts/BlueECC"; sourceTree = "<absolute>"; };
 		1E1F5E442B725D56008B6BAD /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		1E1F5E482B725FBB008B6BAD /* OnboardingSignInView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingSignInView.swift; sourceTree = "<group>"; };
 		1E1F5E502B726680008B6BAD /* OnboardingLocationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingLocationView.swift; sourceTree = "<group>"; };
@@ -241,11 +238,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				1E213E1C2CAD82A500B93697 /* RevenueCat in Frameworks */,
-				1E213E1A2CAD82A500B93697 /* ReceiptParser in Frameworks */,
 				1E213E172CAD81F600B93697 /* Segment in Frameworks */,
-				1E213E1E2CAD82A500B93697 /* RevenueCatUI in Frameworks */,
-				1E60F4502CAC149F00891250 /* StoreKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -301,6 +294,7 @@
 			children = (
 				1E60F44F2CAC149F00891250 /* StoreKit.framework */,
 				1E095B252B778EAE00147119 /* StoreKit.framework */,
+				1E0C49662CBFFD0C0087E624 /* BlueECC */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -486,9 +480,6 @@
 			name = "Know Maps";
 			packageProductDependencies = (
 				1E213E162CAD81F600B93697 /* Segment */,
-				1E213E192CAD82A500B93697 /* ReceiptParser */,
-				1E213E1B2CAD82A500B93697 /* RevenueCat */,
-				1E213E1D2CAD82A500B93697 /* RevenueCatUI */,
 			);
 			productName = "Know Maps Prod";
 			productReference = 1E095AF82B778AEF00147119 /* Know Maps.app */;
@@ -591,7 +582,6 @@
 			mainGroup = 1EA7F73C2B03FA70002AE371;
 			packageReferences = (
 				1E213E152CAD81F600B93697 /* XCRemoteSwiftPackageReference "analytics-swift" */,
-				1E213E182CAD82A500B93697 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */,
 			);
 			productRefGroup = 1EA7F7462B03FA70002AE371 /* Products */;
 			projectDirPath = "";
@@ -796,7 +786,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Know Maps";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Know Maps uses your location to find places around you";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Know Maps uses your current location to suggest places to go near you.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -807,7 +797,7 @@
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 18.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
@@ -821,6 +811,7 @@
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
+				WATCHOS_DEPLOYMENT_TARGET = 11.0;
 				XROS_DEPLOYMENT_TARGET = 2.0;
 			};
 			name = Debug;
@@ -844,7 +835,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Know Maps";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Know Maps uses your location to find places around you";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Know Maps uses your current location to suggest places to go near you.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -855,7 +846,7 @@
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 18.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
@@ -869,6 +860,7 @@
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
+				WATCHOS_DEPLOYMENT_TARGET = 11.0;
 				XROS_DEPLOYMENT_TARGET = 2.0;
 			};
 			name = Release;
@@ -1181,14 +1173,6 @@
 				minimumVersion = 1.6.1;
 			};
 		};
-		1E213E182CAD82A500B93697 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/RevenueCat/purchases-ios-spm.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 5.5.0;
-			};
-		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -1196,21 +1180,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 1E213E152CAD81F600B93697 /* XCRemoteSwiftPackageReference "analytics-swift" */;
 			productName = Segment;
-		};
-		1E213E192CAD82A500B93697 /* ReceiptParser */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 1E213E182CAD82A500B93697 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */;
-			productName = ReceiptParser;
-		};
-		1E213E1B2CAD82A500B93697 /* RevenueCat */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 1E213E182CAD82A500B93697 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */;
-			productName = RevenueCat;
-		};
-		1E213E1D2CAD82A500B93697 /* RevenueCatUI */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 1E213E182CAD82A500B93697 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */;
-			productName = RevenueCatUI;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

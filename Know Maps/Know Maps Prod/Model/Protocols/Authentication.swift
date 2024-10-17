@@ -7,7 +7,7 @@
 
 import Foundation
 import AuthenticationServices
-import RevenueCat
+//import RevenueCat
 
 // Define the protocol for authentication services
 public protocol Authentication : Sendable {
@@ -15,7 +15,7 @@ public protocol Authentication : Sendable {
     var appleUserId: String { get set }
     var fullName: String? { get set }
     var authCompletion: ((Result<ASAuthorization, Error>) -> Void)? { get set }
-    var offerings: Offerings? { get set }
+//    var offerings: Offerings? { get set }
     var purchasesId: String? { get }
 
     // Method to handle authorization completion

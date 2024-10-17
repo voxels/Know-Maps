@@ -158,13 +158,12 @@ struct PlacesList: View {
                     }.padding()
                 } else {
                     if !modelController.queryParametersHistory.isEmpty {
-                        
                         VStack {
                             Spacer()
                             HStack {
                                 Spacer()
-                                if let selectedDestinationLocationChatResult = modelController.selectedDestinationLocationChatResult, let locationChatResult = modelController.locationChatResult(for: selectedDestinationLocationChatResult, in: modelController.filteredLocationResults(cacheManager: cacheManager)), !locationChatResult.locationName.isEmpty {
-                                    Text("No places near \(locationChatResult.locationName) matching query.")
+                                if let selectedDestinationLocationChatResult = modelController.selectedDestinationLocationChatResult, let locationChatResult = modelController.locationChatResult(for: selectedDestinationLocationChatResult, in: modelController.filteredLocationResults(cacheManager: cacheManager)), !locationChatResult.locationName.isEmpty{
+                                    ProgressView("Fetching places...")
                                 } else {
                                     Text("No places nearby matching query.")
                                 }

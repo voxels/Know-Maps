@@ -9,7 +9,6 @@ import SwiftUI
 import SwiftData
 import AppIntents
 import Segment
-import RevenueCat
 import CoreLocation
 import AuthenticationServices
 //import GoogleMobileAds
@@ -47,7 +46,7 @@ struct Know_MapsApp: App {
         }
     }()
     
-    @State public var settingsModel:AppleAuthenticationService
+    @StateObject public var authenticationModel:AppleAuthenticationService
     @State public var chatModel:ChatResultViewModel
     @State public var searchSavedViewModel:SearchSavedViewModel
     @State public var cacheManager:CloudCacheManager
@@ -62,13 +61,13 @@ struct Know_MapsApp: App {
     
     init() {
         let cacheManager = CloudCacheManager.shared
-        let settingsModel = AppleAuthenticationService(userId: "")
+        let authModel = AppleAuthenticationService.shared
         let modelController = DefaultModelController.shared
         let searchSavedViewModel = SearchSavedViewModel()
         let chatModel = ChatResultViewModel.shared
         
         _cacheManager = State(wrappedValue: cacheManager)
-        _settingsModel = State(wrappedValue: settingsModel)
+        _authenticationModel = StateObject(wrappedValue: authModel)
         _modelController = State(wrappedValue: modelController)
         _searchSavedViewModel = State(wrappedValue: searchSavedViewModel)
         _chatModel = State(wrappedValue: chatModel)
@@ -117,12 +116,12 @@ struct Know_MapsApp: App {
                         Spacer()
                     }
                     .task {
-                        if settingsModel.isAuthorized {
+                        if authenticationModel.isSignedIn {
                             Task {
                                 await startApp()
                             }
                         } else {
-                            settingsModel.authCompletion = { result in
+                            authenticationModel.authCompletion = { result in
                                 if case .success = result {
                                     Task {
                                         await startApp()
@@ -142,12 +141,12 @@ struct Know_MapsApp: App {
 #endif
                 } else {
                     if showOnboarding {
-                        OnboardingView( settingsModel: $settingsModel, chatModel: $chatModel, modelController: $modelController, selectedTab: $selectedOnboardingTab, showOnboarding: $showOnboarding)
+                        OnboardingView( settingsModel: authenticationModel, chatModel: $chatModel, modelController: $modelController, selectedTab: $selectedOnboardingTab, showOnboarding: $showOnboarding)
 #if os(visionOS) || os(macOS)
                             .frame(minWidth: 1280, minHeight: 720)
 #endif
                     } else {
-                        ContentView(settingsModel:$settingsModel, chatModel: $chatModel, cacheManager:$cacheManager, modelController:$modelController, searchSavedViewModel: $searchSavedViewModel, showOnboarding: $showOnboarding)
+                        ContentView(settingsModel:authenticationModel, chatModel: $chatModel, cacheManager:$cacheManager, modelController:$modelController, searchSavedViewModel: $searchSavedViewModel, showOnboarding: $showOnboarding)
 #if os(visionOS) || os(macOS)
                             .frame(minWidth: 1280, minHeight: 720)
 #endif
@@ -157,9 +156,9 @@ struct Know_MapsApp: App {
         }.windowResizability(.contentSize)
         
         WindowGroup(id:"SettingsView"){
-            SettingsView(model:$settingsModel, chatModel:$chatModel, cacheManager: $cacheManager, modelController: $modelController, showOnboarding: $showOnboarding, settingsPresented: $settingsPresented)
+            SettingsView(model:authenticationModel, chatModel:$chatModel, cacheManager: $cacheManager, modelController: $modelController, showOnboarding: $showOnboarding, settingsPresented: $settingsPresented)
                 .tag("Settings")
-                .onChange(of: settingsModel.appleUserId, { oldValue, newValue in
+                .onChange(of: authenticationModel.appleUserId, { oldValue, newValue in
                     
 #if os(visionOS) || os(iOS)
                     if !newValue.isEmpty, let vendorId = UIDevice().identifierForVendor {
@@ -184,10 +183,11 @@ struct Know_MapsApp: App {
     func performExistingAccountSetupFlows() {
         let requests = [ASAuthorizationAppleIDProvider().createRequest()]
         let authorizationController = ASAuthorizationController(authorizationRequests: requests)
-        authorizationController.delegate = settingsModel
+        authorizationController.delegate = authenticationModel
         authorizationController.performRequests()
     }
     
+    /*
     private func loadPurchases() async throws {
         let purchasesId =  settingsModel.purchasesId
         let revenuecatAPIKey = try await cacheManager.cloudCache.apiKey(for: .revenuecat)
@@ -197,7 +197,7 @@ struct Know_MapsApp: App {
         settingsModel.fetchSubscriptionOfferings()
         let customerInfo = try await Purchases.shared.customerInfo()
         FeatureFlagService.shared.updateFlags(with: customerInfo)
-    }
+    }*/
     
     private func startup() async {
 //        do {
@@ -249,7 +249,7 @@ struct Know_MapsApp: App {
     }
     
     private func handleOnboarding(_ chatModel: ChatResultViewModel) async {
-        let cloudAuth = settingsModel.isAuthorized
+        let cloudAuth = authenticationModel.isSignedIn
         
         let isLocationAuthorized = modelController.locationProvider.isAuthorized()
         

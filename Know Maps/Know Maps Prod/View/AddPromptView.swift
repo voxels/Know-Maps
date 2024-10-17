@@ -23,6 +23,7 @@ struct AddPromptToolbarView: View {
     @Environment(\.horizontalSizeClass) var sizeClass
     
     @Binding public var viewModel: SearchSavedViewModel
+    @Binding public var chatModel:ChatResultViewModel
     @Binding public var cacheManager: CloudCacheManager
     @Binding public var modelController: DefaultModelController
     @Binding public var addItemSection: Int
@@ -34,9 +35,18 @@ struct AddPromptToolbarView: View {
             Button(action:{
                 modelController.selectedPlaceChatResult = nil
                 modelController.selectedSavedResult = nil
+                Task(priority:.userInitiated) {
+                    await modelController.resetPlaceModel()
+                    do {
+                        try await chatModel.undoLastIntent(filters: viewModel.filters, cacheManager: cacheManager, modelController: modelController)
+                    } catch {
+                        modelController.analyticsManager.trackError(error:error, additionalInfo:nil)
+                    }
+                }
             }, label:{
                 Label("List", systemImage: "list.bullet")
             }).padding()
+                .disabled(modelController.selectedPlaceChatResult == nil)
 
             
             if let selectedPlaceChatResult = modelController.selectedPlaceChatResult,let placeChatResult = modelController.placeChatResult(for: selectedPlaceChatResult), !cacheManager.cachedPlaces(contains:placeChatResult.title){

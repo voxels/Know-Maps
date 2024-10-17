@@ -1,13 +1,13 @@
 {
-  "originHash" : "607b5e1385b26eb4f630b828b1891c03866fc7fabf229a93b35693dd4938c265",
+  "originHash" : "269edc34729f32700c3e1669401ebd46aa76f4b4e8acbb0e23425c559df6b982",
   "pins" : [
     {
       "identity" : "analytics-swift",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/segmentio/analytics-swift",
       "state" : {
-        "revision" : "41df3103293bbed6f17489fcc28e16a6e495168d",
-        "version" : "1.6.1"
+        "revision" : "825bac9da99ca02bacf85bdf95f707d8e9f786d1",
+        "version" : "1.6.2"
       }
     },
     {
@@ -17,15 +17,6 @@
       "state" : {
         "revision" : "af6a8b360984085e36c6341b21ecb35c12f47ebd",
         "version" : "2.0.0"
-      }
-    },
-    {
-      "identity" : "purchases-ios-spm",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/RevenueCat/purchases-ios-spm.git",
-      "state" : {
-        "revision" : "c7058bfd80d7f42ca6aa392bf1fab769d1158bf1",
-        "version" : "5.5.0"
       }
     },
     {

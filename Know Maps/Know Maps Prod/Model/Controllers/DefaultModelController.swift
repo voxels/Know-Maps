@@ -10,7 +10,6 @@ import CoreLocation
 
 @Observable
 public final class DefaultModelController : ModelController {
-    
     static let shared = DefaultModelController(
         locationProvider: LocationProvider(),
         analyticsManager:SegmentAnalyticsService.shared, messagesDelegate: ChatResultViewModel.shared)
@@ -511,9 +510,10 @@ public final class DefaultModelController : ModelController {
     public func recommendedPlaceQueryModel(intent: AssistiveChatHostIntent, cacheManager:CacheManager) async throws {
         var recommendedChatResults = [ChatResult]()
         
+#if canImport(CreateML)
         if let recommendedPlaceSearchResponses = intent.recommendedPlaceSearchResponses {
             if recommendedPlaceSearchResponses.count > 1 {
-                fetchMessage = "Personalizing results"
+                 fetchMessage = "Personalizing results"
                 let trainingData = recommenderService.recommendationData(tasteCategoryResults:cacheManager.cachedTasteResults, industryCategoryResults: cacheManager.cachedIndustryResults, placeRecommendationData: cacheManager.cachedRecommendationData)
                 let model = try recommenderService.model(with: trainingData)
                 let testingData = recommenderService.testingData(with:recommendedPlaceSearchResponses)
@@ -594,11 +594,58 @@ public final class DefaultModelController : ModelController {
                 return result.rating > checkResult.rating
             })
         }
+#else
+        if let recommendedPlaceSearchResponses = intent.recommendedPlaceSearchResponses, !recommendedPlaceSearchResponses.isEmpty {
+            for index in 0..<recommendedPlaceSearchResponses.count {
+                let response = recommendedPlaceSearchResponses[index]
+                if !response.fsqID.isEmpty {
+                    let placeResponse = PlaceSearchResponse(
+                        fsqID: response.fsqID,
+                        name: response.name,
+                        categories: response.categories,
+                        latitude: response.latitude,
+                        longitude: response.longitude,
+                        address: response.address,
+                        addressExtended: response.formattedAddress,
+                        country: response.country,
+                        dma: response.neighborhood,
+                        formattedAddress: response.formattedAddress,
+                        locality: response.city,
+                        postCode: response.postCode,
+                        region: response.state,
+                        chains: [],
+                        link: "",
+                        childIDs: [],
+                        parentIDs: []
+                    )
+                    let results = PlaceResponseFormatter.placeChatResults(
+                        for: intent,
+                        place: placeResponse,
+                        section: assistiveHostDelegate.section(for: intent.caption), list: intent.caption, index: 0, rating: 1,
+                        details: nil,
+                        recommendedPlaceResponse: response
+                    )
+                    recommendedChatResults.append(contentsOf: results)
+                }
+            }
+        }
+    
+    await MainActor.run { [recommendedChatResults] in
+        recommendedPlaceResults = recommendedChatResults.sorted(by: { result, checkResult in
+            if result.rating == checkResult.rating {
+                return result.index < checkResult.index
+            }
+            
+            return result.rating > checkResult.rating
+        })
+    }
+#endif
     }
     
     public func relatedPlaceQueryModel(intent: AssistiveChatHostIntent, cacheManager:CacheManager) async throws {
         var relatedChatResults = [ChatResult]()
         
+#if canImport(CreateML)
         if let relatedPlaceSearchResponses = intent.relatedPlaceSearchResponses, !relatedPlaceSearchResponses.isEmpty {
             
             var trainingData = recommenderService.recommendationData(tasteCategoryResults:cacheManager.cachedTasteResults, industryCategoryResults: cacheManager.cachedIndustryResults, placeRecommendationData: cacheManager.cachedRecommendationData)
@@ -665,6 +712,40 @@ public final class DefaultModelController : ModelController {
                 return result.rating > checkResult.rating
             })
         }
+        #else
+            if let relatedPlaceSearchResponses = intent.relatedPlaceSearchResponses, !relatedPlaceSearchResponses.isEmpty {
+            for index in 0..<relatedPlaceSearchResponses.count {
+                let response = relatedPlaceSearchResponses[index]
+                let placeResponse = PlaceSearchResponse(
+                    fsqID: response.fsqID,
+                    name: response.name,
+                    categories: response.categories,
+                    latitude: response.latitude,
+                    longitude: response.longitude,
+                    address: response.address,
+                    addressExtended: response.formattedAddress,
+                    country: response.country,
+                    dma: response.neighborhood,
+                    formattedAddress: response.formattedAddress,
+                    locality: response.city,
+                    postCode: response.postCode,
+                    region: response.state,
+                    chains: [],
+                    link: "",
+                    childIDs: [],
+                    parentIDs: []
+                )
+                let results = PlaceResponseFormatter.placeChatResults(
+                    for: intent,
+                    place: placeResponse,
+                    section: assistiveHostDelegate.section(for: intent.caption), list: intent.caption, index: index, rating: 1,
+                    details: nil,
+                    recommendedPlaceResponse: response
+                )
+                relatedChatResults.append(contentsOf: results)
+            }
+        }
+        #endif
     }
     
     @discardableResult
@@ -874,5 +955,16 @@ public final class DefaultModelController : ModelController {
         await MainActor.run {
             queryParametersHistory.append(parameters)
         }
+    }
+    
+    public func undoLastQueryParameterChange(filters:[String:Any], cacheManager:CacheManager) async throws {
+        let previousHistory = queryParametersHistory.dropLast()
+        let history = Array(previousHistory)
+        if let lastHistory = history.last, let lastIntent = lastHistory.queryIntents.dropLast().last {
+            await assistiveHostDelegate.updateLastIntentParameters(intent: lastIntent, modelController: self)
+            try await receiveMessage(caption: lastIntent.caption, parameters: lastHistory, isLocalParticipant: true)
+            try await searchIntent(intent: lastIntent, location: locationChatResult(for: selectedDestinationLocationChatResult ?? currentLocationResult.id, in: filteredLocationResults(cacheManager: cacheManager))?.location, cacheManager: cacheManager )
+                try await didUpdateQuery(with: lastIntent.caption, parameters: lastHistory, filters: filters, cacheManager: cacheManager)
+            }
     }
 }

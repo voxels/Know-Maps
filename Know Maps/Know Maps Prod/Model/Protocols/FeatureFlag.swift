@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import RevenueCat
+//import RevenueCat
 
 // Define the protocol for feature flag management
 public protocol FeatureFlag {
@@ -17,6 +17,8 @@ public protocol FeatureFlag {
     // Check if a flag is owned (enabled)
     func owns(flag: FlagType) -> Bool
 
+
+    /*
     // Update a specific flag with a new state (allowed or not)
     func update(flag: FlagType, allowed: Bool)
 
@@ -25,9 +27,12 @@ public protocol FeatureFlag {
 
     // Update flags based on selected subscription plan
     func updateFlags(with selectedSubscription: SubscriptionPlan)
+     */
 }
 
-// Extend the protocol to include PurchasesDelegate methods
-public protocol FeatureFlagsPurchasesDelegate: FeatureFlag, PurchasesDelegate {
-    func purchases(_ purchases: Purchases, receivedUpdated customerInfo: CustomerInfo)
-}
+/*
+ // Extend the protocol to include PurchasesDelegate methods
+ public protocol FeatureFlagsPurchasesDelegate: FeatureFlag, PurchasesDelegate {
+ func purchases(_ purchases: Purchases, receivedUpdated customerInfo: CustomerInfo)
+ }
+ */

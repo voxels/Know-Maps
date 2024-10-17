@@ -6,10 +6,10 @@
 //
 
 import Foundation
-import RevenueCat
+//import RevenueCat
 
 @Observable
-public final class FeatureFlagService : NSObject, @preconcurrency FeatureFlag, @preconcurrency PurchasesDelegate {
+public final class FeatureFlagService : NSObject, FeatureFlag/*, @preconcurrency PurchasesDelegate*/ {
     
     // Shared instance (singleton)
     public static let shared = FeatureFlagService()
@@ -33,6 +33,7 @@ public final class FeatureFlagService : NSObject, @preconcurrency FeatureFlag, @
         }
     }
     
+    /*
     @MainActor
     public func updateFlags(with customerInfo:CustomerInfo) {
         if customerInfo.entitlements["limited"]?.isActive == true {
@@ -63,4 +64,6 @@ public final class FeatureFlagService : NSObject, @preconcurrency FeatureFlag, @
     @MainActor public func purchases(_ purchases: Purchases, receivedUpdated customerInfo: CustomerInfo) {
         updateFlags(with: customerInfo)
     }
+     */
+
 }

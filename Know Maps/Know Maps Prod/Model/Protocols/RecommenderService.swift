@@ -6,10 +6,16 @@
 //
 
 import Foundation
+#if canImport(CreateML)
 import CreateML
+#endif
 
 public protocol RecommenderService : Sendable {
     func recommendationData(tasteCategoryResults: [CategoryResult], industryCategoryResults: [CategoryResult], placeRecommendationData:[RecommendationData]) -> [RecommendationData]
-    func model(with recommendationData: [RecommendationData]) throws -> MLRandomForestRegressor
     func testingData(with responses:[RecommendedPlaceSearchResponse])->[RecommendationData]
-    func recommend(from testingData: [RecommendationData], with model: MLRandomForestRegressor) throws -> [RecommendationData]}
+
+#if canImport(CreateML)
+    func model(with recommendationData: [RecommendationData]) throws -> MLRandomForestRegressor
+    func recommend(from testingData: [RecommendationData], with model: MLRandomForestRegressor) throws -> [RecommendationData]
+#endif
+}

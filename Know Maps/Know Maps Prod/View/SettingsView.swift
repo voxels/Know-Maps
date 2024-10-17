@@ -10,7 +10,7 @@ import AuthenticationServices
 
 struct SettingsView: View {
     @Environment(\.openWindow) private var openWindow
-    @Binding public var model:AppleAuthenticationService
+    @ObservedObject public var model:AppleAuthenticationService
     @Binding public var chatModel:ChatResultViewModel
     @Binding public var cacheManager:CloudCacheManager
     @Binding public var modelController:DefaultModelController
@@ -22,8 +22,9 @@ struct SettingsView: View {
 
     var body: some View {
         VStack {
-            if model.isAuthorized {
-                if let fullName = model.fullName?.trimmingCharacters(in: .whitespaces), !fullName.isEmpty {
+            if model.isSignedIn {
+                let fullName = model.fullName.trimmingCharacters(in: .whitespaces)
+                if !fullName.isEmpty {
                     Label("Welcome \(fullName)", systemImage:"apple.logo").padding()
                 } else {
                     Label("Signed in with Apple ID", systemImage:"apple.logo").padding()

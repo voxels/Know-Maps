@@ -248,10 +248,6 @@ public final class AssistiveChatHostService : AssistiveChatHost {
     }
     
     public func updateLastIntentParameters(intent:AssistiveChatHostIntent, modelController:ModelController) async {
-        
-        if queryIntentParameters.queryIntents.count > 0 {
-            queryIntentParameters.queryIntents.removeLast()
-        }
         queryIntentParameters.queryIntents.append(intent)
         await messagesDelegate.updateQueryParametersHistory(with:queryIntentParameters, modelController: modelController)
     }
