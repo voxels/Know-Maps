@@ -138,6 +138,7 @@
 		1E095B122B778AF000147119 /* Know Maps ProdUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Know Maps ProdUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		1E095B252B778EAE00147119 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS17.2.sdk/System/Library/Frameworks/StoreKit.framework; sourceTree = DEVELOPER_DIR; };
 		1E0C49662CBFFD0C0087E624 /* BlueECC */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = BlueECC; path = "/Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-himzneyjugqfhfayuscbrjgkaapl/SourcePackages/checkouts/BlueECC"; sourceTree = "<absolute>"; };
+		1E1E31102CC19E1B00A23434 /* Know-Maps-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "Know-Maps-Info.plist"; sourceTree = "<group>"; };
 		1E1F5E442B725D56008B6BAD /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		1E1F5E482B725FBB008B6BAD /* OnboardingSignInView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingSignInView.swift; sourceTree = "<group>"; };
 		1E1F5E502B726680008B6BAD /* OnboardingLocationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingLocationView.swift; sourceTree = "<group>"; };
@@ -388,6 +389,7 @@
 		1EA7F73C2B03FA70002AE371 = {
 			isa = PBXGroup;
 			children = (
+				1E1E31102CC19E1B00A23434 /* Know-Maps-Info.plist */,
 				1E095AF92B778AEF00147119 /* Know Maps Prod */,
 				1EE599B42CA4A6DE00C211A6 /* Know MapsTests */,
 				1EA7F7462B03FA70002AE371 /* Products */,
@@ -791,6 +793,7 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Know-Maps-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Know Maps";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Know Maps uses your current location to suggest places to go near you.";
@@ -840,6 +843,7 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Know-Maps-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Know Maps";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Know Maps uses your current location to suggest places to go near you.";
