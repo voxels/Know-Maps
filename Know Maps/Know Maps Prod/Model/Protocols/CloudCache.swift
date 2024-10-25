@@ -35,6 +35,8 @@ public protocol CloudCache: AnyObject, Sendable {
     func session(service: String) async throws -> URLSession
     func fetchCloudKitUserRecordID() async throws -> CKRecord.ID?
 
+    func fetchAllRecords(recordTypes: [String]) async throws
+    
     // Background Operations
     func clearCache()
 }

@@ -53,6 +53,7 @@ struct SearchCategoryView: View {
             }
         }
         .listStyle(.sidebar)
+
         #if os(macOS)
         .searchable(text: $searchText, prompt: "Search Categories")
         #else
@@ -67,12 +68,6 @@ struct SearchCategoryView: View {
                 }
             }
         })
-#if os(iOS) || os(visionOS)
-        .toolbar {
-            EditButton()
-        }
-        .toolbarBackground(.visible, for: .navigationBar)
-#endif
         .refreshable {
             Task(priority: .userInitiated) {
                 do {

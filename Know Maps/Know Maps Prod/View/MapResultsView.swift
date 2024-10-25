@@ -17,7 +17,6 @@ struct MapResultsView: View {
     @Binding public var showMapsResultViewSheet:Bool
     
     var body: some View {
-        VStack {
             Map(position: $cameraPosition, interactionModes: .all, selection: $selectedMapItem) {
                 ForEach(modelController.mapPlaceResults) { result in
                     if let placeResponse = result.placeResponse {
@@ -32,7 +31,7 @@ struct MapResultsView: View {
             }
             .mapStyle(.imagery)
             .cornerRadius(16)
-            .padding(16)
+            .padding(32)
             .task {
                 cameraPosition = .automatic
             }
@@ -43,15 +42,6 @@ struct MapResultsView: View {
                     updateCamera(for: modelController.currentLocationResult.id)
                 }
             }
-            HStack {
-                Button(action:{
-                    showMapsResultViewSheet.toggle()
-                }, label:{
-                    Label("List", systemImage: "list.bullet")
-                }).padding()
-                Spacer()
-            }.padding()
-        }
     }
     
     private func updateCamera(for locationResult: UUID) {

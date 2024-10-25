@@ -152,6 +152,11 @@ public final class CloudCacheManager: CacheManager {
             self.cachedDefaultResults = results
         }
     }
+    
+    public func restoreCache() async throws {
+        print("Restoring all cache records")
+        try await cloudCache.fetchAllRecords(recordTypes: ["UserCachedRecord", "RecommendationData"])
+    }
 
     @MainActor
     public func clearCache() {

@@ -37,7 +37,7 @@ struct PlacesList: View {
                     ScrollView{
                         let sizeWidth:CGFloat = sizeClass == .compact ? 1 : 3
 #if os(macOS) || os(visionOS)
-                        let columns = Array(repeating: GridItem(.adaptive(minimum: geometry.size.width / sizeWidth)),  count:Int(sizeWidth))
+                        let columns = Array(repeating: GridItem(.adaptive(minimum: geometry.size.width / sizeWidth), spacing:16, alignment: .top),  count:Int(sizeWidth))
 #else
                         let columns = Array(repeating: GridItem(.adaptive(minimum: UIScreen.main.bounds.size.width / sizeWidth),spacing:16, alignment: .top),  count:Int(sizeWidth))
 #endif
@@ -156,8 +156,8 @@ struct PlacesList: View {
                             Spacer()
                             HStack {
                                 Spacer()
-                                if let selectedDestinationLocationChatResult = modelController.selectedDestinationLocationChatResult, let locationChatResult = modelController.locationChatResult(for: selectedDestinationLocationChatResult, in: modelController.filteredLocationResults(cacheManager: cacheManager)), !locationChatResult.locationName.isEmpty{
-                                    ProgressView("Fetching places...")
+                                if modelController.isRefreshingPlaces {
+                                    ProgressView(modelController.fetchMessage)
                                 } else {
                                     Text("No places nearby matching query.")
                                 }

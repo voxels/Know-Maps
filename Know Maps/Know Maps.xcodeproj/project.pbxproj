@@ -88,7 +88,6 @@
 		1EF3790E2C986EE7001C5E39 /* SearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EA7F76C2B04FFD9002AE371 /* SearchView.swift */; };
 		1EF3790F2C986EE7001C5E39 /* SearchCategoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E70B4C42B50103C00F1F9F5 /* SearchCategoryView.swift */; };
 		1EF379102C986EE7001C5E39 /* SearchTasteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E70B4D02B50120500F1F9F5 /* SearchTasteView.swift */; };
-		1EF379112C986EE7001C5E39 /* SearchSavedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E70B4C82B50113200F1F9F5 /* SearchSavedView.swift */; };
 		1EF379122C986EE7001C5E39 /* NavigationLocationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E26C7B32B2C79150050EC6A /* NavigationLocationView.swift */; };
 		1EF379132C986EE7001C5E39 /* PlacesList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EA7F7702B051BDE002AE371 /* PlacesList.swift */; };
 		1EF379152C986EE7001C5E39 /* PlaceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EA588D22B09326E006B1F8F /* PlaceView.swift */; };
@@ -164,7 +163,6 @@
 		1E6944552CBA78330017A81F /* AddTasteView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddTasteView.swift; sourceTree = "<group>"; };
 		1E6944572CBA78560017A81F /* AddPlaceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddPlaceView.swift; sourceTree = "<group>"; };
 		1E70B4C42B50103C00F1F9F5 /* SearchCategoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchCategoryView.swift; sourceTree = "<group>"; };
-		1E70B4C82B50113200F1F9F5 /* SearchSavedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchSavedView.swift; sourceTree = "<group>"; };
 		1E70B4D02B50120500F1F9F5 /* SearchTasteView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchTasteView.swift; sourceTree = "<group>"; };
 		1E7121342B60136200758259 /* PlaceDescriptionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceDescriptionView.swift; sourceTree = "<group>"; };
 		1E7121382B61472800758259 /* FeatureFlagsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeatureFlagsService.swift; sourceTree = "<group>"; };
@@ -437,7 +435,6 @@
 				1EE068872B0D1ADB0016851A /* SettingsView.swift */,
 				1EA7F76C2B04FFD9002AE371 /* SearchView.swift */,
 				1E91AA212CA83AAF00F63C3A /* SearchSectionView.swift */,
-				1E70B4C82B50113200F1F9F5 /* SearchSavedView.swift */,
 				1E70B4C42B50103C00F1F9F5 /* SearchCategoryView.swift */,
 				1E70B4D02B50120500F1F9F5 /* SearchTasteView.swift */,
 				1E8E5AFA2CA03D8600B37E6A /* SearchPlacesView.swift */,
@@ -715,7 +712,6 @@
 				1EF3790F2C986EE7001C5E39 /* SearchCategoryView.swift in Sources */,
 				1E6944582CBA78560017A81F /* AddPlaceView.swift in Sources */,
 				1EF379102C986EE7001C5E39 /* SearchTasteView.swift in Sources */,
-				1EF379112C986EE7001C5E39 /* SearchSavedView.swift in Sources */,
 				1E3FE0142CB6C6BA0020B3CB /* DefaultRecommenderService.swift in Sources */,
 				1EF379122C986EE7001C5E39 /* NavigationLocationView.swift in Sources */,
 				1E3FE0122CB6C5300020B3CB /* RecommenderService.swift in Sources */,

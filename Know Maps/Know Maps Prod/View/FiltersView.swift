@@ -62,12 +62,6 @@ struct FiltersView: View {
                     .frame(maxWidth:220)
                 Spacer()
                 HStack {
-                    Button(action:{
-                        showFiltersPopover.toggle()
-                    }, label:{
-                        Label("List", systemImage: "list.bullet")
-                        
-                    }).padding()
                     Spacer()
                     Button(action: {
                         if let lastIntent = modelController.queryParametersHistory.last?.queryIntents.last {

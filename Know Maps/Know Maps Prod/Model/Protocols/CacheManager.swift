@@ -25,6 +25,8 @@ public protocol CacheManager : Sendable {
     // Refresh the entire cache for different data types
     func refreshCachedResults() async
     
+    func restoreCache() async throws
+    
     // Remove all cached results
     func clearCache() async
     

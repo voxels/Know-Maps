@@ -14,6 +14,7 @@ struct OnboardingView: View {
     
     @Binding  public var selectedTab:String
     @Binding  public var showOnboarding:Bool
+    @State public var locationIsAuthorized:Bool = false
 
     var body: some View {
         TabView(selection: $selectedTab,
@@ -23,11 +24,16 @@ struct OnboardingView: View {
                 .tabItem({
                     Label("Sign In", systemImage: "person.crop.circle.badge.plus")
                 })
-            OnboardingLocationView(chatModel: $chatModel, modelController: $modelController, showOnboarding: $showOnboarding, selectedTab:$selectedTab)
+            OnboardingLocationView(chatModel: $chatModel, modelController: $modelController, showOnboarding: $showOnboarding, selectedTab:$selectedTab, locationIsAuthorized: $locationIsAuthorized)
                 .tag("Location")
                 .tabItem({
                     Label("Location", systemImage: "map" )
                 })
+                .onChange(of: locationIsAuthorized) { oldValue, newValue in
+                    if newValue, settingsModel.isSignedIn {
+                        showOnboarding = false
+                    }
+                }
         })
     }
 }

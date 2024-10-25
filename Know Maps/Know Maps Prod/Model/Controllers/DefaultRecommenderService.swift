@@ -71,7 +71,7 @@ public final class DefaultRecommenderService : RecommenderService {
         }
         
         let trainingData:DataFrame = ["identity": identities,"attribute":attributes,"rating":ratings]
-        let model = try MLRandomForestRegressor(trainingData: trainingData, targetColumn: "rating", parameters:MLRandomForestRegressor.ModelParameters.init(validation: .split(strategy: .automatic), maxIterations: 75))
+        let model = try MLRandomForestRegressor(trainingData: trainingData, targetColumn: "rating", parameters:MLRandomForestRegressor.ModelParameters.init(validation: .split(strategy: .automatic), maxIterations: 100    ))
         
         return model
     }

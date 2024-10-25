@@ -8,7 +8,7 @@ import SwiftUI
 import AppIntents
 
 struct SavedListView: View {
-    @Binding public var viewModel: SearchSavedViewModel
+    @Binding public var searchSavedViewModel: SearchSavedViewModel
     @Binding public var cacheManager: CloudCacheManager
     @Binding public var modelController: DefaultModelController
     @Binding public var addItemSection: Int
@@ -153,10 +153,6 @@ struct SavedListView: View {
         }
 #if os(iOS) || os(visionOS)
         .listStyle(InsetGroupedListStyle())
-        .toolbarBackground(.visible, for: .navigationBar)
-        .toolbar(content: {
-            EditButton()
-        })
 #endif
         .refreshable {
             Task(priority: .userInitiated) {
@@ -173,9 +169,9 @@ struct SavedListView: View {
                 await cacheManager.refreshCachedResults()
             }
         }
-        .sheet(item: $viewModel.editingRecommendationWeightResult) { selectedResult in
+        .sheet(item: $searchSavedViewModel.editingRecommendationWeightResult) { selectedResult in
             recommendationWeightSheet(for: selectedResult)
-                .presentationDetents([.large])
+                .presentationDetents([.medium])
                 .presentationDragIndicator(.visible)
                 .presentationCompactAdaptation(.sheet)
         }
@@ -188,7 +184,7 @@ struct SavedListView: View {
         switch parent.rating {
         case ..<1:
             Button(action: {
-                viewModel.editingRecommendationWeightResult = parent
+                searchSavedViewModel.editingRecommendationWeightResult = parent
             }) {
                 Label("Never", systemImage: "circle.slash")
                     .foregroundColor(.red)
@@ -198,7 +194,7 @@ struct SavedListView: View {
             .labelStyle(.iconOnly)
         case 1..<3:
             Button(action: {
-                viewModel.editingRecommendationWeightResult = parent
+                searchSavedViewModel.editingRecommendationWeightResult = parent
             }) {
                 Label("Occasionally", systemImage: "circle")
                     .foregroundColor(.accentColor)
@@ -208,7 +204,7 @@ struct SavedListView: View {
             .labelStyle(.iconOnly)
         case 3:
             Button(action: {
-                viewModel.editingRecommendationWeightResult = parent
+                searchSavedViewModel.editingRecommendationWeightResult = parent
             }) {
                 Label("Often", systemImage: "circle.fill")
                     .foregroundColor(.green)
@@ -230,7 +226,7 @@ struct SavedListView: View {
                 .padding()
             
             Button(action: {
-                viewModel.updateRating(for: selectedResult, rating: 0, cacheManager: cacheManager, modelController: modelController)
+                searchSavedViewModel.updateRating(for: selectedResult, rating: 0, cacheManager: cacheManager, modelController: modelController)
             }) {
                 Label("Recommend rarely", systemImage: "circle.slash")
                     .foregroundColor(.red)
@@ -238,7 +234,7 @@ struct SavedListView: View {
             }.buttonStyle(.borderless)
                 .padding()
             Button(action: {
-                viewModel.updateRating(for: selectedResult, rating: 2, cacheManager: cacheManager, modelController: modelController)
+                searchSavedViewModel.updateRating(for: selectedResult, rating: 2, cacheManager: cacheManager, modelController: modelController)
             }) {
                 Label("Recommend occasionally", systemImage: "circle")
                     .foregroundColor(.accentColor)
@@ -247,7 +243,7 @@ struct SavedListView: View {
                 .padding()
             
             Button(action: {
-                viewModel.updateRating(for: selectedResult, rating: 3,  cacheManager: cacheManager, modelController: modelController)
+                searchSavedViewModel.updateRating(for: selectedResult, rating: 3,  cacheManager: cacheManager, modelController: modelController)
             }) {
                 Label("Recommend often", systemImage: "circle.fill")
                     .foregroundColor(.green)
@@ -263,7 +259,7 @@ struct SavedListView: View {
         for id in idsToDelete {
             Task(priority: .userInitiated) {
                 if let parent = modelController.cachedTasteResult(for: id, cacheManager: cacheManager) {
-                    await viewModel.removeCachedResults(group: "Taste", identity: parent.parentCategory, cacheManager: cacheManager, modelController: modelController)
+                    await searchSavedViewModel.removeCachedResults(group: "Taste", identity: parent.parentCategory, cacheManager: cacheManager, modelController: modelController)
                 }
             }
         }
@@ -273,7 +269,7 @@ struct SavedListView: View {
         for id in idsToDelete {
             Task(priority: .userInitiated) {
                 if let parent = modelController.cachedCategoricalResult(for: id, cacheManager: cacheManager) {
-                    await viewModel.removeCachedResults(group: "Category", identity: parent.parentCategory, cacheManager: cacheManager, modelController: modelController)
+                    await searchSavedViewModel.removeCachedResults(group: "Category", identity: parent.parentCategory, cacheManager: cacheManager, modelController: modelController)
                 }
             }
         }
@@ -284,7 +280,7 @@ struct SavedListView: View {
             Task(priority: .userInitiated) {
                 if let parent = modelController.cachedPlaceResult(for: id, cacheManager: cacheManager),
                    let fsqID = parent.categoricalChatResults.first?.placeResponse?.fsqID {
-                    await viewModel.removeCachedResults(group: "Place", identity: fsqID, cacheManager: cacheManager, modelController: modelController)
+                    await searchSavedViewModel.removeCachedResults(group: "Place", identity: fsqID, cacheManager: cacheManager, modelController: modelController)
                     _ = try? await cacheManager.cloudCache.deleteRecommendationData(for: fsqID)
                 }
             }

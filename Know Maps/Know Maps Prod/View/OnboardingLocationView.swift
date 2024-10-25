@@ -14,9 +14,9 @@ import AppKit
 struct OnboardingLocationView: View {
     @Binding public var chatModel:ChatResultViewModel
     @Binding var modelController:DefaultModelController
-    @Binding  public var showOnboarding:Bool
-    @Binding  public var selectedTab:String
-    @State private var isAuthorized:Bool = false
+    @Binding public var showOnboarding:Bool
+    @Binding public var selectedTab:String
+    @Binding public var locationIsAuthorized:Bool
 
     var body: some View {
         VStack{
@@ -31,9 +31,8 @@ struct OnboardingLocationView: View {
                 .padding()
             Button("Continue") {
                 modelController.locationProvider.authorize()
-                showOnboarding = false
             }.padding()
-                .alert("Location Settings", isPresented: $isAuthorized, actions:                 {
+                .alert("Location Settings", isPresented: $locationIsAuthorized, actions:                 {
                     Button("Open System Preferences") {
                         openLocationPreferences()
                     }

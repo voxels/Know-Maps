@@ -15,7 +15,6 @@ struct SettingsView: View {
     @Binding public var cacheManager:CloudCacheManager
     @Binding public var modelController:DefaultModelController
     @Binding public var showOnboarding:Bool
-    @Binding public var settingsPresented:Bool
     @State private var popoverPresented:Bool = false
     @State private var signInErrorMessage:String = "Error"
     @State private var isAuthenticated = false
@@ -29,6 +28,13 @@ struct SettingsView: View {
                 } else {
                     Label("Signed in with Apple ID", systemImage:"apple.logo").padding()
                 }
+                Button {
+                    model.signOut()
+                    showOnboarding = true
+                } label: {
+                    Label("Sign Out of your Apple ID", systemImage: "person.crop.circle.badge.minus").padding()
+                }
+
             } else {
                 SignInWithAppleButton { request in
                     if !model.appleUserId.isEmpty {
@@ -97,14 +103,6 @@ struct SettingsView: View {
               Text("Delete all of my saved groups")
             }).padding()
             Spacer()
-            HStack {
-                Button(action:{
-                    settingsPresented.toggle()
-                }, label:{
-                    Label("List", systemImage: "list.bullet")
-                }).padding()
-                Spacer()
-            }.padding()
         }
         .padding()
     }

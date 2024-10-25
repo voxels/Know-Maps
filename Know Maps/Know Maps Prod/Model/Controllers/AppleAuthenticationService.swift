@@ -68,7 +68,7 @@ class AppleAuthenticationService: NSObject, ObservableObject {
     
     // MARK: - Token Exchange
     func exchangeAuthorizationCode(_ code: String, completion: @escaping (Bool) -> Void) {
-        guard let url = URL(string: "https://www.no-maps.com/exchangeAppleToken") else {
+        guard let url = URL(string: "https://api-ewrihjjgiq-uc.a.run.app/exchangeAppleToken") else {
             print("Invalid exchange token URL.")
             completion(false)
             return
@@ -82,6 +82,8 @@ class AppleAuthenticationService: NSObject, ObservableObject {
         
         // Send the request
         let task = URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
+            
+            
             if let error = error {
                 DispatchQueue.main.async {
                     self?.signInErrorMessage = "Network error: \(error.localizedDescription)"
@@ -96,15 +98,19 @@ class AppleAuthenticationService: NSObject, ObservableObject {
                 completion(false)
                 return
             }
+            let response = String(data: data, encoding: .utf8)
+            print(response ?? "data corrupted")
+
             do {
                 let tokenResponse = try JSONDecoder().decode(TokenResponse.self, from: data)
-                // Store tokens securely
-                self?.storeTokens(accessToken: tokenResponse.access_token, refreshToken: tokenResponse.refresh_token)
-                DispatchQueue.main.async {
-                    self?.isSignedIn = true
-                    self?.signInErrorMessage = ""
-                }
-                completion(true)
+                    // Store tokens securely
+                    self?.storeTokens(accessToken: tokenResponse.accessToken, refreshToken: tokenResponse.refreshToken)
+                    DispatchQueue.main.async {
+                        self?.isSignedIn = true
+                        self?.signInErrorMessage = ""
+                    }
+                    completion(true)
+                
             } catch {
                 DispatchQueue.main.async {
                     self?.signInErrorMessage = "Failed to parse token data."
@@ -117,7 +123,7 @@ class AppleAuthenticationService: NSObject, ObservableObject {
     
     // MARK: - Token Revocation
     func revokeToken(refreshToken: String, completion: @escaping (Bool) -> Void) {
-        guard let url = URL(string: "https://www.no-maps.com/revokeAppleToken") else {
+        guard let url = URL(string: "https://api-ewrihjjgiq-uc.a.run.app/revokeAppleToken") else {
             print("Invalid revoke token URL.")
             completion(false)
             return
@@ -295,9 +301,18 @@ extension AppleAuthenticationService: ASAuthorizationControllerPresentationConte
 
 // MARK: - Token Response Struct
 struct TokenResponse: Codable {
-    let access_token: String
-    let refresh_token: String
-    let id_token: String
-    let token_type: String
-    let expires_in: Int
+    let accessToken: String
+    let refreshToken: String
+    let idToken: String
+    let tokenType: String
+    let expiresIn: Int
+
+    // Mapping the snake_case keys to camelCase properties
+    enum CodingKeys: String, CodingKey {
+        case accessToken = "access_token"
+        case refreshToken = "refresh_token"
+        case idToken = "id_token"
+        case tokenType = "token_type"
+        case expiresIn = "expires_in"
+    }
 }

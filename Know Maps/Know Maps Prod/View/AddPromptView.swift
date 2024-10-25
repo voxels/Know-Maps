@@ -32,23 +32,6 @@ struct AddPromptToolbarView: View {
     
     var body: some View {
         if addItemSection == 0 || addItemSection == 3 {
-            Button(action:{
-                modelController.selectedPlaceChatResult = nil
-                modelController.selectedSavedResult = nil
-                Task(priority:.userInitiated) {
-                    await modelController.resetPlaceModel()
-                    do {
-                        try await chatModel.undoLastIntent(filters: viewModel.filters, cacheManager: cacheManager, modelController: modelController)
-                    } catch {
-                        modelController.analyticsManager.trackError(error:error, additionalInfo:nil)
-                    }
-                }
-            }, label:{
-                Label("List", systemImage: "list.bullet")
-            }).padding()
-                .disabled(modelController.selectedPlaceChatResult == nil)
-
-            
             if let selectedPlaceChatResult = modelController.selectedPlaceChatResult,let placeChatResult = modelController.placeChatResult(for: selectedPlaceChatResult), !cacheManager.cachedPlaces(contains:placeChatResult.title){
                 Button(action: {
                     Task(priority:.userInitiated) {

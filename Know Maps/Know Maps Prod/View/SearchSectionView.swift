@@ -18,9 +18,5 @@ struct SearchSectionView: View {
             }
         }
         .listStyle(.sidebar)
-#if os(iOS) || os(visionOS)
-        .toolbarBackground(.visible, for: .navigationBar)
-#endif
-
     }
 }

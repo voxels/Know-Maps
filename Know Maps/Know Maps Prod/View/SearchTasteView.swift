@@ -61,12 +61,6 @@ struct SearchTasteView: View {
             }
         })
         .listStyle(.sidebar)
-#if os(iOS) || os(visionOS)
-        .toolbar {
-            EditButton()
-        }
-        .toolbarBackground(.visible, for: .navigationBar)
-#endif
 //        .overlay(alignment: .top, content: {
 //            VStack(alignment: .center) {
 //                TextField("", text: $tasteSearchText, prompt:Text("Search for a feature"))

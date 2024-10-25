@@ -416,154 +416,319 @@ public final class CloudCacheService: NSObject, CloudCache {
         }
     }
     public func fetchGroupedUserCachedRecords(for group: String) async throws -> [UserCachedRecord] {
-            // Fetch from local store
-            return try await MainActor.run {
+        // Fetch from local store
+        return try await MainActor.run {
+            let fetchDescriptor = FetchDescriptor<UserCachedRecord>(
+                predicate: #Predicate { $0.group == group }
+            )
+            return try modelContext.fetch(fetchDescriptor)
+        }
+    }
+    
+    @discardableResult
+    public func storeUserCachedRecord(
+        recordId: String,
+        group: String,
+        identity: String,
+        title: String,
+        icons: String,
+        list: String,
+        section: String,
+        rating: Double
+    ) async throws -> Bool {
+        await MainActor.run {
+            let userCachedRecord = UserCachedRecord(
+                recordId: recordId,
+                group: group,
+                identity: identity,
+                title: title,
+                icons: icons,
+                list: list,
+                section: section,
+                rating: rating
+            )
+            modelContext.insert(userCachedRecord)
+            do {
+                try modelContext.save()
+            } catch {
+                analyticsManager.trackError(error: error, additionalInfo: nil)
+            }
+        }
+        return true
+    }
+    
+    public func updateUserCachedRecordRating(identity: String, newRating: Double) async throws {
+        await MainActor.run {
+            do {
+                let fetchDescriptor = FetchDescriptor<UserCachedRecord>(
+                    predicate: #Predicate { $0.identity == identity }
+                )
+                if let localRecord = try modelContext.fetch(fetchDescriptor).first {
+                    localRecord.rating = newRating
+                    try modelContext.save()
+                } else {
+                    print("Local record not found for identity: \(identity)")
+                }
+            } catch {
+                analyticsManager.trackError(error: error, additionalInfo: nil)
+            }
+        }
+    }
+    
+    public func deleteUserCachedRecord(for cachedRecord: UserCachedRecord) async throws {
+        await MainActor.run {
+            modelContext.delete(cachedRecord)
+            do {
+                try modelContext.save()
+            } catch {
+                analyticsManager.trackError(error: error, additionalInfo: nil)
+            }
+        }
+    }
+    
+    
+    public func deleteAllUserCachedRecords(for group: String) async throws {
+        await MainActor.run {
+            do {
                 let fetchDescriptor = FetchDescriptor<UserCachedRecord>(
                     predicate: #Predicate { $0.group == group }
                 )
-                return try modelContext.fetch(fetchDescriptor)
+                let localRecords = try modelContext.fetch(fetchDescriptor)
+                localRecords.forEach { modelContext.delete($0) }
+                try modelContext.save()
+            } catch {
+                analyticsManager.trackError(error: error, additionalInfo: nil)
             }
         }
-        
-        @discardableResult
-        public func storeUserCachedRecord(
-            recordId: String,
-            group: String,
-            identity: String,
-            title: String,
-            icons: String,
-            list: String,
-            section: String,
-            rating: Double
-        ) async throws -> Bool {
-            await MainActor.run {
-                let userCachedRecord = UserCachedRecord(
-                    recordId: recordId,
-                    group: group,
-                    identity: identity,
-                    title: title,
-                    icons: icons,
-                    list: list,
-                    section: section,
-                    rating: rating
-                )
-                modelContext.insert(userCachedRecord)
-                do {
-                    try modelContext.save()
-                } catch {
-                    analyticsManager.trackError(error: error, additionalInfo: nil)
-                }
+    }
+
+        // ... [Existing code] ...
+
+        /// Fetches all records from the specified record types in the private CloudKit database.
+        /// - Parameter recordTypes: An array of record type names to fetch.
+        /// - Throws: `CloudCacheError` if any errors occur during fetching.
+        @MainActor
+        public func fetchAllRecords(recordTypes: [String]) async throws {
+            for recordType in recordTypes {
+                try await fetchRecords(ofType: recordType)
             }
-            return true
         }
-        
-        public func updateUserCachedRecordRating(identity: String, newRating: Double) async throws {
-            await MainActor.run {
-                do {
-                    let fetchDescriptor = FetchDescriptor<UserCachedRecord>(
-                        predicate: #Predicate { $0.identity == identity }
-                    )
-                    if let localRecord = try modelContext.fetch(fetchDescriptor).first {
-                        localRecord.rating = newRating
-                        try modelContext.save()
-                    } else {
-                        print("Local record not found for identity: \(identity)")
+
+        /// Fetches all records for a specific record type.
+        /// - Parameter recordType: The CloudKit record type to fetch.
+        /// - Throws: `CloudCacheError` if any errors occur during fetching.
+        private func fetchRecords(ofType recordType: String) async throws {
+            let predicate = NSPredicate(value: true) // Fetch all records
+            let query = CKQuery(recordType: recordType, predicate: predicate)
+            query.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: true)]
+
+            var continuation: CKQueryOperation.Cursor? = nil
+
+            repeat {
+                let operation = CKQueryOperation(query: query)
+                operation.cursor = continuation
+                operation.resultsLimit = 100 // Adjust as needed
+
+                // Temporary storage for this batch
+                var batchRecords: [CKRecord] = []
+
+                // Handle each fetched record
+                operation.recordMatchedBlock = { recordID, result in
+                    do {
+                        let record = try result.get()
+                        batchRecords.append(record)
+                    } catch {
+                        self.analyticsManager.trackError(error: error, additionalInfo: nil)
                     }
-                } catch {
-                    analyticsManager.trackError(error: error, additionalInfo: nil)
                 }
-            }
-        }
-        
-        public func deleteUserCachedRecord(for cachedRecord: UserCachedRecord) async throws {
-            await MainActor.run {
-                modelContext.delete(cachedRecord)
-                do {
-                    try modelContext.save()
-                } catch {
-                    analyticsManager.trackError(error: error, additionalInfo: nil)
-                }
-            }
-        }
-        
-    
-        public func deleteAllUserCachedRecords(for group: String) async throws {
-            await MainActor.run {
-                do {
-                    let fetchDescriptor = FetchDescriptor<UserCachedRecord>(
-                        predicate: #Predicate { $0.group == group }
-                    )
-                    let localRecords = try modelContext.fetch(fetchDescriptor)
-                    localRecords.forEach { modelContext.delete($0) }
-                    try modelContext.save()
-                } catch {
-                    analyticsManager.trackError(error: error, additionalInfo: nil)
-                }
-            }
-        }
-        
-        // MARK: RecommendationData Methods
-        
-        public func fetchRecommendationData() async throws -> [RecommendationData] {
-            // Fetch from local store
-            return try await MainActor.run {
-                let fetchDescriptor = FetchDescriptor<RecommendationData>()
-                return try modelContext.fetch(fetchDescriptor)
-            }
-        }
-        
-        public func storeRecommendationData(
-            for identity: String,
-            attributes: [String],
-            reviews: [String]
-        ) async throws -> Bool {
-            // Generate a local record ID
-            let recordID = UUID().uuidString
-            
-            await MainActor.run {
-                let recommendationData = RecommendationData(
-                    recordId: recordID,
-                    identity: identity,
-                    attributes: attributes,
-                    reviews: reviews,
-                    attributeRatings: [:] // Initialize as needed
-                )
-                modelContext.insert(recommendationData)
-                do {
-                    try modelContext.save()
-                } catch {
-                    analyticsManager.trackError(error: error, additionalInfo: nil)
-                }
-            }
-            return true
-        }
-        
-    
-        public func deleteRecommendationData(for identity: String) async throws {
-            await MainActor.run {
-                do {
-                    let fetchDescriptor = FetchDescriptor<RecommendationData>(
-                        predicate: #Predicate { $0.identity == identity }
-                    )
-                    if let localRecord = try modelContext.fetch(fetchDescriptor).first {
-                        modelContext.delete(localRecord)
-                        try modelContext.save()
+                // Handle completion of the query operation
+                let operationCompletion: (Result<CKQueryOperation.Cursor?, Error>) -> Void = { result in
+                    switch result {
+                    case .success(let cursor):
+                        continuation = cursor
+                    case .failure(let error):
+                        self.analyticsManager.trackError(error: error, additionalInfo: ["operation": "fetchRecords", "recordType": recordType])
+                        // You can choose to throw or handle specific errors here
                     }
-                } catch {
-                    analyticsManager.trackError(error: error, additionalInfo: nil)
                 }
+
+                // Execute the operation
+                try await withCheckedThrowingContinuation { continuationFetch in
+                    operation.queryResultBlock = { result in
+                        switch result {
+                        case .success(let cursor):
+                            continuation = cursor
+                            continuationFetch.resume()
+                        case .failure(let error):
+                            continuationFetch.resume(throwing: error)
+                        }
+                    }
+
+                    // Add operation to tracking
+                    self.insertCacheOperation(operation)
+                    self.cacheContainer.privateCloudDatabase.add(operation)
+                }
+
+                // Remove operation from tracking
+                self.removeCacheOperation(operation)
+
+                // Process the fetched batch
+                if !batchRecords.isEmpty {
+                    await processFetchedRecords(batchRecords, for: recordType)
+                }
+
+            } while continuation != nil
+        }
+
+        /// Processes fetched records by updating the local cache.
+        /// - Parameters:
+        ///   - records: The array of fetched `CKRecord` objects.
+        ///   - recordType: The type of the records fetched.
+        @MainActor
+        private func processFetchedRecords(_ records: [CKRecord], for recordType: String) async {
+            switch recordType {
+            case "UserCachedRecord":
+                for record in records {
+                    if let recordId = record["recordId"] as? String,
+                       let group = record["group"] as? String,
+                       let identity = record["identity"] as? String,
+                       let title = record["title"] as? String,
+                       let icons = record["icons"] as? String,
+                       let list = record["list"] as? String,
+                       let section = record["section"] as? String,
+                       let rating = record["rating"] as? Double {
+                        
+                        let userCachedRecord = UserCachedRecord(
+                            recordId: recordId,
+                            group: group,
+                            identity: identity,
+                            title: title,
+                            icons: icons,
+                            list: list,
+                            section: section,
+                            rating: rating
+                        )
+                        modelContext.insert(userCachedRecord)
+                    }
+                }
+                await saveContext()
+
+            case "RecommendationData":
+                for record in records {
+                    if let recordId = record["recordId"] as? String,
+                       let identity = record["identity"] as? String,
+                       let attributes = record["attributes"] as? [String],
+                       let reviews = record["reviews"] as? [String] {
+                        
+                        let recommendationData = RecommendationData(
+                            recordId: recordId,
+                            identity: identity,
+                            attributes: attributes,
+                            reviews: reviews,
+                            attributeRatings: [:] // Adjust as needed
+                        )
+                        modelContext.insert(recommendationData)
+                    }
+                }
+                await saveContext()
+
+            case "PersonalizedUser":
+                for record in records {
+                    if let userId = record["userId"] as? String,
+                       let token = record["token"] as? String {
+                        fsqUserId = userId
+                        oauthToken = token
+                    }
+                }
+
+            case "KeyString":
+                for record in records {
+                    if let service = record["service"] as? String,
+                       let value = record["value"] as? String {
+                        // Handle KeyString records as needed
+                        serviceAPIKey = value // Example assignment
+                    }
+                }
+
+            default:
+                print("Unhandled record type: \(recordType)")
+            }
+
+            // Save the context after processing each batch
+            await saveContext()
+        }
+
+        /// Saves the `ModelContext` and handles any errors.
+        @MainActor
+        private func saveContext() async {
+            do {
+                try modelContext.save()
+            } catch {
+                analyticsManager.trackError(error: error, additionalInfo: ["operation": "saveContext"])
             }
         }
+    
+    // MARK: RecommendationData Methods
+    
+    public func fetchRecommendationData() async throws -> [RecommendationData] {
+        // Fetch from local store
+        return try await MainActor.run {
+            let fetchDescriptor = FetchDescriptor<RecommendationData>()
+            return try modelContext.fetch(fetchDescriptor)
+        }
+    }
+    
+    public func storeRecommendationData(
+        for identity: String,
+        attributes: [String],
+        reviews: [String]
+    ) async throws -> Bool {
+        // Generate a local record ID
+        let recordID = UUID().uuidString
         
-        // MARK: - Other Methods
-        
-        public func deleteAllUserCachedGroups() async throws {
-            let types = ["Location", "Category", "Taste", "Place"]
-            for type in types {
-                try await deleteAllUserCachedRecords(for: type)
+        await MainActor.run {
+            let recommendationData = RecommendationData(
+                recordId: recordID,
+                identity: identity,
+                attributes: attributes,
+                reviews: reviews,
+                attributeRatings: [:] // Initialize as needed
+            )
+            modelContext.insert(recommendationData)
+            do {
+                try modelContext.save()
+            } catch {
+                analyticsManager.trackError(error: error, additionalInfo: nil)
             }
         }
-        
+        return true
+    }
+    
+    
+    public func deleteRecommendationData(for identity: String) async throws {
+        await MainActor.run {
+            do {
+                let fetchDescriptor = FetchDescriptor<RecommendationData>(
+                    predicate: #Predicate { $0.identity == identity }
+                )
+                if let localRecord = try modelContext.fetch(fetchDescriptor).first {
+                    modelContext.delete(localRecord)
+                    try modelContext.save()
+                }
+            } catch {
+                analyticsManager.trackError(error: error, additionalInfo: nil)
+            }
+        }
+    }
+    
+    // MARK: - Other Methods
+    
+    public func deleteAllUserCachedGroups() async throws {
+        let types = ["Location", "Category", "Taste", "Place"]
+        for type in types {
+            try await deleteAllUserCachedRecords(for: type)
+        }
+    }
 }
 
 private extension CloudCacheService {
