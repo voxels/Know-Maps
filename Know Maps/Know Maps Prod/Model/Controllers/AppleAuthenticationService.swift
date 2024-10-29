@@ -16,7 +16,7 @@ public enum AppleAuthenticationServiceError : Error {
 
 class AppleAuthenticationService: NSObject, ObservableObject {
     // MARK: - Published Properties
-    @Published var isSignedIn: Bool = false
+   
     @Published var fullName: String = ""
     @Published var appleUserId: String = ""
     @Published var signInErrorMessage: String = ""
@@ -29,12 +29,21 @@ class AppleAuthenticationService: NSObject, ObservableObject {
     // Constants
     static let tag = "com.knowmaps.security.appleUserId"
     
+    @MainActor
+    func isSignedIn()->Bool {
+        if let _ = retrieveRefreshToken(), let userId = readFromKeychain(key: "appleUserId") {
+            appleUserId = userId
+            return true
+        }
+        return false
+    }
+    
     // MARK: - Sign In with Apple
     func signIn() {
         let provider = ASAuthorizationAppleIDProvider()
         let request = provider.createRequest()
         prepareSignInRequest(request)
-        
+         
         let controller = ASAuthorizationController(authorizationRequests: [request])
         controller.delegate = self
         controller.presentationContextProvider = self
@@ -54,11 +63,11 @@ class AppleAuthenticationService: NSObject, ObservableObject {
         revokeToken(refreshToken: refreshToken) { [weak self] success in
             DispatchQueue.main.async {
                 if success {
-                    self?.isSignedIn = false
                     self?.fullName = ""
                     self?.appleUserId = ""
                     self?.deleteFromKeychain(key: "accessToken")
                     self?.deleteFromKeychain(key: "refreshToken")
+                    self?.deleteFromKeychain(key: "appleUserId")
                 } else {
                     self?.signInErrorMessage = "Failed to revoke token."
                 }
@@ -106,7 +115,6 @@ class AppleAuthenticationService: NSObject, ObservableObject {
                     // Store tokens securely
                     self?.storeTokens(accessToken: tokenResponse.accessToken, refreshToken: tokenResponse.refreshToken)
                     DispatchQueue.main.async {
-                        self?.isSignedIn = true
                         self?.signInErrorMessage = ""
                     }
                     completion(true)
@@ -234,6 +242,8 @@ class AppleAuthenticationService: NSObject, ObservableObject {
             let givenName = appleIDCredential.fullName?.givenName ?? ""
             let familyName = appleIDCredential.fullName?.familyName ?? ""
             let name = "\(givenName) \(familyName)"
+            
+            saveToKeychain(key: "appleUserId", value: userId)
             
             DispatchQueue.main.async {
                 self.appleUserId = userId

@@ -11,7 +11,7 @@ import MapKit
 public class PlaceDirectionsViewModel : ObservableObject {
     @Published var lookAroundScene: MKLookAroundScene?
     @Published var showLookAroundScene:Bool = false
-    public var route:MKRoute?
+    @Published public var route:MKRoute?
     public var source:MKMapItem?
     public var destination:MKMapItem?
     @Published public var polyline:MKPolyline?
@@ -104,7 +104,9 @@ public class PlaceDirectionsViewModel : ObservableObject {
         let directions = MKDirections(request: request)
         
         let response = try await directions.calculate()
-        self.route = response.routes.first
+        await MainActor.run {
+            self.route = response.routes.first
+        }
         if let route = route {
             await MainActor.run {
                 polyline = route.polyline

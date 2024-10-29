@@ -162,8 +162,7 @@ struct PlaceDirectionsView: View {
                 }
             }
             .onChange(of: model.transportType) { oldValue, newValue in
-                if let ident = UUID(uuidString: model.rawLocationIdent) {
-                    guard let sourceLocation = modelController.locationChatResult(for: ident, in:modelController.locationResults)?.location, let result = modelController.placeChatResult(for: resultId), let placeResponse = result.placeResponse else {
+                    guard let sourceLocation = model.source?.placemark.location, let result = modelController.placeChatResult(for: resultId), let placeResponse = result.placeResponse else {
                         return
                     }
                     
@@ -171,11 +170,11 @@ struct PlaceDirectionsView: View {
                         do {
                             try await model.refreshDirections(with: sourceLocation, destination:CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude))
                         } catch {
+                            print(error)
                             modelController.analyticsManager.trackError(error:error, additionalInfo:nil)
                         }
                     }
                 }
-            }
         }
         else {
             ContentUnavailableView("No route available", systemImage: "x.circle.fill")

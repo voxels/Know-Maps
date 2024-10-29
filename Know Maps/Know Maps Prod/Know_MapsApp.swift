@@ -11,9 +11,10 @@ import AppIntents
 import Segment
 import CoreLocation
 import AuthenticationServices
-//import GoogleMobileAds
 
 #if os(iOS)
+//import GoogleMobileAds
+
 class AppDelegate: UIResponder, UIApplicationDelegate {
     
     func application(_ application: UIApplication,
@@ -114,24 +115,26 @@ struct Know_MapsApp: App {
                         }
                         Spacer()
                     }
-                    .task {
-                        if authenticationModel.isSignedIn {
-                            Task {
-                                await startApp()
-                            }
-                        } else {
-                            authenticationModel.authCompletion = { result in
-                                if case .success = result {
-                                    Task {
-                                        await startApp()
-                                    }
-                                } else if case .failure(let error) = result {
-                                    print(error)
-                                    modelController.analyticsManager.trackError(error: error, additionalInfo: ["error": error.localizedDescription])
+                    .task(priority:.userInitiated) {                        
+                        checkIfSignedInWithApple { signedIn in
+                            if signedIn {
+                                Task {
+                                    await startApp()
                                 }
+                            } else {
+                                authenticationModel.authCompletion = { result in
+                                    if case .success = result {
+                                        Task {
+                                            await startApp()
+                                        }
+                                    } else if case .failure(let error) = result {
+                                        print(error)
+                                        modelController.analyticsManager.trackError(error: error, additionalInfo: ["error": error.localizedDescription])
+                                    }
+                                }
+                                
+                                performExistingAccountSetupFlows()
                             }
-                            
-                            performExistingAccountSetupFlows()
                         }
                     }
                     
@@ -177,6 +180,28 @@ struct Know_MapsApp: App {
     
     private func startApp() async {
         await startup()
+    }
+    
+    public func checkIfSignedInWithApple(completion:@escaping (Bool)->Void) {
+        
+        guard authenticationModel.isSignedIn(), !authenticationModel.appleUserId.isEmpty else {
+            completion(false)
+            return
+        }
+        
+        let appleIDProvider = ASAuthorizationAppleIDProvider()
+        
+        // Retrieve the credential state for the Apple ID credential
+        appleIDProvider.getCredentialState(forUserID: authenticationModel.appleUserId) { (credentialState, error) in
+            switch credentialState {
+            case .authorized:
+                completion(true)
+            case .revoked, .notFound:
+                fallthrough
+            default:
+                completion(false)
+            }
+        }
     }
     
     func performExistingAccountSetupFlows() {
@@ -251,7 +276,7 @@ struct Know_MapsApp: App {
     }
     
     private func handleOnboarding(_ chatModel: ChatResultViewModel) async {
-        let cloudAuth = authenticationModel.isSignedIn
+        let cloudAuth = authenticationModel.isSignedIn()
         
         let isLocationAuthorized = modelController.locationProvider.isAuthorized()
         

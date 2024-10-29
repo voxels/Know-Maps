@@ -30,7 +30,7 @@ struct OnboardingView: View {
                     Label("Location", systemImage: "map" )
                 })
                 .onChange(of: locationIsAuthorized) { oldValue, newValue in
-                    if newValue, settingsModel.isSignedIn {
+                    if newValue, settingsModel.isSignedIn() {
                         showOnboarding = false
                     }
                 }

@@ -36,7 +36,7 @@ struct OnboardingSignInView: View {
                 .padding()
             
             SignInWithAppleButton(.signIn, onRequest: { request in
-                authService.prepareSignInRequest(request)
+                authService.signIn()
             }, onCompletion: { result in
                 switch result {
                 case .success(let authResults):

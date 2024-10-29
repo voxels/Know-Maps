@@ -21,7 +21,7 @@ struct SettingsView: View {
 
     var body: some View {
         VStack {
-            if model.isSignedIn {
+            if !model.appleUserId.isEmpty {
                 let fullName = model.fullName.trimmingCharacters(in: .whitespaces)
                 if !fullName.isEmpty {
                     Label("Welcome \(fullName)", systemImage:"apple.logo").padding()
@@ -37,10 +37,7 @@ struct SettingsView: View {
 
             } else {
                 SignInWithAppleButton { request in
-                    if !model.appleUserId.isEmpty {
-                        request.user = model.appleUserId
-                    }
-                    request.requestedScopes = [.fullName]
+                    model.signIn()
                 } onCompletion: { result in
                     switch result {
                     case .success(let authResults):
@@ -100,31 +97,28 @@ struct SettingsView: View {
                     }
                 }
             }, label:{
-              Text("Delete all of my saved groups")
+              Text("Delete data stored in iCloud.")
             }).padding()
             Spacer()
+            Button {
+                Task {
+                    do {
+                        try await cacheManager.cloudCache.deleteAllUserCachedGroups()
+                        try await cacheManager.refreshCache()
+                        model.signOut()
+                        await MainActor.run {
+                            showOnboarding = true
+                        }
+                    } catch {
+                        modelController.analyticsManager.trackError(error:error, additionalInfo:nil)
+                    }
+                }
+            } label: {
+                Text("Delete the Know Maps iCloud Account")
+                    .foregroundStyle(.red)
+            }
+
         }
         .padding()
-    }
-    
-    public func checkIfSignedInWithApple(completion:@escaping (Bool)->Void) {
-        guard model.appleUserId.isEmpty else {
-            completion(false)
-            return
-        }
-        
-        let appleIDProvider = ASAuthorizationAppleIDProvider()
-        
-        // Retrieve the credential state for the Apple ID credential
-        appleIDProvider.getCredentialState(forUserID: model.appleUserId) { (credentialState, error) in
-            switch credentialState {
-            case .authorized:
-                completion(true)
-            case .revoked, .notFound:
-                fallthrough
-            default:
-                completion(false)
-            }
-        }
     }
 }
