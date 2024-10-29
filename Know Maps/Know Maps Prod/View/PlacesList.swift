@@ -159,7 +159,9 @@ struct PlacesList: View {
                                 if modelController.isRefreshingPlaces {
                                     ProgressView(modelController.fetchMessage)
                                 } else {
-                                    Text("No places nearby matching query.")
+                                    if let selectedDestinationLocationChatResult = modelController.selectedDestinationLocationChatResult, let locationChatResult = modelController.locationChatResult(for: selectedDestinationLocationChatResult, in: modelController.filteredLocationResults(cacheManager: cacheManager)) {
+                                        Text("Searching near \(locationChatResult.locationName)")
+                                    }
                                 }
                                 Spacer()
                             }.frame(maxWidth: .infinity, alignment: .init(horizontal: .center, vertical: .center))

@@ -186,7 +186,7 @@ struct ContentView: View {
                                                              preferredColumn: $preferredColumn
                                         )
                                     }
-                                }.frame(maxWidth:sizeClass == .compact ? geometry.size.width : geometry.size.width / 3)
+                                }.frame(maxWidth:sizeClass == .compact ? geometry.size.width : geometry.size.width / 4)
                             placesList()
                         }
                     }
@@ -246,7 +246,7 @@ struct ContentView: View {
                                         )
                                     }
                                 }
-                                .frame(maxWidth:sizeClass == .compact ? geometry.size.width : geometry.size.width / 3)
+                                .frame(maxWidth:sizeClass == .compact ? geometry.size.width : geometry.size.width / 4)
                             placesList()
                         }
                     }
