@@ -59,15 +59,9 @@ struct SearchCategoryView: View {
         #else
         .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .automatic), prompt: "Search Categories") // Add searchable
         #endif
-        .onSubmit(of: .search, {
-            for industryResult in modelController.industryResults {
-                if !filteredChildren(for: industryResult).isEmpty {
-                    expandedParents.insert(industryResult.id)
-                } else {
-                    expandedParents.remove(industryResult.id)
-                }
-            }
-        })
+        .onSubmit(of: .search) {
+            expandParentsBasedOnSearch()
+        }
         .refreshable {
             Task(priority: .userInitiated) {
                 do {
@@ -76,6 +70,9 @@ struct SearchCategoryView: View {
                     modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
                 }
             }
+        }
+        .onChange(of: searchText) { _ in
+            expandParentsBasedOnSearch()
         }
     }
     
@@ -86,6 +83,17 @@ struct SearchCategoryView: View {
         } else {
             return parent.children.filter { child in
                 child.parentCategory.localizedCaseInsensitiveContains(searchText)
+            }
+        }
+    }
+    
+    // Function to expand parents based on search results
+    private func expandParentsBasedOnSearch() {
+        for parent in modelController.industryResults {
+            if !filteredChildren(for: parent).isEmpty {
+                expandedParents.insert(parent.id) // Expand parent if it has matching children
+            } else {
+                expandedParents.remove(parent.id) // Collapse parent if no children match
             }
         }
     }

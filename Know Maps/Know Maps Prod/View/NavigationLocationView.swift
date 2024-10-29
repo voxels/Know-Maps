@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct NavigationLocationView: View {
+    @Environment(\.dismiss) var dismiss
+
     @Binding public var searchSavedViewModel:SearchSavedViewModel
     @Binding public var chatModel:ChatResultViewModel
     @Binding public var cacheManager:CloudCacheManager
@@ -17,6 +19,14 @@ struct NavigationLocationView: View {
     @State private var searchText:String = ""
     var body: some View {
             VStack {
+                HStack {
+                    Button(action:{
+                        dismiss()
+                    }, label:{
+                        Text("Dismiss")
+                    }).padding()
+                    Spacer()
+                }
                 TextField("Search for a place by name", text: $searchText)
                     .onSubmit(of: .text) {
                         search(intent:.Location)

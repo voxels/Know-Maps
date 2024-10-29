@@ -8,6 +8,8 @@ import SwiftUI
 import AppIntents
 
 struct SavedListView: View {
+    @Environment(\.dismiss) var dismiss
+
     @Binding public var searchSavedViewModel: SearchSavedViewModel
     @Binding public var cacheManager: CloudCacheManager
     @Binding public var modelController: DefaultModelController

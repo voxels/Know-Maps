@@ -10,6 +10,8 @@ import CoreLocation
 import MapKit
 
 struct MapResultsView: View {
+    @Environment(\.dismiss) var dismiss
+
     @Binding public var model:ChatResultViewModel
     @Binding public var modelController:DefaultModelController
     @Binding public var selectedMapItem: String?
@@ -17,6 +19,15 @@ struct MapResultsView: View {
     @Binding public var showMapsResultViewSheet:Bool
     
     var body: some View {
+        VStack {
+            HStack {
+                Button(action:{
+                    dismiss()
+                }, label:{
+                    Text("Dismiss")
+                }).padding()
+                Spacer()
+            }
             Map(position: $cameraPosition, interactionModes: .all, selection: $selectedMapItem) {
                 ForEach(modelController.mapPlaceResults) { result in
                     if let placeResponse = result.placeResponse {
@@ -42,6 +53,7 @@ struct MapResultsView: View {
                     updateCamera(for: modelController.currentLocationResult.id)
                 }
             }
+        }
     }
     
     private func updateCamera(for locationResult: UUID) {

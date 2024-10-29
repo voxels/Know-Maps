@@ -9,6 +9,8 @@ import SwiftUI
 import AuthenticationServices
 
 struct SettingsView: View {
+    @Environment(\.dismiss) var dismiss
+
     @Environment(\.openWindow) private var openWindow
     @ObservedObject public var model:AppleAuthenticationService
     @Binding public var chatModel:ChatResultViewModel
@@ -21,6 +23,14 @@ struct SettingsView: View {
 
     var body: some View {
         VStack {
+            HStack {
+                Button(action:{
+                    dismiss()
+                }, label:{
+                    Text("Dismiss")
+                }).padding()
+                Spacer()
+            }
             if !model.appleUserId.isEmpty {
                 let fullName = model.fullName.trimmingCharacters(in: .whitespaces)
                 if !fullName.isEmpty {

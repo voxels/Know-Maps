@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct FiltersView: View {
+    @Environment(\.dismiss) var dismiss
     @Binding public var chatModel:ChatResultViewModel
     @Binding public var cacheManager:CloudCacheManager
     @Binding public var modelController:DefaultModelController
@@ -26,6 +27,14 @@ struct FiltersView: View {
     
     var body: some View {
             VStack(alignment: .leading){
+                HStack {
+                    Button(action:{
+                        dismiss()
+                    }, label:{
+                        Text("Dismiss")
+                    }).padding()
+                    Spacer()
+                }
                 Spacer()
                     Text("Search Radius (\(FiltersView.formatter.string(from:NSNumber(value:distanceFilterValue)) ?? "1") kilometers)")
                     .padding()
