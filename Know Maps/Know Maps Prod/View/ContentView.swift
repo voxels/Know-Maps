@@ -339,9 +339,11 @@ struct ContentView: View {
                     // Check for cancellation again before the async call
                     guard !Task.isCancelled else { return }
                     
+                    
                     await MainActor.run {
                         modelController.isRefreshingPlaces = true
                     }
+                    await modelController.resetPlaceModel()
                     do {
                         try await chatModel.didSearch(
                             caption: caption,
