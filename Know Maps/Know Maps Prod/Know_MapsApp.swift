@@ -11,6 +11,7 @@ import AppIntents
 import Segment
 import CoreLocation
 import AuthenticationServices
+import TipKit
 
 #if os(iOS)
 //import GoogleMobileAds
@@ -81,6 +82,13 @@ struct Know_MapsApp: App {
          the shortcut phrases change.
          */
         KnowMapsShortcutsProvider.updateAppShortcutParameters()
+        do {
+                    // Configure and load all tips in the app.
+                    try Tips.configure()
+                }
+                catch {
+                    print("Error initializing tips: \(error)")
+                }
     }
     
     var body: some Scene {

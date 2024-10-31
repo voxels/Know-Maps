@@ -27,7 +27,7 @@ struct NavigationLocationView: View {
                     }).padding()
                     Spacer()
                 }
-                TextField("Search for a place by name", text: $searchText)
+                TextField("Search for a city/state or address", text: $searchText)
                     .onSubmit(of: .text) {
                         search(intent:.Location)
                     }

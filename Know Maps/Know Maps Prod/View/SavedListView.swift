@@ -6,6 +6,24 @@
 //
 import SwiftUI
 import AppIntents
+import TipKit
+
+struct AddItemTip: Tip {
+    var title: Text {
+        Text("Add items")
+    }
+
+
+    var message: Text? {
+        Text("Add an item to your list to unlock the moods section.")
+    }
+
+
+    var image: Image? {
+        Image(systemName: "checklist")
+    }
+}
+
 
 struct SavedListView: View {
     @Environment(\.dismiss) var dismiss
@@ -28,6 +46,11 @@ struct SavedListView: View {
     var body: some View {
         GeometryReader { geometry in
             List(selection: $selectedResult) {
+#if !os(macOS)
+                TipView(MenuNavigationIconTip()).padding()
+#endif
+                TipView(AddItemTip()).padding()
+                
                 if !cacheManager.cachedTasteResults.isEmpty {
 #if !os(macOS)
                     Section() {
@@ -66,40 +89,7 @@ struct SavedListView: View {
                         Spacer()
                     }
                 }
-                DisclosureGroup("Types", isExpanded: $isTypesExpanded) {
-                    if !cacheManager.cachedIndustryResults.isEmpty {
-                        ForEach(cacheManager.cachedIndustryResults.filter({ result in
-                            if searchText.isEmpty { return true }
-                            else {
-                                return result.parentCategory.lowercased().contains(searchText.lowercased())
-                            }
-                        }), id: \.id) { parent in
-                            HStack {
-                                Text(parent.parentCategory)
-                                Spacer()
-                                ratingButton(for: parent)
-                            }
-                            .frame(maxWidth: .infinity)
-                        }
-                        .onDelete { indexSet in
-                            let idsToDelete = indexSet.map { cacheManager.cachedIndustryResults[$0].id }
-                            deleteCategoryItem(at: idsToDelete)
-                        }
-                    }
-                    Button(action: {
-                        addItemSection = 1
-                        preferredColumn = .sidebar
-                    }) {
-                        HStack {
-                            Image(systemName: "plus.circle")
-                            Text("Add a type")
-                            Spacer()
-                        }
-                        
-                        .foregroundColor(.accentColor)
-                    }
-                }
-                
+
                 DisclosureGroup("Items", isExpanded: $isItemsExpanded) {
                     if !cacheManager.cachedTasteResults.isEmpty {
                         ForEach(cacheManager.cachedTasteResults.filter({ result in
@@ -127,6 +117,40 @@ struct SavedListView: View {
                         HStack {
                             Image(systemName: "plus.circle")
                             Text("Add an item")
+                            Spacer()
+                        }
+                        
+                        .foregroundColor(.accentColor)
+                    }
+                }
+                
+                DisclosureGroup("Types", isExpanded: $isTypesExpanded) {
+                    if !cacheManager.cachedIndustryResults.isEmpty {
+                        ForEach(cacheManager.cachedIndustryResults.filter({ result in
+                            if searchText.isEmpty { return true }
+                            else {
+                                return result.parentCategory.lowercased().contains(searchText.lowercased())
+                            }
+                        }), id: \.id) { parent in
+                            HStack {
+                                Text(parent.parentCategory)
+                                Spacer()
+                                ratingButton(for: parent)
+                            }
+                            .frame(maxWidth: .infinity)
+                        }
+                        .onDelete { indexSet in
+                            let idsToDelete = indexSet.map { cacheManager.cachedIndustryResults[$0].id }
+                            deleteCategoryItem(at: idsToDelete)
+                        }
+                    }
+                    Button(action: {
+                        addItemSection = 1
+                        preferredColumn = .sidebar
+                    }) {
+                        HStack {
+                            Image(systemName: "plus.circle")
+                            Text("Add a type")
                             Spacer()
                         }
                         

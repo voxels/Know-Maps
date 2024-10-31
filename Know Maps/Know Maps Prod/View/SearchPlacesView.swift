@@ -7,6 +7,23 @@
 
 
 import SwiftUI
+import TipKit
+
+struct NavigationLocationMenuIconTip: Tip {
+    var title: Text {
+        Text("Location Menu")
+    }
+
+
+    var message: Text? {
+        Text("Search for a new location to add your favorite places.")
+    }
+
+
+    var image: Image? {
+        Image(systemName: "location.magnifyingglass")
+    }
+}
 
 struct SearchPlacesView: View {
     @Binding public var searchSavedViewModel:SearchSavedViewModel
@@ -19,6 +36,7 @@ struct SearchPlacesView: View {
     
     var body: some View {
         List(selection: $modelController.selectedPlaceChatResult) {
+            TipView(NavigationLocationMenuIconTip())
             if let selectedDestinationLocationChatResult = modelController.selectedDestinationLocationChatResult, let locationChatResult = modelController.locationChatResult(for: selectedDestinationLocationChatResult, in: (modelController.filteredLocationResults(cacheManager: cacheManager))) {
                 let locationName = locationChatResult.locationName
                 Text("\(modelController.placeResults.count) places found near \(locationName)")

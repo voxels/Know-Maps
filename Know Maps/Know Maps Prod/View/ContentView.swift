@@ -9,6 +9,25 @@ import SwiftUI
 import RealityKit
 import Segment
 import MapKit
+import TipKit
+
+
+struct MenuNavigationIconTip: Tip {
+    var title: Text {
+        Text("Page Menu")
+    }
+
+
+    var message: Text? {
+        Text("Add items, categories, and places to your favorites.")
+    }
+
+
+    var image: Image? {
+        Image(systemName: "heart.fill")
+    }
+}
+
 
 public enum ContentDetailView {
     case home
@@ -412,34 +431,40 @@ struct ContentView: View {
     
     @ViewBuilder
     func placesList()-> some View {
-        PlacesList(searchSavedViewModel:$searchSavedViewModel,chatModel: $chatModel, cacheManager:$cacheManager, modelController: $modelController, showMapsResultViewSheet: $showMapsResultViewSheet)
-            .alert("Unknown Place", isPresented: $didError) {
-                Button(action: {
-                    DispatchQueue.main.async {
-                        withAnimation {
-                            modelController.selectedPlaceChatResult = nil
+        VStack {
+            #if os(macOS)
+            TipView(MenuNavigationIconTip())
+                .padding()
+            #endif
+            PlacesList(searchSavedViewModel:$searchSavedViewModel,chatModel: $chatModel, cacheManager:$cacheManager, modelController: $modelController, showMapsResultViewSheet: $showMapsResultViewSheet)
+                .alert("Unknown Place", isPresented: $didError) {
+                    Button(action: {
+                        DispatchQueue.main.async {
+                            withAnimation {
+                                modelController.selectedPlaceChatResult = nil
+                            }
+                        }
+                    }, label: {
+                        Text("Go Back")
+                    })
+                } message: {
+                    Text("We don't know much about this place.")
+                }
+                .toolbar {
+                    ToolbarItemGroup(placement: .primaryAction) {
+                        Button {
+                            showFiltersSheet.toggle()
+                        } label: {
+                            Label("Show Filters", systemImage: "line.3.horizontal.decrease")
+                        }
+                        Button {
+                            showMapsResultViewSheet.toggle()
+                        } label: {
+                            Label("Show Map", systemImage: "map")
                         }
                     }
-                }, label: {
-                    Text("Go Back")
-                })
-            } message: {
-                Text("We don't know much about this place.")
-            }
-            .toolbar {
-                ToolbarItemGroup(placement: .primaryAction) {
-                    Button {
-                        showFiltersSheet.toggle()
-                    } label: {
-                        Label("Show Filters", systemImage: "line.3.horizontal.decrease")
-                    }
-                    Button {
-                        showMapsResultViewSheet.toggle()
-                    } label: {
-                        Label("Show Map", systemImage: "map")
-                    }
                 }
-            }
+        }
     }
 }
 
