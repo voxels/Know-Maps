@@ -12,34 +12,57 @@ import AppKit
 #endif
 
 struct OnboardingLocationView: View {
+    @ObservedObject public var settingsModel:AppleAuthenticationService
     @Binding public var chatModel:ChatResultViewModel
     @Binding var modelController:DefaultModelController
     @Binding public var showOnboarding:Bool
-    @Binding public var selectedTab:String
     @Binding public var locationIsAuthorized:Bool
+    @State private var alertPopverIsPresented:Bool = false
 
     var body: some View {
         VStack{
             Spacer()
             Text("Location Authorization").bold().padding()
-            Image("logo_macOS_512")
-                .resizable()
-                .scaledToFit()
-                .frame(width:100 , height: 100)
-            Text("Know Maps uses your current location to suggest places to go near you.")
+            Text("2. Know Maps uses your current location to suggest places to go near you.")
                 .multilineTextAlignment(.leading)
                 .padding()
-            Button("Continue") {
-                modelController.locationProvider.authorize()
-            }.padding()
-                .alert("Location Settings", isPresented: $locationIsAuthorized, actions:                 {
-                    Button("Open System Preferences") {
-                        openLocationPreferences()
+            if !locationIsAuthorized {
+                Button("Continue") {
+                    modelController.locationProvider.authorize()
+                    locationIsAuthorized = modelController.locationProvider.isAuthorized()
+                    alertPopverIsPresented = !locationIsAuthorized
+                }
+                .onAppear {
+                    modelController.locationProvider.authorize()
+                    locationIsAuthorized = modelController.locationProvider.isAuthorized()
+                }
+                    .popover(isPresented: $alertPopverIsPresented) {
+                        VStack {
+                            Text("Please open the location settings system preferences to allow Know Maps to find your location.")
+                            Button("Open System Preferences") {
+                                openLocationPreferences()
+                            }
+                        }.padding()
                     }
-                }, message: {
-                    Text("Please open the location settings system preferences to allow Know Maps to find your location.")
-                })
-            Spacer()
+                    .padding()
+
+                Spacer()
+            } else {
+                Button("Continue") {
+                    if !settingsModel.appleUserId.isEmpty {
+                        showOnboarding = false
+                    }
+                }.padding()
+                .onAppear {
+                    modelController.locationProvider.authorize()
+                    locationIsAuthorized = modelController.locationProvider.isAuthorized()
+                    if !settingsModel.appleUserId.isEmpty, locationIsAuthorized {
+                        showOnboarding = false
+                    }
+                }
+                
+                Spacer()
+            }
         }
     }
     

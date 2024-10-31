@@ -12,25 +12,16 @@ struct OnboardingView: View {
     @Binding public var chatModel:ChatResultViewModel
     @Binding var modelController:DefaultModelController
     
-    @Binding  public var selectedTab:String
     @Binding  public var showOnboarding:Bool
     @State public var locationIsAuthorized:Bool = false
 
     var body: some View {
-        TabView(selection: $selectedTab,
-                content:  {
-            OnboardingSignInView(authService:settingsModel, selectedTab: $selectedTab)
-                .tag("Sign In")
-                .tabItem({
-                    Label("Sign In", systemImage: "person.crop.circle.badge.plus")
-                })
-            OnboardingLocationView(chatModel: $chatModel, modelController: $modelController, showOnboarding: $showOnboarding, selectedTab:$selectedTab, locationIsAuthorized: $locationIsAuthorized)
-                .tag("Location")
-                .tabItem({
-                    Label("Location", systemImage: "map" )
-                })
-                .onChange(of: locationIsAuthorized) { oldValue, newValue in
-                    if newValue, settingsModel.isSignedIn() {
+        VStack(alignment: .center, content:  {
+            OnboardingSignInView(authService:settingsModel)
+            OnboardingLocationView(settingsModel: settingsModel, chatModel: $chatModel, modelController: $modelController, showOnboarding: $showOnboarding, locationIsAuthorized: $locationIsAuthorized)
+                .onAppear() {
+                    let auth = settingsModel.isSignedIn()
+                    if locationIsAuthorized && auth {
                         showOnboarding = false
                     }
                 }

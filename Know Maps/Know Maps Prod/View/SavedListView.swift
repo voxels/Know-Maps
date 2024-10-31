@@ -26,156 +26,167 @@ struct SavedListView: View {
     @State private var searchText:String = ""
     
     var body: some View {
-        List(selection: $selectedResult) {
-#if !os(macOS)
-            Section() {
-                VStack(alignment: .leading, spacing: 8) {
-                    SiriTipView(intent: ShowMoodResultsIntent())
-                        .padding(.vertical,8)
-                    
-                    //                    Text("Find a place nearby")
-                    //                    Text("Find where to go next")
-                    //                    Text("Save this place")
-                    //                    Text("Visit a new area")
-                }
-            } header: {
-                Text("Shortcuts")
-                    .font(.subheadline)
-            }
-#endif
-            
-            DisclosureGroup("Moods", isExpanded: $isMoodsExpanded) {
-                ForEach(cacheManager.cachedDefaultResults.filter({ result in
-                    if searchText.isEmpty { return true }
-                    else {
-                        return result.parentCategory.lowercased().contains(searchText.lowercased())
-                    }
-                }), id: \.id) { parent in
-                    Text(parent.parentCategory)
-                        .padding(.vertical, 12)
-                }
-            }
-            
-            DisclosureGroup("Types", isExpanded: $isTypesExpanded) {
-                if !cacheManager.cachedIndustryResults.isEmpty {
-                    ForEach(cacheManager.cachedIndustryResults.filter({ result in
-                        if searchText.isEmpty { return true }
-                        else {
-                            return result.parentCategory.lowercased().contains(searchText.lowercased())
-                        }
-                    }), id: \.id) { parent in
-                        HStack {
-                            Text(parent.parentCategory)
-                            Spacer()
-                            ratingButton(for: parent)
-                        }
-                        .frame(maxWidth: .infinity)
-                    }
-                    .onDelete { indexSet in
-                        let idsToDelete = indexSet.map { cacheManager.cachedIndustryResults[$0].id }
-                        deleteCategoryItem(at: idsToDelete)
-                    }
-                }
-                Button(action: {
-                    addItemSection = 1
-                    preferredColumn = .sidebar
-                }) {
-                    HStack {
-                        Image(systemName: "plus.circle")
-                        Text("Add a type")
-                        Spacer()
-                    }
-                    
-                    .foregroundColor(.accentColor)
-                }
-            }
-            
-            DisclosureGroup("Items", isExpanded: $isItemsExpanded) {
+        GeometryReader { geometry in
+            List(selection: $selectedResult) {
                 if !cacheManager.cachedTasteResults.isEmpty {
-                    ForEach(cacheManager.cachedTasteResults.filter({ result in
-                        if searchText.isEmpty { return true }
-                        else {
-                            return result.parentCategory.lowercased().contains(searchText.lowercased())
+#if !os(macOS)
+                    Section() {
+                        VStack(alignment: .leading, spacing: 8) {
+                            SiriTipView(intent: ShowMoodResultsIntent())
+                                .padding(.vertical,8)
+                            
+                            //                    Text("Find a place nearby")
+                            //                    Text("Find where to go next")
+                            //                    Text("Save this place")
+                            //                    Text("Visit a new area")
                         }
-                    }), id: \.id) { parent in
-                        HStack {
-                            Text(parent.parentCategory)
-                            Spacer()
-                            ratingButton(for: parent)
-                        }
-                        .frame(maxWidth: .infinity)
+                    } header: {
+                        Text("Shortcuts")
+                            .font(.subheadline)
                     }
-                    .onDelete { indexSet in
-                        let idsToDelete = indexSet.map { cacheManager.cachedTasteResults[$0].id }
-                        deleteTasteItem(at: idsToDelete)
-                    }
-                }
-                Button(action: {
-                    addItemSection = 2
-                    preferredColumn = .sidebar
-                }) {
-                    HStack {
-                        Image(systemName: "plus.circle")
-                        Text("Add an item")
-                        Spacer()
-                    }
-                    
-                    .foregroundColor(.accentColor)
-                }
-            }
-            
-            DisclosureGroup("Favorite Places", isExpanded: $isPlacesExpanded) {
-                if !cacheManager.cachedPlaceResults.isEmpty {
-                    ForEach(cacheManager.cachedPlaceResults.filter({ result in
-                        if searchText.isEmpty { return true }
-                        else {
-                            return result.parentCategory.lowercased().contains(searchText.lowercased())
-                        }
-                    }), id: \.id) { parent in
-                        Text(parent.parentCategory)
-                            .padding(.vertical,12)
-                    }
-                    .onDelete { indexSet in
-                        let idsToDelete = indexSet.map { cacheManager.cachedPlaceResults[$0].id }
-                        deletePlaceItem(at: idsToDelete)
-                    }
-                }
-                Button(action: {
-                    addItemSection = 3
-                    preferredColumn = .sidebar
-                }) {
-                    HStack {
-                        Image(systemName: "plus.circle")
-                        Text("Add a place")
-                        Spacer()
-                    }
-                    .foregroundColor(.accentColor)
-                }
-            }
-        }
-#if os(iOS) || os(visionOS)
-        .listStyle(InsetGroupedListStyle())
 #endif
-        .refreshable {
-            Task(priority: .userInitiated) {
-                do {
-                    try await cacheManager.refreshCache()
-                } catch {
-                    modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
+                    
+                    DisclosureGroup("Moods", isExpanded: $isMoodsExpanded) {
+                        ForEach(cacheManager.cachedDefaultResults.filter({ result in
+                            if searchText.isEmpty { return true }
+                            else {
+                                return result.parentCategory.lowercased().contains(searchText.lowercased())
+                            }
+                        }), id: \.id) { parent in
+                            Text(parent.parentCategory)
+                                .padding(.vertical, 12)
+                        }
+                    }
+                } else {
+                    HStack {
+                        Text("Add your favorite things by tapping \"Add...\" below.")
+                            .multilineTextAlignment(.leading)
+                            .padding()
+                            .frame(maxWidth:geometry.size.width)
+                        Spacer()
+                    }
+                }
+                DisclosureGroup("Types", isExpanded: $isTypesExpanded) {
+                    if !cacheManager.cachedIndustryResults.isEmpty {
+                        ForEach(cacheManager.cachedIndustryResults.filter({ result in
+                            if searchText.isEmpty { return true }
+                            else {
+                                return result.parentCategory.lowercased().contains(searchText.lowercased())
+                            }
+                        }), id: \.id) { parent in
+                            HStack {
+                                Text(parent.parentCategory)
+                                Spacer()
+                                ratingButton(for: parent)
+                            }
+                            .frame(maxWidth: .infinity)
+                        }
+                        .onDelete { indexSet in
+                            let idsToDelete = indexSet.map { cacheManager.cachedIndustryResults[$0].id }
+                            deleteCategoryItem(at: idsToDelete)
+                        }
+                    }
+                    Button(action: {
+                        addItemSection = 1
+                        preferredColumn = .sidebar
+                    }) {
+                        HStack {
+                            Image(systemName: "plus.circle")
+                            Text("Add a type")
+                            Spacer()
+                        }
+                        
+                        .foregroundColor(.accentColor)
+                    }
+                }
+                
+                DisclosureGroup("Items", isExpanded: $isItemsExpanded) {
+                    if !cacheManager.cachedTasteResults.isEmpty {
+                        ForEach(cacheManager.cachedTasteResults.filter({ result in
+                            if searchText.isEmpty { return true }
+                            else {
+                                return result.parentCategory.lowercased().contains(searchText.lowercased())
+                            }
+                        }), id: \.id) { parent in
+                            HStack {
+                                Text(parent.parentCategory)
+                                Spacer()
+                                ratingButton(for: parent)
+                            }
+                            .frame(maxWidth: .infinity)
+                        }
+                        .onDelete { indexSet in
+                            let idsToDelete = indexSet.map { cacheManager.cachedTasteResults[$0].id }
+                            deleteTasteItem(at: idsToDelete)
+                        }
+                    }
+                    Button(action: {
+                        addItemSection = 2
+                        preferredColumn = .sidebar
+                    }) {
+                        HStack {
+                            Image(systemName: "plus.circle")
+                            Text("Add an item")
+                            Spacer()
+                        }
+                        
+                        .foregroundColor(.accentColor)
+                    }
+                }
+                
+                DisclosureGroup("Favorite Places", isExpanded: $isPlacesExpanded) {
+                    if !cacheManager.cachedPlaceResults.isEmpty {
+                        ForEach(cacheManager.cachedPlaceResults.filter({ result in
+                            if searchText.isEmpty { return true }
+                            else {
+                                return result.parentCategory.lowercased().contains(searchText.lowercased())
+                            }
+                        }), id: \.id) { parent in
+                            Text(parent.parentCategory)
+                                .padding(.vertical,12)
+                        }
+                        .onDelete { indexSet in
+                            let idsToDelete = indexSet.map { cacheManager.cachedPlaceResults[$0].id }
+                            deletePlaceItem(at: idsToDelete)
+                        }
+                    }
+                    Button(action: {
+                        addItemSection = 3
+                        preferredColumn = .sidebar
+                    }) {
+                        HStack {
+                            Image(systemName: "plus.circle")
+                            Text("Add a place")
+                            Spacer()
+                        }
+                        .foregroundColor(.accentColor)
+                    }
                 }
             }
-        }
-        .searchable(text: $searchText, prompt: "Search for a favorite thing")
-        .task {
-            Task(priority: .high) {
-                await cacheManager.refreshCachedResults()
+#if os(iOS) || os(visionOS)
+            .listStyle(InsetGroupedListStyle())
+#endif
+            .refreshable {
+                Task(priority: .userInitiated) {
+                    do {
+                        try await cacheManager.refreshCache()
+                    } catch {
+                        modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
+                    }
+                }
             }
-        }
-        .sheet(item: $searchSavedViewModel.editingRecommendationWeightResult) { selectedResult in
-            recommendationWeightSheet(for: selectedResult)
-                .presentationDetents([.medium])
-                .presentationDragIndicator(.visible)
-                .presentationCompactAdaptation(.sheet)
+            .searchable(text: $searchText, prompt: "Search for a favorite thing")
+            .task {
+                Task(priority: .high) {
+                    await cacheManager.refreshCachedResults()
+                }
+            }
+            .sheet(item: $searchSavedViewModel.editingRecommendationWeightResult) { selectedResult in
+                recommendationWeightSheet(for: selectedResult)
+                    .presentationDetents([.medium])
+                    .presentationDragIndicator(.visible)
+                    .presentationCompactAdaptation(.sheet)
+            }
         }
     }
     

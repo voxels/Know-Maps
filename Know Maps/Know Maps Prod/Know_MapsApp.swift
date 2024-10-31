@@ -56,7 +56,6 @@ struct Know_MapsApp: App {
     @State private var showReload:Bool = false
     @State private var showOnboarding:Bool = true
     @State private var showSplashScreen:Bool = true
-    @State private var selectedOnboardingTab:String = "Sign In"
 
     
     init() {
@@ -143,7 +142,7 @@ struct Know_MapsApp: App {
 #endif
                 } else {
                     if showOnboarding {
-                        OnboardingView( settingsModel: authenticationModel, chatModel: $chatModel, modelController: $modelController, selectedTab: $selectedOnboardingTab, showOnboarding: $showOnboarding)
+                        OnboardingView( settingsModel: authenticationModel, chatModel: $chatModel, modelController: $modelController, showOnboarding: $showOnboarding)
 #if os(visionOS) || os(macOS)
                             .frame(minWidth: 1280, minHeight: 720)
 #endif
@@ -276,7 +275,7 @@ struct Know_MapsApp: App {
     }
     
     private func handleOnboarding(_ chatModel: ChatResultViewModel) async {
-        let cloudAuth = authenticationModel.isSignedIn()
+        let cloudAuth = !authenticationModel.appleUserId.isEmpty
         
         let isLocationAuthorized = modelController.locationProvider.isAuthorized()
         
@@ -290,10 +289,7 @@ struct Know_MapsApp: App {
         await MainActor.run {
             if cloudAuth, cacheManager.cloudCache.hasFsqAccess, isLocationAuthorized {
                 showOnboarding = false
-            }else if cloudAuth, cacheManager.cloudCache.hasFsqAccess, !isLocationAuthorized {
-                selectedOnboardingTab = "Location"
             }
-            
             showSplashScreen = false
         }
     }

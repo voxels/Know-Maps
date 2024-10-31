@@ -20,7 +20,7 @@ public final class LocationProvider : NSObject, Sendable  {
         return locationManager.authorizationStatus == .authorizedWhenInUse
 #endif
 #if os(macOS)
-        return locationManager.authorizationStatus == .authorizedAlways
+        return locationManager.authorizationStatus == .authorized
 #endif
     }
     
@@ -33,8 +33,8 @@ public final class LocationProvider : NSObject, Sendable  {
         }
 #endif
 #if os(macOS)
-        if locationManager.authorizationStatus != .authorizedAlways {
-            locationManager.requestAlwaysAuthorization()
+        if locationManager.authorizationStatus != .authorized {
+            locationManager.requestWhenInUseAuthorization()
             locationManager.delegate = self
             locationManager.requestLocation()
         } else {

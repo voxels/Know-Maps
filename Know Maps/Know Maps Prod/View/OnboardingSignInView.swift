@@ -15,7 +15,6 @@ import AuthenticationServices
 
 struct OnboardingSignInView: View {
     @ObservedObject var authService: AppleAuthenticationService
-    @Binding var selectedTab: String
     @State private var popoverPresented: Bool = false
     @State private var signInErrorMessage: String = ""
     
@@ -31,34 +30,39 @@ struct OnboardingSignInView: View {
                 .scaledToFit()
                 .frame(width: 100, height: 100)
             
-            Text("Sign in with your Apple ID to create saved lists. Know Maps keeps your data safe inside Apple's private iCloud storage.")
+            Text("1. Sign in with your Apple ID to create saved lists. Know Maps keeps your data safe inside Apple's private iCloud storage.")
                 .multilineTextAlignment(.leading)
                 .padding()
             
-            SignInWithAppleButton(.signIn, onRequest: { request in
-                authService.signIn()
-            }, onCompletion: { result in
-                switch result {
-                case .success(let authResults):
-                    if let provider = authResults.provider as? ASAuthorizationAppleIDProvider {
-                        authService.authorizationController(controller: ASAuthorizationController(authorizationRequests: [provider.createRequest()]), didCompleteWithAuthorization: authResults)
+            if !authService.appleUserId.isEmpty {
+                Label("Signed in with Apple ID", systemImage: "person.crop.circle.badge.checkmark")
+                    .foregroundStyle(.accent)
+            } else {
+                SignInWithAppleButton(.signIn, onRequest: { request in
+                    authService.signIn()
+                }, onCompletion: { result in
+                    switch result {
+                    case .success(let authResults):
+                        if let provider = authResults.provider as? ASAuthorizationAppleIDProvider {
+                            authService.authorizationController(controller: ASAuthorizationController(authorizationRequests: [provider.createRequest()]), didCompleteWithAuthorization: authResults)
+                        }
+                    case .failure(let error):
+                        // Update error message and present popover
+                        signInErrorMessage = error.localizedDescription
+                        popoverPresented.toggle()
                     }
-                case .failure(let error):
-                    // Update error message and present popover
-                    signInErrorMessage = error.localizedDescription
-                    popoverPresented.toggle()
-                }
-            })
-            .frame(maxWidth:220, maxHeight: 44)
-            .signInWithAppleButtonStyle(.whiteOutline)
-            .popover(isPresented: $popoverPresented, content: {
-                Text(signInErrorMessage)
-                    .padding()
-                    .presentationCompactAdaptation(.popover)
-            })
-            .padding()
-            
-            Spacer()
+                })
+                .frame(maxWidth:220, maxHeight: 44)
+                .signInWithAppleButtonStyle(.whiteOutline)
+                .popover(isPresented: $popoverPresented, content: {
+                    Text(signInErrorMessage)
+                        .padding()
+                        .presentationCompactAdaptation(.popover)
+                })
+                .padding()
+                
+                Spacer()
+            }
         }
     }
     

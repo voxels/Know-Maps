@@ -30,7 +30,7 @@ class AppleAuthenticationService: NSObject, ObservableObject {
     static let tag = "com.knowmaps.security.appleUserId"
     
     @MainActor
-    func isSignedIn()->Bool {
+    func isSignedIn() -> Bool {
         if let _ = retrieveRefreshToken(), let userId = readFromKeychain(key: "appleUserId") {
             appleUserId = userId
             return true
