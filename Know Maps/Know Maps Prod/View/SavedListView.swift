@@ -47,27 +47,22 @@ struct SavedListView: View {
         GeometryReader { geometry in
             List(selection: $selectedResult) {
 #if !os(macOS)
-                TipView(MenuNavigationIconTip()).padding()
+                TipView(MenuNavigationIconTip())
 #endif
-                TipView(AddItemTip()).padding()
-                
                 if !cacheManager.cachedTasteResults.isEmpty {
 #if !os(macOS)
                     Section() {
-                        VStack(alignment: .leading, spacing: 8) {
-                            SiriTipView(intent: ShowMoodResultsIntent())
-                                .padding(.vertical,8)
-                            
-                            //                    Text("Find a place nearby")
-                            //                    Text("Find where to go next")
-                            //                    Text("Save this place")
-                            //                    Text("Visit a new area")
-                        }
+                        SiriTipView(intent: ShowMoodResultsIntent())
+                    
+                        //                    Text("Find a place nearby")
+                        //                    Text("Find where to go next")
+                        //                    Text("Save this place")
+                        //                    Text("Visit a new city")
                     } header: {
                         Text("Shortcuts")
                             .font(.subheadline)
                     }
-#endif
+#endif // !os(macOS)
                     
                     DisclosureGroup("Moods", isExpanded: $isMoodsExpanded) {
                         ForEach(cacheManager.cachedDefaultResults.filter({ result in
@@ -81,16 +76,10 @@ struct SavedListView: View {
                         }
                     }
                 } else {
-                    HStack {
-                        Text("Add your favorite things by tapping \"Add...\" below.")
-                            .multilineTextAlignment(.leading)
-                            .padding()
-                            .frame(maxWidth:geometry.size.width)
-                        Spacer()
-                    }
+                    TipView(AddItemTip())
                 }
 
-                DisclosureGroup("Items", isExpanded: $isItemsExpanded) {
+                DisclosureGroup("Favorite Features", isExpanded: $isItemsExpanded) {
                     if !cacheManager.cachedTasteResults.isEmpty {
                         ForEach(cacheManager.cachedTasteResults.filter({ result in
                             if searchText.isEmpty { return true }
@@ -124,7 +113,7 @@ struct SavedListView: View {
                     }
                 }
                 
-                DisclosureGroup("Types", isExpanded: $isTypesExpanded) {
+                DisclosureGroup("Favorite Industries", isExpanded: $isTypesExpanded) {
                     if !cacheManager.cachedIndustryResults.isEmpty {
                         ForEach(cacheManager.cachedIndustryResults.filter({ result in
                             if searchText.isEmpty { return true }
@@ -199,7 +188,7 @@ struct SavedListView: View {
                     }
                 }
             }
-            .searchable(text: $searchText, prompt: "Search for a favorite thing")
+            .searchable(text: $searchText, prompt: "Search for a favorite")
             .task {
                 Task(priority: .high) {
                     await cacheManager.refreshCachedResults()

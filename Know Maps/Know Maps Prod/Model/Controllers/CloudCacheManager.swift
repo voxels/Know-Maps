@@ -120,8 +120,9 @@ public final class CloudCacheManager: CacheManager {
     public func refreshCachedLocations() async {
         do {
             let records = try await cloudCache.fetchGroupedUserCachedRecords(for: "Location")
+            let locationResults = self.createLocationResults(from: records)
             await MainActor.run {
-                self.cachedLocationResults = self.createLocationResults(from: records)
+                self.cachedLocationResults = locationResults
             }
         } catch {
             analyticsManager.trackError(error: error, additionalInfo: nil)
@@ -293,3 +294,4 @@ public final class CloudCacheManager: CacheManager {
         return "\(location.coordinate.latitude),\(location.coordinate.longitude)"
     }
 }
+

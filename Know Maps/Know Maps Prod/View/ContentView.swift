@@ -14,12 +14,12 @@ import TipKit
 
 struct MenuNavigationIconTip: Tip {
     var title: Text {
-        Text("Page Menu")
+        Text("Favorites Tab")
     }
 
 
     var message: Text? {
-        Text("Add items, categories, and places to your favorites.")
+        Text("Add industries, features, and places to your favorites tab.")
     }
 
 
@@ -78,30 +78,18 @@ struct ContentView: View {
                     SearchView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, searchSavedViewModel: $searchSavedViewModel, preferredColumn: $preferredColumn,  addItemSection: $modelController.addItemSection, showMapsResultViewSheet: $showMapsResultViewSheet, didError: $didError)
                         .toolbar {
 #if !os(macOS)
-                            ToolbarItem(placement:.navigation) {
-                                navigationToolbar()
+                            ToolbarItemGroup(placement: .topBarLeading) {
+                                EditButton()
                             }
 #endif
-                            ToolbarItemGroup(placement: .automatic) {
-#if !os(macOS)
-                                EditButton()
-#endif
+                            ToolbarItemGroup(placement: .topBarTrailing) {
                                 Button {
                                     showNavigationLocationView.toggle()
                                 } label: {
-                                    Label("Destination", systemImage:"location.magnifyingglass")
-                                }
-                                Button {
-                                    showSettingsSheet.toggle()
-                                } label: {
-                                    Label("Settings", systemImage: "gearshape")
+                                    Label("Destination", systemImage:"line.3.horizontal.decrease")
                                 }
                             }
                         }
-#if !os(macOS)
-                        .toolbarBackground(.visible, for: .navigationBar)
-#endif
-                        .navigationTitle("Favorites")
                 } detail: {
                     if let resultId = modelController.selectedPlaceChatResult, let _ = modelController.placeChatResult(for: resultId) {
                         PlaceView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, placeDirectionsViewModel: placeDirectionsChatViewModel, addItemSection: $modelController.addItemSection)
@@ -150,35 +138,27 @@ struct ContentView: View {
                             }
                     }
                 }
-                .navigationSplitViewStyle(.balanced)
-                .tag (0)
+                .tag(0)
                 .tabItem {
                     Label("Favorites", systemImage: "heart")
                 }
-#if !os(macOS)
-                .toolbar(.hidden, for: .tabBar)
-#endif
                 
                 NavigationSplitView {
                     SearchCategoryView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, multiSelection: $multiSelection, addItemSection: $modelController.addItemSection)
 #if !os(macOS)
                         .toolbar {
-                            ToolbarItem(placement: .navigation) {
-                                navigationToolbar()
-                            }
-                            ToolbarItemGroup(placement: .primaryAction) {
+                            ToolbarItemGroup(placement: .topBarLeading) {
                                 EditButton()
+                            }
+                            ToolbarItemGroup(placement: .topBarTrailing) {
                                 Button {
                                     showNavigationLocationView.toggle()
                                 } label: {
-                                    Label("Destination", systemImage:"location.magnifyingglass")
+                                    Label("Destination", systemImage:"line.3.horizontal.decrease")
                                 }
                             }
                         }
-                        .toolbarBackground(.visible, for: .navigationBar)
-#endif
-                        .navigationTitle("Types")
-                    
+#endif // !os(macOS)
                 } detail: {
                     if sizeClass == .compact {
                         VStack {
@@ -210,34 +190,28 @@ struct ContentView: View {
                         }
                     }
                 }
-                .navigationSplitViewStyle(.balanced)
                 .tag(1)
                 .tabItem {
-                    Label("Types", systemImage: "building.2")
+                    Label("Industries", systemImage: "building.2")
                 }
-#if !os(macOS)
-                .toolbar(.hidden, for: .tabBar)
-#endif
                 
                 NavigationSplitView {
                     SearchTasteView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, multiSelection: $multiSelection, addItemSection: $modelController.addItemSection)
 #if !os(macOS)
                         .toolbar {
-                            ToolbarItem(placement: .navigation) {
-                                navigationToolbar()
-                            }
-                            ToolbarItemGroup(placement: .primaryAction) {
+                            ToolbarItemGroup(placement: .topBarLeading) {
                                 EditButton()
+                            }
+
+                            ToolbarItemGroup(placement: .topBarTrailing) {
                                 Button {
                                     showNavigationLocationView.toggle()
                                 } label: {
-                                    Label("Destination", systemImage:"location.magnifyingglass")
+                                    Label("Destination", systemImage:"line.3.horizontal.decrease")
                                 }
                             }
                         }
-                        .toolbarBackground(.visible, for: .navigationBar)
-#endif
-                        .navigationTitle("Items")
+#endif // !os(macOS)
                 } detail: {
                     if sizeClass == .compact {
                         VStack {
@@ -270,34 +244,21 @@ struct ContentView: View {
                         }
                     }
                 }
-                .navigationSplitViewStyle(.balanced)
                 .tag(2)
                 .tabItem {
-                    Label("Items", systemImage: "checklist")
+                    Label("Features", systemImage: "checklist")
                 }
-#if !os(macOS)
-                .toolbar(.hidden, for: .tabBar)
-#endif
                 NavigationSplitView {
                     SearchPlacesView(searchSavedViewModel: $searchSavedViewModel, chatModel: $chatModel, cacheManager: $cacheManager, modelController:   $modelController, multiSelection: $multiSelection, addItemSection: $modelController.addItemSection)
                         .toolbar {
-#if !os(macOS)
-                            ToolbarItem(placement: .navigation) {
-                                navigationToolbar()
-                            }
-#endif
                             ToolbarItem(placement: .automatic) {
                                 Button {
                                     showNavigationLocationView.toggle()
                                 } label: {
-                                    Label("Destination", systemImage:"location.magnifyingglass")
+                                    Label("Destination", systemImage:"line.3.horizontal.decrease")
                                 }
                             }
                         }
-#if !os(macOS)
-                        .toolbarBackground(.visible, for: .navigationBar)
-#endif
-                        .navigationTitle("Places")
                     
                 } detail: {
                     PlaceView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, placeDirectionsViewModel: placeDirectionsChatViewModel, addItemSection: $modelController.addItemSection)
@@ -312,14 +273,20 @@ struct ContentView: View {
                             
                         }
                 }
-                .navigationSplitViewStyle(.balanced)
                 .tag(3)
                 .tabItem {
                     Label("Places", systemImage: "mappin")
                 }
-#if !os(macOS)
-                .toolbar(.hidden, for: .tabBar)
-#endif
+                
+                SettingsView(model: settingsModel, chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, showOnboarding: $showOnboarding)
+                    .presentationDetents([.large])
+                    .presentationDragIndicator(.visible)
+                    .presentationCompactAdaptation(.sheet)
+                    .frame(minWidth:sizeClass == .compact ? geometry.size.width : geometry.size.width / 3, maxWidth: .infinity, minHeight:geometry.size.height, maxHeight: .infinity)
+                    .tag(4)
+                    .tabItem {
+                        Label("Account", systemImage: "person.crop.circle")
+                    }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .onAppear(perform: {
@@ -408,34 +375,12 @@ struct ContentView: View {
                     .presentationCompactAdaptation(.sheet)
                     .frame(minWidth:sizeClass == .compact ? geometry.size.width : geometry.size.width / 3, maxWidth: .infinity, minHeight:geometry.size.height, maxHeight: .infinity)
             }
-            .sheet(isPresented:$showSettingsSheet) {
-                SettingsView(model: settingsModel, chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, showOnboarding: $showOnboarding)
-                    .presentationDetents([.large])
-                    .presentationDragIndicator(.visible)
-                    .presentationCompactAdaptation(.sheet)
-                    .frame(minWidth:sizeClass == .compact ? geometry.size.width : geometry.size.width / 3, maxWidth: .infinity, minHeight:geometry.size.height, maxHeight: .infinity)
-            }
         }
     }
-    
-    @ViewBuilder
-    func navigationToolbar() -> some View {
-        Picker("Add to Favories", systemImage: "plus.circle", selection: $modelController.addItemSection) {
-            Label("Favorites", systemImage: "heart.fill").tag(0)
-            Label("Add a type", systemImage: "building.2").tag(1)
-            Label("Add an item", systemImage: "checklist").tag(2)
-            Label("Add a place", systemImage: "mappin").tag(3)
-        }
-        .pickerStyle(.menu)
-    }
-    
+        
     @ViewBuilder
     func placesList()-> some View {
         VStack {
-            #if os(macOS)
-            TipView(MenuNavigationIconTip())
-                .padding()
-            #endif
             PlacesList(searchSavedViewModel:$searchSavedViewModel,chatModel: $chatModel, cacheManager:$cacheManager, modelController: $modelController, showMapsResultViewSheet: $showMapsResultViewSheet)
                 .alert("Unknown Place", isPresented: $didError) {
                     Button(action: {

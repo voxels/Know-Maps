@@ -19,44 +19,12 @@ struct NavigationLocationView: View {
     @State private var searchText:String = ""
     var body: some View {
             VStack {
-                HStack {
-                    Button(action:{
-                        dismiss()
-                    }, label:{
-                        Text("Dismiss")
-                    }).padding()
-                    Spacer()
-                }
-                TextField("Search for a city/state or address", text: $searchText)
-                    .onSubmit(of: .text) {
-                        search(intent:.Location)
-                    }
-                    .textFieldStyle(.roundedBorder)
-                    .padding()
-                Spacer()
                 List(modelController.filteredLocationResults(cacheManager: cacheManager), selection:$modelController.selectedDestinationLocationChatResult) { result in
                     let isSaved = cacheManager.cachedLocation(contains:result.locationName)
                     HStack {
-                        if result.id == modelController.selectedDestinationLocationChatResult {
-                            Label(result.locationName, systemImage: "mappin")
-                                .tint(.red)
-                        } else {
-                            Label(result.locationName, systemImage: "mappin")
-                                .tint(.blue)
-                        }
-                        Spacer()
-                        isSaved ? Image(systemName: "checkmark.circle.fill") : Image(systemName: "circle")
-                    }
-                }
-                Spacer()
-                HStack {
-                    Spacer()
-                    if let selectedDestinationLocationChatResult = modelController.selectedDestinationLocationChatResult, let parent =  modelController.locationChatResult(
-                        for: selectedDestinationLocationChatResult,in: modelController.filteredLocationResults(cacheManager: cacheManager)) {
-                        let isSaved = cacheManager.cachedLocation(contains: parent.locationName)
                         if isSaved {
                             Button(action: {
-                                if let location = parent.location {
+                                if let location = result.location {
                                     Task(priority:.userInitiated) {
                                         await searchSavedViewModel.removeCachedResults(
                                             group: "Location",
@@ -67,21 +35,21 @@ struct NavigationLocationView: View {
                                     }
                                 }
                             }, label: {
-                                Label("Delete", systemImage: "minus.circle")
+                                Label(result.locationName, systemImage: "minus.circle")
                             })
                             .labelStyle(.titleAndIcon)
                         } else {
                             Button(action: {
-                                if let location = parent.location {
+                                if let location = result.location {
                                     Task(priority:.userInitiated) {
                                         do {
                                             try await searchSavedViewModel.addLocation(
-                                                parent: parent,
+                                                parent:result,
                                                 location: location,
                                                 cacheManager: cacheManager,
                                                 modelController: modelController
                                             )
-                                            modelController.selectedDestinationLocationChatResult = modelController.filteredLocationResults(cacheManager:cacheManager).first(where: {$0.locationName == parent.locationName})?.id
+                                            modelController.selectedDestinationLocationChatResult = modelController.filteredLocationResults(cacheManager:cacheManager).first(where: {$0.locationName == result.locationName})?.id
                                         } catch {
                                             modelController.analyticsManager.trackError(
                                                 error: error,
@@ -91,13 +59,16 @@ struct NavigationLocationView: View {
                                     }
                                 }
                             }, label: {
-                                Label("Save", systemImage: "plus.circle")
+                                Label(result.locationName, systemImage: "plus.circle")
                             })
                             .labelStyle(.titleAndIcon)
                         }
+                        Spacer()
+                        isSaved ? Image(systemName: "checkmark.circle.fill") : Image(systemName: "circle")
                     }
-                }.padding()
-            }.padding()
+                }
+                Spacer()
+            }
     }
     
     func search(intent:AssistiveChatHostService.Intent) {

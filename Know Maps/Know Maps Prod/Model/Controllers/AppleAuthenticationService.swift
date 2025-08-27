@@ -304,7 +304,13 @@ extension AppleAuthenticationService: ASAuthorizationControllerPresentationConte
         #if os(macOS)
         return NSApplication.shared.windows.first ?? ASPresentationAnchor()
         #else
-        return UIApplication.shared.windows.first { $0.isKeyWindow } ?? ASPresentationAnchor()
+        if let windowScene = UIApplication.shared.connectedScenes
+            .compactMap({ $0 as? UIWindowScene })
+            .first(where: { $0.activationState == .foregroundActive }),
+           let window = windowScene.windows.first(where: { $0.isKeyWindow }) {
+            return window
+        }
+        return ASPresentationAnchor()
         #endif
     }
 }
@@ -326,3 +332,4 @@ struct TokenResponse: Codable {
         case expiresIn = "expires_in"
     }
 }
+

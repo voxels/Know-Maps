@@ -22,15 +22,7 @@ struct SettingsView: View {
     @State private var isAuthenticated = false
 
     var body: some View {
-        VStack {
-            HStack {
-                Button(action:{
-                    dismiss()
-                }, label:{
-                    Text("Dismiss")
-                }).padding()
-                Spacer()
-            }
+        VStack(spacing:8) {
             if !model.appleUserId.isEmpty {
                 let fullName = model.fullName.trimmingCharacters(in: .whitespaces)
                 if !fullName.isEmpty {
@@ -93,7 +85,7 @@ struct SettingsView: View {
                 })
                 .padding()
             }
-                
+            Spacer()
             Button(action:{
                 Task {
                     do {
@@ -109,7 +101,6 @@ struct SettingsView: View {
             }, label:{
               Text("Delete data stored in iCloud.")
             }).padding()
-            Spacer()
             Button {
                 Task {
                     do {
@@ -127,8 +118,7 @@ struct SettingsView: View {
                 Text("Delete the Know Maps iCloud Account")
                     .foregroundStyle(.red)
             }
-
+            Spacer()
         }
-        .padding()
     }
 }

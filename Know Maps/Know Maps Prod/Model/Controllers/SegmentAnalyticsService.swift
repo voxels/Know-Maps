@@ -18,7 +18,7 @@ public final class SegmentAnalyticsService: AnalyticsService {
     static let shared = SegmentAnalyticsService(analytics: Analytics(configuration: SegmentAnalyticsService.config))
     
     
-    private var analytics: Analytics
+    private let analytics: Analytics
     
     public init(analytics: Analytics) {
         self.analytics = analytics
@@ -59,3 +59,4 @@ public final class SegmentAnalyticsService: AnalyticsService {
         track(event: "CacheRefresh", properties: properties)
     }
 }
+

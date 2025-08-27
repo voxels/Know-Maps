@@ -130,6 +130,7 @@ public final class AssistiveChatHostService : AssistiveChatHost {
         return Array(retval)
     }
     
+    // TODO: Replace with apple foundations framework
     public func determineIntent(for caption:String, override:Intent? = nil) -> Intent
     {
         let components = caption.components(separatedBy: "near")

@@ -27,15 +27,6 @@ struct FiltersView: View {
     
     var body: some View {
             VStack(alignment: .leading){
-                HStack {
-                    Button(action:{
-                        dismiss()
-                    }, label:{
-                        Text("Dismiss")
-                    }).padding()
-                    Spacer()
-                }
-                Spacer()
                     Text("Search Radius (\(FiltersView.formatter.string(from:NSNumber(value:distanceFilterValue)) ?? "1") kilometers)")
                     .padding()
                     Slider(value: $distanceFilterValue,in:0...50, step:1)

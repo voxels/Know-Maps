@@ -20,14 +20,6 @@ struct MapResultsView: View {
     
     var body: some View {
         VStack {
-            HStack {
-                Button(action:{
-                    dismiss()
-                }, label:{
-                    Text("Dismiss")
-                }).padding()
-                Spacer()
-            }
             Map(position: $cameraPosition, interactionModes: .all, selection: $selectedMapItem) {
                 ForEach(modelController.mapPlaceResults) { result in
                     if let placeResponse = result.placeResponse {
@@ -41,8 +33,8 @@ struct MapResultsView: View {
                 MapCompass()
             }
             .mapStyle(.imagery)
-            .cornerRadius(16)
-            .padding(32)
+            .cornerRadius(10)
+            .padding(20)
             .task {
                 cameraPosition = .automatic
             }

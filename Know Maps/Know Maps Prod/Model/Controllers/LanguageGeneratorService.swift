@@ -7,6 +7,7 @@
 
 import Foundation
 
+// TODO: Replace with Apple Foundation Frameworks
 open class LanguageGeneratorService : LanguageGenerator {
     private var session:LanguageGeneratorSession = LanguageGeneratorSession()
     
