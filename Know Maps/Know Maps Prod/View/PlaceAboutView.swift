@@ -37,7 +37,11 @@ struct PlaceAboutView: View {
                                 if modelController.isRefreshingPlaces {
                                     Image(systemName: "photo").aspectRatio(CGFloat(aspectRatio), contentMode: .fit)
                                         .scaledToFit()
-                                        .cornerRadius(16)
+                                        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                                .strokeBorder(.separator, lineWidth: 1)
+                                        )
                                         .frame(width: geo.size.width - 32, height:geo.size.width - 32)
                                 } else {
                                     
@@ -46,19 +50,27 @@ struct PlaceAboutView: View {
                                             image.resizable()
                                                 .aspectRatio(CGFloat(aspectRatio), contentMode: .fit)
                                                 .scaledToFit()
-                                                .cornerRadius(16)
                                                 .frame(maxWidth: max(0,geo.size.width - 32), maxHeight:max(geo.size.width - 32,0))
-                                           } else if state.error != nil {
-                                               Image(systemName: "photo")
-                                                   .aspectRatio(CGFloat(aspectRatio), contentMode: .fit)
-                                                   .scaledToFit()
-                                                   .cornerRadius(16)
-                                                   .frame(width: max(0, geo.size.width - 32), height:max(geo.size.width - 32,0))
-                                           } else {
-                                               ProgressView()
-                                                   .padding()
-                                                   .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-                                           }
+                                                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                                                .overlay(
+                                                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                                        .strokeBorder(.separator, lineWidth: 1)
+                                                )
+                                       } else if state.error != nil {
+                                           Image(systemName: "photo")
+                                               .aspectRatio(CGFloat(aspectRatio), contentMode: .fit)
+                                               .scaledToFit()
+                                               .frame(width: max(0, geo.size.width - 32), height:max(geo.size.width - 32,0))
+                                               .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                                               .overlay(
+                                                   RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                                       .strokeBorder(.separator, lineWidth: 1)
+                                               )
+                                       } else {
+                                           ProgressView()
+                                               .padding()
+                                               .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                                       }
                                     }.id(topID)
                                 }
                             }
@@ -233,8 +245,9 @@ struct PlaceAboutView: View {
                                 Spacer()
                             }
                             .padding(.horizontal, 16)
-                            .padding(.vertical, 24)
                             // Related Places Section
+                            Divider()
+                                .padding(.vertical, 24)
                             Section {
                                 
                                     ScrollView(.horizontal) {
@@ -272,10 +285,12 @@ struct PlaceAboutView: View {
                             } header: {
                                 Text("Related Places").font(.headline)
                             }.padding(.horizontal,16)
-                                .padding(.vertical, 24)
+                                
                             
                             // Tastes Section
                             if let tastes = placeDetailsResponse.tastes, !tastes.isEmpty {
+                                Divider()
+                                    .padding(.vertical, 24)
                                 Section {
                                     let gridItems = Array(repeating: GridItem(.flexible(), spacing: PlaceAboutView.defaultPadding), count: sizeClass == .compact ? 2 : 3)
                                     
@@ -309,17 +324,17 @@ struct PlaceAboutView: View {
                                         }
                                     }
                                 } header: {
-                                    Text("Items").font(.headline)
+                                    Text("Features").font(.headline)
                                 }
-                                
                                 .padding(.horizontal,16)
-                                .padding(.vertical, 24)
+
                                 .task {
                                     if let tastes = placeDetailsResponse.tastes {
                                         mutableTastes = tastes
                                     }
                                 }
-                                
+                                Divider()
+                                    .padding(.vertical, 12)
                                 Section {
                                     Map(initialPosition: .automatic, bounds: MapCameraBounds(minimumDistance: 5000, maximumDistance: 250000), interactionModes: [.zoom, .rotate]) {
                                         Marker(title, coordinate: placeCoordinate.coordinate)
@@ -327,11 +342,8 @@ struct PlaceAboutView: View {
                                     .mapStyle(.hybrid)
                                     .frame(minHeight: geo.size.height / 2.0)
                                     .cornerRadius(16)
-                                } header: {
-                                    Text("Location").font(.headline)
                                 }
                                 .padding(.horizontal,16)
-                                .padding(.vertical, 24)
                             }
                         } else {
                             Color.black

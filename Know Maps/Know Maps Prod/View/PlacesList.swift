@@ -42,20 +42,40 @@ struct PlacesList: View {
 #endif
                         LazyVGrid(columns: columns, alignment: .leading, spacing: 32) {
                             ForEach(modelController.recommendedPlaceResults, id:\.id){ result in
+                                // Derive aspect ratio (fallback to 4:3 if missing)
+                                let ar = CGFloat(result.recommendedPlaceResponse?.aspectRatio ?? (4.0/3.0))
+                                
+                                // Compute an approximate item width for this grid cell
+                                let itemWidth = geometry.size.width / sizeWidth - 32
+                                let reservedHeight = itemWidth / ar
+
                                 VStack {
                                     ZStack(alignment: .bottomLeading) {
-                                        if let aspectRatio = result.recommendedPlaceResponse?.aspectRatio, let photo = result.recommendedPlaceResponse?.photo, !photo.isEmpty, let url = URL(string: photo) {
+                                        
+                                        if let photo = result.recommendedPlaceResponse?.photo, !photo.isEmpty, let url = URL(string: photo) {
                                             LazyImage(url: url) { state in
                                                 if let image = state.image {
-                                                    image.resizable()
-                                                        .aspectRatio(CGFloat(aspectRatio), contentMode: .fit)
-                                                        .scaledToFit()
+                                                    image
+                                                      .resizable()
+                                                      .aspectRatio(ar, contentMode: .fill)
+                                                      .frame(width: itemWidth, height: reservedHeight) // fixed size
+                                                      .clipped()
                                                 } else if state.error != nil {
-                                                    Image(systemName: "photo")
+                                                    ZStack {
+                                                        Rectangle().fill(.secondary.opacity(0.15))
+                                                        Image(systemName: "photo")
+                                                            .font(.title2)
+                                                            .foregroundStyle(.secondary)
+                                                    }
+                                                    .frame(height: reservedHeight)
+                                                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                                                 } else {
-                                                    ProgressView()
-                                                        .padding()
-                                                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                                                    ZStack {
+                                                        Rectangle().fill(.secondary.opacity(0.10))
+                                                        ProgressView()
+                                                    }
+                                                    .frame(height: reservedHeight)
+                                                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                                                 }
                                             }
                                             .contentTransition(.opacity)
@@ -86,32 +106,42 @@ struct PlacesList: View {
                                                     }
                                                 }
                                             }
-                                            VStack(alignment: .leading) {
-                                                if let neighborhood = result.recommendedPlaceResponse?.neighborhood, !neighborhood.isEmpty {
-                                                    
-                                                    Text(result.title).bold()
-                                                    Text(neighborhood).italic()
-                                                    
-                                                } else{
-                                                    Text(result.title).bold()
-                                                }
-                                                if let placeResponse = result.recommendedPlaceResponse, !placeResponse.address.isEmpty {
-                                                    Text(placeResponse.address)
-                                                    Text(placeResponse.city)
-                                                }
-                                            }
-                                            .padding(.horizontal, 16)
-                                            .padding(.vertical, 16)
-                                            .glassEffect(.regular, in:.rect(cornerRadius: 16))
-                                            .padding(.horizontal, 16)
-                                            .padding(.vertical, 16)
+                                        } else {
+                                            // Reserve space immediately to prevent reflow when image loads
+                                            Color.clear
+                                                .frame(height: reservedHeight)
+                                                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                                         }
+                                        VStack(alignment: .leading) {
+                                            if let neighborhood = result.recommendedPlaceResponse?.neighborhood, !neighborhood.isEmpty {
+                                                Text(result.title).bold()
+                                                Text(neighborhood).italic()
+                                            } else{
+                                                Text(result.title).bold()
+                                            }
+                                            if let placeResponse = result.recommendedPlaceResponse, !placeResponse.address.isEmpty {
+                                                Text(placeResponse.address)
+                                                Text(placeResponse.city)
+                                            }
+                                        }
+                                        .padding(.horizontal, 12)
+                                        .padding(.vertical, 12)
+                                        .glassEffect(.regular, in:.rect(cornerRadius: 16))
+                                        .padding(8)
                                     }
+                                    .frame(width: itemWidth, height: reservedHeight) // fix container size
+                                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                            .strokeBorder(.separator, lineWidth: 1)
+                                    )
+                                    .contentShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                                 }
                                 Divider()
                             }
                         }
                         .animation(.snappy(duration: 0.35), value: modelController.recommendedPlaceResults)
+                        .listRowBackground(Color.clear)
                 } else if modelController.placeResults.count > 0 {
                         let sizeWidth:CGFloat = sizeClass == .compact ? 1 : 3
 #if os(macOS) || os(visionOS)
@@ -132,6 +162,10 @@ struct PlacesList: View {
                                 .contentTransition(.opacity)
                                 .glassEffect()
                                 .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                        .strokeBorder(.separator, lineWidth: 1)
+                                )
 #if os(visionOS)
                                 .hoverEffect(.lift)
 #endif
@@ -150,6 +184,7 @@ struct PlacesList: View {
                             }
                         }
                         .animation(.snappy(duration: 0.35), value: modelController.filteredPlaceResults)
+                        .listRowBackground(Color.clear)
                 } else {
                     if !modelController.queryParametersHistory.isEmpty {
                         HStack(alignment: .center) {
@@ -157,9 +192,13 @@ struct PlacesList: View {
                                 Text("Searching near \(locationChatResult.locationName)")
                             }
                         }
+                        .listRowBackground(Color.clear)
                     }
                 }
             }
+            .listStyle(.plain)
+            .scrollContentBackground(.hidden)
+            .background(Color.clear)
         }
     }
 }
