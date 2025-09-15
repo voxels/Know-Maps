@@ -98,17 +98,8 @@ struct ContentView: View {
                             PlaceView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, placeDirectionsViewModel: placeDirectionsChatViewModel, addItemSection: $modelController.addItemSection)
                         } else {
                             placesList()
-                                .sheet(isPresented: $showFiltersSheet, content: {
-                                    FiltersView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, searchSavedViewModel: $searchSavedViewModel, filters: $searchSavedViewModel.filters, showFiltersPopover: $showFiltersSheet)
-                                        .presentationDetents([.large])
-                                        .presentationDragIndicator(.visible)
-                                        .presentationCompactAdaptation(.sheet)
-                                        .frame(minWidth:sizeClass == .compact ? geometry.size.width : geometry.size.width / 3, maxWidth: .infinity, minHeight:geometry.size.height, maxHeight: .infinity)
-                                    
-                                    
-                                })
                                 .sheet(isPresented: $showMapsResultViewSheet) {
-                                    MapResultsView(model: $chatModel, modelController: $modelController, selectedMapItem: $selectedMapItem, cameraPosition:$cameraPosition, showMapsResultViewSheet: $showMapsResultViewSheet)
+                                    MapResultsView(model: $chatModel, modelController: $modelController, selectedMapItem: $selectedMapItem, cameraPosition:$cameraPosition)
                                         .onChange(of: selectedMapItem) { _,newValue in
                                             if let newValue = newValue, let placeChatResult = modelController.placeChatResult(with: newValue) {
                                                 withAnimation {
@@ -415,7 +406,7 @@ struct ContentView: View {
             chatModel: $chatModel,
             cacheManager: $cacheManager,
             modelController: $modelController,
-            showNavigationLocationView: $showNavigationLocationView
+            filters:$searchSavedViewModel.filters
         )
     }
         
@@ -433,23 +424,6 @@ struct ContentView: View {
                 })
             } message: {
                 Text("We don't know much about this place.")
-            }
-            .toolbar {
-                ToolbarItemGroup(placement: .primaryAction) {
-                    Button {
-                        showFiltersSheet.toggle()
-                    } label: {
-                        Label("Show Filters", systemImage: "line.3.horizontal.decrease")
-                    }
-                    Button {
-                        showMapsResultViewSheet.toggle()
-                    } label: {
-                        Label("Show Map", systemImage: "map")
-                    }
-                }
-            }
-            .navigationDestination(isPresented: $showNavigationLocationView) {
-                filterView()
             }
     }
 }
