@@ -78,7 +78,7 @@ struct ContentView: View {
                     SearchView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, searchSavedViewModel: $searchSavedViewModel, preferredColumn: $preferredColumn,  addItemSection: $modelController.addItemSection, showMapsResultViewSheet: $showMapsResultViewSheet, didError: $didError)
                         .toolbar {
                             #if os(macOS)
-                            ToolbarItemGroup(placement: .automatic) {
+                            ToolbarItemGroup(placement: .primaryAction) {
                                 toolbarLeadingContent()
                             }
 #else
@@ -106,7 +106,8 @@ struct ContentView: View {
                                         toolbarTrailingContent()
                                     }
 #else
-                                    ToolbarItemGroup(placement: .automatic) {
+                                    ToolbarItemGroup(placement: .primaryAction) {
+                                        toolbarTrailingContent()
                                     }
 #endif
                                 }
@@ -145,7 +146,7 @@ struct ContentView: View {
                     SearchCategoryView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, multiSelection: $multiSelection, addItemSection: $modelController.addItemSection)
                         .toolbar {
 #if os(macOS)
-ToolbarItemGroup(placement: .automatic) {
+ToolbarItemGroup(placement: .primaryAction) {
     toolbarLeadingContent()
 }
 #else
@@ -153,8 +154,6 @@ ToolbarItemGroup(placement: .topBarLeading) {
     toolbarLeadingContent()
 }
 #endif
-
-                            
                         }
                         .navigationTitle("Industries")
                 } detail: {
@@ -177,7 +176,8 @@ ToolbarItemGroup(placement: .topBarLeading) {
                                     toolbarTrailingContent()
                                 }
 #else
-                                ToolbarItemGroup(placement: .automatic) {
+                                ToolbarItemGroup(placement: .primaryAction) {
+                                    toolbarTrailingContent()
                                 }
 #endif
                             }
@@ -202,7 +202,8 @@ ToolbarItemGroup(placement: .topBarLeading) {
                                     toolbarTrailingContent()
                                 }
 #else
-                                ToolbarItemGroup(placement: .automatic) {
+                                ToolbarItemGroup(placement: .primaryAction) {
+                                    toolbarTrailingContent()
                                 }
 #endif
                             }
@@ -257,7 +258,8 @@ ToolbarItemGroup(placement: .topBarLeading) {
                                     toolbarTrailingContent()
                                 }
 #else
-                                ToolbarItemGroup(placement: .automatic) {
+                                ToolbarItemGroup(placement: .primaryAction) {
+                                    toolbarTrailingContent()
                                 }
 #endif
                             }
@@ -282,7 +284,9 @@ ToolbarItemGroup(placement: .topBarLeading) {
                                     toolbarTrailingContent()
                                 }
 #else
-                                ToolbarItemGroup(placement: .automatic) {
+                                ToolbarItemGroup(placement: .primaryAction) {
+                                    toolbarTrailingContent()
+
                                 }
 #endif
                             }
@@ -320,7 +324,9 @@ ToolbarItemGroup(placement: .topBarLeading) {
                                     toolbarTrailingContent()
                                 }
 #else
-                                ToolbarItemGroup(placement: .automatic) {
+                                ToolbarItemGroup(placement: .primaryAction) {
+                                    toolbarTrailingContent()
+
                                 }
 #endif
                             }
