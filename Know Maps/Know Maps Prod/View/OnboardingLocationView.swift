@@ -49,18 +49,13 @@ struct OnboardingLocationView: View {
                 Spacer()
             } else {
                 Button("Continue") {
-                    if !settingsModel.appleUserId.isEmpty {
-                        showOnboarding = false
-                    }
-                }.padding()
-                .onAppear {
                     modelController.locationProvider.authorize()
                     locationIsAuthorized = modelController.locationProvider.isAuthorized()
                     if !settingsModel.appleUserId.isEmpty, locationIsAuthorized {
                         showOnboarding = false
                     }
-                }
-                
+                }.padding()
+
                 Spacer()
             }
         }

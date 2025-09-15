@@ -11,6 +11,7 @@ import MapKit
 
 struct NavigationLocationView: View {
     @Environment(\.dismiss) var dismiss
+    @Environment(\.horizontalSizeClass) var sizeClass
     @Binding public var searchSavedViewModel:SearchSavedViewModel
     @Binding public var chatModel:ChatResultViewModel
     @Binding public var cacheManager:CloudCacheManager
@@ -47,7 +48,7 @@ struct NavigationLocationView: View {
                 MapUserLocationButton()
                 MapCompass()
             }
-            .frame(idealHeight: geometry.size.width)
+            .frame(idealWidth: .infinity, idealHeight:sizeClass == .compact ? geometry.size.width / 2 : geometry.size.width / 4)
             .mapStyle(.standard)
             .cornerRadius(10)
             .task {
@@ -154,7 +155,7 @@ struct NavigationLocationView: View {
                 }
             }
         }
-        .frame(idealWidth: .infinity, idealHeight:geometry.size.height)
+        .frame(idealWidth: .infinity, idealHeight:sizeClass == .compact ? geometry.size.height : geometry.size.height / 2)
         .searchable(text: $searchText, placement: .automatic, prompt: "Point of Interest")
         .onChange(of: searchText) { oldValue, newValue in
                 if !newValue.isEmpty, newValue != oldValue {

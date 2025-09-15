@@ -168,7 +168,7 @@ ToolbarItemGroup(placement: .topBarLeading) {
                         if sizeClass == .compact {
                             VStack(alignment: .leading, spacing: 0) {
                                 AddCategoryView(viewModel: $searchSavedViewModel, chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, preferredColumn: $preferredColumn, multiSelection:$multiSelection)
-                                    .frame(maxHeight:geometry.size.height / 4)
+                                    .frame(maxHeight:geometry.size.height / 3)
                                 placesList()
                             }
                             .toolbar {
@@ -193,7 +193,7 @@ ToolbarItemGroup(placement: .topBarLeading) {
                         } else {
                             VStack(alignment: .leading, spacing: 0) {
                                 AddCategoryView(viewModel: $searchSavedViewModel, chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, preferredColumn: $preferredColumn, multiSelection:$multiSelection)
-                                    .frame(maxHeight:geometry.size.height / 4)
+                                    .frame(maxHeight:geometry.size.height / 3)
                                 placesList()
                             }
                             .toolbar {
@@ -248,7 +248,7 @@ ToolbarItemGroup(placement: .topBarLeading) {
                         if sizeClass == .compact {
                             VStack(alignment: .leading, spacing: 0) {
                                 AddTasteView(viewModel: $searchSavedViewModel, chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, multiSelection:$multiSelection, preferredColumn: $preferredColumn)
-                                    .frame(maxHeight:geometry.size.height / 4)
+                                    .frame(maxHeight:geometry.size.height / 3)
                                 placesList()
                             }
                             .toolbar {
@@ -273,7 +273,7 @@ ToolbarItemGroup(placement: .topBarLeading) {
                         } else {
                             VStack(alignment: .leading, spacing: 0) {
                                 AddTasteView(viewModel: $searchSavedViewModel, chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, multiSelection:$multiSelection, preferredColumn: $preferredColumn)
-                                .frame(maxHeight:geometry.size.height / 4)
+                                .frame(maxHeight:geometry.size.height / 3)
                                 placesList()
                             }
                             .toolbar {

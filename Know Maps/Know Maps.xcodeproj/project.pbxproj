@@ -782,7 +782,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Know Maps Prod/Know Maps ProdDebug.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Know Maps Prod/Preview Content\"";
 				DEVELOPMENT_TEAM = 23264QUM9A;
@@ -835,7 +835,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Know Maps Prod/Know_Maps_Prod.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Know Maps Prod/Preview Content\"";
 				DEVELOPMENT_TEAM = 23264QUM9A;

@@ -21,7 +21,7 @@ struct AddCategoryView: View {
     
     var body: some View {
         GeometryReader { geometry in
-            List() {
+            List {
                 ForEach(multiSelectionArray, id:\.self) { identifier in
                     if let industryResult = modelController.industryCategoryResult(for: identifier) {
                         VStack(alignment:.leading) {
@@ -33,9 +33,13 @@ struct AddCategoryView: View {
                                     multiSelection.remove(industryResult.id)
                                 }
                             }) {
-                                Label("Recommend rarely", systemImage: "circle.slash")
-                                    .foregroundColor(.red)
-                            }.padding(.vertical, 4)
+                                Label("Rarely", systemImage: "circle.slash")
+                            }
+                            .buttonStyle(.bordered)
+                            .tint(.red)
+                            .contentShape(Rectangle())
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.vertical, 4)
                             
                             Button(action: {
                                 Task(priority: .userInitiated) {
@@ -43,9 +47,13 @@ struct AddCategoryView: View {
                                     multiSelection.remove(industryResult.id)
                                 }
                             }) {
-                                Label("Recommend occasionally", systemImage: "circle")
-                                    .foregroundColor(.accentColor)
-                            }.padding(.vertical, 4)
+                                Label("Occasionally", systemImage: "circle")
+                            }
+                            .buttonStyle(.bordered)
+                            .tint(.accentColor)
+                            .contentShape(Rectangle())
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.vertical, 4)
                             
                             
                             Button(action: {
@@ -55,13 +63,20 @@ struct AddCategoryView: View {
                                     multiSelection.remove(industryResult.id)
                                 }
                             }) {
-                                Label("Recommend often", systemImage: "circle.fill")
-                                    .foregroundColor(.green)
-                            }.padding(.vertical, 4)
+                                Label("Often", systemImage: "circle.fill")
+                            }
+                            .buttonStyle(.bordered)
+                            .tint(.green)
+                            .contentShape(Rectangle())
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.vertical, 4)
                         }
                     }                    
                 }
             }
+            #if !os(macOS)
+            .listStyle(.insetGrouped)
+            #endif
         }
         .onChange(of: multiSelection, { oldValue, newValue in
             multiSelectionArray = Array(newValue)
@@ -69,3 +84,4 @@ struct AddCategoryView: View {
         
     }
 }
+

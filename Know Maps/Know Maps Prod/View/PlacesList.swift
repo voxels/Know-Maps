@@ -34,14 +34,14 @@ struct PlacesList: View {
                  .frame(height: adSize.size.height)
                  */
                 if modelController.recommendedPlaceResults.count > 0 {
-                        let sizeWidth:CGFloat = sizeClass == .compact ? 1 : 3
+                        let sizeWidth:CGFloat = sizeClass == .compact ? 1 : 4
                     
                     // Compute an approximate item width for this grid cell
                     let itemWidth = geometry.size.width / sizeWidth - 32
 #if os(macOS) || os(visionOS)
                         let columns = Array(repeating: GridItem(.adaptive(minimum: geometry.size.width / sizeWidth), spacing:16, alignment: .top),  count:Int(sizeWidth))
 #else
-                        let columns = Array(repeating: GridItem(.adaptive(minimum: geometry.size.width / sizeWidth),spacing:16, alignment: .top),  count:Int(sizeWidth))
+                        let columns = Array(repeating: GridItem(.adaptive(minimum: geometry.size.width / sizeWidth),spacing:8, alignment: .top),  count:Int(sizeWidth))
 #endif
                         LazyVGrid(columns: columns, alignment: .leading, spacing: 32) {
                             ForEach(modelController.recommendedPlaceResults, id:\.id){ result in
@@ -147,23 +147,22 @@ struct PlacesList: View {
                         .animation(.snappy(duration: 0.35), value: modelController.recommendedPlaceResults)
                         .listRowBackground(Color.clear)
                 } else if modelController.placeResults.count > 0 {
-                        let sizeWidth:CGFloat = sizeClass == .compact ? 1 : 3
+                        let sizeWidth:CGFloat = sizeClass == .compact ? 1 : 4
 #if os(macOS) || os(visionOS)
                         let columns = Array(repeating: GridItem(.adaptive(minimum: geometry.size.width / sizeWidth)),  count:Int(sizeWidth))
 #else
                         let columns = Array(repeating: GridItem(.adaptive(minimum: geometry.size.width / sizeWidth)),  count:Int(sizeWidth))
 #endif
-                        LazyVGrid(columns: columns, alignment: .leading, spacing: 16) {
+                        LazyVGrid(columns: columns, alignment: .leading, spacing: 8) {
                             ForEach(modelController.filteredPlaceResults) { result in
-                                VStack(alignment:.leading, content: {
                                     VStack(alignment: .leading) {
                                         Text(result.title).bold()
                                         if let placeResponse = result.placeResponse, !placeResponse.formattedAddress.isEmpty {
                                             Text(placeResponse.formattedAddress)
                                         }
                                     }.padding()
-                                })
-                                .contentTransition(.opacity)
+                                        .contentTransition(.opacity)
+                                
 #if !os(visionOS)
 .glassEffect()
 #endif

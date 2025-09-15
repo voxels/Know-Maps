@@ -14,17 +14,23 @@ struct OnboardingView: View {
     
     @Binding  public var showOnboarding:Bool
     @State public var locationIsAuthorized:Bool = false
+    @State public var didConfirmOnboarding:Bool = false
 
     var body: some View {
         VStack(alignment: .center, content:  {
             OnboardingSignInView(authService:settingsModel)
             OnboardingLocationView(settingsModel: settingsModel, chatModel: $chatModel, modelController: $modelController, showOnboarding: $showOnboarding, locationIsAuthorized: $locationIsAuthorized)
-                .onAppear() {
-                    let auth = settingsModel.isSignedIn()
-                    if locationIsAuthorized && auth {
-                        showOnboarding = false
+                .onChange(of: showOnboarding) { oldValue, newValue in
+                    if newValue {
+                        didConfirmOnboarding = true
                     }
                 }
         })
+        .onAppear() {
+            let auth = settingsModel.isSignedIn()
+            if locationIsAuthorized && auth {
+                showOnboarding = false
+            }
+        }
     }
 }

@@ -84,12 +84,18 @@ struct SettingsView: View {
             }
         List() {
             Button {
-                model.signOut()
-                showOnboarding = true
+                print("Sign Out tapped")
+                Task {
+                    model.signOut()
+                    await MainActor.run {
+                        showOnboarding = true
+                    }
+                }
             } label: {
                 Label("Sign Out of your Apple ID", systemImage: "person.crop.circle.badge.minus")
             }
             Button(action:{
+                print("Delete data tapped")
                 Task {
                     do {
                         try await cacheManager.cloudCache.deleteAllUserCachedGroups()
@@ -105,6 +111,7 @@ struct SettingsView: View {
               Text("Delete data stored in iCloud.")
             })
             Button {
+                print("Delete account tapped")
                 Task {
                     do {
                         try await cacheManager.cloudCache.deleteAllUserCachedGroups()
@@ -122,8 +129,14 @@ struct SettingsView: View {
                     .foregroundStyle(.red)
             }
         }
+#if os(macOS) || os(visionOS)
+        .buttonStyle(.borderless)
+#else
+        .buttonStyle(.plain)
+#endif
             
         }
         .navigationTitle("Account")
     }
 }
+

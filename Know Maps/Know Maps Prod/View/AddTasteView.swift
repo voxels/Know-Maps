@@ -19,7 +19,7 @@ struct AddTasteView: View {
     
     var body: some View {
         GeometryReader { geometry in
-            List() {
+            List {
                 ForEach(multiSelectionArray, id: \.self) { identifier in
                     if let tasteResult = modelController.tasteCategoryResult(for: identifier) {
                         VStack(alignment: .leading) {
@@ -33,9 +33,11 @@ struct AddTasteView: View {
                                 }
                             }) {
                                 Label("Recommend rarely", systemImage: "circle.slash")
-                                    .foregroundColor(.red)
-                                
                             }
+                            .buttonStyle(.bordered)
+                            .tint(.red)
+                            .contentShape(Rectangle())
+                            .frame(maxWidth: .infinity, alignment: .leading)
                             .padding(.vertical, 4)
                             
                             Button(action: {
@@ -45,8 +47,11 @@ struct AddTasteView: View {
                                 }
                             }) {
                                 Label("Recommend occasionally", systemImage: "circle")
-                                    .foregroundColor(.accentColor)
                             }
+                            .buttonStyle(.bordered)
+                            .tint(.accentColor)
+                            .contentShape(Rectangle())
+                            .frame(maxWidth: .infinity, alignment: .leading)
                             .padding(.vertical, 4)
                             
                             Button(action: {
@@ -56,13 +61,20 @@ struct AddTasteView: View {
                                 }
                             }) {
                                 Label("Recommend often", systemImage: "circle.fill")
-                                    .foregroundColor(.green)
                             }
+                            .buttonStyle(.bordered)
+                            .tint(.green)
+                            .contentShape(Rectangle())
+                            .frame(maxWidth: .infinity, alignment: .leading)
                             .padding(.vertical, 4)
                         }
                     }
                 }
             }
+#if !os(macOS)
+.listStyle(.insetGrouped)
+#endif
+
             .frame(idealHeight:geometry.size.height / 3)
             .onChange(of: multiSelection, { oldValue, newValue in
                 multiSelectionArray = Array(newValue)
