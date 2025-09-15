@@ -9,7 +9,6 @@ struct PlacePhotosView: View {
 
     var body: some View {
         GeometryReader { geo in
-            ZStack {
                 if let resultId = modelController.selectedPlaceChatResult, let placeChatResult = modelController.placeChatResult(for: resultId), let placeDetailsResponse = placeChatResult.placeDetailsResponse, let photoResponses = placeDetailsResponse.photoResponses {
                     if photoResponses.count > 0 {
                         ScrollView(.vertical) {
@@ -44,6 +43,5 @@ struct PlacePhotosView: View {
                     ContentUnavailableView("No photos found for this location", systemImage: "x.circle.fill")
                 }
             }
-        }
     }
 }

@@ -33,12 +33,6 @@ struct PlaceAboutView: View {
                             let placeCoordinate = CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude)
                             let title = placeResponse.name
                             
-                            
-                            Text(title)
-                                .font(.title)
-                                .padding()
-                                .id(topID)
-                            
                             if let aspectRatio = result.placeDetailsResponse?.photoResponses?.first?.aspectRatio, let url = result.placeDetailsResponse?.photoResponses?.first?.photoUrl() {
                                 if modelController.isRefreshingPlaces {
                                     Image(systemName: "photo").aspectRatio(CGFloat(aspectRatio), contentMode: .fit)
@@ -65,7 +59,7 @@ struct PlaceAboutView: View {
                                                    .padding()
                                                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                                            }
-                                    }
+                                    }.id(topID)
                                 }
                             }
                             
@@ -242,10 +236,7 @@ struct PlaceAboutView: View {
                             .padding(.vertical, 24)
                             // Related Places Section
                             Section {
-                                if modelController.relatedPlaceResults.count == 0 {
-                                    ProgressView("Personalizing Related Places")
-                                        .padding(.vertical, 24)
-                                } else {
+                                
                                     ScrollView(.horizontal) {
                                         HStack {
                                             ForEach(modelController.relatedPlaceResults) { relatedPlace in
@@ -276,8 +267,6 @@ struct PlaceAboutView: View {
                                                     }
                                                 }
                                             }
-                                        }
-                                        
                                     }
                                 }
                             } header: {
@@ -345,16 +334,7 @@ struct PlaceAboutView: View {
                                 .padding(.vertical, 24)
                             }
                         } else {
-                            // Loading view
-                            VStack {
-                                Spacer()
-                                HStack {
-                                    Spacer()
-                                    ProgressView()
-                                    Spacer()
-                                }
-                                Spacer()
-                            }
+                            Color.black
                         }
                     }
                 }

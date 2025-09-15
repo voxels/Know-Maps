@@ -24,11 +24,9 @@ struct AddCategoryView: View {
             List() {
                 ForEach(multiSelectionArray, id:\.self) { identifier in
                     if let industryResult = modelController.industryCategoryResult(for: identifier) {
-                        VStack(alignment: .center) {
+                        VStack(alignment:.leading) {
                             Text(industryResult.parentCategory)
                                 .font(.headline)
-                                .padding()
-                            
                             Button(action: {
                                 Task(priority: .userInitiated) {
                                     await viewModel.addCategory(parent: industryResult.id, rating:0, cacheManager: cacheManager, modelController:   modelController)
@@ -37,10 +35,7 @@ struct AddCategoryView: View {
                             }) {
                                 Label("Recommend rarely", systemImage: "circle.slash")
                                     .foregroundColor(.red)
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                            }
-                            .buttonStyle(.borderless)
+                            }.padding(.vertical, 4)
                             
                             Button(action: {
                                 Task(priority: .userInitiated) {
@@ -50,9 +45,7 @@ struct AddCategoryView: View {
                             }) {
                                 Label("Recommend occasionally", systemImage: "circle")
                                     .foregroundColor(.accentColor)
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                            }.buttonStyle(.borderless)
+                            }.padding(.vertical, 4)
                             
                             
                             Button(action: {
@@ -64,10 +57,7 @@ struct AddCategoryView: View {
                             }) {
                                 Label("Recommend often", systemImage: "circle.fill")
                                     .foregroundColor(.green)
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                            }
-                            .buttonStyle(.borderless)
+                            }.padding(.vertical, 4)
                         }
                     }                    
                 }

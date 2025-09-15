@@ -15,7 +15,7 @@ struct AddItemTip: Tip {
 
 
     var message: Text? {
-        Text("Add an item to your list to unlock the moods section.")
+        Text("Add a feature to your list to unlock the moods section.")
     }
 
 
@@ -105,7 +105,7 @@ struct SavedListView: View {
                     }) {
                         HStack {
                             Image(systemName: "plus.circle")
-                            Text("Add an item")
+                            Text("Add a feature")
                             Spacer()
                         }
                         
@@ -139,7 +139,7 @@ struct SavedListView: View {
                     }) {
                         HStack {
                             Image(systemName: "plus.circle")
-                            Text("Add a type")
+                            Text("Add a industry")
                             Spacer()
                         }
                         

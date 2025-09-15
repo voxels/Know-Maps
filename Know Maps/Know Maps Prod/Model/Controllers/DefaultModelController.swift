@@ -366,7 +366,7 @@ public final class DefaultModelController : ModelController {
     }
     
     
-    public func searchIntent(intent:AssistiveChatHostIntent, location:CLLocation?, cacheManager:CacheManager) async throws {
+    public func searchIntent(intent: AssistiveChatHostIntent, location:CLLocation?, cacheManager:CacheManager) async throws {
         switch intent.intent {
             
         case .Place:
@@ -522,6 +522,7 @@ public final class DefaultModelController : ModelController {
                 for index in 0..<recommendedPlaceSearchResponses.count {
                     let response = recommendedPlaceSearchResponses[index]
                     if !response.fsqID.isEmpty {
+                        let rating = index < recommenderResults.count ? (recommenderResults[index].attributeRatings.first?.value ?? 1) : 1
                         let placeResponse = PlaceSearchResponse(
                             fsqID: response.fsqID,
                             name: response.name,
@@ -544,7 +545,7 @@ public final class DefaultModelController : ModelController {
                         let results = PlaceResponseFormatter.placeChatResults(
                             for: intent,
                             place: placeResponse,
-                            section: assistiveHostDelegate.section(for: intent.caption), list: intent.caption, index: index, rating: recommenderResults[index].attributeRatings.first?.value ?? 1,
+                            section: assistiveHostDelegate.section(for: intent.caption), list: intent.caption, index: index, rating: rating,
                             details: nil,
                             recommendedPlaceResponse: response
                         )
@@ -671,6 +672,7 @@ public final class DefaultModelController : ModelController {
                         )
                         relatedChatResults.append(contentsOf: results)
                     }else {
+                        let rating = index < recommenderResults.count ? (recommenderResults[index].attributeRatings.first?.value ?? 1) : 1
                         let placeResponse = PlaceSearchResponse(
                             fsqID: response.fsqID,
                             name: response.name,
@@ -693,7 +695,7 @@ public final class DefaultModelController : ModelController {
                         let results = PlaceResponseFormatter.placeChatResults(
                             for: intent,
                             place: placeResponse,
-                            section: assistiveHostDelegate.section(for: intent.caption), list: intent.caption, index: index, rating: recommenderResults[index].attributeRatings.first?.value ?? 1,
+                            section: assistiveHostDelegate.section(for: intent.caption), list: intent.caption, index: index, rating: rating,
                             details: nil,
                             recommendedPlaceResponse: response
                         )
@@ -968,3 +970,4 @@ public final class DefaultModelController : ModelController {
             }
     }
 }
+

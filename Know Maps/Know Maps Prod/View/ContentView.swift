@@ -16,13 +16,13 @@ struct MenuNavigationIconTip: Tip {
     var title: Text {
         Text("Favorites Tab")
     }
-
-
+    
+    
     var message: Text? {
         Text("Add industries, features, and places to your favorites tab.")
     }
-
-
+    
+    
     var image: Image? {
         Image(systemName: "heart.fill")
     }
@@ -70,34 +70,40 @@ struct ContentView: View {
     
     // State to hold the reference to the active search task
     @State private var searchTask: Task<Void, Never>? = nil
-
+    
     var body: some View {
         GeometryReader { geometry in
-                TabView(selection: $modelController.addItemSection) {
-                    NavigationSplitView {
-                        SearchView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, searchSavedViewModel: $searchSavedViewModel, preferredColumn: $preferredColumn,  addItemSection: $modelController.addItemSection, showMapsResultViewSheet: $showMapsResultViewSheet, didError: $didError)
-                            .toolbar {
-    ToolbarItemGroup(placement: .topBarLeading) {
-        toolbarLeadingContent()
-    }
-#if !os(macOS)
-    ToolbarItemGroup(placement: .topBarTrailing) {
-        toolbarTrailingContent()
-    }
-#else
-    ToolbarItemGroup(placement: .automatic) {
-    }
-#endif
+            TabView(selection: $modelController.addItemSection) {
+                NavigationSplitView {
+                    SearchView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, searchSavedViewModel: $searchSavedViewModel, preferredColumn: $preferredColumn,  addItemSection: $modelController.addItemSection, showMapsResultViewSheet: $showMapsResultViewSheet, didError: $didError)
+                        .toolbar {
+                            ToolbarItemGroup(placement: .topBarLeading) {
+                                toolbarLeadingContent()
                             }
-                            .navigationDestination(isPresented: $showNavigationLocationView) {
-                                filterView()
-                            }
-                            .navigationTitle("Favorites")
-                    } detail: {
+                        }
+                        .navigationTitle("Favorites")
+                } detail: {
+                    NavigationStack {
+                        NavigationLink(isActive: $showNavigationLocationView) {
+                            filterView()
+                        } label: {
+                            EmptyView()
+                        }
+                        .hidden()
                         if let resultId = modelController.selectedPlaceChatResult, let _ = modelController.placeChatResult(for: resultId) {
                             PlaceView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, placeDirectionsViewModel: placeDirectionsChatViewModel, addItemSection: $modelController.addItemSection)
                         } else {
                             placesList()
+                                .toolbar {
+#if !os(macOS)
+                                    ToolbarItemGroup(placement: .topBarTrailing) {
+                                        toolbarTrailingContent()
+                                    }
+#else
+                                    ToolbarItemGroup(placement: .automatic) {
+                                    }
+#endif
+                                }
                                 .sheet(isPresented: $showMapsResultViewSheet) {
                                     MapResultsView(model: $chatModel, modelController: $modelController, selectedMapItem: $selectedMapItem, cameraPosition:$cameraPosition)
                                         .onChange(of: selectedMapItem) { _,newValue in
@@ -123,76 +129,35 @@ struct ContentView: View {
                                 }
                         }
                     }
-                    .tag(0)
-                    .tabItem {
-                        Label("Favorites", systemImage: "heart")
-                    }
-                    
-                    NavigationSplitView {
-                        SearchCategoryView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, multiSelection: $multiSelection, addItemSection: $modelController.addItemSection)
-                            .navigationTitle("Industries")
-                            .toolbar {
-                                ToolbarItemGroup(placement: .topBarLeading) {
-                                    toolbarLeadingContent()
-                                }
-#if !os(macOS)
-                                ToolbarItemGroup(placement: .topBarTrailing) {
-                                    toolbarTrailingContent()
-                                }
-#else
-                                ToolbarItemGroup(placement: .automatic) {
-                                }
-#endif
+                }
+                .tag(0)
+                .tabItem {
+                    Label("Favorites", systemImage: "heart")
+                }
+                
+                NavigationSplitView {
+                    SearchCategoryView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, multiSelection: $multiSelection, addItemSection: $modelController.addItemSection)
+                        .toolbar {
+                            ToolbarItemGroup(placement: .topBarLeading) {
+                                toolbarLeadingContent()
                             }
-                            .navigationDestination(isPresented: $showNavigationLocationView) {
-                                filterView()
-                            }
-                    } detail: {
-                        if sizeClass == .compact {
-                            VStack {
-                                AddCategoryView(viewModel: $searchSavedViewModel, chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, preferredColumn: $preferredColumn, multiSelection:$multiSelection)
-                                    .toolbar {
-                                        ToolbarItemGroup(placement: .primaryAction) {
-                                            AddPromptToolbarView(viewModel: $searchSavedViewModel, chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController,
-                                                                 addItemSection: $modelController.addItemSection,
-                                                                 multiSelection: $multiSelection,
-                                                                 preferredColumn: $preferredColumn
-                                            )
-                                        }
-                                    }
-                                placesList()
-                            }
-
-
-                        } else {
-                            HStack {
-                                AddCategoryView(viewModel: $searchSavedViewModel, chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, preferredColumn: $preferredColumn, multiSelection:$multiSelection)
-                                    .toolbar {
-                                        ToolbarItemGroup(placement: .primaryAction) {
-                                            AddPromptToolbarView(viewModel: $searchSavedViewModel, chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController,
-                                                                 addItemSection: $modelController.addItemSection,
-                                                                 multiSelection: $multiSelection,
-                                                                 preferredColumn: $preferredColumn
-                                            )
-                                        }
-                                    }.frame(maxWidth:sizeClass == .compact ? geometry.size.width : geometry.size.width / 4)
-                                placesList()
-                            }
-
                         }
-                    }
-                    .tag(1)
-                    .tabItem {
-                        Label("Industries", systemImage: "building.2")
-                    }
-                    
-                    NavigationSplitView {
-                        SearchTasteView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, multiSelection: $multiSelection, addItemSection: $modelController.addItemSection)
-                            .navigationTitle("Features")
+                        .navigationTitle("Industries")
+                } detail: {
+                    NavigationStack {
+                        NavigationLink(isActive: $showNavigationLocationView) {
+                            filterView()
+                        } label: {
+                            EmptyView()
+                        }
+                        .hidden()
+                        if sizeClass == .compact {
+                            VStack(alignment: .leading, spacing: 0) {
+                                AddCategoryView(viewModel: $searchSavedViewModel, chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, preferredColumn: $preferredColumn, multiSelection:$multiSelection)
+                                    .frame(maxHeight:geometry.size.height / 4)
+                                placesList()
+                            }
                             .toolbar {
-                                ToolbarItemGroup(placement: .topBarLeading) {
-                                    toolbarLeadingContent()
-                                }
 #if !os(macOS)
                                 ToolbarItemGroup(placement: .topBarTrailing) {
                                     toolbarTrailingContent()
@@ -202,53 +167,71 @@ struct ContentView: View {
                                 }
 #endif
                             }
-                            .navigationDestination(isPresented: $showNavigationLocationView) {
-                                filterView()
+                            .toolbar {
+                                ToolbarItemGroup(placement: .primaryAction) {
+                                    AddPromptToolbarView(viewModel: $searchSavedViewModel, chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController,
+                                                         addItemSection: $modelController.addItemSection,
+                                                         multiSelection: $multiSelection,
+                                                         preferredColumn: $preferredColumn
+                                    )
+                                }
                             }
-                    } detail: {
-                        if sizeClass == .compact {
-                            VStack {
-                                AddTasteView(viewModel: $searchSavedViewModel, chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, multiSelection:$multiSelection, preferredColumn: $preferredColumn)
-                                    .toolbar {
-                                        ToolbarItemGroup(placement: .primaryAction) {
-                                            AddPromptToolbarView(viewModel: $searchSavedViewModel, chatModel:$chatModel, cacheManager: $cacheManager, modelController: $modelController,
-                                                                 addItemSection: $modelController.addItemSection,
-                                                                 multiSelection: $multiSelection,
-                                                                 preferredColumn: $preferredColumn
-                                            )
-                                        }
-                                    }
-                                placesList()
-                            }
-
                         } else {
-                            HStack {
-                                AddTasteView(viewModel: $searchSavedViewModel, chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, multiSelection:$multiSelection, preferredColumn: $preferredColumn)
-                                    .toolbar {
-                                        ToolbarItemGroup(placement: .primaryAction) {
-                                            AddPromptToolbarView(viewModel: $searchSavedViewModel, chatModel:$chatModel, cacheManager: $cacheManager, modelController: $modelController,
-                                                                 addItemSection: $modelController.addItemSection,
-                                                                 multiSelection: $multiSelection,
-                                                                 preferredColumn: $preferredColumn
-                                            )
-                                        }
-                                    }
-                                    .frame(maxWidth:sizeClass == .compact ? geometry.size.width : geometry.size.width / 4)
+                            VStack(alignment: .leading, spacing: 0) {
+                                AddCategoryView(viewModel: $searchSavedViewModel, chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, preferredColumn: $preferredColumn, multiSelection:$multiSelection)
+                                    .frame(maxHeight:geometry.size.height / 4)
                                 placesList()
+                            }
+                            .toolbar {
+#if !os(macOS)
+                                ToolbarItemGroup(placement: .topBarTrailing) {
+                                    toolbarTrailingContent()
+                                }
+#else
+                                ToolbarItemGroup(placement: .automatic) {
+                                }
+#endif
+                            }
+                            .toolbar {
+                                ToolbarItemGroup(placement: .primaryAction) {
+                                    AddPromptToolbarView(viewModel: $searchSavedViewModel, chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController,
+                                                         addItemSection: $modelController.addItemSection,
+                                                         multiSelection: $multiSelection,
+                                                         preferredColumn: $preferredColumn
+                                    )
+                                }
                             }
                         }
                     }
-                    .tag(2)
-                    .tabItem {
-                        Label("Features", systemImage: "checklist")
-                    }
-                    NavigationSplitView {
-                        SearchPlacesView(searchSavedViewModel: $searchSavedViewModel, chatModel: $chatModel, cacheManager: $cacheManager, modelController:   $modelController, multiSelection: $multiSelection, addItemSection: $modelController.addItemSection)
-                            .navigationTitle("Places")
+                }
+                .tag(1)
+                .tabItem {
+                    Label("Industries", systemImage: "building.2")
+                }
+                
+                NavigationSplitView {
+                    SearchTasteView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, multiSelection: $multiSelection, addItemSection: $modelController.addItemSection)
+                        .navigationTitle("Features")
+                        .toolbar {
+                            ToolbarItemGroup(placement: .topBarLeading) {
+                                toolbarLeadingContent()
+                            }
+                        }
+                } detail: {
+                    NavigationStack {
+                        NavigationLink(isActive: $showNavigationLocationView) {
+                            filterView()
+                        } label: {
+                            EmptyView()
+                        }
+                        .hidden()
+                        if sizeClass == .compact {
+                            VStack(alignment: .leading, spacing: 0) {
+                                AddTasteView(viewModel: $searchSavedViewModel, chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, multiSelection:$multiSelection, preferredColumn: $preferredColumn)
+                                    .frame(maxHeight:geometry.size.height / 4)
+                                placesList()
+                            }
                             .toolbar {
-                                ToolbarItemGroup(placement: .topBarLeading) {
-                                    toolbarLeadingContent()
-                                }
 #if !os(macOS)
                                 ToolbarItemGroup(placement: .topBarTrailing) {
                                     toolbarTrailingContent()
@@ -258,12 +241,50 @@ struct ContentView: View {
                                 }
 #endif
                             }
-                        
-                            .navigationDestination(isPresented: $showNavigationLocationView) {
-                                filterView()
+                            .toolbar {
+                                ToolbarItemGroup(placement: .primaryAction) {
+                                    AddPromptToolbarView(viewModel: $searchSavedViewModel, chatModel:$chatModel, cacheManager: $cacheManager, modelController: $modelController,
+                                                         addItemSection: $modelController.addItemSection,
+                                                         multiSelection: $multiSelection,
+                                                         preferredColumn: $preferredColumn
+                                    )
+                                }
                             }
-                        
-                    } detail: {
+                        } else {
+                            VStack(alignment: .leading, spacing: 0) {
+                                AddTasteView(viewModel: $searchSavedViewModel, chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, multiSelection:$multiSelection, preferredColumn: $preferredColumn)
+                                .frame(maxHeight:geometry.size.height / 4)
+                                placesList()
+                            }
+                            .toolbar {
+#if !os(macOS)
+                                ToolbarItemGroup(placement: .topBarTrailing) {
+                                    toolbarTrailingContent()
+                                }
+#else
+                                ToolbarItemGroup(placement: .automatic) {
+                                }
+#endif
+                            }
+                        }
+                    }
+                }
+                .tag(2)
+                .tabItem {
+                    Label("Features", systemImage: "checklist")
+                }
+                NavigationSplitView {
+                    SearchPlacesView(searchSavedViewModel: $searchSavedViewModel, chatModel: $chatModel, cacheManager: $cacheManager, modelController:   $modelController, multiSelection: $multiSelection, addItemSection: $modelController.addItemSection)
+                        .navigationTitle("Places")
+                    
+                } detail: {
+                    NavigationStack {
+                        NavigationLink(isActive: $showNavigationLocationView) {
+                            filterView()
+                        } label: {
+                            EmptyView()
+                        }
+                        .hidden()
                         PlaceView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, placeDirectionsViewModel: placeDirectionsChatViewModel, addItemSection: $modelController.addItemSection)
                             .toolbar {
                                 ToolbarItemGroup(placement: .primaryAction) {
@@ -273,105 +294,109 @@ struct ContentView: View {
                                                          preferredColumn: $preferredColumn
                                     )
                                 }
-                                
-                            }
-
-                    }
-                    .tag(3)
-                    .tabItem {
-                        Label("Places", systemImage: "mappin")
-                    }
-                    
-                    SettingsView(model: settingsModel, chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, showOnboarding: $showOnboarding)
-                        .presentationDetents([.large])
-                        .presentationDragIndicator(.visible)
-                        .presentationCompactAdaptation(.sheet)
-                        .frame(minWidth:sizeClass == .compact ? geometry.size.width : geometry.size.width / 3, maxWidth: .infinity, minHeight:geometry.size.height, maxHeight: .infinity)
-                        .tag(4)
-                        .tabItem {
-                            Label("Account", systemImage: "person.crop.circle")
-                        }
-                }
-                .onAppear(perform: {
-                    modelController.analyticsManager.track(event:"ContentView",properties: nil )
-                })
-                .onChange(of: modelController.selectedDestinationLocationChatResult, { oldValue, newValue in
-                    if newValue != nil {
-                        modelController.selectedSavedResult = nil
-                        Task(priority:.userInitiated) {
-                            await modelController.resetPlaceModel()
-                        }
-                    }
-                })
-                .onChange(of: multiSelection) { oldValue, newValue in
-                    
-                    // Cancel any existing task
-                    searchTask?.cancel()
-                    
-                    searchTask = Task(priority: .userInitiated) {
-                        // Capture the newValue to avoid data races
-                        let selections = newValue
-                        
-                        // Check for cancellation before proceeding
-                        guard !Task.isCancelled else { return }
-                        
-                        let tasteCaption = selections.compactMap { selection in
-                            modelController.tasteCategoryResult(for: selection)?.parentCategory
-                        }.joined(separator: ",")
-                        
-                        let categoryCaption = selections.compactMap { selection in
-                            modelController.industryCategoryResult(for: selection)?.parentCategory
-                        }.joined(separator: ",")
-                        
-                        let caption = "\(tasteCaption), \(categoryCaption)"
-                        
-                        // Check for cancellation again before the async call
-                        guard !Task.isCancelled else { return }
-                        
-                        
-                        await MainActor.run {
-                            modelController.isRefreshingPlaces = true
-                        }
-                        await modelController.resetPlaceModel()
-                        do {
-                            try await chatModel.didSearch(
-                                caption: caption,
-                                selectedDestinationChatResultID: modelController.selectedDestinationLocationChatResult,
-                                filters: searchSavedViewModel.filters,
-                                cacheManager: cacheManager,
-                                modelController: modelController
-                            )
-                            await MainActor.run {
-                                modelController.isRefreshingPlaces = false
-                            }
-                        } catch {
-                            await MainActor.run {
-                                modelController.isRefreshingPlaces = false
-                            }
-                            modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
-                        }
-                    }
-                }
-                .onChange(of: modelController.selectedPlaceChatResult, { oldValue, newValue in
-                    
-                    guard let newValue, newValue != oldValue else {
-                        return
-                    }
-                    
-                    Task { @MainActor in
-                        if let placeChatResult = modelController.placeChatResult(for: newValue), modelController.addItemSection == 3, placeChatResult.placeDetailsResponse == nil {
-                            Task(priority: .userInitiated) {
-                                do {
-                                    try await chatModel.didTap(placeChatResult: placeChatResult, filters: searchSavedViewModel.filters, cacheManager: cacheManager, modelController: modelController)
-                                } catch {
-                                    modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
+#if !os(macOS)
+                                ToolbarItemGroup(placement: .topBarTrailing) {
+                                    toolbarTrailingContent()
                                 }
+#else
+                                ToolbarItemGroup(placement: .automatic) {
+                                }
+#endif
+                            }
+                    }
+                }
+                .tag(3)
+                .tabItem {
+                    Label("Places", systemImage: "mappin")
+                }
+                
+                SettingsView(model: settingsModel, chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, showOnboarding: $showOnboarding)
+                    .tag(4)
+                    .tabItem {
+                        Label("Account", systemImage: "person.crop.circle")
+                    }
+                    
+            }
+            .onAppear(perform: {
+                modelController.analyticsManager.track(event:"ContentView",properties: nil )
+            })
+            .onChange(of: modelController.selectedDestinationLocationChatResult, { oldValue, newValue in
+                if newValue != nil {
+                    modelController.selectedSavedResult = nil
+                    Task(priority:.userInitiated) {
+                        await modelController.resetPlaceModel()
+                    }
+                }
+            })
+            .onChange(of: multiSelection) { oldValue, newValue in
+                
+                // Cancel any existing task
+                searchTask?.cancel()
+                
+                searchTask = Task(priority: .userInitiated) {
+                    // Capture the newValue to avoid data races
+                    let selections = newValue
+                    
+                    // Check for cancellation before proceeding
+                    guard !Task.isCancelled else { return }
+                    
+                    let tasteCaption = selections.compactMap { selection in
+                        modelController.tasteCategoryResult(for: selection)?.parentCategory
+                    }.joined(separator: ",")
+                    
+                    let categoryCaption = selections.compactMap { selection in
+                        modelController.industryCategoryResult(for: selection)?.parentCategory
+                    }.joined(separator: ",")
+                    
+                    let caption = "\(tasteCaption), \(categoryCaption)"
+                    
+                    // Check for cancellation again before the async call
+                    guard !Task.isCancelled else { return }
+                    
+                    
+                    await MainActor.run {
+                        modelController.isRefreshingPlaces = true
+                    }
+                    await modelController.resetPlaceModel()
+                    do {
+                        try await chatModel.didSearch(
+                            caption: caption,
+                            selectedDestinationChatResultID: modelController.selectedDestinationLocationChatResult,
+                            filters: searchSavedViewModel.filters,
+                            cacheManager: cacheManager,
+                            modelController: modelController
+                        )
+                        await MainActor.run {
+                            modelController.isRefreshingPlaces = false
+                        }
+                    } catch {
+                        await MainActor.run {
+                            modelController.isRefreshingPlaces = false
+                        }
+                        modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
+                    }
+                }
+            }
+            .onChange(of: modelController.selectedPlaceChatResult, { oldValue, newValue in
+                
+                guard let newValue, newValue != oldValue else {
+                    return
+                }
+                
+                Task { @MainActor in
+                    if let placeChatResult = modelController.placeChatResult(for: newValue), modelController.addItemSection == 3, placeChatResult.placeDetailsResponse == nil {
+                        Task(priority: .userInitiated) {
+                            do {
+                                try await chatModel.didTap(placeChatResult: placeChatResult, filters: searchSavedViewModel.filters, cacheManager: cacheManager, modelController: modelController)
+                            } catch {
+                                modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
                             }
                         }
-                        
                     }
-                })
-                
+                    
+                }
+            })
+            
         }
     }
     
@@ -381,7 +406,7 @@ struct ContentView: View {
         EditButton()
 #endif
     }
-
+    
     
     func toolbarTrailingContent() -> some View {
 #if !os(macOS)
@@ -409,7 +434,7 @@ struct ContentView: View {
             filters:$searchSavedViewModel.filters
         )
     }
-        
+    
     func placesList()-> some View {
         PlacesList(searchSavedViewModel:$searchSavedViewModel,chatModel: $chatModel, cacheManager:$cacheManager, modelController: $modelController, showMapsResultViewSheet: $showMapsResultViewSheet)
             .alert("Unknown Place", isPresented: $didError) {

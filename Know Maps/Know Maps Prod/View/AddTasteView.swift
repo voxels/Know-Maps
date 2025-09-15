@@ -19,11 +19,10 @@ struct AddTasteView: View {
     
     var body: some View {
         GeometryReader { geometry in
-            
             List() {
                 ForEach(multiSelectionArray, id: \.self) { identifier in
                     if let tasteResult = modelController.tasteCategoryResult(for: identifier) {
-                        VStack(alignment: .center) {
+                        VStack(alignment: .leading) {
                             Text(tasteResult.parentCategory)
                                 .font(.headline)
                             
@@ -35,10 +34,9 @@ struct AddTasteView: View {
                             }) {
                                 Label("Recommend rarely", systemImage: "circle.slash")
                                     .foregroundColor(.red)
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
+                                
                             }
-                            .buttonStyle(.borderless)
+                            .padding(.vertical, 4)
                             
                             Button(action: {
                                 Task(priority: .userInitiated) {
@@ -48,10 +46,8 @@ struct AddTasteView: View {
                             }) {
                                 Label("Recommend occasionally", systemImage: "circle")
                                     .foregroundColor(.accentColor)
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
                             }
-                            .buttonStyle(.borderless)
+                            .padding(.vertical, 4)
                             
                             Button(action: {
                                 Task(priority: .userInitiated) {
@@ -61,14 +57,13 @@ struct AddTasteView: View {
                             }) {
                                 Label("Recommend often", systemImage: "circle.fill")
                                     .foregroundColor(.green)
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
                             }
-                            .buttonStyle(.borderless)
-                        }.padding()
+                            .padding(.vertical, 4)
+                        }
                     }
                 }
             }
+            .frame(idealHeight:geometry.size.height / 3)
             .onChange(of: multiSelection, { oldValue, newValue in
                 multiSelectionArray = Array(newValue)
             })

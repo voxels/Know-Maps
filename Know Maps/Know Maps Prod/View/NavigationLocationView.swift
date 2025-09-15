@@ -153,13 +153,14 @@ struct NavigationLocationView: View {
                     }
                 }
             }
-        }.searchable(text: $searchText, placement:.navigationBarDrawer(displayMode: .always), prompt: "Point of Interest")
-            .onChange(of: searchText) { oldValue, newValue in
+        }
+        .frame(idealWidth: .infinity, idealHeight:geometry.size.height)
+        .searchable(text: $searchText, placement:.navigationBarDrawer(displayMode: .always), prompt: "Point of Interest")
+        .onChange(of: searchText) { oldValue, newValue in
                 if !newValue.isEmpty, newValue != oldValue {
                     search(intent: .Location, query: newValue )
                 }
             }
-            .frame(idealWidth: .infinity, idealHeight:geometry.size.height)
     }
     
     func search(intent:AssistiveChatHostService.Intent, query: String? = nil) {

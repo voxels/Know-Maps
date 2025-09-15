@@ -16,7 +16,7 @@ struct NavigationLocationMenuIconTip: Tip {
 
 
     var message: Text? {
-        Text("Search for a new location to add your favorite places.")
+        Text("Search for a new place by name or address.")
     }
 
 
@@ -58,7 +58,7 @@ struct SearchPlacesView: View {
 #if os(macOS)
         .searchable(text: $searchText, prompt: "Search by place name")
 #else
-        .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .automatic), prompt: "Search by place name") // Add searchable
+        .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search by place name") // Add searchable
 #endif
         .onSubmit(of: .search, {
             if !searchText.isEmpty{

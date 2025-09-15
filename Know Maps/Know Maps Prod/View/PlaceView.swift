@@ -84,6 +84,7 @@ struct PlaceView: View {
                     }
                 }
             }
+            .navigationTitle(placeChatResult.title)
         } else {
             VStack {
                 Spacer()
