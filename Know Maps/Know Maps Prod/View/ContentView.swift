@@ -92,35 +92,10 @@ struct ContentView: View {
                             .navigationDestination(isPresented: $showNavigationLocationView) {
                                 filterView()
                             }
-
+                            .navigationTitle("Favorites")
                     } detail: {
                         if let resultId = modelController.selectedPlaceChatResult, let _ = modelController.placeChatResult(for: resultId) {
                             PlaceView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, placeDirectionsViewModel: placeDirectionsChatViewModel, addItemSection: $modelController.addItemSection)
-                                .toolbar {
-                                    ToolbarItemGroup(placement: .primaryAction) {
-                                        AddPromptToolbarView(viewModel: $searchSavedViewModel, chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController,
-                                                             addItemSection: $modelController.addItemSection,
-                                                             multiSelection: $multiSelection,
-                                                             preferredColumn: $preferredColumn
-                                        )
-                                    }
-                                }
-                                .toolbar {
-                                    ToolbarItemGroup(placement: .topBarLeading) {
-                                        toolbarLeadingContent()
-                                    }
-#if !os(macOS)
-                                    ToolbarItemGroup(placement: .topBarTrailing) {
-                                        toolbarTrailingContent()
-                                    }
-#else
-                                    ToolbarItemGroup(placement: .automatic) {
-                                    }
-#endif
-                                }
-                                .navigationDestination(isPresented: $showNavigationLocationView) {
-                                    filterView()
-                                }
                         } else {
                             placesList()
                                 .sheet(isPresented: $showFiltersSheet, content: {
@@ -164,19 +139,7 @@ struct ContentView: View {
                     
                     NavigationSplitView {
                         SearchCategoryView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, multiSelection: $multiSelection, addItemSection: $modelController.addItemSection)
-#if !os(macOS)
-                            .toolbar {
-                                ToolbarItemGroup(placement: .topBarLeading) {
-                                    EditButton()
-                                }
-                                ToolbarItemGroup(placement: .topBarTrailing) {
-                                    Button {
-                                        showNavigationLocationView.toggle()
-                                    } label: {
-                                        Label("Destination", systemImage:"line.3.horizontal.decrease")
-                                    }
-                                }
-                            }
+                            .navigationTitle("Industries")
                             .toolbar {
                                 ToolbarItemGroup(placement: .topBarLeading) {
                                     toolbarLeadingContent()
@@ -193,8 +156,6 @@ struct ContentView: View {
                             .navigationDestination(isPresented: $showNavigationLocationView) {
                                 filterView()
                             }
-
-#endif // !os(macOS)
                     } detail: {
                         if sizeClass == .compact {
                             VStack {
@@ -226,22 +187,7 @@ struct ContentView: View {
                                     }.frame(maxWidth:sizeClass == .compact ? geometry.size.width : geometry.size.width / 4)
                                 placesList()
                             }
-                            .navigationDestination(isPresented: $showNavigationLocationView) {
-                                filterView()
-                            }
-                            .toolbar {
-                                ToolbarItemGroup(placement: .topBarLeading) {
-                                    toolbarLeadingContent()
-                                }
-#if !os(macOS)
-                                ToolbarItemGroup(placement: .topBarTrailing) {
-                                    toolbarTrailingContent()
-                                }
-#else
-                                ToolbarItemGroup(placement: .automatic) {
-                                }
-#endif
-                            }
+
                         }
                     }
                     .tag(1)
@@ -251,6 +197,7 @@ struct ContentView: View {
                     
                     NavigationSplitView {
                         SearchTasteView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, multiSelection: $multiSelection, addItemSection: $modelController.addItemSection)
+                            .navigationTitle("Features")
                             .toolbar {
                                 ToolbarItemGroup(placement: .topBarLeading) {
                                     toolbarLeadingContent()
@@ -280,9 +227,6 @@ struct ContentView: View {
                                             )
                                         }
                                     }
-                                    .navigationDestination(isPresented: $showNavigationLocationView) {
-                                        filterView()
-                                    }
                                 placesList()
                             }
 
@@ -299,26 +243,7 @@ struct ContentView: View {
                                         }
                                     }
                                     .frame(maxWidth:sizeClass == .compact ? geometry.size.width : geometry.size.width / 4)
-                                    .navigationDestination(isPresented: $showNavigationLocationView) {
-                                        filterView()
-                                    }
                                 placesList()
-                            }
-                            .navigationDestination(isPresented: $showNavigationLocationView) {
-                                filterView()
-                            }
-                            .toolbar {
-                                ToolbarItemGroup(placement: .topBarLeading) {
-                                    toolbarLeadingContent()
-                                }
-#if !os(macOS)
-                                ToolbarItemGroup(placement: .topBarTrailing) {
-                                    toolbarTrailingContent()
-                                }
-#else
-                                ToolbarItemGroup(placement: .automatic) {
-                                }
-#endif
                             }
                         }
                     }
@@ -328,15 +253,7 @@ struct ContentView: View {
                     }
                     NavigationSplitView {
                         SearchPlacesView(searchSavedViewModel: $searchSavedViewModel, chatModel: $chatModel, cacheManager: $cacheManager, modelController:   $modelController, multiSelection: $multiSelection, addItemSection: $modelController.addItemSection)
-                            .toolbar {
-                                ToolbarItem(placement: .automatic) {
-                                    Button {
-                                        showNavigationLocationView.toggle()
-                                    } label: {
-                                        Label("Destination", systemImage:"line.3.horizontal.decrease")
-                                    }
-                                }
-                            }
+                            .navigationTitle("Places")
                             .toolbar {
                                 ToolbarItemGroup(placement: .topBarLeading) {
                                     toolbarLeadingContent()
@@ -350,6 +267,7 @@ struct ContentView: View {
                                 }
 #endif
                             }
+                        
                             .navigationDestination(isPresented: $showNavigationLocationView) {
                                 filterView()
                             }
@@ -382,25 +300,6 @@ struct ContentView: View {
                         .tabItem {
                             Label("Account", systemImage: "person.crop.circle")
                         }
-                        .toolbar {
-                            ToolbarItemGroup(placement: .topBarLeading) {
-                                toolbarLeadingContent()
-                            }
-#if !os(macOS)
-                            ToolbarItemGroup(placement: .topBarTrailing) {
-                                toolbarTrailingContent()
-                            }
-#else
-                            ToolbarItemGroup(placement: .automatic) {
-                            }
-#endif
-                        }
-                        .navigationDestination(isPresented: $showNavigationLocationView) {
-                            filterView()
-                        }
-                }
-                .toolbar {
-
                 }
                 .onAppear(perform: {
                     modelController.analyticsManager.track(event:"ContentView",properties: nil )
