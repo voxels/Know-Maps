@@ -155,7 +155,7 @@ struct NavigationLocationView: View {
             }
         }
         .frame(idealWidth: .infinity, idealHeight:geometry.size.height)
-        .searchable(text: $searchText, placement:.navigationBarDrawer(displayMode: .always), prompt: "Point of Interest")
+        .searchable(text: $searchText, placement: .automatic, prompt: "Point of Interest")
         .onChange(of: searchText) { oldValue, newValue in
                 if !newValue.isEmpty, newValue != oldValue {
                     search(intent: .Location, query: newValue )

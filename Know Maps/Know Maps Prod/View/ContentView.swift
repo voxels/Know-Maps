@@ -77,9 +77,15 @@ struct ContentView: View {
                 NavigationSplitView {
                     SearchView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, searchSavedViewModel: $searchSavedViewModel, preferredColumn: $preferredColumn,  addItemSection: $modelController.addItemSection, showMapsResultViewSheet: $showMapsResultViewSheet, didError: $didError)
                         .toolbar {
+                            #if os(macOS)
+                            ToolbarItemGroup(placement: .automatic) {
+                                toolbarLeadingContent()
+                            }
+#else
                             ToolbarItemGroup(placement: .topBarLeading) {
                                 toolbarLeadingContent()
                             }
+                            #endif
                         }
                         .navigationTitle("Favorites")
                 } detail: {
@@ -138,9 +144,17 @@ struct ContentView: View {
                 NavigationSplitView {
                     SearchCategoryView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, multiSelection: $multiSelection, addItemSection: $modelController.addItemSection)
                         .toolbar {
-                            ToolbarItemGroup(placement: .topBarLeading) {
-                                toolbarLeadingContent()
-                            }
+#if os(macOS)
+ToolbarItemGroup(placement: .automatic) {
+    toolbarLeadingContent()
+}
+#else
+ToolbarItemGroup(placement: .topBarLeading) {
+    toolbarLeadingContent()
+}
+#endif
+
+                            
                         }
                         .navigationTitle("Industries")
                 } detail: {
@@ -213,9 +227,15 @@ struct ContentView: View {
                     SearchTasteView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, multiSelection: $multiSelection, addItemSection: $modelController.addItemSection)
                         .navigationTitle("Features")
                         .toolbar {
-                            ToolbarItemGroup(placement: .topBarLeading) {
-                                toolbarLeadingContent()
-                            }
+#if os(macOS)
+ToolbarItemGroup(placement: .automatic) {
+    toolbarLeadingContent()
+}
+#else
+ToolbarItemGroup(placement: .topBarLeading) {
+    toolbarLeadingContent()
+}
+#endif
                         }
                 } detail: {
                     NavigationStack {
@@ -273,6 +293,7 @@ struct ContentView: View {
                 .tabItem {
                     Label("Features", systemImage: "checklist")
                 }
+                
                 NavigationSplitView {
                     SearchPlacesView(searchSavedViewModel: $searchSavedViewModel, chatModel: $chatModel, cacheManager: $cacheManager, modelController:   $modelController, multiSelection: $multiSelection, addItemSection: $modelController.addItemSection)
                         .navigationTitle("Places")
@@ -404,6 +425,8 @@ struct ContentView: View {
         
 #if !os(macOS)
         EditButton()
+        #else
+        EmptyView()
 #endif
     }
     

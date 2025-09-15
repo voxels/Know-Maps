@@ -140,7 +140,9 @@ struct Know_MapsApp: App {
                                     }
                                 }
                                 
-                                performExistingAccountSetupFlows()
+                                Task { @MainActor in
+                                    performExistingAccountSetupFlows()
+                                }
                             }
                         }
                     }
@@ -192,7 +194,9 @@ struct Know_MapsApp: App {
     public func checkIfSignedInWithApple(completion:@escaping (Bool)->Void) {
         
         guard authenticationModel.isSignedIn(), !authenticationModel.appleUserId.isEmpty else {
-            completion(false)
+            DispatchQueue.main.async {
+                completion(false)
+            }
             return
         }
         
@@ -202,16 +206,20 @@ struct Know_MapsApp: App {
         appleIDProvider.getCredentialState(forUserID: authenticationModel.appleUserId) { (credentialState, error) in
             switch credentialState {
             case .authorized:
-                completion(true)
+                DispatchQueue.main.async {
+                    completion(true)
+                }
             case .revoked, .notFound:
                 fallthrough
             default:
-                completion(false)
+                DispatchQueue.main.async {
+                    completion(false)
+                }
             }
         }
     }
     
-    func performExistingAccountSetupFlows() {
+    @MainActor func performExistingAccountSetupFlows() {
         let requests = [ASAuthorizationAppleIDProvider().createRequest()]
         let authorizationController = ASAuthorizationController(authorizationRequests: requests)
         authorizationController.delegate = authenticationModel

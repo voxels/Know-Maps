@@ -96,9 +96,10 @@ struct PlaceDirectionsView: View {
                                 .pickerStyle(.palette)
                                 .padding(.horizontal, 16)
                             if let chatRouteResults = model.chatRouteResults, chatRouteResults.count > 0  {
-                                VStack(alignment: .leading) {
-                                    ForEach(chatRouteResults) { chatRouteResult in
-                                        Text(chatRouteResult.instructions)
+                                VStack(alignment: .leading, spacing: 8) {
+                                    ForEach(Array(chatRouteResults.enumerated()), id: \.element.id) { index, step in
+                                        Text("\(index + 1). \(step.instructions)")
+                                            .accessibilityLabel("Step \(index + 1). \(step.instructions)")
                                     }
                                 }
                                 .frame(minWidth:geo.size.width - 32)

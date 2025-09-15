@@ -35,6 +35,9 @@ struct PlacesList: View {
                  */
                 if modelController.recommendedPlaceResults.count > 0 {
                         let sizeWidth:CGFloat = sizeClass == .compact ? 1 : 3
+                    
+                    // Compute an approximate item width for this grid cell
+                    let itemWidth = geometry.size.width / sizeWidth - 32
 #if os(macOS) || os(visionOS)
                         let columns = Array(repeating: GridItem(.adaptive(minimum: geometry.size.width / sizeWidth), spacing:16, alignment: .top),  count:Int(sizeWidth))
 #else
@@ -44,9 +47,7 @@ struct PlacesList: View {
                             ForEach(modelController.recommendedPlaceResults, id:\.id){ result in
                                 // Derive aspect ratio (fallback to 4:3 if missing)
                                 let ar = CGFloat(result.recommendedPlaceResponse?.aspectRatio ?? (4.0/3.0))
-                                
-                                // Compute an approximate item width for this grid cell
-                                let itemWidth = geometry.size.width / sizeWidth - 32
+
                                 let reservedHeight = itemWidth / ar
 
                                 VStack {
@@ -126,7 +127,9 @@ struct PlacesList: View {
                                         }
                                         .padding(.horizontal, 12)
                                         .padding(.vertical, 12)
+                                        #if !os(visionOS)
                                         .glassEffect(.regular, in:.rect(cornerRadius: 16))
+                                        #endif
                                         .padding(8)
                                     }
                                     .frame(width: itemWidth, height: reservedHeight) // fix container size
@@ -137,6 +140,7 @@ struct PlacesList: View {
                                     )
                                     .contentShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                                 }
+                                .gridCellAnchor(.top)
                                 Divider()
                             }
                         }
@@ -160,7 +164,9 @@ struct PlacesList: View {
                                     }.padding()
                                 })
                                 .contentTransition(.opacity)
-                                .glassEffect()
+#if !os(visionOS)
+.glassEffect()
+#endif
                                 .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 16, style: .continuous)
