@@ -231,6 +231,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		1EE523AF2E8201A000DE0AAE /* StoryRabbit */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = StoryRabbit; sourceTree = "<group>"; };
 		1EE599B42CA4A6DE00C211A6 /* Know MapsTests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = "Know MapsTests"; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
@@ -445,6 +446,7 @@
 		1EA7F76F2B050610002AE371 /* Model */ = {
 			isa = PBXGroup;
 			children = (
+				1EE523AF2E8201A000DE0AAE /* StoryRabbit */,
 				1EDF93CD2CB52E9800FDCFDF /* Network */,
 				1E98C7DA2B18E15600283E92 /* Controllers */,
 				1E98C7D92B18E11200283E92 /* ViewModels */,
@@ -479,6 +481,9 @@
 			buildRules = (
 			);
 			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				1EE523AF2E8201A000DE0AAE /* StoryRabbit */,
 			);
 			name = "Know Maps";
 			packageProductDependencies = (
