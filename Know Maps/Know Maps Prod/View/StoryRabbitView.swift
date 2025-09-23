@@ -13,8 +13,53 @@ struct StoryRabbitView: View {
     @Binding var modelController:DefaultModelController
     @Binding var searchSavedViewModel:SearchSavedViewModel
     @Binding public var showOnboarding:Bool
-
+    
+    @State public var storyController:StoryRabbitController?
+    
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        GeometryReader { geometry in
+            ZStack {
+                Rectangle()
+                    .frame(minWidth:geometry.size.width, minHeight:geometry.size.height)
+                if let storyController {
+                    switch storyController.playerState {
+                    case .loading:
+                        ProgressView()
+                    case .playing:
+                        HStack(alignment: .center) {
+                            
+                        }
+                    case .paused:
+                        HStack(alignment: .center){
+                            
+                        }
+                    case .finished:
+                        HStack(alignment: .center){
+                            
+                        }
+                    }
+                } else {
+                    ProgressView()
+                }
+            }
+            .task {
+                storyController = StoryRabbitController(chatModel: chatModel, cacheManager: cacheManager, modelController: modelController, searchSavedViewModel: searchSavedViewModel, showOnboarding: showOnboarding, playerState: .loading, backgroundTask: UIBackgroundTaskIdentifier.init(rawValue: Int.random(in: 0..<Int.max)))
+                storyController?.call(method: .createFromSingle)
+            }
+            .onChange(of:storyController?.playerState) {
+                if let storyController = storyController {
+                    switch storyController.playerState {
+                    case .loading:
+                        print("Loading")
+                    case .playing:
+                        print("Playing")
+                    case .paused:
+                        print("Paused")
+                    case .finished:
+                        print("Finished")
+                    }
+                }
+            }
+        }
     }
 }

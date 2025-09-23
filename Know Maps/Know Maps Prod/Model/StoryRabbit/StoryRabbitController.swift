@@ -41,9 +41,17 @@ enum OutputFormat : String {
     case pcm_44100 = "pcm_44100"
 }
 
-@objc class StoryRabbitController: NSObject {
+@Observable
+public final class StoryRabbitController  {
+
     static var STREAMING_ENABLED = true;
-    
+
+    var chatModel:ChatResultViewModel
+    var cacheManager:CloudCacheManager
+    var modelController:DefaultModelController
+    var searchSavedViewModel:SearchSavedViewModel
+    var showOnboarding:Bool
+
     var audioPlayer: AVQueuePlayer?
     var effectsPlayer: AVAudioPlayer?
     var generatingAudioURL0: URL?
@@ -65,7 +73,19 @@ enum OutputFormat : String {
     var remotePlayed: Bool?
     var streamAudioPlayer: WebSocketAudioPlayer?
     
-    init(audioPlayer: AVQueuePlayer? = nil, effectsPlayer: AVAudioPlayer? = nil, generatingAudioURL0: URL? = nil, generatingAudioURL1: URL? = nil, generatingAudioURL2: URL? = nil, generatingAudioURL3: URL? = nil, generatingAudioURL4: URL? = nil, playerState: PlayerState, chapter: Podcast? = nil, rabbithole: Podcast? = nil, level: Int? = nil, lastCompletedLevel: Int? = nil, isNewRabbitHole: Bool? = nil, remoteAudioURL: URL? = nil, playerItem: AVPlayerItem? = nil, backgroundTask: UIBackgroundTaskIdentifier, progressTimer: Timer? = nil, boundaryTimeObserver: Any? = nil, remotePlayed: Bool? = nil, streamAudioPlayer: WebSocketAudioPlayer? = nil) {
+    var playerProgress:[String:Any?]? = nil
+    
+    init( chatModel:ChatResultViewModel,
+          cacheManager:CloudCacheManager,
+          modelController:DefaultModelController,
+          searchSavedViewModel:SearchSavedViewModel,
+          showOnboarding:Bool,
+        audioPlayer: AVQueuePlayer? = nil, effectsPlayer: AVAudioPlayer? = nil, generatingAudioURL0: URL? = nil, generatingAudioURL1: URL? = nil, generatingAudioURL2: URL? = nil, generatingAudioURL3: URL? = nil, generatingAudioURL4: URL? = nil, playerState: PlayerState, chapter: Podcast? = nil, rabbithole: Podcast? = nil, level: Int? = nil, lastCompletedLevel: Int? = nil, isNewRabbitHole: Bool? = nil, remoteAudioURL: URL? = nil, playerItem: AVPlayerItem? = nil, backgroundTask: UIBackgroundTaskIdentifier, progressTimer: Timer? = nil, boundaryTimeObserver: Any? = nil, remotePlayed: Bool? = nil, streamAudioPlayer: WebSocketAudioPlayer? = nil) {
+        self.chatModel = chatModel
+        self.cacheManager = cacheManager
+        self.modelController = modelController
+        self.searchSavedViewModel = searchSavedViewModel
+        self.showOnboarding = showOnboarding
         self.audioPlayer = audioPlayer
         self.effectsPlayer = effectsPlayer
         self.generatingAudioURL0 = generatingAudioURL0
@@ -86,7 +106,6 @@ enum OutputFormat : String {
         self.boundaryTimeObserver = boundaryTimeObserver
         self.remotePlayed = remotePlayed
         self.streamAudioPlayer = streamAudioPlayer
-        super.init()
         buildModel()
     }
     
@@ -117,7 +136,7 @@ enum OutputFormat : String {
                 self.streamAudioPlayer!.closeWebSocket(closeCode: 3001, reason: "cancel")
             } else {
                 self.playerState = .finished
-                self.sendPlayerProgress()
+                self.playerProgress = self.sendPlayerProgress()
                 self.audioPlayer?.pause()
                 self.audioPlayer?.seek(to: CMTime.zero)
             }
