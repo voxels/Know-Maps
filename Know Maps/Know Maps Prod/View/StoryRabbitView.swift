@@ -27,7 +27,10 @@ struct StoryRabbitView: View {
                     switch storyController.playerState {
                     case .loading:
                         HStack(alignment: .center) {
-                            
+                            ProgressView()
+                                .progressViewStyle(.automatic)
+                                .padding(16)
+                                .glassEffect()
                         }
                     case .playing:
                         HStack(alignment: .center) {
