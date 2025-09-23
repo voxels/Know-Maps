@@ -32,10 +32,18 @@ struct StoryRabbitContentView: View {
                 ZStack {
                     Rectangle()
                         .frame(minWidth: geometry.size.width - 32, minHeight: geometry.size.height - 32)
-                        .opacity(0.9)
+                        .background()
                     #if os(iOS)
                     NavigationLink {
-                        StoryRabbitView(chatModel: self.$chatModel, cacheManager: self.$cacheManager, modelController: self.$modelController,  searchSavedViewModel: $searchSavedViewModel, showOnboarding: self.$showOnboarding)
+                        ZStack {
+                            ProgressView(value: 0.5, total: 1.0)
+                                .rotationEffect(Angle(degrees: 180))
+                                .progressViewStyle(.circular)
+                                .frame(idealWidth:120, idealHeight:120)
+                                .padding(16)
+                                .tint(.primary)
+                            StoryRabbitView(chatModel: self.$chatModel, cacheManager: self.$cacheManager, modelController: self.$modelController,  searchSavedViewModel: $searchSavedViewModel, showOnboarding: self.$showOnboarding)
+                        }
                     } label: {
                         Label("Generate", systemImage: "hare.fill")
                             .labelStyle(.iconOnly)

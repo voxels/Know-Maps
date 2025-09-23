@@ -103,11 +103,18 @@ struct Know_MapsApp: App {
                             Spacer()
                             let text = isStoryrabbitEnabled ? "Welcome to StoryRabbit" : "Welcome to Know Maps"
                             Text(text).bold().padding()
+                            isStoryrabbitEnabled ? Image(systemName: "hare")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width:100 , height: 100)
+                                .padding()
+                                .glassEffect() :
                             Image("logo_macOS_512")
                                 .resizable()
                                 .scaledToFit()
                                 .frame(width:100 , height: 100)
                                 .padding()
+                                .glassEffect()
                             Spacer()
                             let cacheFetchProgress = max(cacheManager.cacheFetchProgress, 0)
                             ProgressView(value: cacheFetchProgress)

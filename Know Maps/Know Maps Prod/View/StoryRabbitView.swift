@@ -21,10 +21,14 @@ struct StoryRabbitView: View {
             ZStack {
                 Rectangle()
                     .frame(minWidth:geometry.size.width, minHeight:geometry.size.height)
+                    .background()
+                    .edgesIgnoringSafeArea(.all)
                 if let storyController {
                     switch storyController.playerState {
                     case .loading:
-                        ProgressView()
+                        HStack(alignment: .center) {
+                            
+                        }
                     case .playing:
                         HStack(alignment: .center) {
                             
@@ -42,6 +46,7 @@ struct StoryRabbitView: View {
                     ProgressView()
                 }
             }
+            .colorScheme(.dark)
             .task {
                 storyController = StoryRabbitController(chatModel: chatModel, cacheManager: cacheManager, modelController: modelController, searchSavedViewModel: searchSavedViewModel, showOnboarding: showOnboarding, playerState: .loading, backgroundTask: UIBackgroundTaskIdentifier.init(rawValue: Int.random(in: 0..<Int.max)))
                 storyController?.call(method: .createFromSingle)
