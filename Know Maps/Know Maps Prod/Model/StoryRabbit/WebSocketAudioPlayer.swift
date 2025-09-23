@@ -560,11 +560,11 @@ class WebSocketAudioPlayer: NSObject, URLSessionWebSocketDelegate {
         print("WebSocket closed with custom code \(closeCode) and reason: \(reason ?? "No reason provided"). WebSocket task set to nil.")
     }
     
-    func generateStory(payload: [String: Any], event: String, token: String, websocketURL:String, result: @escaping FlutterResult) {
+    func generateStory(payload: [String: Any], event: String, token: String, websocketURL:String) {
         setupAudioSession()
         // Connect to websocket
         guard let url = URL(string: websocketURL) else {
-            result(FlutterError(code: "INVALID_URL", message: "Invalid WebSocket URL", details: nil))
+//            result(FlutterError(code: "INVALID_URL", message: "Invalid WebSocket URL", details: nil))
             return
         }
         self.isWebSocketPlaying = false
@@ -580,7 +580,7 @@ class WebSocketAudioPlayer: NSObject, URLSessionWebSocketDelegate {
         webSocketTask?.resume()
         receiveMessages()
         guard let webSocketTask = webSocketTask else {
-            result(FlutterError(code: "WEBSOCKET_TASK_ERROR", message: "WebSocket task is nil", details: nil))
+//            result(FlutterError(code: "WEBSOCKET_TASK_ERROR", message: "WebSocket task is nil", details: nil))
             return
         }
         
@@ -603,18 +603,19 @@ class WebSocketAudioPlayer: NSObject, URLSessionWebSocketDelegate {
                 webSocketTask.send(.string(text)) { error in
                     if let error = error {
                         print("failed to send message")
-                        result(FlutterError(code: "SEND_ERROR", message: "Failed to send message", details: error.localizedDescription))
+//                        result(FlutterError(code: "SEND_ERROR", message: "Failed to send message", details: error.localizedDescription))
                     } else {
                         print("message sent:  \(event)")
-                        result("Message sent: \(text)")
                     }
                 }
             } catch {
-                result(FlutterError(code: "ENCODING_ERROR", message: "Failed to encode message as JSON", details: error.localizedDescription))
+//                result(FlutterError(code: "ENCODING_ERROR", message: "Failed to encode message as JSON", details: error.localizedDescription))
+                return
             }
-        } else {
-            result(FlutterError(code: "WEBSOCKET_NOT_OPEN", message: "WebSocket is not open", details: "ReadyState: \(webSocketTask.state.rawValue)"))
         }
+//        else {
+//            result(FlutterError(code: "WEBSOCKET_NOT_OPEN", message: "WebSocket is not open", details: "ReadyState: \(webSocketTask.state.rawValue)"))
+//        }
     }
     
 }
