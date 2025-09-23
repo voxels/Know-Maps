@@ -100,6 +100,8 @@
 		1EF3791E2C986F96001C5E39 /* LocalMapsQueryClassifier.mlmodel in Sources */ = {isa = PBXBuildFile; fileRef = 1EA7F7982B052E0C002AE371 /* LocalMapsQueryClassifier.mlmodel */; };
 		1EF3791F2C986F96001C5E39 /* LocalMapsQueryTagger.mlmodel in Sources */ = {isa = PBXBuildFile; fileRef = 1EA7F7992B052E0C002AE371 /* LocalMapsQueryTagger.mlmodel */; };
 		1EF379202C9875E0001C5E39 /* integrated_category_taxonomy.json in Resources */ = {isa = PBXBuildFile; fileRef = 1EA7F7782B052D92002AE371 /* integrated_category_taxonomy.json */; };
+		1EFFBA9A2E826EFA0088882B /* StoryRabbitContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EFFBA992E826EFA0088882B /* StoryRabbitContentView.swift */; };
+		1EFFBA9C2E8270EC0088882B /* StoryRabbitView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EFFBA9B2E8270EC0088882B /* StoryRabbitView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -228,6 +230,8 @@
 		1EE068972B121F710016851A /* LocationResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationResult.swift; sourceTree = "<group>"; };
 		1EE599B32CA4A6DE00C211A6 /* Know MapsTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Know MapsTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		1EEC48182B45A4B300248D69 /* UserCachedRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserCachedRecord.swift; sourceTree = "<group>"; };
+		1EFFBA992E826EFA0088882B /* StoryRabbitContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryRabbitContentView.swift; sourceTree = "<group>"; };
+		1EFFBA9B2E8270EC0088882B /* StoryRabbitView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryRabbitView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -439,6 +443,8 @@
 				1E70B4C42B50103C00F1F9F5 /* SearchCategoryView.swift */,
 				1E70B4D02B50120500F1F9F5 /* SearchTasteView.swift */,
 				1E8E5AFA2CA03D8600B37E6A /* SearchPlacesView.swift */,
+				1EFFBA992E826EFA0088882B /* StoryRabbitContentView.swift */,
+				1EFFBA9B2E8270EC0088882B /* StoryRabbitView.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -679,6 +685,8 @@
 				1E8E5AFB2CA03D8F00B37E6A /* SearchPlacesView.swift in Sources */,
 				1E7D435D2CB5259100DC17FA /* ModelController.swift in Sources */,
 				1EF378F62C986EE7001C5E39 /* PlacePhotoResponse.swift in Sources */,
+				1EFFBA9A2E826EFA0088882B /* StoryRabbitContentView.swift in Sources */,
+				1EFFBA9C2E8270EC0088882B /* StoryRabbitView.swift in Sources */,
 				1EF378F72C986EE7001C5E39 /* PlaceSearchRequest.swift in Sources */,
 				1E007ACE2CB40B1D00A8DC5A /* SegmentAnalyticsService.swift in Sources */,
 				1EF378F82C986EE7001C5E39 /* PlaceSearchResponse.swift in Sources */,

@@ -57,6 +57,7 @@ struct Know_MapsApp: App {
     @State private var showReload:Bool = false
     @State private var showOnboarding:Bool = true
     @State private var showSplashScreen:Bool = true
+    @State private var isStoryrabbitEnabled:Bool = true
 
     
     init() {
@@ -100,7 +101,8 @@ struct Know_MapsApp: App {
                         Spacer()
                         VStack(alignment: .center) {
                             Spacer()
-                            Text("Welcome to Know Maps").bold().padding()
+                            let text = isStoryrabbitEnabled ? "Welcome to StoryRabbit" : "Welcome to Know Maps"
+                            Text(text).bold().padding()
                             Image("logo_macOS_512")
                                 .resizable()
                                 .scaledToFit()
@@ -157,14 +159,22 @@ struct Know_MapsApp: App {
                             .frame(minWidth: 1280, minHeight: 720)
 #endif
                     } else {
-                        ContentView(settingsModel:authenticationModel, chatModel: $chatModel, cacheManager:$cacheManager, modelController:$modelController, searchSavedViewModel: $searchSavedViewModel, showOnboarding: $showOnboarding)
+                        if isStoryrabbitEnabled {
+                            StoryRabbitContentView(settingsModel:authenticationModel, chatModel: $chatModel, cacheManager:$cacheManager, modelController:$modelController, searchSavedViewModel: $searchSavedViewModel, showOnboarding: $showOnboarding)
+                        } else {
+                            ContentView(settingsModel:authenticationModel, chatModel: $chatModel, cacheManager:$cacheManager, modelController:$modelController, searchSavedViewModel: $searchSavedViewModel, showOnboarding: $showOnboarding)
 #if os(visionOS) || os(macOS)
-                            .frame(minWidth: 1280, minHeight: 720)
+                                .frame(minWidth: 1280, minHeight: 720)
 #endif
+                        }
                     }
                 }
             }
         }.windowResizability(.contentSize)
+        
+        WindowGroup(id:"StoryRabbitView") {
+            StoryRabbitView(chatModel: self.$chatModel, cacheManager: self.$cacheManager, modelController: self.$modelController,  searchSavedViewModel: $searchSavedViewModel, showOnboarding: self.$showOnboarding)
+        }
         
         WindowGroup(id:"SettingsView"){
             SettingsView(model:authenticationModel, chatModel:$chatModel, cacheManager: $cacheManager, modelController: $modelController, showOnboarding: $showOnboarding)
