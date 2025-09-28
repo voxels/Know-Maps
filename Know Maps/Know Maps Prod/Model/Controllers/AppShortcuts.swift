@@ -14,9 +14,9 @@ struct KnowMapsShortcutsProvider: AppShortcutsProvider {
             AppShortcut(
                 intent: ShowMoodResultsIntent(),
                 phrases: [
-                    "I'm in the mood for something from \(.applicationName)",
-                    "Ask \(.applicationName) to find a place for \(\.$mood)",
-                    "Tell \(.applicationName) I'm' in the mood for \(\.$mood)",
+                    "Tell Siri what you're in the mood for from \(.applicationName).",
+                    "Ask \(.applicationName) to find a place for \(\.$mood).",
+                    "Tell \(.applicationName), \"I'm' in the mood for \(\.$mood).\"",
                 ],
                 shortTitle: "Find a place for my mood",
                 systemImageName: "magnifyingglass",

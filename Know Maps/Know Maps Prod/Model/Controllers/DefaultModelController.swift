@@ -87,7 +87,7 @@ public final class DefaultModelController : ModelController {
         analyticsManager.track(event:"resetPlaceModel", properties: nil)
     }
     
-    func poiModel() async {
+    func audioPOIModel() async {
         do {
             let pois = try await SupabaseService.shared.fetchPOIs()
             if let firstPOI = pois.first {

@@ -58,6 +58,7 @@ struct Know_MapsApp: App {
     @State private var showOnboarding:Bool = true
     @State private var showSplashScreen:Bool = true
     @State private var isStoryrabbitEnabled:Bool = false
+    @State private var isStartingApp = false
 
     
     init() {
@@ -95,7 +96,6 @@ struct Know_MapsApp: App {
     var body: some Scene {
         WindowGroup(id:"ContentView") {
             GeometryReader { geometry in
-                
                 if showSplashScreen{
                     HStack(alignment: .center){
                         Spacer()
@@ -106,28 +106,36 @@ struct Know_MapsApp: App {
                             isStoryrabbitEnabled ? Image(systemName: "hare")
                                 .resizable()
                                 .scaledToFit()
-                                .frame(width:100 , height: 100)
                                 .padding()
-                                .glassEffect() :
+                                .glassEffect()
+                                .frame(width:100 , height: 100)
+                                .padding() :
                             Image("logo_macOS_512")
                                 .resizable()
                                 .scaledToFit()
-                                .frame(width:100 , height: 100)
                                 .padding()
                                 .glassEffect()
-                            Spacer()
-                            let cacheFetchProgress = max(cacheManager.cacheFetchProgress, 0)
-                            ProgressView(value: cacheFetchProgress)
-                                .frame(maxWidth:geometry.size.width / 2)
+                                .frame(width:100 , height: 100)
                                 .padding()
                             Spacer()
-                            if showReload {
-                                Button("Reload") {
-                                    Task(priority: .userInitiated) {
-                                        await startApp()
-                                    }
-                                }
+                            let cacheFetchProgress = max(cacheManager.cacheFetchProgress, 0)
+                            ProgressView(value: cacheFetchProgress) {
+                                Text("iCloud Login in progress...")
                             }
+                                .frame(maxWidth:geometry.size.width / 2)
+                                .padding()
+                            
+                            Spacer()
+                            Button() {
+                                Task(priority: .userInitiated) {
+                                    await startApp()
+                                }
+                            } label: {
+                                Label("Reload", systemImage: "arrow.clockwise")
+                                    .labelStyle(.titleAndIcon)
+                            }.disabled(isStartingApp)
+                            
+                            Spacer()
                         }
                         Spacer()
                     }
@@ -205,7 +213,13 @@ struct Know_MapsApp: App {
     }
     
     private func startApp() async {
+        guard !isStartingApp else {
+            return
+        }
+        
+        isStartingApp = true
         await startup()
+        isStartingApp = false
     }
     
     public func checkIfSignedInWithApple(completion:@escaping (Bool)->Void) {
@@ -280,7 +294,9 @@ struct Know_MapsApp: App {
     private func loadData() async {
         Task {
             await modelController.categoricalSearchModel()
-            await modelController.poiModel()
+            if isStoryrabbitEnabled {
+                await modelController.audioPOIModel()
+            }
         }
         
         let cacheRefreshTask = Task { @MainActor in
