@@ -33,6 +33,7 @@ public protocol ModelController : Sendable {
     var fetchMessage:String { get }
     
     // TabView
+    var section:Int { get set }
     var addItemSection:Int { get set }
     
     // Results

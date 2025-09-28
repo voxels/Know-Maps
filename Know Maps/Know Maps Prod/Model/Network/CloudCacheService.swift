@@ -19,6 +19,7 @@ public enum CloudCacheError: Error {
     case ThrottleRequests
     case ServerErrorMessage
     case ServiceNotFound
+    case MissingRecord
 }
 
 public enum CloudCacheServiceKey: String {
@@ -468,6 +469,7 @@ public final class CloudCacheService: NSObject, CloudCache {
                     try modelContext.save()
                 } else {
                     print("Local record not found for identity: \(identity)")
+                    throw CloudCacheError.MissingRecord
                 }
             } catch {
                 analyticsManager.trackError(error: error, additionalInfo: nil)

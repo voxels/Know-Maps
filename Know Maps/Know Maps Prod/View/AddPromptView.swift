@@ -26,12 +26,13 @@ struct AddPromptToolbarView: View {
     @Binding public var chatModel:ChatResultViewModel
     @Binding public var cacheManager: CloudCacheManager
     @Binding public var modelController: DefaultModelController
+    @Binding public var section: Int
     @Binding public var addItemSection: Int
     @Binding public var multiSelection: Set<UUID>
     @Binding public var preferredColumn: NavigationSplitViewColumn
     
     var body: some View {
-        if addItemSection == 0 || addItemSection == 3 {
+        if section == 5 || addItemSection == 3 {
             if let selectedPlaceChatResult = modelController.selectedPlaceChatResult,let placeChatResult = modelController.placeChatResult(for: selectedPlaceChatResult), !cacheManager.cachedPlaces(contains:placeChatResult.title){
                 Button(action: {
                     Task(priority:.userInitiated) {

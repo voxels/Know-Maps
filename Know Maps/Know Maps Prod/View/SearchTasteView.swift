@@ -4,18 +4,19 @@ struct SearchTasteView: View {
     @Binding public var chatModel:ChatResultViewModel
     @Binding public var cacheManager:CloudCacheManager
     @Binding public var modelController:DefaultModelController
+    @Binding public var searchSavedViewModel:SearchSavedViewModel
     @Binding public var multiSelection: Set<UUID>
+    @Binding public var section: Int
     @Binding public var addItemSection: Int
     @State private var isPresented:Bool = true
     @State private var isLoadingNextPage = false
     @State private var tasteSearchText:String = ""
     var body: some View {
         List(modelController.tasteResults, id:\.id, selection: $multiSelection) { parent in
-            let isSaved = cacheManager.cachedTastes(contains: parent.parentCategory)
             HStack {
                 Text("\(parent.parentCategory)")
                 Spacer()
-                isSaved ? Image(systemName: "checkmark.circle.fill") : Image(systemName: "circle")
+                ratingButton(for: parent)
             }
             .onAppear {
                 if let last = modelController.tasteResults.last, parent == last {
@@ -49,7 +50,12 @@ struct SearchTasteView: View {
                 }
             }
         }
+        #if os(macOS)
         .searchable(text:  $tasteSearchText, prompt: "Search for an item")
+        #else
+        .searchable(text:  $tasteSearchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search for an item")
+
+        #endif
         .onSubmit(of: .search, {
             Task(priority:.userInitiated) { @MainActor in
                 modelController.tasteResults.removeAll()
@@ -61,6 +67,7 @@ struct SearchTasteView: View {
             }
         })
         .listStyle(.sidebar)
+
 //        .overlay(alignment: .top, content: {
 //            VStack(alignment: .center) {
 //                TextField("", text: $tasteSearchText, prompt:Text("Search for a feature"))
@@ -71,5 +78,44 @@ struct SearchTasteView: View {
 //                    .padding()
 //            }
 //        })
+    }
+    
+    
+    @ViewBuilder
+    func ratingButton(for parent: CategoryResult) -> some View {
+        switch parent.rating {
+        case ..<1:
+            Button(action: {
+                searchSavedViewModel.editingRecommendationWeightResult = parent
+            }) {
+                Label("Never", systemImage: "circle.slash")
+                    .foregroundColor(.red)
+            }
+            .frame(width: 44, height:44)
+            .buttonStyle(BorderlessButtonStyle())
+            .labelStyle(.iconOnly)
+        case 1..<3:
+            Button(action: {
+                searchSavedViewModel.editingRecommendationWeightResult = parent
+            }) {
+                Label("Occasionally", systemImage: "circle")
+                    .foregroundColor(.accentColor)
+            }
+            .frame(width: 44, height:44)
+            .buttonStyle(BorderlessButtonStyle())
+            .labelStyle(.iconOnly)
+        case 3...:
+            Button(action: {
+                searchSavedViewModel.editingRecommendationWeightResult = parent
+            }) {
+                Label("Often", systemImage: "circle.fill")
+                    .foregroundColor(.green)
+            }
+            .frame(width: 44, height:44)
+            .buttonStyle(BorderlessButtonStyle())
+            .labelStyle(.iconOnly)
+        default:
+            EmptyView()
+        }
     }
 }

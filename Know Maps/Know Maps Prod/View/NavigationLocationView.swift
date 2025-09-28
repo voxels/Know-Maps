@@ -50,7 +50,8 @@ struct NavigationLocationView: View {
             }
             .frame(idealWidth: .infinity, idealHeight:sizeClass == .compact ? geometry.size.width / 2 : geometry.size.width / 4)
             .mapStyle(.standard)
-            .cornerRadius(10)
+            .padding(32)
+            .cornerRadius(32)
             .task {
                 let selectedResult = modelController.currentlySelectedLocationResult
                 if let location = selectedResult.location {
@@ -156,7 +157,11 @@ struct NavigationLocationView: View {
             }
         }
         .frame(idealWidth: .infinity, idealHeight:sizeClass == .compact ? geometry.size.height : geometry.size.height / 2)
-        .searchable(text: $searchText, placement: .automatic, prompt: "Point of Interest")
+        #if os(macOS)
+        .searchable(text: $searchText, prompt: "Point of Interest")
+        #else
+        .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Point of Interest")
+        #endif
         .onChange(of: searchText) { oldValue, newValue in
                 if !newValue.isEmpty, newValue != oldValue {
                     search(intent: .Location, query: newValue )

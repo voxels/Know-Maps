@@ -18,12 +18,11 @@ struct SearchView: View {
     @Binding public var didError:Bool
 
     var body: some View {
-        SavedListView(searchSavedViewModel: $searchSavedViewModel, cacheManager: $cacheManager, modelController: $modelController, addItemSection: $addItemSection, preferredColumn: $preferredColumn, selectedResult: $modelController.selectedSavedResult)
+        SavedListView(searchSavedViewModel: $searchSavedViewModel, cacheManager: $cacheManager, modelController: $modelController, section:$modelController.section, addItemSection: $addItemSection, preferredColumn: $preferredColumn, selectedResult: $modelController.selectedSavedResult)
             .onChange(of: modelController.selectedSavedResult) { oldValue, newValue in
                 guard let newValue = newValue, newValue != oldValue else {
                     return
                 }
-                preferredColumn = .detail
                 modelController.isRefreshingPlaces = true
                 modelController.fetchMessage = "Fetching places"
                 Task(priority:.userInitiated) {
@@ -34,7 +33,7 @@ struct SearchView: View {
                     }
                     await MainActor.run {
                         modelController.isRefreshingPlaces = false
-                    }
+                     }
                 }
             }
     }

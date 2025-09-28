@@ -21,67 +21,52 @@ struct AddCategoryView: View {
     
     var body: some View {
         GeometryReader { geometry in
-            List {
-                ForEach(multiSelectionArray, id:\.self) { identifier in
-                    if let industryResult = modelController.industryCategoryResult(for: identifier) {
-                        VStack(alignment:.leading) {
-                            Text(industryResult.parentCategory)
-                                .font(.headline)
-                            Button(action: {
-                                Task(priority: .userInitiated) {
-                                    await viewModel.addCategory(parent: industryResult.id, rating:0, cacheManager: cacheManager, modelController:   modelController)
-                                    multiSelection.remove(industryResult.id)
-                                }
-                            }) {
-                                Label("Rarely", systemImage: "circle.slash")
-                            }
-                            .buttonStyle(.bordered)
-                            .tint(.red)
-                            .contentShape(Rectangle())
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.vertical, 4)
-                            
-                            Button(action: {
-                                Task(priority: .userInitiated) {
-                                    await viewModel.addCategory(parent: industryResult.id,rating:2, cacheManager: cacheManager, modelController:   modelController)
-                                    multiSelection.remove(industryResult.id)
-                                }
-                            }) {
-                                Label("Occasionally", systemImage: "circle")
-                            }
-                            .buttonStyle(.bordered)
-                            .tint(.accentColor)
-                            .contentShape(Rectangle())
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.vertical, 4)
-                            
-                            
-                            Button(action: {
-                                Task(priority: .userInitiated) {
-                                    await viewModel.addCategory(parent: industryResult.id,rating:3, cacheManager: cacheManager, modelController:   modelController)
+            ScrollView(.horizontal) {
+                VStack(spacing:16) {
+                    ForEach(multiSelectionArray, id:\.self) { identifier in
+                        if let industryResult = modelController.industryCategoryResult(for: identifier) {
+                            VStack(spacing:16) {
+                                Group {
+                                    Text(industryResult.parentCategory)
+                                        .font(.headline)
+                                        .padding()
+                                    Button(action: {
+                                        Task(priority: .userInitiated) {
+                                            await viewModel.addCategory(parent: industryResult.id, rating:0, cacheManager: cacheManager, modelController:   modelController)
+                                            multiSelection.remove(industryResult.id)
+                                        }
+                                    }) {
+                                        Label("Rarely", systemImage: "circle.slash")
+                                    }.padding(16)
                                     
-                                    multiSelection.remove(industryResult.id)
+                                    Button(action: {
+                                        Task(priority: .userInitiated) {
+                                            await viewModel.addCategory(parent: industryResult.id,rating:2, cacheManager: cacheManager, modelController:   modelController)
+                                            multiSelection.remove(industryResult.id)
+                                        }
+                                    }) {
+                                        Label("Occasionally", systemImage: "circle")
+                                    }.padding(16)
+                                    
+                                    Button(action: {
+                                        Task(priority: .userInitiated) {
+                                            await viewModel.addCategory(parent: industryResult.id,rating:3, cacheManager: cacheManager, modelController:   modelController)
+                                            
+                                            multiSelection.remove(industryResult.id)
+                                        }
+                                    }) {
+                                        Label("Often", systemImage: "circle.fill")
+                                    }.padding(16)
                                 }
-                            }) {
-                                Label("Often", systemImage: "circle.fill")
                             }
-                            .buttonStyle(.bordered)
-                            .tint(.green)
-                            .contentShape(Rectangle())
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.vertical, 4)
-                        }
-                    }                    
+                       }
+                    }
                 }
+                .onChange(of: multiSelection, { oldValue, newValue in
+                    multiSelectionArray = Array(newValue)
+                })
             }
-            #if !os(macOS)
-            .listStyle(.insetGrouped)
-            #endif
         }
-        .onChange(of: multiSelection, { oldValue, newValue in
-            multiSelectionArray = Array(newValue)
-        })
-        
     }
 }
 

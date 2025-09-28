@@ -81,6 +81,7 @@ struct PlacesList: View {
                                         DispatchQueue.main.async {
                                             withAnimation {
                                                 modelController.selectedPlaceChatResult = result.id
+                                                modelController.addItemSection = 3
                                             }
                                         }
                                     } else {
@@ -90,6 +91,7 @@ struct PlacesList: View {
                                             Task(priority: .userInitiated) {
                                                 try await chatModel.didTap(placeChatResult: placeChatResult, filters: searchSavedViewModel.filters, cacheManager: cacheManager, modelController: modelController)
                                                 await MainActor.run {
+                                                    modelController.addItemSection = 3
                                                     modelController.isRefreshingPlaces = false
                                                 }
                                             }

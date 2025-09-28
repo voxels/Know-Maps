@@ -59,13 +59,21 @@ public final class SearchSavedViewModel : Sendable {
     func updateRating(for result: CategoryResult, rating: Double,  cacheManager:CacheManager, modelController:ModelController) {
         Task(priority: .userInitiated) {
             do {
+                await addTaste(
+                    parent: result.id, rating:rating,
+                    cacheManager: cacheManager,
+                    modelController: modelController
+                )
+                
+                await addCategory(parent: result.id, rating: rating, cacheManager: cacheManager, modelController: modelController)
+                
                 try await changeRating(rating: rating, for: result.identity, cacheManager: cacheManager, modelController: modelController)
+                editingRecommendationWeightResult = nil
                 await cacheManager.refreshCachedTastes()
                 await cacheManager.refreshCachedCategories()
             } catch {
-                modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
+                print(error)
             }
-            editingRecommendationWeightResult = nil
         }
     }
     
@@ -327,6 +335,7 @@ public final class SearchSavedViewModel : Sendable {
     
     // Change rating
     func changeRating(rating: Double, for editingResult:String, cacheManager:CacheManager, modelController:ModelController) async throws {
-        try await cacheManager.cloudCache.updateUserCachedRecordRating(identity: editingResult, newRating: rating)
+            try await cacheManager.cloudCache.updateUserCachedRecordRating(identity: editingResult, newRating: rating)
+
     }
 }

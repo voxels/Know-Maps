@@ -15,8 +15,9 @@ struct PlaceDescriptionView: View {
         if let resultId = modelController.selectedPlaceChatResult, let placeChatResult = modelController.placeChatResult(for: resultId), let placeDetailsResponse = placeChatResult.placeDetailsResponse, let _ = placeDetailsResponse.tipsResponses {
             if let description = placeDetailsResponse.description, !description.isEmpty {
                 ZStack() {
-                    Rectangle().foregroundStyle(.thickMaterial)
-                        .cornerRadius(16)
+                    Rectangle()
+                        .cornerRadius(32)
+                        .glassEffect()
                     Text(description).padding()
                 }
             }

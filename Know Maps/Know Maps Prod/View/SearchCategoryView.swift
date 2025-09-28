@@ -11,7 +11,9 @@ struct SearchCategoryView: View {
     @Binding public var chatModel: ChatResultViewModel
     @Binding public var cacheManager: CloudCacheManager
     @Binding public var modelController: DefaultModelController
+    @Binding public var searchSavedViewModel:SearchSavedViewModel
     @Binding public var multiSelection: Set<UUID>
+    @Binding public var section: Int
     @Binding public var addItemSection: Int
     
     @State private var expandedParents: Set<UUID> = []
@@ -35,19 +37,19 @@ struct SearchCategoryView: View {
                         )
                     ) {
                         ForEach(filteredChildren(for: parent), id: \.id) { child in
-                            let isSaved =
-                            cacheManager.cachedCategories(contains: child.parentCategory)
                             HStack {
                                 Text(child.parentCategory)
                                 Spacer()
-                                isSaved ? Image(systemName: "checkmark.circle.fill") : Image(systemName: "circle")
+                                ratingButton(for: child)
                             }
+                            .padding(.horizontal)
                         }
                     } label: {
                         HStack {
                             Text(parent.parentCategory)
                             Spacer()
                         }
+                        .padding()
                     }
                 }
             }
@@ -57,7 +59,7 @@ struct SearchCategoryView: View {
         #if os(macOS)
         .searchable(text: $searchText, prompt: "Search Categories")
         #else
-        .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .automatic), prompt: "Search Categories") // Add searchable
+        .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search Categories") // Add searchable
         #endif
         .onSubmit(of: .search) {
             expandParentsBasedOnSearch()
@@ -97,4 +99,44 @@ struct SearchCategoryView: View {
             }
         }
     }
+    
+    
+    @ViewBuilder
+    func ratingButton(for parent: CategoryResult) -> some View {
+        switch parent.rating {
+        case ..<1:
+            Button(action: {
+                searchSavedViewModel.editingRecommendationWeightResult = parent
+            }) {
+                Label("Never", systemImage: "circle.slash")
+                    .foregroundColor(.red)
+            }
+            .frame(width: 44, height:44)
+            .buttonStyle(BorderlessButtonStyle())
+            .labelStyle(.iconOnly)
+        case 1..<3:
+            Button(action: {
+                searchSavedViewModel.editingRecommendationWeightResult = parent
+            }) {
+                Label("Occasionally", systemImage: "circle")
+                    .foregroundColor(.accentColor)
+            }
+            .frame(width: 44, height:44)
+            .buttonStyle(BorderlessButtonStyle())
+            .labelStyle(.iconOnly)
+        case 3...:
+            Button(action: {
+                searchSavedViewModel.editingRecommendationWeightResult = parent
+            }) {
+                Label("Often", systemImage: "circle.fill")
+                    .foregroundColor(.green)
+            }
+            .frame(width: 44, height:44)
+            .buttonStyle(BorderlessButtonStyle())
+            .labelStyle(.iconOnly)
+        default:
+            EmptyView()
+        }
+    }
+    
 }

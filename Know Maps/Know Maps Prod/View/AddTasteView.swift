@@ -19,63 +19,45 @@ struct AddTasteView: View {
     
     var body: some View {
         GeometryReader { geometry in
-            List {
+            ScrollView(.horizontal) {
                 ForEach(multiSelectionArray, id: \.self) { identifier in
                     if let tasteResult = modelController.tasteCategoryResult(for: identifier) {
-                        VStack(alignment: .leading) {
-                            Text(tasteResult.parentCategory)
-                                .font(.headline)
-                            
-                            Button(action: {
-                                Task(priority: .userInitiated) {
-                                    await viewModel.addTaste(parent: tasteResult.id, rating: 0, cacheManager: cacheManager, modelController: modelController)
-                                    multiSelection.remove(tasteResult.id)
+                            VStack(spacing:16) {
+                                Text(tasteResult.parentCategory)
+                                    .font(.headline)
+                                    .padding()
+                                Button(action: {
+                                    Task(priority: .userInitiated) {
+                                        await viewModel.addTaste(parent: tasteResult.id, rating: 0, cacheManager: cacheManager, modelController: modelController)
+                                        multiSelection.remove(tasteResult.id)
+                                    }
+                                }) {
+                                    Label("Recommend rarely", systemImage: "circle.slash")
+                                        .labelStyle(.titleAndIcon)
+                                }.padding(16)
+                                Button(action: {
+                                    Task(priority: .userInitiated) {
+                                        await viewModel.addTaste(parent: tasteResult.id, rating: 2, cacheManager: cacheManager, modelController: modelController)
+                                        multiSelection.remove(tasteResult.id)
+                                    }
+                                }) {
+                                    Label("Recommend occasionally", systemImage: "circle")
+                                        .labelStyle(.titleAndIcon)
+                                }.padding(16)
+                                Button(action: {
+                                    Task(priority: .userInitiated) {
+                                        await viewModel.addTaste(parent: tasteResult.id, rating: 3, cacheManager: cacheManager, modelController: modelController)
+                                        multiSelection.remove(tasteResult.id)
+                                    }
+                                }) {
+                                    Label("Recommend often", systemImage: "circle.fill")
+                                        .labelStyle(.titleAndIcon)
                                 }
-                            }) {
-                                Label("Recommend rarely", systemImage: "circle.slash")
-                            }
-                            .buttonStyle(.bordered)
-                            .tint(.red)
-                            .contentShape(Rectangle())
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.vertical, 4)
-                            
-                            Button(action: {
-                                Task(priority: .userInitiated) {
-                                    await viewModel.addTaste(parent: tasteResult.id, rating: 2, cacheManager: cacheManager, modelController: modelController)
-                                    multiSelection.remove(tasteResult.id)
-                                }
-                            }) {
-                                Label("Recommend occasionally", systemImage: "circle")
-                            }
-                            .buttonStyle(.bordered)
-                            .tint(.accentColor)
-                            .contentShape(Rectangle())
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.vertical, 4)
-                            
-                            Button(action: {
-                                Task(priority: .userInitiated) {
-                                    await viewModel.addTaste(parent: tasteResult.id, rating: 3, cacheManager: cacheManager, modelController: modelController)
-                                    multiSelection.remove(tasteResult.id)
-                                }
-                            }) {
-                                Label("Recommend often", systemImage: "circle.fill")
-                            }
-                            .buttonStyle(.bordered)
-                            .tint(.green)
-                            .contentShape(Rectangle())
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.vertical, 4)
-                        }
+                                .padding(16)
+                        }.frame(maxWidth: .infinity, maxHeight: .infinity)
                     }
                 }
             }
-#if !os(macOS)
-.listStyle(.insetGrouped)
-#endif
-
-            .frame(idealHeight:geometry.size.height / 3)
             .onChange(of: multiSelection, { oldValue, newValue in
                 multiSelectionArray = Array(newValue)
             })

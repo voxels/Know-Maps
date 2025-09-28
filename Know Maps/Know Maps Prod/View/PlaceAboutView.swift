@@ -42,7 +42,7 @@ struct PlaceAboutView: View {
                                             RoundedRectangle(cornerRadius: 16, style: .continuous)
                                                 .strokeBorder(.separator, lineWidth: 1)
                                         )
-                                        .frame(width: geo.size.width - 32, height:geo.size.width - 32)
+                                        .frame(width: geo.size.width - 32, height:geo.size.height - 32)
                                 } else {
                                     
                                     LazyImage(url: url) { state in
@@ -50,7 +50,7 @@ struct PlaceAboutView: View {
                                             image.resizable()
                                                 .aspectRatio(CGFloat(aspectRatio), contentMode: .fit)
                                                 .scaledToFit()
-                                                .frame(maxWidth: max(0,geo.size.width - 32), maxHeight:max(geo.size.width - 32,0))
+                                                .frame(maxWidth: max(0,geo.size.width - 32), maxHeight:max(geo.size.height - 32,0))
                                                 .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                                                 .overlay(
                                                     RoundedRectangle(cornerRadius: 16, style: .continuous)
@@ -60,7 +60,7 @@ struct PlaceAboutView: View {
                                            Image(systemName: "photo")
                                                .aspectRatio(CGFloat(aspectRatio), contentMode: .fit)
                                                .scaledToFit()
-                                               .frame(width: max(0, geo.size.width - 32), height:max(geo.size.width - 32,0))
+                                               .frame(width: max(0, geo.size.width - 32), height:max(geo.size.height - 32,0))
                                                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                                                .overlay(
                                                    RoundedRectangle(cornerRadius: 16, style: .continuous)
@@ -265,7 +265,7 @@ struct PlaceAboutView: View {
 .hoverEffect(.lift)
 #endif
                                                 .padding(PlaceAboutView.defaultPadding)
-                                                .background(.ultraThickMaterial)
+                                                .glassEffect()
                                                 .cornerRadius(16)
                                                 .onTapGesture {
                                                     Task(priority:.userInitiated) {

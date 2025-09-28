@@ -45,7 +45,7 @@ struct ShowMoodResultsIntent: AppIntent {
     @MainActor
     func perform() async throws -> some IntentResult{
         withAnimation {
-            modelController.addItemSection = 0
+            modelController.section = 0
             modelController.selectedPlaceChatResult = nil
         }
 

@@ -17,8 +17,9 @@ struct PlaceTipsView: View {
         if let resultId = modelController.selectedPlaceChatResult, let placeChatResult = modelController.placeChatResult(for: resultId), let placeDetailsResponse = placeChatResult.placeDetailsResponse, let tips = placeDetailsResponse.tipsResponses {
             List(tips){ tip in
                 ZStack() {
-                    Rectangle().foregroundStyle(.thickMaterial)
-                        .cornerRadius(16)
+                    Rectangle()
+                        .cornerRadius(32)
+                        .glassEffect()
                     Text(tip.text).padding()
                 }.padding()
             }

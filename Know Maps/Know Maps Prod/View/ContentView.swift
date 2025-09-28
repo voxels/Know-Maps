@@ -65,8 +65,9 @@ struct ContentView: View {
     @State private var cameraPosition:MapCameraPosition = .automatic
     @State private var selectedMapItem:String?
     @State private var showNavigationLocationView:Bool = false
+    @State private var showAddRecommendationView:Bool = false
     
-    @StateObject public var placeDirectionsChatViewModel = PlaceDirectionsViewModel(rawLocationIdent: "")
+    @StateObject public var placeDirectionsChatViewModel = PlaceDirectionsViewModel(rawLocationIdent: "Current Location")
     
     // State to hold the reference to the active search task
     @State private var searchTask: Task<Void, Never>? = nil
@@ -113,6 +114,12 @@ struct ContentView: View {
                     
             }
             .tabViewStyle(.automatic)
+            .sheet(item: $searchSavedViewModel.editingRecommendationWeightResult) { selectedResult in
+                recommendationWeightSheet(for: selectedResult)
+                    .presentationDetents([.medium])
+                    .presentationDragIndicator(.visible)
+                    .presentationCompactAdaptation(.sheet)
+            }
             .onAppear(perform: {
                 modelController.analyticsManager.track(event:"ContentView",properties: nil )
             })
@@ -148,7 +155,6 @@ struct ContentView: View {
                     
                     // Check for cancellation again before the async call
                     guard !Task.isCancelled else { return }
-                    
                     
                     await MainActor.run {
                         modelController.isRefreshingPlaces = true
@@ -192,7 +198,8 @@ struct ContentView: View {
                     
                 }
             })
-            
+            .onChange(of: showAddRecommendationView) { oldValue, newValue in
+            }
         }
     }
     
@@ -206,6 +213,7 @@ struct ContentView: View {
     }
     
     
+    @ViewBuilder
     func toolbarTrailingContent() -> some View {
 #if !os(macOS)
         Button {
@@ -238,6 +246,9 @@ struct ContentView: View {
                     #endif
                 }
                 .navigationTitle("Favorites")
+                .onChange(of: modelController.isRefreshingPlaces) { oldValue, newValue in
+                    showAddRecommendationView = false
+                }
         } detail: {
             NavigationStack {
                 NavigationLink(isActive: $showNavigationLocationView) {
@@ -253,11 +264,35 @@ struct ContentView: View {
                         .toolbar {
 #if !os(macOS)
                             ToolbarItemGroup(placement: .topBarTrailing) {
-                                toolbarTrailingContent()
+#if !os(macOS)
+        Button {
+            showNavigationLocationView = true
+        } label: {
+            Label("Filter", systemImage:"line.3.horizontal.decrease")
+        }
+#else
+        Button {
+            showNavigationLocationView = true
+        } label: {
+            Label("Filter", systemImage:"line.3.horizontal.decrease")
+        }
+#endif
                             }
 #else
                             ToolbarItemGroup(placement: .primaryAction) {
-                                toolbarTrailingContent()
+#if !os(macOS)
+        Button {
+            showNavigationLocationView = true
+        } label: {
+            Label("Filter", systemImage:"line.3.horizontal.decrease")
+        }
+#else
+        Button {
+            showNavigationLocationView = true
+        } label: {
+            Label("Filter", systemImage:"line.3.horizontal.decrease")
+        }
+#endif
                             }
 #endif
                         }
@@ -291,7 +326,7 @@ struct ContentView: View {
     
     func industriesView(_ geometry:GeometryProxy) -> some View {
         NavigationSplitView {
-            SearchCategoryView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, multiSelection: $multiSelection, addItemSection: $modelController.addItemSection)
+            SearchCategoryView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, searchSavedViewModel: $searchSavedViewModel, multiSelection: $multiSelection, section:$modelController.section, addItemSection: $modelController.addItemSection)
                 .toolbar {
 #if os(macOS)
 ToolbarItemGroup(placement: .primaryAction) {
@@ -312,10 +347,7 @@ toolbarLeadingContent()
                     EmptyView()
                 }
                 .hidden()
-                if sizeClass == .compact {
-                    VStack(alignment: .leading, spacing: 0) {
-                        AddCategoryView(viewModel: $searchSavedViewModel, chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, preferredColumn: $preferredColumn, multiSelection:$multiSelection)
-                            .frame(maxHeight:geometry.size.height / 2)
+                   VStack(alignment: .leading, spacing: 0) {
                         placesList()
                     }
                     .toolbar {
@@ -332,38 +364,11 @@ toolbarLeadingContent()
                     .toolbar {
                         ToolbarItemGroup(placement: .primaryAction) {
                             AddPromptToolbarView(viewModel: $searchSavedViewModel, chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController,
-                                                 addItemSection: $modelController.addItemSection,
+                                                 section: $modelController.section, addItemSection: $modelController.addItemSection,
                                                  multiSelection: $multiSelection,
                                                  preferredColumn: $preferredColumn
                             )
                         }
-                    }
-                } else {
-                    VStack(alignment: .leading, spacing: 0) {
-                        AddCategoryView(viewModel: $searchSavedViewModel, chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, preferredColumn: $preferredColumn, multiSelection:$multiSelection)
-                            .frame(maxHeight:geometry.size.height / 2)
-                        placesList()
-                    }
-                    .toolbar {
-#if !os(macOS)
-                        ToolbarItemGroup(placement: .topBarTrailing) {
-                            toolbarTrailingContent()
-                        }
-#else
-                        ToolbarItemGroup(placement: .primaryAction) {
-                            toolbarTrailingContent()
-                        }
-#endif
-                    }
-                    .toolbar {
-                        ToolbarItemGroup(placement: .primaryAction) {
-                            AddPromptToolbarView(viewModel: $searchSavedViewModel, chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController,
-                                                 addItemSection: $modelController.addItemSection,
-                                                 multiSelection: $multiSelection,
-                                                 preferredColumn: $preferredColumn
-                            )
-                        }
-                    }
                 }
             }
         }
@@ -371,7 +376,7 @@ toolbarLeadingContent()
     
     func purchasesView(_ geometry:GeometryProxy) -> some View {
         NavigationSplitView {
-            SearchTasteView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, multiSelection: $multiSelection, addItemSection: $modelController.addItemSection)
+            SearchTasteView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, searchSavedViewModel: $searchSavedViewModel, multiSelection: $multiSelection,  section:$modelController.section,addItemSection: $modelController.addItemSection)
                 .navigationTitle("Purchases")
                 .toolbar {
 #if os(macOS)
@@ -392,12 +397,7 @@ toolbarLeadingContent()
                     EmptyView()
                 }
                 .hidden()
-                if sizeClass == .compact {
-                    VStack(alignment: .leading, spacing: 0) {
-                        AddTasteView(viewModel: $searchSavedViewModel, chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, multiSelection:$multiSelection, preferredColumn: $preferredColumn)
-                            .frame(maxHeight:geometry.size.height / 2)
-                        placesList()
-                    }
+                    placesList()
                     .toolbar {
 #if !os(macOS)
                         ToolbarItemGroup(placement: .topBarTrailing) {
@@ -412,31 +412,12 @@ toolbarLeadingContent()
                     .toolbar {
                         ToolbarItemGroup(placement: .primaryAction) {
                             AddPromptToolbarView(viewModel: $searchSavedViewModel, chatModel:$chatModel, cacheManager: $cacheManager, modelController: $modelController,
-                                                 addItemSection: $modelController.addItemSection,
+                                                 section: $modelController.section, addItemSection: $modelController.addItemSection,
                                                  multiSelection: $multiSelection,
                                                  preferredColumn: $preferredColumn
                             )
                         }
                     }
-                } else {
-                    VStack(alignment: .leading, spacing: 0) {
-                        AddTasteView(viewModel: $searchSavedViewModel, chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, multiSelection:$multiSelection, preferredColumn: $preferredColumn)
-                        .frame(maxHeight:geometry.size.height / 2)
-                        placesList()
-                    }
-                    .toolbar {
-#if !os(macOS)
-                        ToolbarItemGroup(placement: .topBarTrailing) {
-                            toolbarTrailingContent()
-                        }
-#else
-                        ToolbarItemGroup(placement: .primaryAction) {
-                            toolbarTrailingContent()
-
-                        }
-#endif
-                    }
-                }
             }
         }
     }
@@ -469,7 +450,7 @@ toolbarLeadingContent()
                     .toolbar {
                         ToolbarItemGroup(placement: .primaryAction) {
                             AddPromptToolbarView(viewModel: $searchSavedViewModel, chatModel:$chatModel, cacheManager: $cacheManager, modelController: $modelController,
-                                                 addItemSection: $modelController.addItemSection,
+                                                 section: $modelController.section, addItemSection: $modelController.addItemSection,
                                                  multiSelection: $multiSelection,
                                                  preferredColumn: $preferredColumn
                             )
@@ -504,6 +485,48 @@ toolbarLeadingContent()
             } message: {
                 Text("We don't know much about this place.")
             }
+    }
+    
+    
+    @ViewBuilder
+    func recommendationWeightSheet(for selectedResult: CategoryResult) -> some View {
+        VStack(spacing: 20) {
+            Spacer()
+            Text(selectedResult.parentCategory)
+                .font(.headline)
+                .padding()
+            
+            Button(action: {
+                searchSavedViewModel.updateRating(for: selectedResult, rating: 0, cacheManager: cacheManager, modelController: modelController)
+                showAddRecommendationView = false
+            }) {
+                Label("Recommend rarely", systemImage: "circle.slash")
+                    .foregroundColor(.red)
+                    .frame(maxWidth: .infinity)
+            }.buttonStyle(.borderless)
+                .padding()
+            Button(action: {
+                searchSavedViewModel.updateRating(for: selectedResult, rating: 2, cacheManager: cacheManager, modelController: modelController)
+                showAddRecommendationView = false
+
+            }) {
+                Label("Recommend occasionally", systemImage: "circle")
+                    .foregroundColor(.accentColor)
+                    .frame(maxWidth: .infinity)
+            }.buttonStyle(.borderless)
+                .padding()
+            
+            Button(action: {
+                searchSavedViewModel.updateRating(for: selectedResult, rating: 3,  cacheManager: cacheManager, modelController: modelController)
+                showAddRecommendationView = false
+            }) {
+                Label("Recommend often", systemImage: "circle.fill")
+                    .foregroundColor(.green)
+                    .frame(maxWidth: .infinity)
+            }.buttonStyle(.borderless)
+                .padding()
+            Spacer()
+        }
     }
 }
 
