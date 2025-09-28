@@ -12,7 +12,7 @@ import NukeUI
 //import GoogleMobileAds
 
 struct PlacesList: View {
-    @Environment(\.horizontalSizeClass) var sizeClass
+    @Environment(\.verticalSizeClass) var sizeClass
     @Binding public var searchSavedViewModel:SearchSavedViewModel
     @Binding public var chatModel:ChatResultViewModel
     @Binding var cacheManager:CloudCacheManager
@@ -25,185 +25,203 @@ struct PlacesList: View {
         return retval
     }
     
-    var body: some View {
-        GeometryReader{ geometry in
-            List {
-                /*
-                 let adSize = GADCurrentOrientationAnchoredAdaptiveBannerAdSizeWithWidth(geometry.size.width)
-                 BannerView(adSize)
-                 .frame(height: adSize.size.height)
-                 */
-                if modelController.recommendedPlaceResults.count > 0 {
-                        let sizeWidth:CGFloat = sizeClass == .compact ? 1 : 4
+    @ViewBuilder
+    private func recommendedGrid(in geometry: GeometryProxy) -> some View {
+        let sizeWidth: CGFloat = (sizeClass == .compact) ? 1 : 2
+        let itemWidth: CGFloat = geometry.size.height / sizeWidth
+        let rows: [GridItem] = Array(
+            repeating: GridItem(.flexible(minimum: 0), spacing: 32, alignment: .topLeading),
+            count: 2
+        )
+        
+        ScrollView(.horizontal) {
+            LazyHGrid(rows: rows) {
+                ForEach(modelController.recommendedPlaceResults, id: \.id) { result in
+                    let ar: CGFloat = CGFloat(result.recommendedPlaceResponse?.aspectRatio ?? (3.0/4.0))
+                    let reservedHeight: CGFloat = itemWidth / ar
                     
-                    // Compute an approximate item width for this grid cell
-                    let itemWidth = geometry.size.width / sizeWidth - 32
-#if os(macOS) || os(visionOS)
-                        let columns = Array(repeating: GridItem(.adaptive(minimum: geometry.size.width / sizeWidth), spacing:16, alignment: .top),  count:Int(sizeWidth))
-#else
-                        let columns = Array(repeating: GridItem(.adaptive(minimum: geometry.size.width / sizeWidth),spacing:8, alignment: .top),  count:Int(sizeWidth))
-#endif
-                        LazyVGrid(columns: columns, alignment: .leading, spacing: 32) {
-                            ForEach(modelController.recommendedPlaceResults, id:\.id){ result in
-                                // Derive aspect ratio (fallback to 4:3 if missing)
-                                let ar = CGFloat(result.recommendedPlaceResponse?.aspectRatio ?? (4.0/3.0))
-
-                                let reservedHeight = itemWidth / ar
-
-                                VStack {
-                                    ZStack(alignment: .bottomLeading) {
-                                        
-                                        if let photo = result.recommendedPlaceResponse?.photo, !photo.isEmpty, let url = URL(string: photo) {
-                                            LazyImage(url: url) { state in
-                                                if let image = state.image {
-                                                    image
-                                                      .resizable()
-                                                      .aspectRatio(ar, contentMode: .fill)
-                                                      .frame(width: itemWidth, height: reservedHeight) // fixed size
-                                                      .clipped()
-                                                } else if state.error != nil {
-                                                    ZStack {
-                                                        Rectangle().fill(.secondary.opacity(0.15))
-                                                        Image(systemName: "photo")
-                                                            .font(.title2)
-                                                            .foregroundStyle(.secondary)
-                                                    }
-                                                    .frame(height: reservedHeight)
-                                                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-                                                } else {
-                                                    ZStack {
-                                                        Rectangle().fill(.secondary.opacity(0.10))
-                                                        ProgressView()
-                                                    }
-                                                    .frame(height: reservedHeight)
-                                                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-                                                }
-                                            }
-                                            .contentTransition(.opacity)
-                                            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-#if os(visionOS)
-                                            .hoverEffect(.lift)
-#endif
-                                            .onTapGesture {
-                                                if modelController.selectedPlaceChatResult == result.id {
-                                                    withAnimation {
-                                                        modelController.selectedPlaceChatResult = nil
-                                                    }
-                                                    DispatchQueue.main.async{
-                                                        withAnimation {
-                                                            modelController.selectedPlaceChatResult = result.id
-                                                        }
-                                                    }
-                                                } else {
-                                                    if let placeChatResult = modelController.placeChatResult(for: result.id), placeChatResult.placeDetailsResponse == nil {
-                                                        modelController.isRefreshingPlaces = true
-                                                        modelController.fetchMessage = "Fetching Place Details"
-                                                        Task(priority:.userInitiated) {
-                                                            try await chatModel.didTap(placeChatResult: placeChatResult, filters:searchSavedViewModel.filters, cacheManager: cacheManager, modelController: modelController)
-                                                            await MainActor.run {
-                                                                modelController.isRefreshingPlaces = false
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        } else {
-                                            // Reserve space immediately to prevent reflow when image loads
-                                            Color.clear
-                                                .frame(height: reservedHeight)
-                                                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    HStack {
+                        ZStack(alignment: .bottomLeading) {
+                            if let photo = result.recommendedPlaceResponse?.photo, !photo.isEmpty, let url = URL(string: photo) {
+                                LazyImage(url: url) { state in
+                                    if let image = state.image {
+                                        image
+                                            .resizable()
+                                            .aspectRatio(ar, contentMode: .fill)
+                                            .frame(width: reservedHeight, height: itemWidth)
+                                            .clipped()
+                                    } else if state.error != nil {
+                                        ZStack {
+                                            Rectangle().fill(.secondary.opacity(0.15))
+                                            Image(systemName: "photo")
+                                                .font(.title2)
+                                                .foregroundStyle(.secondary)
                                         }
-                                        VStack(alignment: .leading) {
-                                            if let neighborhood = result.recommendedPlaceResponse?.neighborhood, !neighborhood.isEmpty {
-                                                Text(result.title).bold()
-                                                Text(neighborhood).italic()
-                                            } else{
-                                                Text(result.title).bold()
-                                            }
-                                            if let placeResponse = result.recommendedPlaceResponse, !placeResponse.address.isEmpty {
-                                                Text(placeResponse.address)
-                                                Text(placeResponse.city)
-                                            }
+                                        .frame(width: reservedHeight)
+                                        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                                    } else {
+                                        ZStack {
+                                            Rectangle().fill(.secondary.opacity(0.10))
+                                            ProgressView()
                                         }
-                                        .padding(.horizontal, 12)
-                                        .padding(.vertical, 12)
-                                        #if !os(visionOS)
-                                        .glassEffect(.regular, in:.rect(cornerRadius: 16))
-                                        #endif
-                                        .padding(8)
+                                        .frame(width: reservedHeight)
+                                        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                                     }
-                                    .frame(width: itemWidth, height: reservedHeight) // fix container size
-                                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                            .strokeBorder(.separator, lineWidth: 1)
-                                    )
-                                    .contentShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                                 }
-                                .gridCellAnchor(.top)
-                                Divider()
-                            }
-                        }
-                        .animation(.snappy(duration: 0.35), value: modelController.recommendedPlaceResults)
-                        .listRowBackground(Color.clear)
-                } else if modelController.placeResults.count > 0 {
-                        let sizeWidth:CGFloat = sizeClass == .compact ? 1 : 4
-#if os(macOS) || os(visionOS)
-                        let columns = Array(repeating: GridItem(.adaptive(minimum: geometry.size.width / sizeWidth)),  count:Int(sizeWidth))
-#else
-                        let columns = Array(repeating: GridItem(.adaptive(minimum: geometry.size.width / sizeWidth)),  count:Int(sizeWidth))
-#endif
-                        LazyVGrid(columns: columns, alignment: .leading, spacing: 8) {
-                            ForEach(modelController.filteredPlaceResults) { result in
-                                    VStack(alignment: .leading) {
-                                        Text(result.title).bold()
-                                        if let placeResponse = result.placeResponse, !placeResponse.formattedAddress.isEmpty {
-                                            Text(placeResponse.formattedAddress)
-                                        }
-                                    }.padding()
-                                        .contentTransition(.opacity)
-                                
-#if !os(visionOS)
-.glassEffect()
-#endif
+                                .contentTransition(.opacity)
                                 .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                        .strokeBorder(.separator, lineWidth: 1)
-                                )
 #if os(visionOS)
                                 .hoverEffect(.lift)
 #endif
                                 .onTapGesture {
-                                    if let placeChatResult = modelController.placeChatResult(for: result.id), placeChatResult.placeDetailsResponse == nil {
-                                        modelController.isRefreshingPlaces = true
-                                        modelController.fetchMessage = "Fetching Place Details"
-                                        Task(priority:.userInitiated) {
-                                            try await chatModel.didTap(placeChatResult: placeChatResult, filters:searchSavedViewModel.filters, cacheManager: cacheManager, modelController: modelController)
-                                            await MainActor.run {
-                                                modelController.isRefreshingPlaces = false
+                                    if modelController.selectedPlaceChatResult == result.id {
+                                        withAnimation {
+                                            modelController.selectedPlaceChatResult = nil
+                                        }
+                                        DispatchQueue.main.async {
+                                            withAnimation {
+                                                modelController.selectedPlaceChatResult = result.id
+                                            }
+                                        }
+                                    } else {
+                                        if let placeChatResult = modelController.placeChatResult(for: result.id), placeChatResult.placeDetailsResponse == nil {
+                                            modelController.isRefreshingPlaces = true
+                                            modelController.fetchMessage = "Fetching Place Details"
+                                            Task(priority: .userInitiated) {
+                                                try await chatModel.didTap(placeChatResult: placeChatResult, filters: searchSavedViewModel.filters, cacheManager: cacheManager, modelController: modelController)
+                                                await MainActor.run {
+                                                    modelController.isRefreshingPlaces = false
+                                                }
                                             }
                                         }
                                     }
                                 }
+                            } else {
+                                Color.clear
+                                    .frame(width: reservedHeight)
+                                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                            }
+                            
+                            VStack(alignment: .leading) {
+                                if let neighborhood = result.recommendedPlaceResponse?.neighborhood, !neighborhood.isEmpty {
+                                    Text(result.title).bold()
+                                    Text(neighborhood).italic()
+                                } else {
+                                    Text(result.title).bold()
+                                }
+                                if let placeResponse = result.recommendedPlaceResponse, !placeResponse.address.isEmpty {
+                                    Text(placeResponse.address)
+                                    Text(placeResponse.city)
+                                }
+                            }
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 12)
+#if !os(visionOS)
+                            .glassEffect(.regular, in: .rect(cornerRadius: 32))
+#endif
+                            .padding(8)
+                        }
+                        .frame(width: reservedHeight, height: itemWidth)
+                        .clipShape(RoundedRectangle(cornerRadius: 32, style: .continuous))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 32, style: .continuous)
+                                .strokeBorder(.separator, lineWidth: 1)
+                        )
+                        .contentShape(RoundedRectangle(cornerRadius: 32, style: .continuous))
+                        .gridCellAnchor(.top)
+
+                    }
+                    .animation(.snappy(duration: 0.35), value: modelController.recommendedPlaceResults)
+                    .listRowBackground(Color.clear)
+                    .listStyle(.plain)
+
+                }
+                .scrollContentBackground(.hidden)
+                    .background(Color.clear)
+
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private func placeResultsGrid(in geometry: GeometryProxy) -> some View {
+        let sizeWidth: CGFloat = (sizeClass == .compact) ? 1 : 2
+#if os(macOS) || os(visionOS)
+        let columns: [GridItem] = Array(repeating: GridItem(.adaptive(minimum: geometry.size.width / sizeWidth)), count: Int(sizeWidth))
+#else
+        let columns: [GridItem] = Array(repeating: GridItem(.adaptive(minimum: geometry.size.height / sizeWidth)), count: Int(sizeWidth))
+#endif
+        
+        ScrollView(.horizontal) {
+            LazyHGrid(rows: columns, alignment: .center, spacing: 32) {
+                ForEach(modelController.filteredPlaceResults) { result in
+                    VStack(alignment: .leading) {
+                        Text(result.title).bold()
+                        if let placeResponse = result.placeResponse, !placeResponse.formattedAddress.isEmpty {
+                            Text(placeResponse.formattedAddress)
+                        }
+                    }
+                    .padding()
+                    .contentTransition(.opacity)
+#if !os(visionOS)
+                    .glassEffect()
+#endif
+                    .clipShape(RoundedRectangle(cornerRadius: 32, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 32, style: .continuous)
+                            .strokeBorder(.separator, lineWidth: 1)
+                    )
+#if os(visionOS)
+                    .hoverEffect(.lift)
+#endif
+                    .onTapGesture {
+                        if let placeChatResult = modelController.placeChatResult(for: result.id), placeChatResult.placeDetailsResponse == nil {
+                            modelController.isRefreshingPlaces = true
+                            modelController.fetchMessage = "Fetching Place Details"
+                            Task(priority: .userInitiated) {
+                                try await chatModel.didTap(placeChatResult: placeChatResult, filters: searchSavedViewModel.filters, cacheManager: cacheManager, modelController: modelController)
+                                await MainActor.run {
+                                    modelController.isRefreshingPlaces = false
+                                }
                             }
                         }
-                        .animation(.snappy(duration: 0.35), value: modelController.filteredPlaceResults)
-                        .listRowBackground(Color.clear)
-                } else {
-                    if !modelController.queryParametersHistory.isEmpty {
-                        HStack(alignment: .center) {
-                            if let selectedDestinationLocationChatResult = modelController.selectedDestinationLocationChatResult, let locationChatResult = modelController.locationChatResult(for: selectedDestinationLocationChatResult, in: modelController.filteredLocationResults(cacheManager: cacheManager)) {
-                                Text("Searching near \(locationChatResult.locationName)")
-                            }
-                        }
-                        .listRowBackground(Color.clear)
+                    }
+                    .animation(.snappy(duration: 0.35), value: modelController.filteredPlaceResults)
+                    .listRowBackground(Color.clear)
+                    .listStyle(.plain)
+
+                }
+                .scrollContentBackground(.hidden)
+                .background(Color.clear)
+            }
+        }
+    }
+    
+    var body: some View {
+        GeometryReader{ geometry in
+            /*
+             let adSize = GADCurrentOrientationAnchoredAdaptiveBannerAdSizeWithWidth(geometry.size.width)
+             BannerView(adSize)
+             .frame(height: adSize.size.height)
+             */
+            if modelController.recommendedPlaceResults.count > 0 {
+                recommendedGrid(in: geometry)
+                    .padding(.leading, 32)
+            } else if modelController.placeResults.count > 0 {
+                placeResultsGrid(in: geometry)
+                    .padding(.leading, 32)
+            } else if !modelController.queryParametersHistory.isEmpty {
+                ZStack(alignment: .center) {
+                    if let selectedDestinationLocationChatResult = modelController.selectedDestinationLocationChatResult, let locationChatResult = modelController.locationChatResult(for: selectedDestinationLocationChatResult, in: modelController.filteredLocationResults(cacheManager: cacheManager)) {
+                        Text("Searching near \(locationChatResult.locationName)")
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .font(.headline)
                     }
                 }
             }
-            .listStyle(.plain)
-            .scrollContentBackground(.hidden)
-            .background(Color.clear)
+            else {
+                EmptyView()
+            }
         }
     }
 }

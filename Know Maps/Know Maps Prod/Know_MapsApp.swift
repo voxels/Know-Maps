@@ -120,7 +120,7 @@ struct Know_MapsApp: App {
                             Spacer()
                             let cacheFetchProgress = max(cacheManager.cacheFetchProgress, 0)
                             ProgressView(value: cacheFetchProgress) {
-                                Text("iCloud Login in progress...")
+                                Text("Login in progress...")
                             }
                                 .frame(maxWidth:geometry.size.width / 2)
                                 .padding()
@@ -131,7 +131,7 @@ struct Know_MapsApp: App {
                                     await startApp()
                                 }
                             } label: {
-                                Label("Reload", systemImage: "arrow.clockwise")
+                                Label(isStartingApp ? "Synchronizing" : "Synchronize", systemImage: isStartingApp ? "icloud.fill" : "icloud")
                                     .labelStyle(.titleAndIcon)
                             }.disabled(isStartingApp)
                             
