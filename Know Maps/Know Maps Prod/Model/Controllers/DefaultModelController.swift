@@ -7,6 +7,7 @@
 
 import SwiftUI
 import CoreLocation
+import AVFoundation
 
 @Observable
 public final class DefaultModelController : ModelController {
@@ -21,6 +22,7 @@ public final class DefaultModelController : ModelController {
     public let placeSearchService: PlaceSearchService
     public let analyticsManager: AnalyticsService
     public let recommenderService:RecommenderService
+    public let supabaseService:SupabaseService
     
     // MARK: - Published Properties
     
@@ -55,6 +57,8 @@ public final class DefaultModelController : ModelController {
     private var fetchingPlaceID: ChatResult.ID?
     private var sessionRetryCount: Int = 0
     
+    private var player:AVPlayer?
+    
     // MARK: - Initializer
     
     public init(
@@ -69,6 +73,7 @@ public final class DefaultModelController : ModelController {
         self.placeSearchService = DefaultPlaceSearchService(assistiveHostDelegate: assistiveHostDelegate, placeSearchSession: PlaceSearchSession(), personalizedSearchSession: PersonalizedSearchSession(), analyticsManager: analyticsManager)
         self.locationService = DefaultLocationService(locationProvider: locationProvider)
         self.recommenderService = DefaultRecommenderService()
+        self.supabaseService = SupabaseService.shared
     }
     
     public func resetPlaceModel() async {
@@ -80,6 +85,92 @@ public final class DefaultModelController : ModelController {
         }
         analyticsManager.track(event:"resetPlaceModel", properties: nil)
     }
+    
+    func poiModel() async {
+        do {
+            let pois = try await SupabaseService.shared.fetchPOIs()
+            if let firstPOI = pois.first {
+                guard let audioPath = firstPOI.audio_path else { return }
+                print("First POI audio path: \(audioPath)")
+                print("Downloading audio from: \(audioPath)")
+                let audioData = try await SupabaseService.shared.downloadAudio(at: audioPath)
+                print("Ready to play \(audioData)")
+                await play(audioPathURL: audioData)
+        }
+        } catch {
+            print("Error: \(error)")
+        }
+    }
+    
+    // Call this once early (e.g., on first playback attempt or app launch)
+    @MainActor
+    func configureAudioSession() throws {
+        let session = AVAudioSession.sharedInstance()
+        // Use .playback for spoken content if you want to play even with the silent switch on.
+        // .duckOthers lets you reduce other audio instead of failing if exclusive.
+        try session.setCategory(.playback, mode: .default, options: [.duckOthers])
+        try session.setActive(true, options: [])
+    }
+    
+    @MainActor
+        func play(audioPathURL: URL) async {
+          do {
+              try configureAudioSession()
+            let item = AVPlayerItem(url: audioPathURL)
+              player = AVPlayer(playerItem: item)
+            player?.play()
+          } catch {
+            print("Failed to play audio: \(error)")
+          }
+        }
+    
+    
+    
+    @MainActor
+    func stop() {
+      player?.pause()
+      player = nil
+    }
+    
+    func startObservingAudioSession() {
+        NotificationCenter.default.addObserver(
+            forName: AVAudioSession.interruptionNotification,
+            object: AVAudioSession.sharedInstance(),
+            queue: .main
+        ) { [weak self] notification in
+            guard let self else { return }
+            guard let userInfo = notification.userInfo,
+                  let typeValue = userInfo[AVAudioSessionInterruptionTypeKey] as? UInt,
+                  let type = AVAudioSession.InterruptionType(rawValue: typeValue) else { return }
+
+            switch type {
+            case .began:
+                self.player?.pause()
+            case .ended:
+                // Optionally check if should resume
+                if let optionsValue = userInfo[AVAudioSessionInterruptionOptionKey] as? UInt {
+                    let options = AVAudioSession.InterruptionOptions(rawValue: optionsValue)
+                    if options.contains(.shouldResume) {
+                        self.player?.play()
+                    }
+                }
+            @unknown default:
+                break
+            }
+        }
+
+        NotificationCenter.default.addObserver(
+            forName: AVAudioSession.routeChangeNotification,
+            object: AVAudioSession.sharedInstance(),
+            queue: .main
+        ) { [weak self] notification in
+            // Inspect route changes if playback stops unexpectedly
+//            let route = AVAudioSession.sharedInstance().currentRoute
+//            print("Route changed: \(route.outputs.map { $0.portType.rawValue }.joined(separator: \", \"))")
+            // You might choose to resume or reconfigure here if needed
+        }
+    }
+
     
     public func categoricalSearchModel() async {
         let blendedResults =  categoricalResults()

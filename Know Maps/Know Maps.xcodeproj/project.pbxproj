@@ -109,6 +109,13 @@
 		1EFFBAA92E8278020088882B /* generating_loop_0.wav in Resources */ = {isa = PBXBuildFile; fileRef = 1EFFBA9D2E8278020088882B /* generating_loop_0.wav */; };
 		1EFFBAAA2E8278020088882B /* generating_loop_2.wav in Resources */ = {isa = PBXBuildFile; fileRef = 1EFFBA9F2E8278020088882B /* generating_loop_2.wav */; };
 		1EFFBAAB2E8278020088882B /* generating_loop_1.wav in Resources */ = {isa = PBXBuildFile; fileRef = 1EFFBA9E2E8278020088882B /* generating_loop_1.wav */; };
+		1EFFBB2B2E83EA510088882B /* SupabaseService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EFFBB2A2E83EA510088882B /* SupabaseService.swift */; };
+		1EFFBB2E2E83EAA90088882B /* Auth in Frameworks */ = {isa = PBXBuildFile; productRef = 1EFFBB2D2E83EAA90088882B /* Auth */; };
+		1EFFBB302E83EAA90088882B /* Functions in Frameworks */ = {isa = PBXBuildFile; productRef = 1EFFBB2F2E83EAA90088882B /* Functions */; };
+		1EFFBB322E83EAA90088882B /* PostgREST in Frameworks */ = {isa = PBXBuildFile; productRef = 1EFFBB312E83EAA90088882B /* PostgREST */; };
+		1EFFBB342E83EAA90088882B /* Realtime in Frameworks */ = {isa = PBXBuildFile; productRef = 1EFFBB332E83EAA90088882B /* Realtime */; };
+		1EFFBB362E83EAA90088882B /* Storage in Frameworks */ = {isa = PBXBuildFile; productRef = 1EFFBB352E83EAA90088882B /* Storage */; };
+		1EFFBB382E83EAA90088882B /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 1EFFBB372E83EAA90088882B /* Supabase */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -246,6 +253,7 @@
 		1EFFBAA12E8278020088882B /* generating_loop_4.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = generating_loop_4.wav; sourceTree = "<group>"; };
 		1EFFBAA22E8278020088882B /* PLAY_fixed.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = PLAY_fixed.wav; sourceTree = "<group>"; };
 		1EFFBAA32E8278020088882B /* THINKING.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = THINKING.wav; sourceTree = "<group>"; };
+		1EFFBB2A2E83EA510088882B /* SupabaseService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseService.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -258,8 +266,14 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1EFFBB342E83EAA90088882B /* Realtime in Frameworks */,
+				1EFFBB322E83EAA90088882B /* PostgREST in Frameworks */,
+				1EFFBB302E83EAA90088882B /* Functions in Frameworks */,
 				1E1E310F2CC1954F00A23434 /* NukeUI in Frameworks */,
+				1EFFBB362E83EAA90088882B /* Storage in Frameworks */,
+				1EFFBB382E83EAA90088882B /* Supabase in Frameworks */,
 				1E213E172CAD81F600B93697 /* Segment in Frameworks */,
+				1EFFBB2E2E83EAA90088882B /* Auth in Frameworks */,
 				1E1E310D2CC1954F00A23434 /* Nuke in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -363,8 +377,8 @@
 		1E98C7DA2B18E15600283E92 /* Controllers */ = {
 			isa = PBXGroup;
 			children = (
-				1E3FE0542CB852000020B3CB /* AppShortcuts.swift */,
 				1E583F7C2B1671F300B2EC26 /* AppleAuthenticationService.swift */,
+				1E3FE0542CB852000020B3CB /* AppShortcuts.swift */,
 				1EA7F7952B052DE4002AE371 /* AssistiveChatHostService.swift */,
 				1E007ACB2CB4089400A8DC5A /* CloudCacheManager.swift */,
 				1E7D43582CB4658800DC17FA /* DefaultLocationService.swift */,
@@ -379,6 +393,7 @@
 				1EA7F7992B052E0C002AE371 /* LocalMapsQueryTagger.mlmodel */,
 				1E3FE0132CB6C6B60020B3CB /* DefaultRecommenderService.swift */,
 				1E007ACD2CB40B1900A8DC5A /* SegmentAnalyticsService.swift */,
+				1EFFBB2A2E83EA510088882B /* SupabaseService.swift */,
 			);
 			path = Controllers;
 			sourceTree = "<group>";
@@ -525,6 +540,12 @@
 				1E213E162CAD81F600B93697 /* Segment */,
 				1E1E310C2CC1954F00A23434 /* Nuke */,
 				1E1E310E2CC1954F00A23434 /* NukeUI */,
+				1EFFBB2D2E83EAA90088882B /* Auth */,
+				1EFFBB2F2E83EAA90088882B /* Functions */,
+				1EFFBB312E83EAA90088882B /* PostgREST */,
+				1EFFBB332E83EAA90088882B /* Realtime */,
+				1EFFBB352E83EAA90088882B /* Storage */,
+				1EFFBB372E83EAA90088882B /* Supabase */,
 			);
 			productName = "Know Maps Prod";
 			productReference = 1E095AF82B778AEF00147119 /* Know Maps.app */;
@@ -628,6 +649,7 @@
 			packageReferences = (
 				1E213E152CAD81F600B93697 /* XCRemoteSwiftPackageReference "analytics-swift" */,
 				1E1E310B2CC1954F00A23434 /* XCRemoteSwiftPackageReference "Nuke" */,
+				1EFFBB2C2E83EAA90088882B /* XCRemoteSwiftPackageReference "supabase-swift" */,
 			);
 			productRefGroup = 1EA7F7462B03FA70002AE371 /* Products */;
 			projectDirPath = "";
@@ -735,6 +757,7 @@
 				1E007ACC2CB4089700A8DC5A /* CloudCacheManager.swift in Sources */,
 				1EF378FE2C986EE7001C5E39 /* RecommendedPlaceSearchRequest.swift in Sources */,
 				1EF378FF2C986EE7001C5E39 /* RecommendedPlaceSearchResponse.swift in Sources */,
+				1EFFBB2B2E83EA510088882B /* SupabaseService.swift in Sources */,
 				1E6944542CBA780A0017A81F /* AddCategoryView.swift in Sources */,
 				1EF379002C986EE7001C5E39 /* AssistiveChatHost.swift in Sources */,
 				1EF379022C986EE7001C5E39 /* AssistiveChatHostStreamResponseDelegate.swift in Sources */,
@@ -1243,6 +1266,14 @@
 				minimumVersion = 1.6.1;
 			};
 		};
+		1EFFBB2C2E83EAA90088882B /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/supabase/supabase-swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.5.1;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -1260,6 +1291,36 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 1E213E152CAD81F600B93697 /* XCRemoteSwiftPackageReference "analytics-swift" */;
 			productName = Segment;
+		};
+		1EFFBB2D2E83EAA90088882B /* Auth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 1EFFBB2C2E83EAA90088882B /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Auth;
+		};
+		1EFFBB2F2E83EAA90088882B /* Functions */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 1EFFBB2C2E83EAA90088882B /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Functions;
+		};
+		1EFFBB312E83EAA90088882B /* PostgREST */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 1EFFBB2C2E83EAA90088882B /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = PostgREST;
+		};
+		1EFFBB332E83EAA90088882B /* Realtime */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 1EFFBB2C2E83EAA90088882B /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Realtime;
+		};
+		1EFFBB352E83EAA90088882B /* Storage */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 1EFFBB2C2E83EAA90088882B /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Storage;
+		};
+		1EFFBB372E83EAA90088882B /* Supabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 1EFFBB2C2E83EAA90088882B /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Supabase;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
