@@ -38,6 +38,7 @@ public final class DefaultModelController : ModelController {
     public var fetchMessage:String = ""
     
     // TabView
+    public var section:Int = 0
     public var addItemSection:Int = 0
     
     // Results

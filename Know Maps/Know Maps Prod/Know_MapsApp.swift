@@ -57,7 +57,7 @@ struct Know_MapsApp: App {
     @State private var showReload:Bool = false
     @State private var showOnboarding:Bool = true
     @State private var showSplashScreen:Bool = true
-    @State private var isStoryrabbitEnabled:Bool = true
+    @State private var isStoryrabbitEnabled:Bool = false
 
     
     init() {
