@@ -22,7 +22,7 @@ public final class DefaultLocationService: LocationService {
         return try await lookUpLocation( locationProvider.currentLocation()).first?.name
     }
     
-    public func currentLocation() -> CLLocation? {
+    public func currentLocation() -> CLLocation {
         return locationProvider.currentLocation()
     }
     
