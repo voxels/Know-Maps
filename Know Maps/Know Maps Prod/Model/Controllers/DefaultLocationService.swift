@@ -19,10 +19,7 @@ public final class DefaultLocationService: LocationService {
     }
     
     public func currentLocationName() async throws -> String? {
-        if let location = locationProvider.currentLocation() {
-            return try await lookUpLocation(location).first?.name
-        }
-        return nil
+        return try await lookUpLocation( locationProvider.currentLocation()).first?.name
     }
     
     public func currentLocation() -> CLLocation? {

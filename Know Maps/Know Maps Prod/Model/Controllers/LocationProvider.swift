@@ -44,7 +44,7 @@ public final class LocationProvider : NSObject, Sendable  {
 #endif
     }
     
-    public func currentLocation()->CLLocation? {
+    public func currentLocation()->CLLocation {
 #if os(visionOS) || os(iOS)
         if locationManager.authorizationStatus != .authorizedWhenInUse {
             authorize()
@@ -57,7 +57,7 @@ public final class LocationProvider : NSObject, Sendable  {
 #endif
         locationManager.delegate = self
         locationManager.requestLocation()
-        return locationManager.location
+        return locationManager.location ?? CLLocation.init(latitude:37.333562 , longitude:-122.004927)
     }
     
     

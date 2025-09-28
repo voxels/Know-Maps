@@ -328,11 +328,11 @@ struct Know_MapsApp: App {
         let cloudAuth = !authenticationModel.appleUserId.isEmpty
         
         let isLocationAuthorized = modelController.locationProvider.isAuthorized()
-        
-        if isLocationAuthorized, let location = modelController.locationProvider.currentLocation() {
+        if isLocationAuthorized  {
             await MainActor.run {
-                modelController.currentLocationResult.replaceLocation(with: location, name: "Current Location")
-                modelController.selectedDestinationLocationChatResult = modelController.currentLocationResult.id
+                let location = modelController.locationProvider.currentLocation()
+                modelController.currentlySelectedLocationResult.replaceLocation(with: location, name: "Current Location")
+                modelController.selectedDestinationLocationChatResult = modelController.currentlySelectedLocationResult.id
             }
         }
         

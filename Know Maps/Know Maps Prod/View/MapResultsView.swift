@@ -41,7 +41,7 @@ struct MapResultsView: View {
                 if let newLocation = newValue {
                     updateCamera(for: newLocation)
                 } else {
-                    updateCamera(for: modelController.currentLocationResult.id)
+                    updateCamera(for: modelController.currentlySelectedLocationResult.id)
                 }
             }
         }

@@ -43,7 +43,7 @@ public protocol ModelController : Sendable {
     var recommendedPlaceResults:[ChatResult] { get set }
     var relatedPlaceResults:[ChatResult] { get set }
     var locationResults:[LocationResult] { get set }
-    var currentLocationResult:LocationResult { get set }
+    var currentlySelectedLocationResult:LocationResult { get set }
     
     var queryParametersHistory:[AssistiveChatHostQueryParameters] { get set }
     

@@ -30,7 +30,7 @@ struct SearchView: View {
                     
                     await modelController.resetPlaceModel()
                     if let cachedResult = modelController.cachedChatResult(for: newValue, cacheManager: cacheManager) {
-                        await chatModel.didTap(chatResult: cachedResult,  selectedDestinationChatResultID: modelController.selectedDestinationLocationChatResult ?? modelController.currentLocationResult.id, filters: searchSavedViewModel.filters, cacheManager: cacheManager, modelController: modelController)
+                        await chatModel.didTap(chatResult: cachedResult,  selectedDestinationChatResultID: modelController.selectedDestinationLocationChatResult ?? modelController.currentlySelectedLocationResult.id, filters: searchSavedViewModel.filters, cacheManager: cacheManager, modelController: modelController)
                     }
                     await MainActor.run {
                         modelController.isRefreshingPlaces = false

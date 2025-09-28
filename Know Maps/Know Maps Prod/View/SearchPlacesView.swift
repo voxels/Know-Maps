@@ -63,7 +63,7 @@ struct SearchPlacesView: View {
         .onSubmit(of: .search, {
             if !searchText.isEmpty{
                 Task(priority:.userInitiated) {
-                    await searchSavedViewModel.search(caption: searchText, selectedDestinationChatResultID: modelController.selectedDestinationLocationChatResult ?? modelController.currentLocationResult.id, intent: .AutocompletePlaceSearch, filters: searchSavedViewModel.filters, chatModel: chatModel, cacheManager: cacheManager, modelController: modelController)
+                    await searchSavedViewModel.search(caption: searchText, selectedDestinationChatResultID: modelController.selectedDestinationLocationChatResult ?? modelController.currentlySelectedLocationResult.id, intent: .AutocompletePlaceSearch, filters: searchSavedViewModel.filters, chatModel: chatModel, cacheManager: cacheManager, modelController: modelController)
                 }
             }
         })

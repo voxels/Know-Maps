@@ -56,7 +56,7 @@ struct ShowMoodResultsIntent: AppIntent {
         }
 
         if let savedResult = modelController.selectedSavedResult, let chatResult = modelController.cachedChatResult(for:savedResult, cacheManager: cacheManager) {
-            await chatModel.didTap(chatResult:chatResult, selectedDestinationChatResultID: modelController.selectedDestinationLocationChatResult ?? modelController.currentLocationResult.id, filters: [:], cacheManager: cacheManager, modelController: modelController)
+            await chatModel.didTap(chatResult:chatResult, selectedDestinationChatResultID: modelController.selectedDestinationLocationChatResult ?? modelController.currentlySelectedLocationResult.id, filters: [:], cacheManager: cacheManager, modelController: modelController)
         }
         
         

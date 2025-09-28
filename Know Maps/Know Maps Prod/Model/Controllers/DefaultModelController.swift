@@ -49,7 +49,7 @@ public final class DefaultModelController : ModelController {
     public var recommendedPlaceResults = [ChatResult]()
     public var relatedPlaceResults = [ChatResult]()
     public var locationResults = [LocationResult]()
-    public var currentLocationResult:LocationResult = LocationResult(locationName: "Current Location", location: nil)
+    public var currentlySelectedLocationResult:LocationResult = LocationResult(locationName: "Current Location", location:CLLocation(latitude: 37.333562, longitude:-122.004927))
     
     
     // MARK: - Private Properties
@@ -242,7 +242,7 @@ public final class DefaultModelController : ModelController {
     
     public func filteredLocationResults(cacheManager:CacheManager) -> [LocationResult] {
         var results = [LocationResult]()
-        results.append(currentLocationResult)
+        results.append(currentlySelectedLocationResult)
         results.append(contentsOf: cacheManager.cachedLocationResults)
         results.append(contentsOf: locationResults.filter({ result in
             !cacheManager.cachedLocationResults.contains(where: { $0.locationName.lowercased() == result.locationName.lowercased() })
@@ -403,7 +403,7 @@ public final class DefaultModelController : ModelController {
                 selectedPlaceSearchResponse: nil,
                 selectedPlaceSearchDetails: nil,
                 placeSearchResponses: [],
-                selectedDestinationLocationID: location?.selectedDestinationLocationID ?? currentLocationResult.id,
+                selectedDestinationLocationID: location?.selectedDestinationLocationID ?? currentlySelectedLocationResult.id,
                 placeDetailsResponses: nil,
                 queryParameters: queryParameters
             )
@@ -1008,7 +1008,7 @@ public final class DefaultModelController : ModelController {
             if let destinationChatResult = selectedDestinationChatResult, let _ = locationChatResult(for: destinationChatResult, in: locationResults) {
                 
             } else if let lastIntent = assistiveHostDelegate.queryIntentParameters.queryIntents.last  {
-                let locationChatResult = locationChatResult(for: lastIntent.selectedDestinationLocationID ?? currentLocationResult.id, in:filteredLocationResults(cacheManager: cacheManager))
+                let locationChatResult = locationChatResult(for: lastIntent.selectedDestinationLocationID ?? currentlySelectedLocationResult.id, in:filteredLocationResults(cacheManager: cacheManager))
                 selectedDestinationChatResult = locationChatResult?.id
                 await MainActor.run {
                     selectedDestinationLocationChatResult = locationChatResult?.id
@@ -1019,7 +1019,7 @@ public final class DefaultModelController : ModelController {
         }
         
         if let lastIntent = queryParametersHistory.last?.queryIntents.last, lastIntent.intent != .Location {
-            let locationChatResult =  locationChatResult(for: selectedDestinationChatResult ?? currentLocationResult.id, in:filteredLocationResults(cacheManager: cacheManager))
+            let locationChatResult =  locationChatResult(for: selectedDestinationChatResult ?? currentlySelectedLocationResult.id, in:filteredLocationResults(cacheManager: cacheManager))
             
             try await receiveMessage(caption: caption, parameters: parameters, isLocalParticipant: isLocalParticipant)
             try await searchIntent(intent: lastIntent, location: locationChatResult?.location, cacheManager: cacheManager)
@@ -1057,7 +1057,7 @@ public final class DefaultModelController : ModelController {
         if let lastHistory = history.last, let lastIntent = lastHistory.queryIntents.dropLast().last {
             await assistiveHostDelegate.updateLastIntentParameters(intent: lastIntent, modelController: self)
             try await receiveMessage(caption: lastIntent.caption, parameters: lastHistory, isLocalParticipant: true)
-            try await searchIntent(intent: lastIntent, location: locationChatResult(for: selectedDestinationLocationChatResult ?? currentLocationResult.id, in: filteredLocationResults(cacheManager: cacheManager))?.location, cacheManager: cacheManager )
+            try await searchIntent(intent: lastIntent, location: locationChatResult(for: selectedDestinationLocationChatResult ?? currentlySelectedLocationResult.id, in: filteredLocationResults(cacheManager: cacheManager))?.location, cacheManager: cacheManager )
                 try await didUpdateQuery(with: lastIntent.caption, parameters: lastHistory, filters: filters, cacheManager: cacheManager)
             }
     }

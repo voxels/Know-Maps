@@ -52,7 +52,7 @@ struct NavigationLocationView: View {
             .mapStyle(.standard)
             .cornerRadius(10)
             .task {
-                let selectedResult = modelController.currentLocationResult
+                let selectedResult = modelController.currentlySelectedLocationResult
                 if let location = selectedResult.location {
                     cameraPosition = MapCameraPosition.camera(MapCamera(centerCoordinate: location.coordinate, distance: distanceFilterValue * 1000))
                 } else {
@@ -63,7 +63,7 @@ struct NavigationLocationView: View {
                 if let newLocation = newValue {
                     updateCamera(for: newLocation)
                 } else {
-                    updateCamera(for: modelController.currentLocationResult.id)
+                    updateCamera(for: modelController.currentlySelectedLocationResult.id)
                 }
             }
             .onChange(of: distanceFilterValue) { oldValue, newValue in
