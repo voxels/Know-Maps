@@ -30,7 +30,9 @@ struct StoryRabbitView: View {
                             ProgressView()
                                 .progressViewStyle(.automatic)
                                 .padding(16)
-                                .glassEffect()
+#if !os(visionOS)
+    .glassEffect()
+#endif
                         }
                     case .playing:
                         HStack(alignment: .center) {

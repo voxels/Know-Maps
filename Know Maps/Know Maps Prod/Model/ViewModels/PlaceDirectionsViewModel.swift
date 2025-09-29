@@ -7,6 +7,7 @@
 
 import SwiftUI
 import MapKit
+import Combine
 
 public class PlaceDirectionsViewModel : ObservableObject {
     @Published var lookAroundScene: MKLookAroundScene?

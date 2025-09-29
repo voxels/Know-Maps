@@ -37,7 +37,7 @@ struct PlacesList: View {
         ScrollView(.horizontal) {
             LazyHGrid(rows: rows) {
                 ForEach(modelController.recommendedPlaceResults, id: \.id) { result in
-                    let ar: CGFloat = CGFloat(result.recommendedPlaceResponse?.aspectRatio ?? (3.0/4.0))
+                    let ar: CGFloat = CGFloat(result.recommendedPlaceResponse?.aspectRatio ?? (4.0/3.0))
                     let reservedHeight: CGFloat = itemWidth / ar
                     
                     HStack {
@@ -104,7 +104,7 @@ struct PlacesList: View {
                                     .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                             }
                             
-                            VStack(alignment: .leading) {
+                            VStack(alignment: .leading, spacing:8) {
                                 if let neighborhood = result.recommendedPlaceResponse?.neighborhood, !neighborhood.isEmpty {
                                     Text(result.title).bold()
                                     Text(neighborhood).italic()
@@ -116,14 +116,12 @@ struct PlacesList: View {
                                     Text(placeResponse.city)
                                 }
                             }
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 12)
+                            .padding(16)
 #if !os(visionOS)
                             .glassEffect(.regular, in: .rect(cornerRadius: 32))
+                            .padding(16)
 #endif
-                            .padding(8)
                         }
-                        .frame(width: reservedHeight, height: itemWidth)
                         .clipShape(RoundedRectangle(cornerRadius: 32, style: .continuous))
                         .overlay(
                             RoundedRectangle(cornerRadius: 32, style: .continuous)
@@ -140,7 +138,6 @@ struct PlacesList: View {
                 }
                 .scrollContentBackground(.hidden)
                     .background(Color.clear)
-
             }
         }
     }
@@ -208,10 +205,8 @@ struct PlacesList: View {
              */
             if modelController.recommendedPlaceResults.count > 0 {
                 recommendedGrid(in: geometry)
-                    .padding(.leading, 32)
             } else if modelController.placeResults.count > 0 {
                 placeResultsGrid(in: geometry)
-                    .padding(.leading, 32)
             } else if !modelController.queryParametersHistory.isEmpty {
                 ZStack(alignment: .center) {
                     if let selectedDestinationLocationChatResult = modelController.selectedDestinationLocationChatResult, let locationChatResult = modelController.locationChatResult(for: selectedDestinationLocationChatResult, in: modelController.filteredLocationResults(cacheManager: cacheManager)) {

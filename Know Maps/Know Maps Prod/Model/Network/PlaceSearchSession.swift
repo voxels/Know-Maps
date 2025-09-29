@@ -8,6 +8,7 @@
 import Foundation
 import CloudKit
 import NaturalLanguage
+import Combine
 
 public enum PlaceSearchSessionError : Error {
     case ServiceNotFound

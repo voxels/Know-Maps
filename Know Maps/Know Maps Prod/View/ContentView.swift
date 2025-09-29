@@ -100,7 +100,7 @@ struct ContentView: View {
                         Label("Places", systemImage: "mappin")
                     }
                 }
-                .tabViewStyle(.automatic)
+                .tabViewStyle(.page(indexDisplayMode: .automatic))
                 .tag(5)
                 .tabItem {
                     Label("Browse", systemImage: "list.bullet")

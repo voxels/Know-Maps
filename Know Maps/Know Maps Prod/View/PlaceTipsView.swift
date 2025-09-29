@@ -16,12 +16,11 @@ struct PlaceTipsView: View {
         
         if let resultId = modelController.selectedPlaceChatResult, let placeChatResult = modelController.placeChatResult(for: resultId), let placeDetailsResponse = placeChatResult.placeDetailsResponse, let tips = placeDetailsResponse.tipsResponses {
             List(tips){ tip in
-                ZStack() {
-                    Rectangle()
-                        .cornerRadius(32)
-                        .glassEffect()
-                    Text(tip.text).padding()
-                }.padding()
+                Text(tip.text)
+                    .padding()
+                #if !os(visionOS)
+                    .glassEffect()
+                #endif
             }
         } else {
             ContentUnavailableView("No tips found for this location", systemImage: "x.circle.fill")

@@ -1,5 +1,6 @@
 import Foundation
 import CloudKit
+import Combine
 
 public enum LanguageGeneratorSessionError : Error {
     case ServiceNotFound

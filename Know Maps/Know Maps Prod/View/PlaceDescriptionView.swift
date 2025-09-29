@@ -17,7 +17,9 @@ struct PlaceDescriptionView: View {
                 ZStack() {
                     Rectangle()
                         .cornerRadius(32)
-                        .glassEffect()
+#if !os(visionOS)
+    .glassEffect()
+#endif
                     Text(description).padding()
                 }
             }

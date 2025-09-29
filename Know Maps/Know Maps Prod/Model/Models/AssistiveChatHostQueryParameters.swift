@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Combine
 
 @Observable
 public final class AssistiveChatHostQueryParameters : ObservableObject, Equatable, Sendable {

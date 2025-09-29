@@ -60,7 +60,9 @@ struct StoryRabbitContentView: View {
                     .labelStyle(.iconOnly)
                     .tint(.primary)
                     .padding(16)
-                    .glassEffect()
+#if !os(visionOS)
+    .glassEffect()
+#endif
                     #endif
                 }
             }

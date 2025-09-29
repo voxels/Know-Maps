@@ -47,29 +47,7 @@ struct PlaceDirectionsView: View {
                                 .padding(16)
                                 .cornerRadius(16)
                         } else {
-                            HStack {
-                                Text("Route start:")
-                                Picker("", selection:$model.rawLocationIdent) {
-                                    ForEach(modelController.filteredLocationResults(cacheManager: cacheManager), id:\.self) { result in
                                         Text(result.locationName).tag(result.id.uuidString)
-                                    }
-                                }.foregroundStyle(.primary)
-                                    .pickerStyle(.menu)
-                            }.padding(.horizontal, 16)
-                            if let source = model.source, let destination = model.destination {
-                                let launchOptions = model.appleMapsLaunchOptions()
-                                HStack(alignment: .center) {
-                                    if model.lookAroundScene != nil {
-                                        Button("Look Around", systemImage: "binoculars.fill") {
-                                            model.showLookAroundScene.toggle()
-                                        }
-                                    }
-                                    Spacer()
-                                    Button("Open Apple Maps", systemImage: "apple.logo") {
-                                        MKMapItem.openMaps(with: [source,destination], launchOptions: launchOptions)
-                                    }
-                                }.padding(.horizontal, 16)
-                            }
                             Map(initialPosition: .automatic, bounds: MapCameraBounds(minimumDistance: 1500, maximumDistance:250000)) {
                                 Marker(title, coordinate: placeCoordinate.coordinate)
                                 
@@ -88,6 +66,29 @@ struct PlaceDirectionsView: View {
                             .cornerRadius(16)
                             .padding(16)
                         }
+                        if let source = model.source, let destination = model.destination {
+                            let launchOptions = model.appleMapsLaunchOptions()
+                            HStack(alignment: .center) {
+                                if model.lookAroundScene != nil {
+                                    Button("Look Around", systemImage: "binoculars.fill") {
+                                        model.showLookAroundScene.toggle()
+                                    }
+                                }
+                                Spacer()
+                                Button("Open Apple Maps", systemImage: "apple.logo") {
+                                    MKMapItem.openMaps(with: [source,destination], launchOptions: launchOptions)
+                                }
+                            }.padding(.horizontal, 16)
+                        }
+                        HStack {
+                            Text("Route start:")
+                            Picker("", selection:$model.rawLocationIdent) {
+                                ForEach(modelController.filteredLocationResults(cacheManager: cacheManager), id:\.self) { result in
+                                    Text(result.locationName).tag(result.id.uuidString)
+                                }
+                            }.foregroundStyle(.primary)
+                                .pickerStyle(.menu)
+                        }.padding(.horizontal, 16)
                         if !model.showLookAroundScene {
                             Picker("Transport Type", selection: $model.rawTransportType) {
                                 Text(PlaceDirectionsViewModel.RawTransportType.Automobile.rawValue).tag(PlaceDirectionsViewModel.RawTransportType.Automobile)
@@ -96,14 +97,17 @@ struct PlaceDirectionsView: View {
                                 .pickerStyle(.palette)
                                 .padding(.horizontal, 16)
                             if let chatRouteResults = model.chatRouteResults, chatRouteResults.count > 0  {
-                                VStack(alignment: .leading, spacing: 8) {
-                                    ForEach(Array(chatRouteResults.enumerated()), id: \.element.id) { index, step in
-                                        Text("\(index + 1). \(step.instructions)")
-                                            .accessibilityLabel("Step \(index + 1). \(step.instructions)")
+                                HStack {
+                                    VStack(alignment: .leading, spacing: 8) {
+                                        ForEach(Array(chatRouteResults.enumerated()), id: \.element.id) { index, step in
+                                            Text("\(index + 1). \(step.instructions)")
+                                                .accessibilityLabel("Step \(index + 1). \(step.instructions)")
+                                        }
                                     }
+                                    .frame(minWidth:geo.size.width - 32)
+                                    .padding(16)
+                                    Spacer()
                                 }
-                                .frame(minWidth:geo.size.width - 32)
-                                .padding(16)
                             }
                         }
                     }

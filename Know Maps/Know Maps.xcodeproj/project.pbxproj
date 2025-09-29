@@ -13,6 +13,112 @@
 		1E1E310F2CC1954F00A23434 /* NukeUI in Frameworks */ = {isa = PBXBuildFile; productRef = 1E1E310E2CC1954F00A23434 /* NukeUI */; };
 		1E213E172CAD81F600B93697 /* Segment in Frameworks */ = {isa = PBXBuildFile; productRef = 1E213E162CAD81F600B93697 /* Segment */; };
 		1E24EE642CAC78250087F724 /* FoursquareSectionClassifier.mlmodel in Sources */ = {isa = PBXBuildFile; fileRef = 1E24EE632CAC78250087F724 /* FoursquareSectionClassifier.mlmodel */; };
+		1E2D2A702E8A54BF00EA69DC /* Auth in Frameworks */ = {isa = PBXBuildFile; productRef = 1E2D2A6F2E8A54BF00EA69DC /* Auth */; };
+		1E2D2A722E8A54C500EA69DC /* Functions in Frameworks */ = {isa = PBXBuildFile; productRef = 1E2D2A712E8A54C500EA69DC /* Functions */; };
+		1E2D2A742E8A54CB00EA69DC /* Nuke in Frameworks */ = {isa = PBXBuildFile; productRef = 1E2D2A732E8A54CB00EA69DC /* Nuke */; };
+		1E2D2A762E8A54D100EA69DC /* NukeUI in Frameworks */ = {isa = PBXBuildFile; productRef = 1E2D2A752E8A54D100EA69DC /* NukeUI */; };
+		1E2D2A782E8A54D800EA69DC /* PostgREST in Frameworks */ = {isa = PBXBuildFile; productRef = 1E2D2A772E8A54D800EA69DC /* PostgREST */; };
+		1E2D2A7A2E8A54DE00EA69DC /* Realtime in Frameworks */ = {isa = PBXBuildFile; productRef = 1E2D2A792E8A54DE00EA69DC /* Realtime */; };
+		1E2D2A7C2E8A54E400EA69DC /* Segment in Frameworks */ = {isa = PBXBuildFile; productRef = 1E2D2A7B2E8A54E400EA69DC /* Segment */; };
+		1E2D2A7E2E8A54EF00EA69DC /* Storage in Frameworks */ = {isa = PBXBuildFile; productRef = 1E2D2A7D2E8A54EF00EA69DC /* Storage */; };
+		1E2D2A802E8A54F600EA69DC /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 1E2D2A7F2E8A54F600EA69DC /* Supabase */; };
+		1E2D2A952E8A583800EA69DC /* LanguageGeneratorSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EA7F7742B052D92002AE371 /* LanguageGeneratorSession.swift */; };
+		1E2D2A962E8A583800EA69DC /* PlaceSearchSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EA7F7752B052D92002AE371 /* PlaceSearchSession.swift */; };
+		1E2D2A972E8A583800EA69DC /* PersonalizedSearchSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EB4EE862B4EC072003AD112 /* PersonalizedSearchSession.swift */; };
+		1E2D2A982E8A583800EA69DC /* CloudCacheService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E630C852B16440100A57CCB /* CloudCacheService.swift */; };
+		1E2D2A992E8A583800EA69DC /* AppleAuthenticationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E583F7C2B1671F300B2EC26 /* AppleAuthenticationService.swift */; };
+		1E2D2A9A2E8A583800EA69DC /* AppShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E3FE0542CB852000020B3CB /* AppShortcuts.swift */; };
+		1E2D2A9B2E8A583800EA69DC /* AssistiveChatHostService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EA7F7952B052DE4002AE371 /* AssistiveChatHostService.swift */; };
+		1E2D2A9C2E8A583800EA69DC /* CloudCacheManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E007ACB2CB4089400A8DC5A /* CloudCacheManager.swift */; };
+		1E2D2A9D2E8A583800EA69DC /* DefaultLocationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E7D43582CB4658800DC17FA /* DefaultLocationService.swift */; };
+		1E2D2A9E2E8A583800EA69DC /* DefaultModelController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EDF93CE2CB52F1600FDCFDF /* DefaultModelController.swift */; };
+		1E2D2A9F2E8A583800EA69DC /* DefaultPlaceSearchService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E7D435A2CB46C0100DC17FA /* DefaultPlaceSearchService.swift */; };
+		1E2D2AA02E8A583800EA69DC /* FeatureFlagsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E7121382B61472800758259 /* FeatureFlagsService.swift */; };
+		1E2D2AA12E8A583800EA69DC /* FoursquareSectionClassifier.mlmodel in Sources */ = {isa = PBXBuildFile; fileRef = 1E24EE632CAC78250087F724 /* FoursquareSectionClassifier.mlmodel */; };
+		1E2D2AA32E8A583800EA69DC /* LanguageGeneratorService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EA7F7762B052D92002AE371 /* LanguageGeneratorService.swift */; };
+		1E2D2AA42E8A583800EA69DC /* LocationProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EA7F77A2B052D92002AE371 /* LocationProvider.swift */; };
+		1E2D2AA52E8A583800EA69DC /* LocalMapsQueryClassifier.mlmodel in Sources */ = {isa = PBXBuildFile; fileRef = 1EA7F7982B052E0C002AE371 /* LocalMapsQueryClassifier.mlmodel */; };
+		1E2D2AA62E8A583800EA69DC /* LocalMapsQueryTagger.mlmodel in Sources */ = {isa = PBXBuildFile; fileRef = 1EA7F7992B052E0C002AE371 /* LocalMapsQueryTagger.mlmodel */; };
+		1E2D2AA72E8A583800EA69DC /* DefaultRecommenderService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E3FE0132CB6C6B60020B3CB /* DefaultRecommenderService.swift */; };
+		1E2D2AA82E8A583800EA69DC /* SegmentAnalyticsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E007ACD2CB40B1900A8DC5A /* SegmentAnalyticsService.swift */; };
+		1E2D2AA92E8A583800EA69DC /* SupabaseService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EFFBB2A2E83EA510088882B /* SupabaseService.swift */; };
+		1E2D2AAA2E8A583800EA69DC /* PlaceAboutViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E7D43562CB43E5200DC17FA /* PlaceAboutViewModel.swift */; };
+		1E2D2AAB2E8A583800EA69DC /* SearchSavedViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E7D43542CB4271A00DC17FA /* SearchSavedViewModel.swift */; };
+		1E2D2AAC2E8A583800EA69DC /* ChatResultViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EA7F7822B052D92002AE371 /* ChatResultViewModel.swift */; };
+		1E2D2AAD2E8A583800EA69DC /* PlaceDirectionsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EE068932B100CE30016851A /* PlaceDirectionsViewModel.swift */; };
+		1E2D2AAE2E8A583800EA69DC /* AssistiveChatHostIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E98C7D22B18DC7400283E92 /* AssistiveChatHostIntent.swift */; };
+		1E2D2AAF2E8A583800EA69DC /* AssistiveChatHostQueryParameters.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EA7F7942B052DE4002AE371 /* AssistiveChatHostQueryParameters.swift */; };
+		1E2D2AB02E8A583800EA69DC /* CategoryResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EE0688F2B0E57AD0016851A /* CategoryResult.swift */; };
+		1E2D2AB12E8A583800EA69DC /* ChatResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EA7F7812B052D92002AE371 /* ChatResult.swift */; };
+		1E2D2AB22E8A583800EA69DC /* ChatRouteResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EE068912B0FBADE0016851A /* ChatRouteResult.swift */; };
+		1E2D2AB32E8A583800EA69DC /* FoursquareAuthenticationRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E3FE0522CB803610020B3CB /* FoursquareAuthenticationRecord.swift */; };
+		1E2D2AB42E8A583800EA69DC /* LanguageGeneratorRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EA7F7722B052D92002AE371 /* LanguageGeneratorRequest.swift */; };
+		1E2D2AB52E8A583800EA69DC /* LocationResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EE068972B121F710016851A /* LocationResult.swift */; };
+		1E2D2AB62E8A583800EA69DC /* PersonalizedSearchSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E3FE0562CB854FD0020B3CB /* PersonalizedSearchSection.swift */; };
+		1E2D2AB72E8A583800EA69DC /* PlaceDetailsRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EA7F7772B052D92002AE371 /* PlaceDetailsRequest.swift */; };
+		1E2D2AB82E8A583800EA69DC /* PlaceDetailsResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EA7F77C2B052D92002AE371 /* PlaceDetailsResponse.swift */; };
+		1E2D2AB92E8A583800EA69DC /* PlacePhotoResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EA7F7732B052D92002AE371 /* PlacePhotoResponse.swift */; };
+		1E2D2ABA2E8A583800EA69DC /* PlaceSearchRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EA7F7802B052D92002AE371 /* PlaceSearchRequest.swift */; };
+		1E2D2ABB2E8A583800EA69DC /* PlaceSearchResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EA7F77F2B052D92002AE371 /* PlaceSearchResponse.swift */; };
+		1E2D2ABC2E8A583800EA69DC /* PlaceTipsResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EA7F7792B052D92002AE371 /* PlaceTipsResponse.swift */; };
+		1E2D2ABD2E8A583800EA69DC /* PlaceResponseFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EA7F77E2B052D92002AE371 /* PlaceResponseFormatter.swift */; };
+		1E2D2ABE2E8A583800EA69DC /* RecommendationData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E3FE00F2CB69FFC0020B3CB /* RecommendationData.swift */; };
+		1E2D2ABF2E8A583800EA69DC /* RecommendedPlaceSearchRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E71213C2B6160A500758259 /* RecommendedPlaceSearchRequest.swift */; };
+		1E2D2AC02E8A583800EA69DC /* RecommendedPlaceSearchResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E7121402B616C6400758259 /* RecommendedPlaceSearchResponse.swift */; };
+		1E2D2AC12E8A583800EA69DC /* TasteAutocompleteResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E6570D52C9B516400FEE9F8 /* TasteAutocompleteResponse.swift */; };
+		1E2D2AC22E8A583800EA69DC /* UserCachedRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EEC48182B45A4B300248D69 /* UserCachedRecord.swift */; };
+		1E2D2AC32E8A583800EA69DC /* RecommenderService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E3FE0112CB6C52C0020B3CB /* RecommenderService.swift */; };
+		1E2D2AC42E8A583800EA69DC /* Authentication.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E96EE992CB527490070BCDD /* Authentication.swift */; };
+		1E2D2AC52E8A583800EA69DC /* AnalyticsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E7D43602CB525EE00DC17FA /* AnalyticsService.swift */; };
+		1E2D2AC62E8A583800EA69DC /* AssistiveChatHost.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EA588CE2B065D8B006B1F8F /* AssistiveChatHost.swift */; };
+		1E2D2AC72E8A583800EA69DC /* AssistiveChatHostStreamResponseDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E98C7D02B18DC4100283E92 /* AssistiveChatHostStreamResponseDelegate.swift */; };
+		1E2D2AC82E8A583800EA69DC /* AssistiveChatHostMessagesDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E98C7D42B18DC9600283E92 /* AssistiveChatHostMessagesDelegate.swift */; };
+		1E2D2AC92E8A583800EA69DC /* CacheManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E96EE9F2CB52A0C0070BCDD /* CacheManager.swift */; };
+		1E2D2ACA2E8A583800EA69DC /* CloudCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E96EE9B2CB528380070BCDD /* CloudCache.swift */; };
+		1E2D2ACB2E8A583800EA69DC /* FeatureFlag.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EDF93C92CB52DC100FDCFDF /* FeatureFlag.swift */; };
+		1E2D2ACC2E8A583800EA69DC /* LanguageGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E96EE9D2CB5288B0070BCDD /* LanguageGenerator.swift */; };
+		1E2D2ACD2E8A583800EA69DC /* LocationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EDF93C52CB52CC200FDCFDF /* LocationService.swift */; };
+		1E2D2ACE2E8A583800EA69DC /* ModelController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E7D435C2CB5258E00DC17FA /* ModelController.swift */; };
+		1E2D2ACF2E8A583800EA69DC /* PlaceSearchService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EDF93CB2CB52E5900FDCFDF /* PlaceSearchService.swift */; };
+		1E2D2AD02E8A583800EA69DC /* ActivityViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E630C832B1636E400A57CCB /* ActivityViewController.swift */; };
+		1E2D2AD12E8A583800EA69DC /* AddCategoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E6944532CBA780A0017A81F /* AddCategoryView.swift */; };
+		1E2D2AD22E8A583800EA69DC /* AddPlaceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E6944572CBA78560017A81F /* AddPlaceView.swift */; };
+		1E2D2AD32E8A583800EA69DC /* AddPromptView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E69444F2CBA73060017A81F /* AddPromptView.swift */; };
+		1E2D2AD42E8A583800EA69DC /* AddTasteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E6944552CBA78330017A81F /* AddTasteView.swift */; };
+		1E2D2AD52E8A583800EA69DC /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EA7F74E2B03FA71002AE371 /* ContentView.swift */; };
+		1E2D2AD62E8A583800EA69DC /* FiltersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E69444B2CB993C70017A81F /* FiltersView.swift */; };
+		1E2D2AD72E8A583800EA69DC /* ImmersiveView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EA7F7502B03FA71002AE371 /* ImmersiveView.swift */; };
+		1E2D2AD82E8A583800EA69DC /* GoogleBannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E601F5C2CB0512900E320D7 /* GoogleBannerView.swift */; };
+		1E2D2AD92E8A583800EA69DC /* MapResultsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EA7F76A2B04FF4D002AE371 /* MapResultsView.swift */; };
+		1E2D2ADA2E8A583800EA69DC /* NavigationLocationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E26C7B32B2C79150050EC6A /* NavigationLocationView.swift */; };
+		1E2D2ADB2E8A583800EA69DC /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E1F5E442B725D56008B6BAD /* OnboardingView.swift */; };
+		1E2D2ADC2E8A583800EA69DC /* OnboardingLocationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E1F5E502B726680008B6BAD /* OnboardingLocationView.swift */; };
+		1E2D2ADD2E8A583800EA69DC /* OnboardingSignInView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E1F5E482B725FBB008B6BAD /* OnboardingSignInView.swift */; };
+		1E2D2ADE2E8A583800EA69DC /* OnboardingSubscriptionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E1F5E542B72694A008B6BAD /* OnboardingSubscriptionView.swift */; };
+		1E2D2ADF2E8A583800EA69DC /* PlacesList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EA7F7702B051BDE002AE371 /* PlacesList.swift */; };
+		1E2D2AE02E8A583800EA69DC /* PlaceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EA588D22B09326E006B1F8F /* PlaceView.swift */; };
+		1E2D2AE12E8A583800EA69DC /* PlaceAboutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EE068852B0CE74C0016851A /* PlaceAboutView.swift */; };
+		1E2D2AE22E8A583800EA69DC /* PlaceDescriptionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E7121342B60136200758259 /* PlaceDescriptionView.swift */; };
+		1E2D2AE32E8A583800EA69DC /* PlaceDirectionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EE068892B0D1E2B0016851A /* PlaceDirectionsView.swift */; };
+		1E2D2AE42E8A583800EA69DC /* PlacePhotosView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EE0688B2B0D1E930016851A /* PlacePhotosView.swift */; };
+		1E2D2AE52E8A583800EA69DC /* PlaceTipsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EE0688D2B0D1EB40016851A /* PlaceTipsView.swift */; };
+		1E2D2AE62E8A583800EA69DC /* SavedListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E3FE0152CB7F7B20020B3CB /* SavedListView.swift */; };
+		1E2D2AE72E8A583800EA69DC /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EE068872B0D1ADB0016851A /* SettingsView.swift */; };
+		1E2D2AE82E8A583800EA69DC /* SearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EA7F76C2B04FFD9002AE371 /* SearchView.swift */; };
+		1E2D2AE92E8A583800EA69DC /* SearchSectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E91AA212CA83AAF00F63C3A /* SearchSectionView.swift */; };
+		1E2D2AEA2E8A583800EA69DC /* SearchCategoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E70B4C42B50103C00F1F9F5 /* SearchCategoryView.swift */; };
+		1E2D2AEB2E8A583800EA69DC /* SearchTasteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E70B4D02B50120500F1F9F5 /* SearchTasteView.swift */; };
+		1E2D2AEC2E8A583800EA69DC /* SearchPlacesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E8E5AFA2CA03D8600B37E6A /* SearchPlacesView.swift */; };
+		1E2D2AED2E8A583800EA69DC /* StoryRabbitContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EFFBA992E826EFA0088882B /* StoryRabbitContentView.swift */; };
+		1E2D2AEE2E8A583800EA69DC /* StoryRabbitView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EFFBA9B2E8270EC0088882B /* StoryRabbitView.swift */; };
+		1E2D2AF22E8A589B00EA69DC /* generating_loop_0.wav in Resources */ = {isa = PBXBuildFile; fileRef = 1EFFBA9D2E8278020088882B /* generating_loop_0.wav */; };
+		1E2D2AF32E8A589B00EA69DC /* generating_loop_1.wav in Resources */ = {isa = PBXBuildFile; fileRef = 1EFFBA9E2E8278020088882B /* generating_loop_1.wav */; };
+		1E2D2AF42E8A589B00EA69DC /* generating_loop_2.wav in Resources */ = {isa = PBXBuildFile; fileRef = 1EFFBA9F2E8278020088882B /* generating_loop_2.wav */; };
+		1E2D2AF52E8A589B00EA69DC /* generating_loop_3.wav in Resources */ = {isa = PBXBuildFile; fileRef = 1EFFBAA02E8278020088882B /* generating_loop_3.wav */; };
+		1E2D2AF62E8A589B00EA69DC /* generating_loop_4.wav in Resources */ = {isa = PBXBuildFile; fileRef = 1EFFBAA12E8278020088882B /* generating_loop_4.wav */; };
+		1E2D2AF72E8A589B00EA69DC /* PLAY_fixed.wav in Resources */ = {isa = PBXBuildFile; fileRef = 1EFFBAA22E8278020088882B /* PLAY_fixed.wav */; };
+		1E2D2AF82E8A589B00EA69DC /* THINKING.wav in Resources */ = {isa = PBXBuildFile; fileRef = 1EFFBAA32E8278020088882B /* THINKING.wav */; };
+		1E2D2AF92E8A58CC00EA69DC /* integrated_category_taxonomy.json in Resources */ = {isa = PBXBuildFile; fileRef = 1EA7F7782B052D92002AE371 /* integrated_category_taxonomy.json */; };
 		1E3FE0102CB6A0000020B3CB /* RecommendationData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E3FE00F2CB69FFC0020B3CB /* RecommendationData.swift */; };
 		1E3FE0122CB6C5300020B3CB /* RecommenderService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E3FE0112CB6C52C0020B3CB /* RecommenderService.swift */; };
 		1E3FE0142CB6C6BA0020B3CB /* DefaultRecommenderService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E3FE0132CB6C6B60020B3CB /* DefaultRecommenderService.swift */; };
@@ -133,6 +239,20 @@
 			remoteGlobalIDString = 1E095AF72B778AEF00147119;
 			remoteInfo = "Know Maps Prod";
 		};
+		1E2D2A542E8A536D00EA69DC /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1EA7F73D2B03FA70002AE371 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 1E2D2A422E8A536C00EA69DC;
+			remoteInfo = hopit;
+		};
+		1E2D2A5E2E8A536D00EA69DC /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1EA7F73D2B03FA70002AE371 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 1E2D2A422E8A536C00EA69DC;
+			remoteInfo = hopit;
+		};
 		1EE599B72CA4A6DE00C211A6 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 1EA7F73D2B03FA70002AE371 /* Project object */;
@@ -160,6 +280,9 @@
 		1E1F5E542B72694A008B6BAD /* OnboardingSubscriptionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingSubscriptionView.swift; sourceTree = "<group>"; };
 		1E24EE632CAC78250087F724 /* FoursquareSectionClassifier.mlmodel */ = {isa = PBXFileReference; lastKnownFileType = file.mlmodel; path = FoursquareSectionClassifier.mlmodel; sourceTree = "<group>"; };
 		1E26C7B32B2C79150050EC6A /* NavigationLocationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationLocationView.swift; sourceTree = "<group>"; };
+		1E2D2A432E8A536C00EA69DC /* hopit.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = hopit.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		1E2D2A532E8A536D00EA69DC /* hopitTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = hopitTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		1E2D2A5D2E8A536D00EA69DC /* hopitUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = hopitUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		1E3FE00F2CB69FFC0020B3CB /* RecommendationData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecommendationData.swift; sourceTree = "<group>"; };
 		1E3FE0112CB6C52C0020B3CB /* RecommenderService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecommenderService.swift; sourceTree = "<group>"; };
 		1E3FE0132CB6C6B60020B3CB /* DefaultRecommenderService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DefaultRecommenderService.swift; sourceTree = "<group>"; };
@@ -256,8 +379,40 @@
 		1EFFBB2A2E83EA510088882B /* SupabaseService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseService.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		1E2D2A6B2E8A536D00EA69DC /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 1E2D2A422E8A536C00EA69DC /* hopit */;
+		};
+		1E2D2AF02E8A583800EA69DC /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Comment.swift,
+				CreateMultiPOIPodcastRequest.swift,
+				ErrorResponse.swift,
+				FollowUp.swift,
+				FollowUpQuestion.swift,
+				Persona.swift,
+				Podcast.swift,
+				PodcastLike.swift,
+				PointOfInterest.swift,
+				PoisResponse.swift,
+				StoryRabbitController.swift,
+				UserProfile.swift,
+				WebSocketAudioPlayer.swift,
+			);
+			target = 1E2D2A422E8A536C00EA69DC /* hopit */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		1EE523AF2E8201A000DE0AAE /* StoryRabbit */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = StoryRabbit; sourceTree = "<group>"; };
+		1E2D2A442E8A536C00EA69DC /* hopit */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (1E2D2A6B2E8A536D00EA69DC /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = hopit; sourceTree = "<group>"; };
+		1E2D2A562E8A536D00EA69DC /* hopitTests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = hopitTests; sourceTree = "<group>"; };
+		1E2D2A602E8A536D00EA69DC /* hopitUITests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = hopitUITests; sourceTree = "<group>"; };
+		1EE523AF2E8201A000DE0AAE /* StoryRabbit */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (1E2D2AF02E8A583800EA69DC /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = StoryRabbit; sourceTree = "<group>"; };
 		1EE599B42CA4A6DE00C211A6 /* Know MapsTests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = "Know MapsTests"; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
@@ -286,6 +441,36 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		1E095B0F2B778AF000147119 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1E2D2A402E8A536C00EA69DC /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1E2D2A742E8A54CB00EA69DC /* Nuke in Frameworks */,
+				1E2D2A722E8A54C500EA69DC /* Functions in Frameworks */,
+				1E2D2A702E8A54BF00EA69DC /* Auth in Frameworks */,
+				1E2D2A7A2E8A54DE00EA69DC /* Realtime in Frameworks */,
+				1E2D2A7E2E8A54EF00EA69DC /* Storage in Frameworks */,
+				1E2D2A802E8A54F600EA69DC /* Supabase in Frameworks */,
+				1E2D2A7C2E8A54E400EA69DC /* Segment in Frameworks */,
+				1E2D2A762E8A54D100EA69DC /* NukeUI in Frameworks */,
+				1E2D2A782E8A54D800EA69DC /* PostgREST in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1E2D2A502E8A536D00EA69DC /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1E2D2A5A2E8A536D00EA69DC /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -424,6 +609,9 @@
 				1E1E31102CC19E1B00A23434 /* Know-Maps-Info.plist */,
 				1E095AF92B778AEF00147119 /* Know Maps Prod */,
 				1EE599B42CA4A6DE00C211A6 /* Know MapsTests */,
+				1E2D2A442E8A536C00EA69DC /* hopit */,
+				1E2D2A562E8A536D00EA69DC /* hopitTests */,
+				1E2D2A602E8A536D00EA69DC /* hopitUITests */,
 				1EA7F7462B03FA70002AE371 /* Products */,
 				1E6F4AFE2B20F538001E701B /* Frameworks */,
 			);
@@ -436,6 +624,9 @@
 				1E095B082B778AF000147119 /* Know Maps ProdTests.xctest */,
 				1E095B122B778AF000147119 /* Know Maps ProdUITests.xctest */,
 				1EE599B32CA4A6DE00C211A6 /* Know MapsTests.xctest */,
+				1E2D2A432E8A536C00EA69DC /* hopit.app */,
+				1E2D2A532E8A536D00EA69DC /* hopitTests.xctest */,
+				1E2D2A5D2E8A536D00EA69DC /* hopitUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -587,6 +778,83 @@
 			productReference = 1E095B122B778AF000147119 /* Know Maps ProdUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
+		1E2D2A422E8A536C00EA69DC /* hopit */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1E2D2A6C2E8A536D00EA69DC /* Build configuration list for PBXNativeTarget "hopit" */;
+			buildPhases = (
+				1E2D2A3F2E8A536C00EA69DC /* Sources */,
+				1E2D2A402E8A536C00EA69DC /* Frameworks */,
+				1E2D2A412E8A536C00EA69DC /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				1E2D2A442E8A536C00EA69DC /* hopit */,
+			);
+			name = hopit;
+			packageProductDependencies = (
+				1E2D2A6F2E8A54BF00EA69DC /* Auth */,
+				1E2D2A712E8A54C500EA69DC /* Functions */,
+				1E2D2A732E8A54CB00EA69DC /* Nuke */,
+				1E2D2A752E8A54D100EA69DC /* NukeUI */,
+				1E2D2A772E8A54D800EA69DC /* PostgREST */,
+				1E2D2A792E8A54DE00EA69DC /* Realtime */,
+				1E2D2A7B2E8A54E400EA69DC /* Segment */,
+				1E2D2A7D2E8A54EF00EA69DC /* Storage */,
+				1E2D2A7F2E8A54F600EA69DC /* Supabase */,
+			);
+			productName = hopit;
+			productReference = 1E2D2A432E8A536C00EA69DC /* hopit.app */;
+			productType = "com.apple.product-type.application";
+		};
+		1E2D2A522E8A536D00EA69DC /* hopitTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1E2D2A6D2E8A536D00EA69DC /* Build configuration list for PBXNativeTarget "hopitTests" */;
+			buildPhases = (
+				1E2D2A4F2E8A536D00EA69DC /* Sources */,
+				1E2D2A502E8A536D00EA69DC /* Frameworks */,
+				1E2D2A512E8A536D00EA69DC /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				1E2D2A552E8A536D00EA69DC /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				1E2D2A562E8A536D00EA69DC /* hopitTests */,
+			);
+			name = hopitTests;
+			packageProductDependencies = (
+			);
+			productName = hopitTests;
+			productReference = 1E2D2A532E8A536D00EA69DC /* hopitTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		1E2D2A5C2E8A536D00EA69DC /* hopitUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1E2D2A6E2E8A536D00EA69DC /* Build configuration list for PBXNativeTarget "hopitUITests" */;
+			buildPhases = (
+				1E2D2A592E8A536D00EA69DC /* Sources */,
+				1E2D2A5A2E8A536D00EA69DC /* Frameworks */,
+				1E2D2A5B2E8A536D00EA69DC /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				1E2D2A5F2E8A536D00EA69DC /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				1E2D2A602E8A536D00EA69DC /* hopitUITests */,
+			);
+			name = hopitUITests;
+			packageProductDependencies = (
+			);
+			productName = hopitUITests;
+			productReference = 1E2D2A5D2E8A536D00EA69DC /* hopitUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 		1EE599B22CA4A6DE00C211A6 /* Know MapsTests */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 1EE599BB2CA4A6DE00C211A6 /* Build configuration list for PBXNativeTarget "Know MapsTests" */;
@@ -617,7 +885,11 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 1600;
+				KnownAssetTags = (
+					New,
+					"New-1",
+				);
+				LastSwiftUpdateCheck = 2600;
 				LastUpgradeCheck = 1610;
 				TargetAttributes = {
 					1E095AF72B778AEF00147119 = {
@@ -630,6 +902,17 @@
 					1E095B112B778AF000147119 = {
 						CreatedOnToolsVersion = 15.2;
 						TestTargetID = 1E095AF72B778AEF00147119;
+					};
+					1E2D2A422E8A536C00EA69DC = {
+						CreatedOnToolsVersion = 26.0.1;
+					};
+					1E2D2A522E8A536D00EA69DC = {
+						CreatedOnToolsVersion = 26.0.1;
+						TestTargetID = 1E2D2A422E8A536C00EA69DC;
+					};
+					1E2D2A5C2E8A536D00EA69DC = {
+						CreatedOnToolsVersion = 26.0.1;
+						TestTargetID = 1E2D2A422E8A536C00EA69DC;
 					};
 					1EE599B22CA4A6DE00C211A6 = {
 						CreatedOnToolsVersion = 16.0;
@@ -659,6 +942,9 @@
 				1E095B072B778AF000147119 /* Know Maps ProdTests */,
 				1E095B112B778AF000147119 /* Know Maps ProdUITests */,
 				1EE599B22CA4A6DE00C211A6 /* Know MapsTests */,
+				1E2D2A422E8A536C00EA69DC /* hopit */,
+				1E2D2A522E8A536D00EA69DC /* hopitTests */,
+				1E2D2A5C2E8A536D00EA69DC /* hopitUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -689,6 +975,35 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		1E095B102B778AF000147119 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1E2D2A412E8A536C00EA69DC /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1E2D2AF92E8A58CC00EA69DC /* integrated_category_taxonomy.json in Resources */,
+				1E2D2AF22E8A589B00EA69DC /* generating_loop_0.wav in Resources */,
+				1E2D2AF32E8A589B00EA69DC /* generating_loop_1.wav in Resources */,
+				1E2D2AF42E8A589B00EA69DC /* generating_loop_2.wav in Resources */,
+				1E2D2AF52E8A589B00EA69DC /* generating_loop_3.wav in Resources */,
+				1E2D2AF62E8A589B00EA69DC /* generating_loop_4.wav in Resources */,
+				1E2D2AF72E8A589B00EA69DC /* PLAY_fixed.wav in Resources */,
+				1E2D2AF82E8A589B00EA69DC /* THINKING.wav in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1E2D2A512E8A536D00EA69DC /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1E2D2A5B2E8A536D00EA69DC /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -816,6 +1131,116 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		1E2D2A3F2E8A536C00EA69DC /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1E2D2A952E8A583800EA69DC /* LanguageGeneratorSession.swift in Sources */,
+				1E2D2A962E8A583800EA69DC /* PlaceSearchSession.swift in Sources */,
+				1E2D2A972E8A583800EA69DC /* PersonalizedSearchSession.swift in Sources */,
+				1E2D2A982E8A583800EA69DC /* CloudCacheService.swift in Sources */,
+				1E2D2A992E8A583800EA69DC /* AppleAuthenticationService.swift in Sources */,
+				1E2D2A9A2E8A583800EA69DC /* AppShortcuts.swift in Sources */,
+				1E2D2A9B2E8A583800EA69DC /* AssistiveChatHostService.swift in Sources */,
+				1E2D2A9C2E8A583800EA69DC /* CloudCacheManager.swift in Sources */,
+				1E2D2A9D2E8A583800EA69DC /* DefaultLocationService.swift in Sources */,
+				1E2D2A9E2E8A583800EA69DC /* DefaultModelController.swift in Sources */,
+				1E2D2A9F2E8A583800EA69DC /* DefaultPlaceSearchService.swift in Sources */,
+				1E2D2AA02E8A583800EA69DC /* FeatureFlagsService.swift in Sources */,
+				1E2D2AA12E8A583800EA69DC /* FoursquareSectionClassifier.mlmodel in Sources */,
+				1E2D2AA32E8A583800EA69DC /* LanguageGeneratorService.swift in Sources */,
+				1E2D2AA42E8A583800EA69DC /* LocationProvider.swift in Sources */,
+				1E2D2AA52E8A583800EA69DC /* LocalMapsQueryClassifier.mlmodel in Sources */,
+				1E2D2AA62E8A583800EA69DC /* LocalMapsQueryTagger.mlmodel in Sources */,
+				1E2D2AA72E8A583800EA69DC /* DefaultRecommenderService.swift in Sources */,
+				1E2D2AA82E8A583800EA69DC /* SegmentAnalyticsService.swift in Sources */,
+				1E2D2AA92E8A583800EA69DC /* SupabaseService.swift in Sources */,
+				1E2D2AAA2E8A583800EA69DC /* PlaceAboutViewModel.swift in Sources */,
+				1E2D2AAB2E8A583800EA69DC /* SearchSavedViewModel.swift in Sources */,
+				1E2D2AAC2E8A583800EA69DC /* ChatResultViewModel.swift in Sources */,
+				1E2D2AAD2E8A583800EA69DC /* PlaceDirectionsViewModel.swift in Sources */,
+				1E2D2AAE2E8A583800EA69DC /* AssistiveChatHostIntent.swift in Sources */,
+				1E2D2AAF2E8A583800EA69DC /* AssistiveChatHostQueryParameters.swift in Sources */,
+				1E2D2AB02E8A583800EA69DC /* CategoryResult.swift in Sources */,
+				1E2D2AB12E8A583800EA69DC /* ChatResult.swift in Sources */,
+				1E2D2AB22E8A583800EA69DC /* ChatRouteResult.swift in Sources */,
+				1E2D2AB32E8A583800EA69DC /* FoursquareAuthenticationRecord.swift in Sources */,
+				1E2D2AB42E8A583800EA69DC /* LanguageGeneratorRequest.swift in Sources */,
+				1E2D2AB52E8A583800EA69DC /* LocationResult.swift in Sources */,
+				1E2D2AB62E8A583800EA69DC /* PersonalizedSearchSection.swift in Sources */,
+				1E2D2AB72E8A583800EA69DC /* PlaceDetailsRequest.swift in Sources */,
+				1E2D2AB82E8A583800EA69DC /* PlaceDetailsResponse.swift in Sources */,
+				1E2D2AB92E8A583800EA69DC /* PlacePhotoResponse.swift in Sources */,
+				1E2D2ABA2E8A583800EA69DC /* PlaceSearchRequest.swift in Sources */,
+				1E2D2ABB2E8A583800EA69DC /* PlaceSearchResponse.swift in Sources */,
+				1E2D2ABC2E8A583800EA69DC /* PlaceTipsResponse.swift in Sources */,
+				1E2D2ABD2E8A583800EA69DC /* PlaceResponseFormatter.swift in Sources */,
+				1E2D2ABE2E8A583800EA69DC /* RecommendationData.swift in Sources */,
+				1E2D2ABF2E8A583800EA69DC /* RecommendedPlaceSearchRequest.swift in Sources */,
+				1E2D2AC02E8A583800EA69DC /* RecommendedPlaceSearchResponse.swift in Sources */,
+				1E2D2AC12E8A583800EA69DC /* TasteAutocompleteResponse.swift in Sources */,
+				1E2D2AC22E8A583800EA69DC /* UserCachedRecord.swift in Sources */,
+				1E2D2AC32E8A583800EA69DC /* RecommenderService.swift in Sources */,
+				1E2D2AC42E8A583800EA69DC /* Authentication.swift in Sources */,
+				1E2D2AC52E8A583800EA69DC /* AnalyticsService.swift in Sources */,
+				1E2D2AC62E8A583800EA69DC /* AssistiveChatHost.swift in Sources */,
+				1E2D2AC72E8A583800EA69DC /* AssistiveChatHostStreamResponseDelegate.swift in Sources */,
+				1E2D2AC82E8A583800EA69DC /* AssistiveChatHostMessagesDelegate.swift in Sources */,
+				1E2D2AC92E8A583800EA69DC /* CacheManager.swift in Sources */,
+				1E2D2ACA2E8A583800EA69DC /* CloudCache.swift in Sources */,
+				1E2D2ACB2E8A583800EA69DC /* FeatureFlag.swift in Sources */,
+				1E2D2ACC2E8A583800EA69DC /* LanguageGenerator.swift in Sources */,
+				1E2D2ACD2E8A583800EA69DC /* LocationService.swift in Sources */,
+				1E2D2ACE2E8A583800EA69DC /* ModelController.swift in Sources */,
+				1E2D2ACF2E8A583800EA69DC /* PlaceSearchService.swift in Sources */,
+				1E2D2AD02E8A583800EA69DC /* ActivityViewController.swift in Sources */,
+				1E2D2AD12E8A583800EA69DC /* AddCategoryView.swift in Sources */,
+				1E2D2AD22E8A583800EA69DC /* AddPlaceView.swift in Sources */,
+				1E2D2AD32E8A583800EA69DC /* AddPromptView.swift in Sources */,
+				1E2D2AD42E8A583800EA69DC /* AddTasteView.swift in Sources */,
+				1E2D2AD52E8A583800EA69DC /* ContentView.swift in Sources */,
+				1E2D2AD62E8A583800EA69DC /* FiltersView.swift in Sources */,
+				1E2D2AD72E8A583800EA69DC /* ImmersiveView.swift in Sources */,
+				1E2D2AD82E8A583800EA69DC /* GoogleBannerView.swift in Sources */,
+				1E2D2AD92E8A583800EA69DC /* MapResultsView.swift in Sources */,
+				1E2D2ADA2E8A583800EA69DC /* NavigationLocationView.swift in Sources */,
+				1E2D2ADB2E8A583800EA69DC /* OnboardingView.swift in Sources */,
+				1E2D2ADC2E8A583800EA69DC /* OnboardingLocationView.swift in Sources */,
+				1E2D2ADD2E8A583800EA69DC /* OnboardingSignInView.swift in Sources */,
+				1E2D2ADE2E8A583800EA69DC /* OnboardingSubscriptionView.swift in Sources */,
+				1E2D2ADF2E8A583800EA69DC /* PlacesList.swift in Sources */,
+				1E2D2AE02E8A583800EA69DC /* PlaceView.swift in Sources */,
+				1E2D2AE12E8A583800EA69DC /* PlaceAboutView.swift in Sources */,
+				1E2D2AE22E8A583800EA69DC /* PlaceDescriptionView.swift in Sources */,
+				1E2D2AE32E8A583800EA69DC /* PlaceDirectionsView.swift in Sources */,
+				1E2D2AE42E8A583800EA69DC /* PlacePhotosView.swift in Sources */,
+				1E2D2AE52E8A583800EA69DC /* PlaceTipsView.swift in Sources */,
+				1E2D2AE62E8A583800EA69DC /* SavedListView.swift in Sources */,
+				1E2D2AE72E8A583800EA69DC /* SettingsView.swift in Sources */,
+				1E2D2AE82E8A583800EA69DC /* SearchView.swift in Sources */,
+				1E2D2AE92E8A583800EA69DC /* SearchSectionView.swift in Sources */,
+				1E2D2AEA2E8A583800EA69DC /* SearchCategoryView.swift in Sources */,
+				1E2D2AEB2E8A583800EA69DC /* SearchTasteView.swift in Sources */,
+				1E2D2AEC2E8A583800EA69DC /* SearchPlacesView.swift in Sources */,
+				1E2D2AED2E8A583800EA69DC /* StoryRabbitContentView.swift in Sources */,
+				1E2D2AEE2E8A583800EA69DC /* StoryRabbitView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1E2D2A4F2E8A536D00EA69DC /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1E2D2A592E8A536D00EA69DC /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		1EE599AF2CA4A6DE00C211A6 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -835,6 +1260,16 @@
 			isa = PBXTargetDependency;
 			target = 1E095AF72B778AEF00147119 /* Know Maps */;
 			targetProxy = 1E095B132B778AF000147119 /* PBXContainerItemProxy */;
+		};
+		1E2D2A552E8A536D00EA69DC /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 1E2D2A422E8A536C00EA69DC /* hopit */;
+			targetProxy = 1E2D2A542E8A536D00EA69DC /* PBXContainerItemProxy */;
+		};
+		1E2D2A5F2E8A536D00EA69DC /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 1E2D2A422E8A536C00EA69DC /* hopit */;
+			targetProxy = 1E2D2A5E2E8A536D00EA69DC /* PBXContainerItemProxy */;
 		};
 		1EE599B82CA4A6DE00C211A6 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -892,7 +1327,7 @@
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
-				WATCHOS_DEPLOYMENT_TARGET = 11.0;
+				WATCHOS_DEPLOYMENT_TARGET = 26.0;
 				XROS_DEPLOYMENT_TARGET = 26.0;
 			};
 			name = Debug;
@@ -945,7 +1380,7 @@
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
-				WATCHOS_DEPLOYMENT_TARGET = 11.0;
+				WATCHOS_DEPLOYMENT_TARGET = 26.0;
 				XROS_DEPLOYMENT_TARGET = 26.0;
 			};
 			name = Release;
@@ -1037,6 +1472,236 @@
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_TARGET_NAME = "Know Maps Prod";
+			};
+			name = Release;
+		};
+		1E2D2A652E8A536D00EA69DC /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				"ASSETCATALOG_COMPILER_APPICON_NAME[sdk=iphoneos*]" = "AppIcon 2";
+				"ASSETCATALOG_COMPILER_APPICON_NAME[sdk=macosx*]" = "AppIcon 1";
+				"ASSETCATALOG_COMPILER_APPICON_NAME[sdk=xros*]" = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
+				CODE_SIGN_ENTITLEMENTS = hopit/hopit.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 23264QUM9A;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_INCOMING_NETWORK_CONNECTIONS = NO;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
+				ENABLE_RESOURCE_ACCESS_BLUETOOTH = NO;
+				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
+				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
+				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
+				ENABLE_RESOURCE_ACCESS_LOCATION = YES;
+				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
+				ENABLE_RESOURCE_ACCESS_USB = NO;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = hopit/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Hop It";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Hop it uses your current location to suggest places to go near you.";
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
+				INFOPLIST_KEY_UIStatusBarStyle = "";
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.secretatomics.hopit;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				SDKROOT = auto;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				XROS_DEPLOYMENT_TARGET = 26.0;
+			};
+			name = Debug;
+		};
+		1E2D2A662E8A536D00EA69DC /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				"ASSETCATALOG_COMPILER_APPICON_NAME[sdk=iphoneos*]" = "AppIcon 2";
+				"ASSETCATALOG_COMPILER_APPICON_NAME[sdk=macosx*]" = "AppIcon 1";
+				"ASSETCATALOG_COMPILER_APPICON_NAME[sdk=xros*]" = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
+				CODE_SIGN_ENTITLEMENTS = hopit/hopit.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 23264QUM9A;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_INCOMING_NETWORK_CONNECTIONS = NO;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
+				ENABLE_RESOURCE_ACCESS_BLUETOOTH = NO;
+				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
+				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
+				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
+				ENABLE_RESOURCE_ACCESS_LOCATION = YES;
+				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
+				ENABLE_RESOURCE_ACCESS_USB = NO;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = hopit/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Hop It";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Hop it uses your current location to suggest places to go near you.";
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
+				INFOPLIST_KEY_UIStatusBarStyle = "";
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.secretatomics.hopit;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				SDKROOT = auto;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				XROS_DEPLOYMENT_TARGET = 26.0;
+			};
+			name = Release;
+		};
+		1E2D2A672E8A536D00EA69DC /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 23264QUM9A;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.secretatomics.hopitTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/hopit.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/hopit";
+				XROS_DEPLOYMENT_TARGET = 26.0;
+			};
+			name = Debug;
+		};
+		1E2D2A682E8A536D00EA69DC /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 23264QUM9A;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.secretatomics.hopitTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/hopit.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/hopit";
+				XROS_DEPLOYMENT_TARGET = 26.0;
+			};
+			name = Release;
+		};
+		1E2D2A692E8A536D00EA69DC /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 23264QUM9A;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.secretatomics.hopitUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TEST_TARGET_NAME = hopit;
+				XROS_DEPLOYMENT_TARGET = 26.0;
+			};
+			name = Debug;
+		};
+		1E2D2A6A2E8A536D00EA69DC /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 23264QUM9A;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.secretatomics.hopitUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TEST_TARGET_NAME = hopit;
+				XROS_DEPLOYMENT_TARGET = 26.0;
 			};
 			name = Release;
 		};
@@ -1229,6 +1894,33 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
+		1E2D2A6C2E8A536D00EA69DC /* Build configuration list for PBXNativeTarget "hopit" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1E2D2A652E8A536D00EA69DC /* Debug */,
+				1E2D2A662E8A536D00EA69DC /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		1E2D2A6D2E8A536D00EA69DC /* Build configuration list for PBXNativeTarget "hopitTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1E2D2A672E8A536D00EA69DC /* Debug */,
+				1E2D2A682E8A536D00EA69DC /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		1E2D2A6E2E8A536D00EA69DC /* Build configuration list for PBXNativeTarget "hopitUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1E2D2A692E8A536D00EA69DC /* Debug */,
+				1E2D2A6A2E8A536D00EA69DC /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		1EA7F7402B03FA70002AE371 /* Build configuration list for PBXProject "Know Maps" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -1291,6 +1983,51 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 1E213E152CAD81F600B93697 /* XCRemoteSwiftPackageReference "analytics-swift" */;
 			productName = Segment;
+		};
+		1E2D2A6F2E8A54BF00EA69DC /* Auth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 1EFFBB2C2E83EAA90088882B /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Auth;
+		};
+		1E2D2A712E8A54C500EA69DC /* Functions */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 1EFFBB2C2E83EAA90088882B /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Functions;
+		};
+		1E2D2A732E8A54CB00EA69DC /* Nuke */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 1E1E310B2CC1954F00A23434 /* XCRemoteSwiftPackageReference "Nuke" */;
+			productName = Nuke;
+		};
+		1E2D2A752E8A54D100EA69DC /* NukeUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 1E1E310B2CC1954F00A23434 /* XCRemoteSwiftPackageReference "Nuke" */;
+			productName = NukeUI;
+		};
+		1E2D2A772E8A54D800EA69DC /* PostgREST */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 1EFFBB2C2E83EAA90088882B /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = PostgREST;
+		};
+		1E2D2A792E8A54DE00EA69DC /* Realtime */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 1EFFBB2C2E83EAA90088882B /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Realtime;
+		};
+		1E2D2A7B2E8A54E400EA69DC /* Segment */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 1E213E152CAD81F600B93697 /* XCRemoteSwiftPackageReference "analytics-swift" */;
+			productName = Segment;
+		};
+		1E2D2A7D2E8A54EF00EA69DC /* Storage */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 1EFFBB2C2E83EAA90088882B /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Storage;
+		};
+		1E2D2A7F2E8A54F600EA69DC /* Supabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 1EFFBB2C2E83EAA90088882B /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Supabase;
 		};
 		1EFFBB2D2E83EAA90088882B /* Auth */ = {
 			isa = XCSwiftPackageProductDependency;
