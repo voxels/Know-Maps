@@ -37,7 +37,7 @@ struct PlacesList: View {
         ScrollView() {
             LazyVGrid(columns: columns) {
                 ForEach(modelController.recommendedPlaceResults, id: \.id) { result in
-                    let ar: CGFloat = CGFloat(result.recommendedPlaceResponse?.aspectRatio ?? (3.0/4.0))
+                    let ar: CGFloat = CGFloat(result.recommendedPlaceResponse?.aspectRatio ?? 1.0)
                     let reservedHeight: CGFloat = itemWidth / ar
                     
                     VStack {

@@ -33,9 +33,9 @@ struct PlaceAboutView: View {
                             let placeCoordinate = CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude)
                             let title = placeResponse.name
                             
-                            if let aspectRatio = result.placeDetailsResponse?.photoResponses?.first?.aspectRatio, let photoResponses = result.placeDetailsResponse?.photoResponses {
-                                if modelController.isRefreshingPlaces {
-                                    Image(systemName: "photo").aspectRatio(CGFloat(aspectRatio), contentMode: .fit)
+                            if modelController.isRefreshingPlaces {
+                                ScrollView(.horizontal) {
+                                    Image(systemName: "photo")
                                         .scaledToFit()
                                         .clipShape(RoundedRectangle(cornerRadius: 32, style: .continuous))
                                         .overlay(
@@ -43,43 +43,41 @@ struct PlaceAboutView: View {
                                                 .strokeBorder(.separator, lineWidth: 1)
                                         )
                                         .frame(maxWidth:.infinity, maxHeight: .infinity)
-                                } else if let photoResponses = result.placeDetailsResponse?.photoResponses {
-                                    ScrollView {
-                                        LazyHStack {
-                                            ForEach(photoResponses) { photoResponse in
-                                                if let photoURL = photoResponse.photoUrl() {
-                                                    LazyImage(url: photoURL) { state in
-                                                        if let image = state.image {
-                                                            image.resizable()
-                                                                .aspectRatio(CGFloat(aspectRatio), contentMode: .fit)
-                                                                .scaledToFit()
-                                                                .frame(maxWidth: .infinity, maxHeight:.infinity)
-                                                                .clipShape(RoundedRectangle(cornerRadius: 32, style: .continuous))
-                                                                .overlay(
-                                                                    RoundedRectangle(cornerRadius: 32, style: .continuous)
-                                                                        .strokeBorder(.separator, lineWidth: 1)
-                                                                )
-                                                        } else if state.error != nil {
-                                                            Image(systemName: "photo")
-                                                                .aspectRatio(CGFloat(aspectRatio), contentMode: .fit)
-                                                                .scaledToFit()
-                                                                .frame(maxWidth: .infinity, maxHeight:.infinity)
-                                                                .clipShape(RoundedRectangle(cornerRadius: 32, style: .continuous))
-                                                                .overlay(
-                                                                    RoundedRectangle(cornerRadius: 32, style: .continuous)
-                                                                        .strokeBorder(.separator, lineWidth: 1)
-                                                                )
-                                                        } else {
-                                                            ProgressView()
-                                                                .padding()
-                                                                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-                                                        }
+                                }
+                            } else if let photoResponses = result.placeDetailsResponse?.photoResponses {
+                                ScrollView(.horizontal) {
+                                    LazyHStack {
+                                        ForEach(photoResponses) { photoResponse in
+                                            if let photoURL = photoResponse.photoUrl() {
+                                                LazyImage(url: photoURL) { state in
+                                                    if let image = state.image {
+                                                        image.resizable()
+                                                            .clipShape(RoundedRectangle(cornerRadius: 32, style: .continuous))
+                                                            .scaledToFit()
+                                                            .frame(maxWidth:geo.size.width / 2.0, maxHeight: geo.size.height / 2.0)
+                                                            .overlay(
+                                                                RoundedRectangle(cornerRadius: 32, style: .continuous)
+                                                                    .strokeBorder(.separator, lineWidth: 1)
+                                                            )
+                                                    } else if state.error != nil {
+                                                        Image(systemName: "photo")
+                                                            .clipShape(RoundedRectangle(cornerRadius: 32, style: .continuous))
+                                                            .frame(maxWidth:geo.size.width / 2.0, maxHeight: geo.size.height / 2.0)
+                                                            .overlay(
+                                                                RoundedRectangle(cornerRadius: 32, style: .continuous)
+                                                                    .strokeBorder(.separator, lineWidth: 1)
+                                                            )
+                                                    } else {
+                                                        ProgressView()
+                                                            .frame(maxWidth:geo.size.width / 2.0, maxHeight: geo.size.height / 2.0)
+                                                            .padding()
                                                     }
                                                 }
                                             }
                                         }
                                     }
                                 }
+                                .padding(16)
                             }
                             
                             
@@ -112,7 +110,7 @@ struct PlaceAboutView: View {
                                 ZStack {
                                     Capsule()
 #if !os(visionOS)
-    .glassEffect()
+                                        .glassEffect()
 #endif
                                         .frame(height: PlaceAboutView.buttonHeight)
                                     let isSaved = cacheManager.cachedPlaces(contains: title)
@@ -129,16 +127,16 @@ struct PlaceAboutView: View {
                                         await viewModel.toggleSavePlace(resultId: resultId, cacheManager: cacheManager, modelController:modelController)
                                     }
                                 }
-                                #if os(visionOS)
+#if os(visionOS)
                                 .hoverEffect(.lift)
-                                #endif
+#endif
                                 
                                 // Phone button
                                 if let tel = placeDetailsResponse.tel {
                                     ZStack {
                                         Capsule()
 #if !os(visionOS)
-    .glassEffect()
+                                            .glassEffect()
 #endif
                                             .frame(height: PlaceAboutView.buttonHeight)
                                         
@@ -157,9 +155,9 @@ struct PlaceAboutView: View {
                                         }
                                     }
 #if os(visionOS)
-.hoverEffect(.lift)
+                                    .hoverEffect(.lift)
 #endif
-
+                                    
                                 }
                                 
                                 // Website button
@@ -167,9 +165,9 @@ struct PlaceAboutView: View {
                                     ZStack {
                                         Capsule()
 #if !os(visionOS)
-    .glassEffect()
+                                            .glassEffect()
 #endif
-    .frame(height: PlaceAboutView.buttonHeight)
+                                            .frame(height: PlaceAboutView.buttonHeight)
                                         
                                         if sizeClass == .compact {
                                             Label("Visit website", systemImage: "link")
@@ -183,9 +181,9 @@ struct PlaceAboutView: View {
                                         openURL(url)
                                     }
 #if os(visionOS)
-.hoverEffect(.lift)
+                                    .hoverEffect(.lift)
 #endif
-
+                                    
                                 }
                                 Spacer()
                             }.padding(.horizontal, 16)
@@ -196,9 +194,9 @@ struct PlaceAboutView: View {
                                     ZStack {
                                         Capsule()
 #if !os(visionOS)
-    .glassEffect()
+                                            .glassEffect()
 #endif
-    .frame(height: PlaceAboutView.buttonHeight)
+                                            .frame(height: PlaceAboutView.buttonHeight)
                                         Label(PlacesList.formatter.string(from: NSNumber(value: placeDetailsResponse.rating)) ?? "0", systemImage: "star.fill")
                                             .labelStyle(.titleAndIcon)
                                     }
@@ -207,9 +205,9 @@ struct PlaceAboutView: View {
                                     }
                                     .padding(PlaceAboutView.defaultPadding)
 #if os(visionOS)
-.hoverEffect(.lift)
+                                    .hoverEffect(.lift)
 #endif
-
+                                    
                                 }
                                 
                                 
@@ -217,9 +215,9 @@ struct PlaceAboutView: View {
                                 if let price = placeDetailsResponse.price {
                                     ZStack {
                                         Capsule()
-                                        #if !os(visionOS)
+#if !os(visionOS)
                                             .glassEffect()
-                                        #endif
+#endif
                                             .frame(height: PlaceAboutView.buttonHeight)
                                         
                                         Text(priceToString(price: price))
@@ -230,7 +228,9 @@ struct PlaceAboutView: View {
                                 // Share button
                                 ZStack {
                                     Capsule()
-                                        .foregroundStyle(.accent)
+#if !os(visionOS)
+                                        .glassEffect()
+#endif
                                         .frame(height: PlaceAboutView.buttonHeight)
                                     if sizeClass == .compact {
                                         Label("Share", systemImage: "square.and.arrow.up")
@@ -245,9 +245,9 @@ struct PlaceAboutView: View {
                                     presentingPopover.toggle()
                                 }
 #if os(visionOS)
-.hoverEffect(.lift)
+                                .hoverEffect(.lift)
 #endif
-
+                                
                                 .sheet(isPresented:$presentingPopover) {
                                     if let result = modelController.placeChatResult(for: resultId), let placeDetailsResponse = result.placeDetailsResponse  {
                                         let items:[Any] = [placeDetailsResponse.website ?? placeDetailsResponse.searchResponse.address]
@@ -266,42 +266,40 @@ struct PlaceAboutView: View {
                                 .padding(.vertical, 24)
                             Section {
                                 
-                                    ScrollView(.horizontal) {
-                                        HStack {
-                                            ForEach(modelController.relatedPlaceResults) { relatedPlace in
-                                                VStack {
-                                                    Text(relatedPlace.title).bold().padding(8)
-                                                    if let neighborhood = relatedPlace.recommendedPlaceResponse?.neighborhood, !neighborhood.isEmpty {
-                                                        Text(neighborhood).italic().padding(8)
-                                                    } else if let locality = relatedPlace.placeResponse?.locality {
-                                                        Text(locality).italic().padding(8)
-                                                    }
+                                ScrollView(.horizontal) {
+                                    HStack {
+                                        ForEach(modelController.relatedPlaceResults) { relatedPlace in
+                                            VStack {
+                                                Text(relatedPlace.title).bold()
+                                                if let neighborhood = relatedPlace.recommendedPlaceResponse?.neighborhood, !neighborhood.isEmpty {
+                                                    Text(neighborhood).italic()
+                                                } else if let locality = relatedPlace.placeResponse?.locality {
+                                                    Text(locality).italic()
                                                 }
+                                            }
 #if os(visionOS)
-.hoverEffect(.lift)
+                                            .hoverEffect(.lift)
 #endif
-                                                .padding(PlaceAboutView.defaultPadding)
-                                                .glassEffect()
-                                                .cornerRadius(16)
-                                                .onTapGesture {
-                                                    Task(priority:.userInitiated) {
-                                                        withAnimation {
-                                                            proxy.scrollTo(topID)
-                                                        }
-                                                        do {
-                                                            try await chatModel.didTap(placeChatResult: relatedPlace,filters:[:], cacheManager: cacheManager, modelController: modelController)
-                                                        } catch {
-                                                            modelController.analyticsManager.trackError(error:error, additionalInfo: nil)
-                                                        }
+                                            .padding(PlaceAboutView.defaultPadding)
+#if !os(visionOS)
+                                            .glassEffect()
+#endif
+                                            .onTapGesture {
+                                                Task(priority:.userInitiated) {
+                                                    do {
+                                                        try await chatModel.didTap(placeChatResult: relatedPlace,filters:[:], cacheManager: cacheManager, modelController: modelController)
+                                                    } catch {
+                                                        modelController.analyticsManager.trackError(error:error, additionalInfo: nil)
                                                     }
                                                 }
                                             }
+                                        }
                                     }
                                 }
                             } header: {
                                 Text("Related Places").font(.headline)
                             }.padding(.horizontal,16)
-                                
+                            
                             
                             // Tastes Section
                             if let tastes = placeDetailsResponse.tastes, !tastes.isEmpty {
@@ -335,7 +333,7 @@ struct PlaceAboutView: View {
                                             }
                                             
 #if os(visionOS)
-.hoverEffect(.lift)
+                                            .hoverEffect(.lift)
 #endif
                                         }
                                     }
@@ -343,7 +341,7 @@ struct PlaceAboutView: View {
                                     Text("Features").font(.headline)
                                 }
                                 .padding(.horizontal,16)
-
+                                
                                 .task {
                                     if let tastes = placeDetailsResponse.tastes {
                                         mutableTastes = tastes

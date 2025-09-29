@@ -183,7 +183,10 @@ struct Know_MapsApp: App {
                     }
                 }
             }
+            .containerBackground(.clear, for: .navigationSplitView)
+            .toolbarBackgroundVisibility(self.showOnboarding ? .visible : .hidden)
         }.windowResizability(.contentSize)
+        
         
         WindowGroup(id:"StoryRabbitView") {
             StoryRabbitView(chatModel: self.$chatModel, cacheManager: self.$cacheManager, modelController: self.$modelController,  searchSavedViewModel: $searchSavedViewModel, showOnboarding: self.$showOnboarding)
