@@ -13,14 +13,10 @@ struct PlaceTipsView: View {
     @State private var isPresentingShareSheet:Bool = false
     
     var body: some View {
-        
         if let resultId = modelController.selectedPlaceChatResult, let placeChatResult = modelController.placeChatResult(for: resultId), let placeDetailsResponse = placeChatResult.placeDetailsResponse, let tips = placeDetailsResponse.tipsResponses {
             List(tips){ tip in
                 Text(tip.text)
                     .padding()
-                #if !os(visionOS)
-                    .glassEffect()
-                #endif
             }
         } else {
             ContentUnavailableView("No tips found for this location", systemImage: "x.circle.fill")

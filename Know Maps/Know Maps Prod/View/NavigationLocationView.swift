@@ -49,9 +49,9 @@ struct NavigationLocationView: View {
                 MapCompass()
             }
             .frame(idealWidth: .infinity, idealHeight:sizeClass == .compact ? geometry.size.width / 2 : geometry.size.width / 4)
-            .mapStyle(.standard)
-            .padding(32)
+            .mapStyle(.hybrid)
             .cornerRadius(32)
+            .padding(16)
             .task {
                 let selectedResult = modelController.currentlySelectedLocationResult
                 if let location = selectedResult.location {

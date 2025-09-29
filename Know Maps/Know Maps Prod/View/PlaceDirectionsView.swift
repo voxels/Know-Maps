@@ -34,14 +34,18 @@ struct PlaceDirectionsView: View {
             let title = placeResponse.name
             GeometryReader { geo in
                 ScrollView {
-                    VStack(alignment: .center) {
+                    VStack(alignment:.leading) {
                         if model.showLookAroundScene, let lookAroundScene = model.lookAroundScene {
                             HStack {
                                 Spacer()
                                 Button("Directions", systemImage: "map.fill") {
                                     model.showLookAroundScene.toggle()
                                 }
-                            }.padding(.horizontal, 16)
+                                .padding()
+                                #if !os(visionOS)
+                                .glassEffect()
+                                #endif
+                            }
                             LookAroundPreview(initialScene: lookAroundScene)
                                 .frame(width:geo.size.width - 32, height:geo.size.height - 64)
                                 .padding(16)
@@ -72,22 +76,34 @@ struct PlaceDirectionsView: View {
                                     Button("Look Around", systemImage: "binoculars.fill") {
                                         model.showLookAroundScene.toggle()
                                     }
+                                    .padding()
+                                    #if !os(visionOS)
+                                    .glassEffect()
+                                    #endif
+                                    .padding()
                                 }
+                                Spacer()
+                                    Text("Route start:")
+                                    Picker("", selection:$model.rawLocationIdent) {
+                                        ForEach(modelController.filteredLocationResults(cacheManager: cacheManager), id:\.self) { result in
+                                            Text(result.locationName).tag(result.id.uuidString)
+                                        }
+                                    }
+                                #if !os(visionOS)
+                                .glassEffect()
+                                #endif
+                                        .pickerStyle(.menu)
                                 Spacer()
                                 Button("Open Apple Maps", systemImage: "apple.logo") {
                                     MKMapItem.openMaps(with: [source,destination], launchOptions: launchOptions)
                                 }
-                            }.padding(.horizontal, 16)
+                                .padding()
+                                #if !os(visionOS)
+                                .glassEffect()
+                                #endif
+                                .padding()
+                            }
                         }
-                        HStack {
-                            Text("Route start:")
-                            Picker("", selection:$model.rawLocationIdent) {
-                                ForEach(modelController.filteredLocationResults(cacheManager: cacheManager), id:\.self) { result in
-                                    Text(result.locationName).tag(result.id.uuidString)
-                                }
-                            }.foregroundStyle(.primary)
-                                .pickerStyle(.menu)
-                        }.padding(.horizontal, 16)
                         if !model.showLookAroundScene {
                             Picker("Transport Type", selection: $model.rawTransportType) {
                                 Text(PlaceDirectionsViewModel.RawTransportType.Automobile.rawValue).tag(PlaceDirectionsViewModel.RawTransportType.Automobile)
