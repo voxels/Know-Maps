@@ -47,7 +47,6 @@ struct PlaceDirectionsView: View {
                                 .padding(16)
                                 .cornerRadius(16)
                         } else {
-                                        Text(result.locationName).tag(result.id.uuidString)
                             Map(initialPosition: .automatic, bounds: MapCameraBounds(minimumDistance: 1500, maximumDistance:250000)) {
                                 Marker(title, coordinate: placeCoordinate.coordinate)
                                 
