@@ -33,45 +33,52 @@ struct PlaceAboutView: View {
                             let placeCoordinate = CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude)
                             let title = placeResponse.name
                             
-                            if let aspectRatio = result.placeDetailsResponse?.photoResponses?.first?.aspectRatio, let url = result.placeDetailsResponse?.photoResponses?.first?.photoUrl() {
+                            if let aspectRatio = result.placeDetailsResponse?.photoResponses?.first?.aspectRatio, let photoResponses = result.placeDetailsResponse?.photoResponses {
                                 if modelController.isRefreshingPlaces {
                                     Image(systemName: "photo").aspectRatio(CGFloat(aspectRatio), contentMode: .fit)
                                         .scaledToFit()
-                                        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                                        .clipShape(RoundedRectangle(cornerRadius: 32, style: .continuous))
                                         .overlay(
-                                            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                            RoundedRectangle(cornerRadius: 32, style: .continuous)
                                                 .strokeBorder(.separator, lineWidth: 1)
                                         )
-                                        .frame(width: geo.size.width - 32, height:geo.size.height - 32)
-                                } else {
-                                    
-                                    LazyImage(url: url) { state in
-                                        if let image = state.image {
-                                            image.resizable()
-                                                .aspectRatio(CGFloat(aspectRatio), contentMode: .fit)
-                                                .scaledToFit()
-                                                .frame(maxWidth: max(0,geo.size.width - 32), maxHeight:max(geo.size.height - 32,0))
-                                                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-                                                .overlay(
-                                                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                                        .strokeBorder(.separator, lineWidth: 1)
-                                                )
-                                       } else if state.error != nil {
-                                           Image(systemName: "photo")
-                                               .aspectRatio(CGFloat(aspectRatio), contentMode: .fit)
-                                               .scaledToFit()
-                                               .frame(width: max(0, geo.size.width - 32), height:max(geo.size.height - 32,0))
-                                               .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-                                               .overlay(
-                                                   RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                                       .strokeBorder(.separator, lineWidth: 1)
-                                               )
-                                       } else {
-                                           ProgressView()
-                                               .padding()
-                                               .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-                                       }
-                                    }.id(topID)
+                                        .frame(maxWidth:.infinity, maxHeight: .infinity)
+                                } else if let photoResponses = result.placeDetailsResponse?.photoResponses {
+                                    ScrollView {
+                                        LazyHStack {
+                                            ForEach(photoResponses) { photoResponse in
+                                                if let photoURL = photoResponse.photoUrl() {
+                                                    LazyImage(url: photoURL) { state in
+                                                        if let image = state.image {
+                                                            image.resizable()
+                                                                .aspectRatio(CGFloat(aspectRatio), contentMode: .fit)
+                                                                .scaledToFit()
+                                                                .frame(maxWidth: .infinity, maxHeight:.infinity)
+                                                                .clipShape(RoundedRectangle(cornerRadius: 32, style: .continuous))
+                                                                .overlay(
+                                                                    RoundedRectangle(cornerRadius: 32, style: .continuous)
+                                                                        .strokeBorder(.separator, lineWidth: 1)
+                                                                )
+                                                        } else if state.error != nil {
+                                                            Image(systemName: "photo")
+                                                                .aspectRatio(CGFloat(aspectRatio), contentMode: .fit)
+                                                                .scaledToFit()
+                                                                .frame(maxWidth: .infinity, maxHeight:.infinity)
+                                                                .clipShape(RoundedRectangle(cornerRadius: 32, style: .continuous))
+                                                                .overlay(
+                                                                    RoundedRectangle(cornerRadius: 32, style: .continuous)
+                                                                        .strokeBorder(.separator, lineWidth: 1)
+                                                                )
+                                                        } else {
+                                                            ProgressView()
+                                                                .padding()
+                                                                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
                             
@@ -104,7 +111,9 @@ struct PlaceAboutView: View {
                                 // Save/Unsave button
                                 ZStack {
                                     Capsule()
-                                        .foregroundStyle(.accent)
+#if !os(visionOS)
+    .glassEffect()
+#endif
                                         .frame(height: PlaceAboutView.buttonHeight)
                                     let isSaved = cacheManager.cachedPlaces(contains: title)
                                     if sizeClass == .compact {
@@ -128,7 +137,9 @@ struct PlaceAboutView: View {
                                 if let tel = placeDetailsResponse.tel {
                                     ZStack {
                                         Capsule()
-                                            .foregroundStyle(.accent)
+#if !os(visionOS)
+    .glassEffect()
+#endif
                                             .frame(height: PlaceAboutView.buttonHeight)
                                         
                                         if sizeClass == .compact {
@@ -155,8 +166,10 @@ struct PlaceAboutView: View {
                                 if let website = placeDetailsResponse.website, let url = viewModel.getWebsiteURL(website: website) {
                                     ZStack {
                                         Capsule()
-                                            .foregroundStyle(.accent)
-                                            .frame(height: PlaceAboutView.buttonHeight)
+#if !os(visionOS)
+    .glassEffect()
+#endif
+    .frame(height: PlaceAboutView.buttonHeight)
                                         
                                         if sizeClass == .compact {
                                             Label("Visit website", systemImage: "link")
@@ -182,9 +195,10 @@ struct PlaceAboutView: View {
                                 if placeDetailsResponse.rating > 0 {
                                     ZStack {
                                         Capsule()
-                                            .foregroundStyle(.accent)
-                                            .frame(height: PlaceAboutView.buttonHeight)
-                                        
+#if !os(visionOS)
+    .glassEffect()
+#endif
+    .frame(height: PlaceAboutView.buttonHeight)
                                         Label(PlacesList.formatter.string(from: NSNumber(value: placeDetailsResponse.rating)) ?? "0", systemImage: "star.fill")
                                             .labelStyle(.titleAndIcon)
                                     }
@@ -203,7 +217,9 @@ struct PlaceAboutView: View {
                                 if let price = placeDetailsResponse.price {
                                     ZStack {
                                         Capsule()
-                                            .foregroundStyle(.accent)
+                                        #if !os(visionOS)
+                                            .glassEffect()
+                                        #endif
                                             .frame(height: PlaceAboutView.buttonHeight)
                                         
                                         Text(priceToString(price: price))

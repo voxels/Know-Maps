@@ -72,7 +72,6 @@ struct NavigationLocationView: View {
                     updateCamera(for: selectedDestionationLocaitonChatResult)
                 }
             }
-            /*
             .gesture(
                 LongPressGesture(minimumDuration: 0.5)
                     .sequenced(before: DragGesture(minimumDistance: 0, coordinateSpace: .local))
@@ -96,7 +95,6 @@ struct NavigationLocationView: View {
                         }
                     }
             )
-             */
         }
     }
     
@@ -126,8 +124,10 @@ struct NavigationLocationView: View {
                             }
                         }, label: {
                             Label("Remove", systemImage: "minus.circle")
+                            
                         })
                         .labelStyle(.titleAndIcon)
+
                     } else {
                         Button(action: {
                             if let location = result.location {

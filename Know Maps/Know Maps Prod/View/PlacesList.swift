@@ -12,7 +12,7 @@ import NukeUI
 //import GoogleMobileAds
 
 struct PlacesList: View {
-    @Environment(\.verticalSizeClass) var sizeClass
+    @Environment(\.horizontalSizeClass) var sizeClass
     @Binding public var searchSavedViewModel:SearchSavedViewModel
     @Binding public var chatModel:ChatResultViewModel
     @Binding var cacheManager:CloudCacheManager
@@ -28,27 +28,27 @@ struct PlacesList: View {
     @ViewBuilder
     private func recommendedGrid(in geometry: GeometryProxy) -> some View {
         let sizeWidth: CGFloat = (sizeClass == .compact) ? 1 : 2
-        let itemWidth: CGFloat = geometry.size.height / sizeWidth
-        let rows: [GridItem] = Array(
-            repeating: GridItem(.flexible(minimum: 0), spacing: 32, alignment: .topLeading),
+        let itemWidth: CGFloat = geometry.size.width / sizeWidth
+        let columns: [GridItem] = Array(
+            repeating: GridItem(.adaptive(minimum:itemWidth), spacing: 16, alignment:.top),
             count: 2
         )
         
-        ScrollView(.horizontal) {
-            LazyHGrid(rows: rows) {
+        ScrollView() {
+            LazyVGrid(columns: columns) {
                 ForEach(modelController.recommendedPlaceResults, id: \.id) { result in
-                    let ar: CGFloat = CGFloat(result.recommendedPlaceResponse?.aspectRatio ?? (4.0/3.0))
+                    let ar: CGFloat = CGFloat(result.recommendedPlaceResponse?.aspectRatio ?? (3.0/4.0))
                     let reservedHeight: CGFloat = itemWidth / ar
                     
-                    HStack {
-                        ZStack(alignment: .bottomLeading) {
+                    VStack {
+                        ZStack(alignment: .topTrailing) {
                             if let photo = result.recommendedPlaceResponse?.photo, !photo.isEmpty, let url = URL(string: photo) {
                                 LazyImage(url: url) { state in
                                     if let image = state.image {
                                         image
                                             .resizable()
                                             .aspectRatio(ar, contentMode: .fill)
-                                            .frame(width: reservedHeight, height: itemWidth)
+                                            .frame(width: itemWidth, height: reservedHeight)
                                             .clipped()
                                     } else if state.error != nil {
                                         ZStack {
@@ -57,19 +57,20 @@ struct PlacesList: View {
                                                 .font(.title2)
                                                 .foregroundStyle(.secondary)
                                         }
-                                        .frame(width: reservedHeight)
-                                        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                                        .frame(width: itemWidth, height: reservedHeight)
+                                        .clipShape(RoundedRectangle(cornerRadius: 32, style: .continuous))
                                     } else {
                                         ZStack {
                                             Rectangle().fill(.secondary.opacity(0.10))
                                             ProgressView()
                                         }
-                                        .frame(width: reservedHeight)
-                                        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                                        .frame(width: itemWidth, height:reservedHeight)
+                                        .clipShape(RoundedRectangle(cornerRadius: 32, style: .continuous))
                                     }
                                 }
                                 .contentTransition(.opacity)
-                                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                                .frame(maxWidth: itemWidth, maxHeight:reservedHeight)
+                                .clipShape(RoundedRectangle(cornerRadius: 32, style: .continuous))
 #if os(visionOS)
                                 .hoverEffect(.lift)
 #endif
@@ -100,11 +101,11 @@ struct PlacesList: View {
                                 }
                             } else {
                                 Color.clear
-                                    .frame(width: reservedHeight)
-                                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                                    .frame(maxWidth: itemWidth, maxHeight:reservedHeight)
+                                    .clipShape(RoundedRectangle(cornerRadius: 32, style: .continuous))
                             }
                             
-                            VStack(alignment: .leading, spacing:8) {
+                            VStack(alignment: .leading, spacing:16) {
                                 if let neighborhood = result.recommendedPlaceResponse?.neighborhood, !neighborhood.isEmpty {
                                     Text(result.title).bold()
                                     Text(neighborhood).italic()
@@ -129,17 +130,13 @@ struct PlacesList: View {
                         )
                         .contentShape(RoundedRectangle(cornerRadius: 32, style: .continuous))
                         .gridCellAnchor(.top)
-
                     }
                     .animation(.snappy(duration: 0.35), value: modelController.recommendedPlaceResults)
-                    .listRowBackground(Color.clear)
-                    .listStyle(.plain)
-
                 }
-                .scrollContentBackground(.hidden)
-                    .background(Color.clear)
             }
         }
+        .scrollContentBackground(.hidden)
+        .background(Color.clear)
     }
     
     @ViewBuilder
