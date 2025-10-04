@@ -297,11 +297,18 @@ struct hopitApp: App {
         
         let isLocationAuthorized = modelController.locationProvider.isAuthorized()
         if isLocationAuthorized  {
-            await MainActor.run {
-                let location = modelController.locationProvider.currentLocation()
-                modelController.currentlySelectedLocationResult.replaceLocation(with: location, name: "Current Location")
-                modelController.selectedDestinationLocationChatResult = modelController.currentlySelectedLocationResult.id
+            Task { @MainActor in
+                let location = modelController.locationService.currentLocation()
+                if let name = try? await modelController.locationService.currentLocationName() {
+                    modelController.currentlySelectedLocationResult.replaceLocation(with: location, name: name)
+                    modelController.selectedDestinationLocationChatResult = modelController.currentlySelectedLocationResult.id
+                }
             }
+        } else {
+            let location = modelController.locationService.currentLocation()
+            let name = "Current Location"
+            modelController.currentlySelectedLocationResult.replaceLocation(with: location, name: name)
+            modelController.selectedDestinationLocationChatResult = modelController.currentlySelectedLocationResult.id
         }
         
         await MainActor.run {

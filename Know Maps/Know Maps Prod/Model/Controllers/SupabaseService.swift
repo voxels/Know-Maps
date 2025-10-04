@@ -4,7 +4,7 @@ import Foundation
 import Supabase
 
 // Define a struct to represent a Point of Interest, matching your 'pois' table
-public struct POI: Decodable, Identifiable {
+public struct POI: Decodable, Identifiable, Equatable {
     public let id: Int
     let tour_id: Int
     let title: String
@@ -15,7 +15,7 @@ public struct POI: Decodable, Identifiable {
     let audio_path: String?
 }
 
-public struct Tour: Decodable, Identifiable {
+public struct Tour: Decodable, Identifiable, Equatable {
     public let id: Int
     let creator_id:Int
     let title: String

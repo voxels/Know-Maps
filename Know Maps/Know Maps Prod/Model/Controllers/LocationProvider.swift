@@ -13,7 +13,7 @@ public enum LocationProviderError : Error {
 
 
 public final class LocationProvider : NSObject, Sendable  {
-    private let locationManager: CLLocationManager = CLLocationManager()
+    public let locationManager: CLLocationManager = CLLocationManager()
     
     public func isAuthorized() -> Bool {
 #if os(visionOS) || os(iOS)
@@ -28,26 +28,25 @@ public final class LocationProvider : NSObject, Sendable  {
 #if os(visionOS) || os(iOS)
         if locationManager.authorizationStatus != .authorizedWhenInUse {
             locationManager.requestWhenInUseAuthorization()
-            locationManager.delegate = self
             locationManager.requestLocation()
         } else {
-            locationManager.delegate = self
             locationManager.requestLocation()
         }
 #endif
 #if os(macOS)
         if locationManager.authorizationStatus != .authorized {
             locationManager.requestWhenInUseAuthorization()
-            locationManager.delegate = self
             locationManager.requestLocation()
         } else {
-            locationManager.delegate = self
             locationManager.requestLocation()
         }
 #endif
     }
     
-    public func currentLocation()->CLLocation {
+    public func currentLocation(delegate:CLLocationManagerDelegate?)->CLLocation {
+        if let delegate {
+            locationManager.delegate = delegate
+        }
 #if os(visionOS) || os(iOS)
         if locationManager.authorizationStatus != .authorizedWhenInUse {
             authorize()
@@ -58,43 +57,6 @@ public final class LocationProvider : NSObject, Sendable  {
             authorize()
         }
 #endif
-        locationManager.delegate = self
-        locationManager.requestLocation()
         return locationManager.location ?? CLLocation.init(latitude:37.333562 , longitude:-122.004927)
     }
-    
-    
 }
-
-extension LocationProvider : CLLocationManagerDelegate {
-    public func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
-        switch locationManager.authorizationStatus {
-        case .authorizedAlways:
-            fallthrough
-        case .authorizedWhenInUse:  // Location services are available.
-            print("Location Provider Authorized When in Use")
-            NotificationCenter.default.post(name: Notification.Name("LocationProviderAuthorized"), object: nil)
-            break
-        case .restricted, .denied:  // Location services currently unavailable.
-            print("Location Provider Restricted or Denied")
-            NotificationCenter.default.post(name: Notification.Name("LocationProviderDenied"), object: nil)
-            break
-        case .notDetermined:        // Authorization not determined yet.
-            print("Location Provider Not Determined")
-            locationManager.requestWhenInUseAuthorization()
-            break
-        default:
-            break
-        }
-    }
-    
-    public func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        
-    }
-    
-    public func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
-        print("Location Manager did fail with error:")
-        print(error)
-    }
-}
-

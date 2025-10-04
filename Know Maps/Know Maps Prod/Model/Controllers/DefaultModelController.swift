@@ -62,6 +62,7 @@ public final class DefaultModelController : ModelController {
     
     public var player:AVPlayer?
     public var currentAudioData:URL?
+    public var isPlaying:Bool = false
     public var currentPOIs:[POI] = []
     public var currentTours:[Tour] = []
     
@@ -95,20 +96,22 @@ public final class DefaultModelController : ModelController {
         analyticsManager.track(event:"resetPlaceModel", properties: nil)
     }
     
-    func audioPOIModel(for poi:POI) async {
+    func audioPOIModel(for poi:POI) async -> URL? {
         do {
             if let audioPath = poi.audio_path {
                 print("First POI audio path: \(audioPath)")
                 print("Downloading audio from: \(audioPath)")
                 let audioData = try await SupabaseService.shared.downloadAudio(at: audioPath)
-                currentAudioData = audioData
                 let item = AVPlayerItem(url: audioData)
                 player = AVPlayer(playerItem: item)
                 print("Ready to play \(audioData)")
+                return audioData
             }
         } catch {
+            analyticsManager.trackError(error: error, additionalInfo: nil)
             print("Error: \(error)")
         }
+        return nil
     }
     
     // Call this once early (e.g., on first playback attempt or app launch)
@@ -123,25 +126,28 @@ public final class DefaultModelController : ModelController {
     
     @MainActor
     func play(audioPathURL: URL) async {
-      do {
-          try configureAudioSession()
-        let item = AVPlayerItem(url: audioPathURL)
-          player = AVPlayer(playerItem: item)
-        player?.play()
-      } catch {
-        print("Failed to play audio: \(error)")
-      }
+        do {
+            try configureAudioSession()
+            let item = AVPlayerItem(url: audioPathURL)
+            player = AVPlayer(playerItem: item)
+            player?.play()
+        } catch {
+            print("Failed to play audio: \(error)")
+        }
+        isPlaying = true
     }
     
     @MainActor
     func pause() {
-        player?.rate = 0
+        player?.pause()
+        isPlaying = false
     }
     
     @MainActor
     func stop() {
-      player?.pause()
-      player = nil
+        player?.pause()
+        player = nil
+        isPlaying = false
     }
     
     func startObservingAudioSession() {
@@ -154,7 +160,7 @@ public final class DefaultModelController : ModelController {
             guard let userInfo = notification.userInfo,
                   let typeValue = userInfo[AVAudioSessionInterruptionTypeKey] as? UInt,
                   let type = AVAudioSession.InterruptionType(rawValue: typeValue) else { return }
-
+            
             switch type {
             case .began:
                 self.player?.pause()
@@ -170,19 +176,19 @@ public final class DefaultModelController : ModelController {
                 break
             }
         }
-
+        
         NotificationCenter.default.addObserver(
             forName: AVAudioSession.routeChangeNotification,
             object: AVAudioSession.sharedInstance(),
             queue: .main
         ) { [weak self] notification in
             // Inspect route changes if playback stops unexpectedly
-//            let route = AVAudioSession.sharedInstance().currentRoute
-//            print("Route changed: \(route.outputs.map { $0.portType.rawValue }.joined(separator: \", \"))")
+            //            let route = AVAudioSession.sharedInstance().currentRoute
+            //            print("Route changed: \(route.outputs.map { $0.portType.rawValue }.joined(separator: \", \"))")
             // You might choose to resume or reconfigure here if needed
         }
     }
-
+    
     
     public func categoricalSearchModel() async {
         let blendedResults =  categoricalResults()
@@ -538,7 +544,7 @@ public final class DefaultModelController : ModelController {
     @discardableResult
     public func autocompletePlaceModel(caption: String, intent: AssistiveChatHostIntent) async throws -> [ChatResult] {
         var chatResults = [ChatResult]()
-
+        
         if !intent.placeSearchResponses.isEmpty {
             for index in 0..<intent.placeSearchResponses.count {
                 let response = intent.placeSearchResponses[index]
@@ -592,7 +598,7 @@ public final class DefaultModelController : ModelController {
         Task {
             try await relatedPlaceQueryModel(intent: intent, cacheManager: cacheManager)
         }
-
+        
         await MainActor.run { [chatResults] in
             if filteredPlaceResults.contains(where: {$0.identity == intent.selectedPlaceSearchResponse?.fsqID}) {
                 mapPlaceResults = placeResults
@@ -616,7 +622,7 @@ public final class DefaultModelController : ModelController {
 #if canImport(CreateML)
         if let recommendedPlaceSearchResponses = intent.recommendedPlaceSearchResponses {
             if recommendedPlaceSearchResponses.count > 1 {
-                 fetchMessage = "Personalizing results"
+                fetchMessage = "Personalizing results"
                 let trainingData = recommenderService.recommendationData(tasteCategoryResults:cacheManager.cachedTasteResults, industryCategoryResults: cacheManager.cachedIndustryResults, placeRecommendationData: cacheManager.cachedRecommendationData)
                 let model = try recommenderService.model(with: trainingData)
                 let testingData = recommenderService.testingData(with:recommendedPlaceSearchResponses)
@@ -733,16 +739,16 @@ public final class DefaultModelController : ModelController {
                 }
             }
         }
-    
-    await MainActor.run { [recommendedChatResults] in
-        recommendedPlaceResults = recommendedChatResults.sorted(by: { result, checkResult in
-            if result.rating == checkResult.rating {
-                return result.index < checkResult.index
-            }
-            
-            return result.rating > checkResult.rating
-        })
-    }
+        
+        await MainActor.run { [recommendedChatResults] in
+            recommendedPlaceResults = recommendedChatResults.sorted(by: { result, checkResult in
+                if result.rating == checkResult.rating {
+                    return result.index < checkResult.index
+                }
+                
+                return result.rating > checkResult.rating
+            })
+        }
 #endif
     }
     
@@ -817,8 +823,8 @@ public final class DefaultModelController : ModelController {
                 return result.rating > checkResult.rating
             })
         }
-        #else
-            if let relatedPlaceSearchResponses = intent.relatedPlaceSearchResponses, !relatedPlaceSearchResponses.isEmpty {
+#else
+        if let relatedPlaceSearchResponses = intent.relatedPlaceSearchResponses, !relatedPlaceSearchResponses.isEmpty {
             for index in 0..<relatedPlaceSearchResponses.count {
                 let response = relatedPlaceSearchResponses[index]
                 let placeResponse = PlaceSearchResponse(
@@ -850,7 +856,7 @@ public final class DefaultModelController : ModelController {
                 relatedChatResults.append(contentsOf: results)
             }
         }
-        #endif
+#endif
     }
     
     @discardableResult
@@ -875,7 +881,7 @@ public final class DefaultModelController : ModelController {
             }
             
             try await recommendedPlaceQueryModel(intent: intent, cacheManager: cacheManager)
-                        
+            
             await MainActor.run { [newResults] in
                 placeResults = newResults
                 mapPlaceResults = newResults
@@ -1069,8 +1075,8 @@ public final class DefaultModelController : ModelController {
             await assistiveHostDelegate.updateLastIntentParameters(intent: lastIntent, modelController: self)
             try await receiveMessage(caption: lastIntent.caption, parameters: lastHistory, isLocalParticipant: true)
             try await searchIntent(intent: lastIntent, location: locationChatResult(for: selectedDestinationLocationChatResult ?? currentlySelectedLocationResult.id, in: filteredLocationResults(cacheManager: cacheManager))?.location, cacheManager: cacheManager )
-                try await didUpdateQuery(with: lastIntent.caption, parameters: lastHistory, filters: filters, cacheManager: cacheManager)
-            }
+            try await didUpdateQuery(with: lastIntent.caption, parameters: lastHistory, filters: filters, cacheManager: cacheManager)
+        }
     }
 }
 

@@ -13,30 +13,26 @@ struct StoryRabbitPlayerView: View {
     @Binding var cacheManager:CloudCacheManager
     @Binding var modelController:DefaultModelController
     @Binding var searchSavedViewModel:SearchSavedViewModel
+    @Binding var selectedTour:Tour?
+    @State private var selectedPOI: POI = POI(id: 0, tour_id: 0, title: "", description: nil, latitude: 0, longitude: 0, script: "", audio_path: "")
     
     var body: some View {
         GeometryReader { geometry in
             ZStack {
                 Rectangle().fill(Color.black.opacity(0.1))
                     .frame(width: geometry.size.width, height: geometry.size.height)
-                if let audioData = modelController.currentAudioData  {
-                    if let player = modelController.player {
-                        if player.rate.isZero {
-                            Button("Play", systemImage: "play") {
-                                Task {
-                                    await modelController.play(audioPathURL: audioData)
-    //                                modelController.storyController.call(method: .playRabbithole)
-                                }
-                            }
-                        } else {
-                            Button("Pause", systemImage: "pause") {
-                                modelController.pause()
+                if let audioData = modelController.currentAudioData, let player = modelController.player  {
+                    if modelController.isPlaying == false {
+                        Button("Play", systemImage: "play") {
+                            Task {
+                                await modelController.play(audioPathURL: audioData)
+                                //modelController.storyController.call(method: .playRabbithole)
                             }
                         }
                     } else {
-                        ProgressView()
-                            .progressViewStyle(.automatic)
-                            .padding(16)
+                        Button("Pause", systemImage: "pause") {
+                            modelController.pause()
+                        }
                     }
                 } else {
                     ProgressView()
@@ -45,9 +41,22 @@ struct StoryRabbitPlayerView: View {
                 }
             }
             .task {
-                if let poi = modelController.currentPOIs.first {
-                    await modelController.audioPOIModel(for:poi)
+                if let tour = selectedTour, let firstPOI = modelController.currentPOIs.filter({$0.tour_id == tour.id}).first {
+                    selectedPOI = firstPOI
                 }
+            }
+            .onChange(of: modelController.currentPOIs) { oldValue, newValue in
+                if let tour = selectedTour, let firstPOI = newValue.filter({$0.tour_id == tour.id}).first {
+                    selectedPOI = firstPOI
+                }
+            }
+            .onChange(of: selectedPOI) { oldValue, newValue in
+                Task {
+                    modelController.currentAudioData = await modelController.audioPOIModel(for: newValue)
+                }
+            }
+            .onDisappear {
+                modelController.pause()
             }
         }
     }

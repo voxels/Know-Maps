@@ -329,11 +329,22 @@ struct Know_MapsApp: App {
         
         let isLocationAuthorized = modelController.locationProvider.isAuthorized()
         if isLocationAuthorized  {
-            await MainActor.run {
-                let location = modelController.locationProvider.currentLocation()
-                modelController.currentlySelectedLocationResult.replaceLocation(with: location, name: "Current Location")
-                modelController.selectedDestinationLocationChatResult = modelController.currentlySelectedLocationResult.id
+            Task { @MainActor in
+                do {
+                    let location = modelController.locationService.currentLocation()
+                    let name = try await modelController.locationService.currentLocationName()
+                    modelController.currentlySelectedLocationResult.replaceLocation(with: location, name: "Current Location")
+                    modelController.selectedDestinationLocationChatResult = modelController.currentlySelectedLocationResult.id
+                }
+                catch {
+                    modelController.analyticsManager.trackError(error: error, additionalInfo:nil)
+                }
             }
+        } else {
+            let location = modelController.locationService.currentLocation()
+            let name = "Current Location"
+            modelController.currentlySelectedLocationResult.replaceLocation(with: location, name: name)
+            modelController.selectedDestinationLocationChatResult = modelController.currentlySelectedLocationResult.id
         }
         
         await MainActor.run {
