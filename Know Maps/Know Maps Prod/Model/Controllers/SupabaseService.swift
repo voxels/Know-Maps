@@ -25,6 +25,7 @@ public struct Tour: Decodable, Identifiable {
     let updated_at:Date
     let persona_id:Int?
     let image_path:String?
+}
 
 public final class SupabaseService {
     static let shared = SupabaseService()
