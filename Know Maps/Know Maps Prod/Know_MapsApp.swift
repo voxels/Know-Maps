@@ -183,7 +183,9 @@ struct Know_MapsApp: App {
                     }
                 }
             }
-            .containerBackground(.clear, for: .navigationSplitView)
+            #if !os(visionOS)
+            .containerBackground(.clear, for: .navigation)
+            #endif
             .toolbarBackgroundVisibility(self.showOnboarding ? .visible : .hidden)
         }.windowResizability(.contentSize)
         
@@ -295,9 +297,6 @@ struct Know_MapsApp: App {
     private func loadData() async {
         Task {
             await modelController.categoricalSearchModel()
-            if isStoryrabbitEnabled {
-                await modelController.audioPOIModel()
-            }
         }
         
         let cacheRefreshTask = Task { @MainActor in

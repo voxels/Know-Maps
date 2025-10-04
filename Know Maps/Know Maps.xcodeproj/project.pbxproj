@@ -109,8 +109,6 @@
 		1E2D2AEA2E8A583800EA69DC /* SearchCategoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E70B4C42B50103C00F1F9F5 /* SearchCategoryView.swift */; };
 		1E2D2AEB2E8A583800EA69DC /* SearchTasteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E70B4D02B50120500F1F9F5 /* SearchTasteView.swift */; };
 		1E2D2AEC2E8A583800EA69DC /* SearchPlacesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E8E5AFA2CA03D8600B37E6A /* SearchPlacesView.swift */; };
-		1E2D2AED2E8A583800EA69DC /* StoryRabbitContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EFFBA992E826EFA0088882B /* StoryRabbitContentView.swift */; };
-		1E2D2AEE2E8A583800EA69DC /* StoryRabbitView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EFFBA9B2E8270EC0088882B /* StoryRabbitView.swift */; };
 		1E2D2AF22E8A589B00EA69DC /* generating_loop_0.wav in Resources */ = {isa = PBXBuildFile; fileRef = 1EFFBA9D2E8278020088882B /* generating_loop_0.wav */; };
 		1E2D2AF32E8A589B00EA69DC /* generating_loop_1.wav in Resources */ = {isa = PBXBuildFile; fileRef = 1EFFBA9E2E8278020088882B /* generating_loop_1.wav */; };
 		1E2D2AF42E8A589B00EA69DC /* generating_loop_2.wav in Resources */ = {isa = PBXBuildFile; fileRef = 1EFFBA9F2E8278020088882B /* generating_loop_2.wav */; };
@@ -206,8 +204,6 @@
 		1EF3791E2C986F96001C5E39 /* LocalMapsQueryClassifier.mlmodel in Sources */ = {isa = PBXBuildFile; fileRef = 1EA7F7982B052E0C002AE371 /* LocalMapsQueryClassifier.mlmodel */; };
 		1EF3791F2C986F96001C5E39 /* LocalMapsQueryTagger.mlmodel in Sources */ = {isa = PBXBuildFile; fileRef = 1EA7F7992B052E0C002AE371 /* LocalMapsQueryTagger.mlmodel */; };
 		1EF379202C9875E0001C5E39 /* integrated_category_taxonomy.json in Resources */ = {isa = PBXBuildFile; fileRef = 1EA7F7782B052D92002AE371 /* integrated_category_taxonomy.json */; };
-		1EFFBA9A2E826EFA0088882B /* StoryRabbitContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EFFBA992E826EFA0088882B /* StoryRabbitContentView.swift */; };
-		1EFFBA9C2E8270EC0088882B /* StoryRabbitView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EFFBA9B2E8270EC0088882B /* StoryRabbitView.swift */; };
 		1EFFBAA52E8278020088882B /* THINKING.wav in Resources */ = {isa = PBXBuildFile; fileRef = 1EFFBAA32E8278020088882B /* THINKING.wav */; };
 		1EFFBAA62E8278020088882B /* PLAY_fixed.wav in Resources */ = {isa = PBXBuildFile; fileRef = 1EFFBAA22E8278020088882B /* PLAY_fixed.wav */; };
 		1EFFBAA72E8278020088882B /* generating_loop_3.wav in Resources */ = {isa = PBXBuildFile; fileRef = 1EFFBAA02E8278020088882B /* generating_loop_3.wav */; };
@@ -367,8 +363,6 @@
 		1EE068972B121F710016851A /* LocationResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationResult.swift; sourceTree = "<group>"; };
 		1EE599B32CA4A6DE00C211A6 /* Know MapsTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Know MapsTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		1EEC48182B45A4B300248D69 /* UserCachedRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserCachedRecord.swift; sourceTree = "<group>"; };
-		1EFFBA992E826EFA0088882B /* StoryRabbitContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryRabbitContentView.swift; sourceTree = "<group>"; };
-		1EFFBA9B2E8270EC0088882B /* StoryRabbitView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryRabbitView.swift; sourceTree = "<group>"; };
 		1EFFBA9D2E8278020088882B /* generating_loop_0.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = generating_loop_0.wav; sourceTree = "<group>"; };
 		1EFFBA9E2E8278020088882B /* generating_loop_1.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = generating_loop_1.wav; sourceTree = "<group>"; };
 		1EFFBA9F2E8278020088882B /* generating_loop_2.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = generating_loop_2.wav; sourceTree = "<group>"; };
@@ -406,10 +400,20 @@
 			);
 			target = 1E2D2A422E8A536C00EA69DC /* hopit */;
 		};
+		1EB32BDB2E8EBAC700280994 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				View/StoryRabbitContentView.swift,
+				View/StoryRabbitMapView.swift,
+				View/StoryRabbitPlayerView.swift,
+				View/StoryRabbitSettingsView.swift,
+			);
+			target = 1E095AF72B778AEF00147119 /* Know Maps */;
+		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		1E2D2A442E8A536C00EA69DC /* hopit */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (1E2D2A6B2E8A536D00EA69DC /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = hopit; sourceTree = "<group>"; };
+		1E2D2A442E8A536C00EA69DC /* hopit */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (1EB32BDB2E8EBAC700280994 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, 1E2D2A6B2E8A536D00EA69DC /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = hopit; sourceTree = "<group>"; };
 		1E2D2A562E8A536D00EA69DC /* hopitTests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = hopitTests; sourceTree = "<group>"; };
 		1E2D2A602E8A536D00EA69DC /* hopitUITests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = hopitUITests; sourceTree = "<group>"; };
 		1EE523AF2E8201A000DE0AAE /* StoryRabbit */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (1E2D2AF02E8A583800EA69DC /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = StoryRabbit; sourceTree = "<group>"; };
@@ -663,8 +667,6 @@
 				1E70B4C42B50103C00F1F9F5 /* SearchCategoryView.swift */,
 				1E70B4D02B50120500F1F9F5 /* SearchTasteView.swift */,
 				1E8E5AFA2CA03D8600B37E6A /* SearchPlacesView.swift */,
-				1EFFBA992E826EFA0088882B /* StoryRabbitContentView.swift */,
-				1EFFBA9B2E8270EC0088882B /* StoryRabbitView.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -1058,8 +1060,6 @@
 				1E8E5AFB2CA03D8F00B37E6A /* SearchPlacesView.swift in Sources */,
 				1E7D435D2CB5259100DC17FA /* ModelController.swift in Sources */,
 				1EF378F62C986EE7001C5E39 /* PlacePhotoResponse.swift in Sources */,
-				1EFFBA9A2E826EFA0088882B /* StoryRabbitContentView.swift in Sources */,
-				1EFFBA9C2E8270EC0088882B /* StoryRabbitView.swift in Sources */,
 				1EF378F72C986EE7001C5E39 /* PlaceSearchRequest.swift in Sources */,
 				1E007ACE2CB40B1D00A8DC5A /* SegmentAnalyticsService.swift in Sources */,
 				1EF378F82C986EE7001C5E39 /* PlaceSearchResponse.swift in Sources */,
@@ -1222,8 +1222,6 @@
 				1E2D2AEA2E8A583800EA69DC /* SearchCategoryView.swift in Sources */,
 				1E2D2AEB2E8A583800EA69DC /* SearchTasteView.swift in Sources */,
 				1E2D2AEC2E8A583800EA69DC /* SearchPlacesView.swift in Sources */,
-				1E2D2AED2E8A583800EA69DC /* StoryRabbitContentView.swift in Sources */,
-				1E2D2AEE2E8A583800EA69DC /* StoryRabbitView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1479,9 +1477,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				"ASSETCATALOG_COMPILER_APPICON_NAME[sdk=iphoneos*]" = "AppIcon 2";
-				"ASSETCATALOG_COMPILER_APPICON_NAME[sdk=macosx*]" = "AppIcon 1";
-				"ASSETCATALOG_COMPILER_APPICON_NAME[sdk=xros*]" = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CODE_SIGN_ENTITLEMENTS = hopit/hopit.entitlements;
@@ -1543,9 +1538,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				"ASSETCATALOG_COMPILER_APPICON_NAME[sdk=iphoneos*]" = "AppIcon 2";
-				"ASSETCATALOG_COMPILER_APPICON_NAME[sdk=macosx*]" = "AppIcon 1";
-				"ASSETCATALOG_COMPILER_APPICON_NAME[sdk=xros*]" = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CODE_SIGN_ENTITLEMENTS = hopit/hopit.entitlements;

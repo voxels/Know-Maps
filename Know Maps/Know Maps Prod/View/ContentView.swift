@@ -100,11 +100,13 @@ struct ContentView: View {
                         Label("Places", systemImage: "mappin")
                     }
                 }
-                .tabViewStyle(.page(indexDisplayMode: .automatic))
+                .tabViewStyle(.page)
+                .defaultAdaptableTabBarPlacement()
                 .tag(5)
                 .tabItem {
                     Label("Browse", systemImage: "list.bullet")
                 }
+                .containerBackground(Color(.clear), for:.navigation)
                 
                 SettingsView(model: settingsModel, chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, showOnboarding: $showOnboarding)
                     .tag(4)
@@ -127,7 +129,11 @@ struct ContentView: View {
                 if newValue != nil {
                     modelController.selectedSavedResult = nil
                     Task(priority:.userInitiated) {
-                        await modelController.resetPlaceModel()
+                        do {
+                            try await modelController.resetPlaceModel()
+                        } catch {
+                            modelController.analyticsManager.trackError(error:error, additionalInfo: nil)
+                        }
                     }
                 }
             })
@@ -159,8 +165,8 @@ struct ContentView: View {
                     await MainActor.run {
                         modelController.isRefreshingPlaces = true
                     }
-                    await modelController.resetPlaceModel()
                     do {
+                        try await modelController.resetPlaceModel()
                         try await chatModel.didSearch(
                             caption: caption,
                             selectedDestinationChatResultID: modelController.selectedDestinationLocationChatResult,
@@ -305,7 +311,7 @@ struct ContentView: View {
                                         } completion: {
                                             Task(priority: .userInitiated) {
                                                 do {
-                                                    await modelController.resetPlaceModel()
+                                                    try await modelController.resetPlaceModel()
                                                     try await  chatModel.didTap(placeChatResult: placeChatResult, filters: searchSavedViewModel.filters, cacheManager: cacheManager, modelController: modelController)
                                                 } catch {
                                                     modelController.analyticsManager.trackError(error: error, additionalInfo:nil)

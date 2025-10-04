@@ -26,8 +26,11 @@ struct SearchView: View {
                 modelController.isRefreshingPlaces = true
                 modelController.fetchMessage = "Fetching places"
                 Task(priority:.userInitiated) {
-                    
-                    await modelController.resetPlaceModel()
+                    do {
+                        try await modelController.resetPlaceModel()
+                    } catch {
+                        modelController.analyticsManager.trackError(error:error, additionalInfo:nil)
+                    }
                     if let cachedResult = modelController.cachedChatResult(for: newValue, cacheManager: cacheManager) {
                         await chatModel.didTap(chatResult: cachedResult,  selectedDestinationChatResultID: modelController.selectedDestinationLocationChatResult ?? modelController.currentlySelectedLocationResult.id, filters: searchSavedViewModel.filters, cacheManager: cacheManager, modelController: modelController)
                     }

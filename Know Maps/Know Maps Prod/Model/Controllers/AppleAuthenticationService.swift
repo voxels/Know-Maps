@@ -272,11 +272,15 @@ class AppleAuthenticationService: NSObject, ObservableObject {
     }
     
     // MARK: - Handling Sign-In Errors
-    func handleSignInError(_ error: Error) {
+    func handleSignInError(_ error: Error?) {
+        
         DispatchQueue.main.async {
-            self.signInErrorMessage = error.localizedDescription
+            if let error = error as NSError? {
+                self.signInErrorMessage = error.localizedDescription
+                print("Authorization failed: \(error.localizedDescription)")
+            }
+            self.signOut()
         }
-        print("Authorization failed: \(error.localizedDescription)")
     }
 }
 
@@ -288,6 +292,7 @@ extension AppleAuthenticationService: ASAuthorizationControllerDelegate {
                 print("Authorization and token exchange successful.")
             } else {
                 print("Authorization succeeded but token exchange failed.")
+                self.handleSignInError(nil)
             }
         }
     }

@@ -7,10 +7,11 @@
 
 import SwiftUI
 import CoreLocation
-import AVFoundation
+import AVKit
 
 @Observable
 public final class DefaultModelController : ModelController {
+    
     static let shared = DefaultModelController(
         locationProvider: LocationProvider(),
         analyticsManager:SegmentAnalyticsService.shared, messagesDelegate: ChatResultViewModel.shared)
@@ -23,6 +24,7 @@ public final class DefaultModelController : ModelController {
     public let analyticsManager: AnalyticsService
     public let recommenderService:RecommenderService
     public let supabaseService:SupabaseService
+    public var storyController:StoryRabbitController
     
     // MARK: - Published Properties
     
@@ -58,7 +60,10 @@ public final class DefaultModelController : ModelController {
     private var fetchingPlaceID: ChatResult.ID?
     private var sessionRetryCount: Int = 0
     
-    private var player:AVPlayer?
+    public var player:AVPlayer?
+    public var currentAudioData:URL?
+    public var currentPOIs:[POI] = []
+    public var currentTours:[Tour] = []
     
     // MARK: - Initializer
     
@@ -75,29 +80,32 @@ public final class DefaultModelController : ModelController {
         self.locationService = DefaultLocationService(locationProvider: locationProvider)
         self.recommenderService = DefaultRecommenderService()
         self.supabaseService = SupabaseService.shared
+        storyController = StoryRabbitController(playerState: .loading, backgroundTask: UIBackgroundTaskIdentifier.init(rawValue: Int.random(in: 0..<Int.max)))
     }
     
-    public func resetPlaceModel() async {
+    public func resetPlaceModel() async throws {
         await MainActor.run {
             placeResults.removeAll()
             mapPlaceResults.removeAll()
             recommendedPlaceResults.removeAll()
             relatedPlaceResults.removeAll()
         }
+        currentPOIs = try await SupabaseService.shared.fetchPOIs()
+        currentTours = try await SupabaseService.shared.fetchTours()
         analyticsManager.track(event:"resetPlaceModel", properties: nil)
     }
     
-    func audioPOIModel() async {
+    func audioPOIModel(for poi:POI) async {
         do {
-            let pois = try await SupabaseService.shared.fetchPOIs()
-            if let firstPOI = pois.first {
-                guard let audioPath = firstPOI.audio_path else { return }
+            if let audioPath = poi.audio_path {
                 print("First POI audio path: \(audioPath)")
                 print("Downloading audio from: \(audioPath)")
                 let audioData = try await SupabaseService.shared.downloadAudio(at: audioPath)
+                currentAudioData = audioData
+                let item = AVPlayerItem(url: audioData)
+                player = AVPlayer(playerItem: item)
                 print("Ready to play \(audioData)")
-                await play(audioPathURL: audioData)
-        }
+            }
         } catch {
             print("Error: \(error)")
         }
@@ -114,18 +122,21 @@ public final class DefaultModelController : ModelController {
     }
     
     @MainActor
-        func play(audioPathURL: URL) async {
-          do {
-              try configureAudioSession()
-            let item = AVPlayerItem(url: audioPathURL)
-              player = AVPlayer(playerItem: item)
-            player?.play()
-          } catch {
-            print("Failed to play audio: \(error)")
-          }
-        }
+    func play(audioPathURL: URL) async {
+      do {
+          try configureAudioSession()
+        let item = AVPlayerItem(url: audioPathURL)
+          player = AVPlayer(playerItem: item)
+        player?.play()
+      } catch {
+        print("Failed to play audio: \(error)")
+      }
+    }
     
-    
+    @MainActor
+    func pause() {
+        player?.rate = 0
+    }
     
     @MainActor
     func stop() {

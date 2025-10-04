@@ -101,14 +101,8 @@ struct hopitApp: App {
                         Spacer()
                         VStack(alignment: .center) {
                             Spacer()
-                            let text = isStoryrabbitEnabled ? "Welcome to StoryRabbit" : "Welcome to Know Maps"
+                            let text = "Welcome to Hopit"
                             Text(text).bold().padding()
-                            isStoryrabbitEnabled ? Image(systemName: "hare")
-                                .resizable()
-                                .scaledToFit()
-                                .padding()
-                                .frame(width:100 , height: 100)
-                                .padding() :
                             Image("logo_macOS_512")
                                 .resizable()
                                 .scaledToFit()
@@ -172,36 +166,15 @@ struct hopitApp: App {
                             .frame(minWidth: 1280, minHeight: 720)
 #endif
                     } else {
-                        if isStoryrabbitEnabled {
-                            StoryRabbitContentView(settingsModel:authenticationModel, chatModel: $chatModel, cacheManager:$cacheManager, modelController:$modelController, searchSavedViewModel: $searchSavedViewModel, showOnboarding: $showOnboarding)
-                        } else {
-                            ContentView(settingsModel:authenticationModel, chatModel: $chatModel, cacheManager:$cacheManager, modelController:$modelController, searchSavedViewModel: $searchSavedViewModel, showOnboarding: $showOnboarding)
+                        
+                        StoryRabbitContentView(settingsModel:authenticationModel, chatModel: $chatModel, cacheManager:$cacheManager, modelController:$modelController, searchSavedViewModel: $searchSavedViewModel, showOnboarding: $showOnboarding)
 #if os(visionOS) || os(macOS)
                                 .frame(minWidth: 1280, minHeight: 720)
 #endif
-                        }
                     }
                 }
             }
         }.windowResizability(.contentSize)
-        
-        WindowGroup(id:"StoryRabbitView") {
-            StoryRabbitView(chatModel: self.$chatModel, cacheManager: self.$cacheManager, modelController: self.$modelController,  searchSavedViewModel: $searchSavedViewModel, showOnboarding: self.$showOnboarding)
-        }
-        
-        WindowGroup(id:"SettingsView"){
-            SettingsView(model:authenticationModel, chatModel:$chatModel, cacheManager: $cacheManager, modelController: $modelController, showOnboarding: $showOnboarding)
-                .tag("Settings")
-                .onChange(of: authenticationModel.appleUserId, { oldValue, newValue in
-                    
-#if os(visionOS) || os(iOS)
-                    if !newValue.isEmpty, let vendorId = UIDevice().identifierForVendor {
-                        modelController.analyticsManager.identify(userID: vendorId.uuidString)
-                    }
-#endif
-                })
-        }
-        .modelContainer(hopitApp.sharedModelContainer)
         
 #if os(visionOS)
         ImmersiveSpace(id: "ImmersiveSpace") {
@@ -292,9 +265,6 @@ struct hopitApp: App {
     private func loadData() async {
         Task {
             await modelController.categoricalSearchModel()
-            if isStoryrabbitEnabled {
-                await modelController.audioPOIModel()
-            }
         }
         
         let cacheRefreshTask = Task { @MainActor in

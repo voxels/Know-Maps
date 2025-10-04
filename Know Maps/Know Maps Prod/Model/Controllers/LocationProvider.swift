@@ -30,6 +30,9 @@ public final class LocationProvider : NSObject, Sendable  {
             locationManager.requestWhenInUseAuthorization()
             locationManager.delegate = self
             locationManager.requestLocation()
+        } else {
+            locationManager.delegate = self
+            locationManager.requestLocation()
         }
 #endif
 #if os(macOS)

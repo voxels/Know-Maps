@@ -84,7 +84,11 @@ struct FiltersView: View {
             modelController.isRefreshingPlaces = true
             modelController.fetchMessage = "Searching for places"
             Task(priority:.userInitiated) {
-                await modelController.resetPlaceModel()
+                do {
+                    try await modelController.resetPlaceModel()
+                } catch {
+                    modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
+                }
                 await searchSavedViewModel.search(caption: lastIntent.caption, selectedDestinationChatResultID: lastIntent.selectedDestinationLocationID, intent: .Search, filters: searchSavedViewModel.filters, chatModel: chatModel, cacheManager: cacheManager, modelController: modelController)
                 await MainActor.run {
                     modelController.isRefreshingPlaces = false

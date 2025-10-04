@@ -1,4 +1,4 @@
-import AVFoundation
+import AVKit
 import MediaPlayer
 
 class WebSocketAudioPlayer: NSObject, URLSessionWebSocketDelegate {

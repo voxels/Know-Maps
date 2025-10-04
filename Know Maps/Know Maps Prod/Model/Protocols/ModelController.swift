@@ -58,6 +58,9 @@ public protocol ModelController : Sendable {
     var filteredResults: [CategoryResult] { get }
     
     var filteredPlaceResults: [ChatResult] { get }
+    
+    var currentPOIs:[POI] { get }
+    var currentTours:[Tour] { get }
 
     // MARK: - Init
     init(
@@ -66,7 +69,7 @@ public protocol ModelController : Sendable {
         messagesDelegate:AssistiveChatHostMessagesDelegate
     )
     
-    func resetPlaceModel() async
+    func resetPlaceModel() async throws
     
     // MARK: - Industry Category Handling
     

@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import AVFoundation
 import BackgroundTasks
 import AVKit
 import MediaPlayer
@@ -46,12 +45,6 @@ public final class StoryRabbitController  {
 
     static var STREAMING_ENABLED = true;
 
-    var chatModel:ChatResultViewModel
-    var cacheManager:CloudCacheManager
-    var modelController:DefaultModelController
-    var searchSavedViewModel:SearchSavedViewModel
-    var showOnboarding:Bool
-
     var audioPlayer: AVQueuePlayer?
     var effectsPlayer: AVAudioPlayer?
     var generatingAudioURL0: URL?
@@ -75,17 +68,8 @@ public final class StoryRabbitController  {
     
     var playerProgress:[String:Any?]? = nil
     
-    init( chatModel:ChatResultViewModel,
-          cacheManager:CloudCacheManager,
-          modelController:DefaultModelController,
-          searchSavedViewModel:SearchSavedViewModel,
-          showOnboarding:Bool,
+    init(
         audioPlayer: AVQueuePlayer? = nil, effectsPlayer: AVAudioPlayer? = nil, generatingAudioURL0: URL? = nil, generatingAudioURL1: URL? = nil, generatingAudioURL2: URL? = nil, generatingAudioURL3: URL? = nil, generatingAudioURL4: URL? = nil, playerState: PlayerState, chapter: Podcast? = nil, rabbithole: Podcast? = nil, level: Int? = nil, lastCompletedLevel: Int? = nil, isNewRabbitHole: Bool? = nil, remoteAudioURL: URL? = nil, playerItem: AVPlayerItem? = nil, backgroundTask: UIBackgroundTaskIdentifier, progressTimer: Timer? = nil, boundaryTimeObserver: Any? = nil, remotePlayed: Bool? = nil, streamAudioPlayer: WebSocketAudioPlayer? = nil) {
-        self.chatModel = chatModel
-        self.cacheManager = cacheManager
-        self.modelController = modelController
-        self.searchSavedViewModel = searchSavedViewModel
-        self.showOnboarding = showOnboarding
         self.audioPlayer = audioPlayer
         self.effectsPlayer = effectsPlayer
         self.generatingAudioURL0 = generatingAudioURL0
@@ -168,7 +152,7 @@ public final class StoryRabbitController  {
         if method.rawValue == "playRabbithole" {
             self.configureAudioSession()
             
-            let args:[String:String] = [:]
+            let args:[String:Any] = [:]
 
             // Ensure the arguments are of the correct type
             guard let baseUrl = args["baseUrl"] as? String,
@@ -198,7 +182,7 @@ public final class StoryRabbitController  {
         
         // Request UI update
         else if (method.rawValue == "requestUpdateUI") {
-            self.sendPlayerProgress()
+            playerProgress = self.sendPlayerProgress()
         }
         // generate story
         else if (method.rawValue == "generateFollowup" || method.rawValue == "createFromSingle" || method.rawValue == "createFromMulti") {
@@ -209,7 +193,7 @@ public final class StoryRabbitController  {
                 if (method.rawValue == "generateFollowup") {
                     // Ensure the arguments are of the correct type
                     
-                    let args:[String:String] = [:]
+                    let args:[String:Any] = [:]
                     
                     // Extract and validate
                     guard let baseUrl = args["baseUrl"] as? String,
@@ -221,19 +205,20 @@ public final class StoryRabbitController  {
                     self.createFollowUp(baseUrl:baseUrl + "podcast/"+parentId.description+"/followUp/"+followUpId.description, token:token )
                 }else if(method.rawValue == "createFromSingle"){
                     
-                    let args:[String:String] = [:]
+                    let args:[String:Any] = [:]
 
                     // Extract and validate hostId, baseUrl, and token
                     guard let baseUrl = args["baseUrl"] as? String,
                           let payload = args["payload"] as? String,
                           let token = args["token"] as? String else {
+                        
                         return
                     }
                     self.isNewRabbitHole = true
                     self.createRabbithole(payload:payload, baseUrl:baseUrl + "podcast/poi-single", token:token )
                 }
                 else if(method.rawValue == "createFromMulti"){
-                    let args:[String:String] = [:]
+                    let args:[String:Any] = [:]
 
                     // Extract and validate hostId, baseUrl, and token
                     guard let baseUrl = args["baseUrl"] as? String,
@@ -255,7 +240,7 @@ public final class StoryRabbitController  {
             if(method.rawValue == "createFromSingle") {eventName = "generate-rabbithole-poi-single";}
             else if(method.rawValue == "createFromMulti") {eventName = "generate-rabbithole-poi-multi";}
             
-            let args:[String:String] = [:]
+            let args:[String:Any] = [:]
 
             // Ensure the arguments are of the correct type
             
@@ -270,7 +255,7 @@ public final class StoryRabbitController  {
                     if let jsonDictionary = try JSONSerialization.jsonObject(with: payloadData, options: []) as? [String: Any] {
                         
                         self.playerState = .loading
-                        self.sendPlayerProgress()
+                        playerProgress = self.sendPlayerProgress()
                         self.isNewRabbitHole = true
                         self.streamAudioPlayer!.generateStory(payload: jsonDictionary, event: eventName, token: token, websocketURL:baseUrl)
                     } else {
@@ -412,7 +397,7 @@ public final class StoryRabbitController  {
         self.repeatLocalFile()
         
         self.playerState = PlayerState.loading
-        self.sendPlayerProgress()
+        playerProgress = self.sendPlayerProgress()
         
         guard let url = URL(string: baseUrl) else {
             return
@@ -440,20 +425,24 @@ public final class StoryRabbitController  {
             }
             
             if let data = data {
-                do {
-                    let decoder = JSONDecoder()
-                    decoder.dateDecodingStrategy = .iso8601
-                    let podcast = try decoder.decode(Podcast.self, from: data)
-                    
-                    self.level = 0
-                    self.rabbithole = podcast
-                    self.chapter = podcast
-                    self.setRemoteAudioURL(url: URL(string: podcast.audioUrl!))
-                    return
-                } catch let decodingError as DecodingError {
-                    self.handleDecodingError(decodingError)
-                } catch {
-                    self.handleGeneralError(error)
+                DispatchQueue.main.async {
+                    do {
+                        let decoder = JSONDecoder()
+                        decoder.dateDecodingStrategy = .iso8601
+                        let podcast = try decoder.decode(Podcast.self, from: data)
+                        
+                        self.level = 0
+                        self.rabbithole = podcast
+                        self.chapter = podcast
+                        self.setRemoteAudioURL(url: URL(string: podcast.audioUrl!))
+                        self.playerState = PlayerState.paused
+                    } catch let decodingError as DecodingError {
+                        self.handleDecodingError(decodingError)
+                        self.playerState = PlayerState.finished
+                    } catch {
+                        self.handleGeneralError(error)
+                        self.playerState = PlayerState.finished
+                    }
                 }
             }
         }
@@ -489,20 +478,21 @@ public final class StoryRabbitController  {
             }
             
             if let data = data {
-                do {
-                    let decoder = JSONDecoder()
-                    decoder.dateDecodingStrategy = .iso8601
-                    let podcast = try decoder.decode(Podcast.self, from: data)
-                    
-                    self.level = self.level! + 1
-                    self.chapter = podcast
-                    self.setRemoteAudioURL(url: URL(string: podcast.audioUrl!))
-                   
-                    return
-                } catch let decodingError as DecodingError {
-                    self.handleDecodingError(decodingError)
-                } catch {
-                    self.handleGeneralError(error)
+                DispatchQueue.main.async {
+                    do {
+                        let decoder = JSONDecoder()
+                        decoder.dateDecodingStrategy = .iso8601
+                        let podcast = try decoder.decode(Podcast.self, from: data)
+                        
+                        self.level = self.level! + 1
+                        self.chapter = podcast
+                        self.setRemoteAudioURL(url: URL(string: podcast.audioUrl!))
+                       
+                    } catch let decodingError as DecodingError {
+                        self.handleDecodingError(decodingError)
+                    } catch {
+                        self.handleGeneralError(error)
+                    }
                 }
             }
         }
@@ -677,34 +667,35 @@ public final class StoryRabbitController  {
                 return
             }
             if let data = data {
-                do {
-                    let decoder = JSONDecoder()
-                    decoder.dateDecodingStrategy = .iso8601
-                    let podcast = try decoder.decode(Podcast.self, from: data)
-                    
-                    self.level = startFromChildAt ?? 0;
-                    self.rabbithole = podcast;
-                    self.chapter = self.getCurrentChapter();
-                    if(self.chapter == nil){
-                        return
+                DispatchQueue.main.async {
+                    do {
+                        let decoder = JSONDecoder()
+                        decoder.dateDecodingStrategy = .iso8601
+                        let podcast = try decoder.decode(Podcast.self, from: data)
+                        
+                        self.level = startFromChildAt ?? 0
+                        self.rabbithole = podcast
+                        self.chapter = self.getCurrentChapter()
+                        guard let chapter = self.chapter, let audioUrlString = chapter.audioUrl, let audioURL = URL(string: audioUrlString) else {
+                            return
+                        }
+                        self.playRemoteFile(url: audioURL)
+                    } catch let decodingError as DecodingError {
+                        switch decodingError {
+                        case .typeMismatch(let type, let context):
+                            print("Type mismatch error: \(type) in \(context)")
+                        case .valueNotFound(let value, let context):
+                            print("Value not found error: \(value) in \(context)")
+                        case .keyNotFound(let key, let context):
+                            print("Key not found error: \(key) in \(context)")
+                        case .dataCorrupted(let context):
+                            print("Data corrupted error: \(context)")
+                        @unknown default:
+                            print("Unknown decoding error")
+                        }
+                    } catch {
+                        print("General decoding error: \(error)")
                     }
-                    self.playRemoteFile(url:URL(string:self.chapter!.audioUrl!)!);
-                    return
-                } catch let decodingError as DecodingError {
-                    switch decodingError {
-                    case .typeMismatch(let type, let context):
-                        print("Type mismatch error: \(type) in \(context)")
-                    case .valueNotFound(let value, let context):
-                        print("Value not found error: \(value) in \(context)")
-                    case .keyNotFound(let key, let context):
-                        print("Key not found error: \(key) in \(context)")
-                    case .dataCorrupted(let context):
-                        print("Data corrupted error: \(context)")
-                    @unknown default:
-                        print("Unknown decoding error")
-                    }
-                } catch {
-                    print("General decoding error: \(error)")
                 }
             }
             
