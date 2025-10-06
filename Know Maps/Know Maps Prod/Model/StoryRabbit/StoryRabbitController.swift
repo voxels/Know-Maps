@@ -30,6 +30,7 @@ enum PlayerState : String {
     case playing = "playing"
     case paused = "paused"
     case finished = "finished"
+    case error = "error"
 }
 
 enum OutputFormat : String {

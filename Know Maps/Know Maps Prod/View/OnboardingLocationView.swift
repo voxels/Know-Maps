@@ -28,13 +28,28 @@ struct OnboardingLocationView: View {
                 .padding()
             if !locationIsAuthorized {
                 Button("Continue") {
-                    modelController.locationProvider.authorize()
-                    locationIsAuthorized = modelController.locationProvider.isAuthorized()
-                    alertPopverIsPresented = !locationIsAuthorized
+                    Task {
+                        modelController.locationProvider.authorize()
+                        locationIsAuthorized = modelController.locationProvider.isAuthorized()
+                        
+                        if locationIsAuthorized {
+                            // Set the selected destination to current location after authorization
+                            await setCurrentLocationAsDestination()
+                        }
+                        
+                        alertPopverIsPresented = !locationIsAuthorized
+                    }
                 }
                 .onAppear {
-                    modelController.locationProvider.authorize()
-                    locationIsAuthorized = modelController.locationProvider.isAuthorized()
+                    Task {
+                        modelController.locationProvider.authorize()
+                        locationIsAuthorized = modelController.locationProvider.isAuthorized()
+                        
+                        if locationIsAuthorized {
+                            // Set the selected destination to current location on appear if already authorized
+                            await setCurrentLocationAsDestination()
+                        }
+                    }
                 }
                     .popover(isPresented: $alertPopverIsPresented) {
                         VStack {
@@ -49,15 +64,41 @@ struct OnboardingLocationView: View {
                 Spacer()
             } else {
                 Button("Continue") {
-                    modelController.locationProvider.authorize()
-                    locationIsAuthorized = modelController.locationProvider.isAuthorized()
-                    if !settingsModel.appleUserId.isEmpty, locationIsAuthorized {
-                        showOnboarding = false
+                    Task {
+                        modelController.locationProvider.authorize()
+                        locationIsAuthorized = modelController.locationProvider.isAuthorized()
+                        
+                        if locationIsAuthorized {
+                            // Ensure the selected destination is set to current location
+                            await setCurrentLocationAsDestination()
+                        }
+                        
+                        if !settingsModel.appleUserId.isEmpty, locationIsAuthorized {
+                            showOnboarding = false
+                        }
                     }
                 }.padding()
 
                 Spacer()
             }
+        }
+    }
+    
+    // Helper method to set current location as destination
+    private func setCurrentLocationAsDestination() async {
+        // Ensure we have a valid current location
+        if modelController.currentlySelectedLocationResult.location == nil {
+            // Try to get current location if not available
+            let currentLocation = modelController.locationService.currentLocation()
+            modelController.currentlySelectedLocationResult = LocationResult(
+                locationName: "Current Location",
+                location: currentLocation
+            )
+        }
+        
+        // Set the selected destination to current location
+        await MainActor.run {
+            modelController.selectedDestinationLocationChatResult = modelController.currentlySelectedLocationResult.id
         }
     }
     

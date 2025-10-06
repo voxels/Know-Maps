@@ -88,6 +88,17 @@ public protocol ModelController : Sendable {
     /// Checks if the search text corresponds to any known locations.
     func checkSearchTextForLocations(with text: String) async throws -> [CLPlacemark]?
     
+    /// Sets the selected destination location and ensures `currentlySelectedLocationResult` stays in sync.
+    /// If `id` is nil or not found, implementers should fall back to `currentlySelectedLocationResult` representing the current device location.
+    mutating func setSelectedLocation(_ id: LocationResult.ID?)
+    
+    /// Sets the selected destination using cache-aware validation against filtered locations.
+    mutating func setSelectedLocation(_ id: LocationResult.ID?, cacheManager: CacheManager)
+
+    /// Validates that the selected destination and `currentlySelectedLocationResult` are consistent.
+    /// If the selected destination is no longer valid (e.g., removed from cache), implementers should repair the state by selecting a valid destination or the current location.
+    mutating func validateSelectedDestination(cacheManager: CacheManager)
+    
     // MARK: Place Chat Result Methods
     func placeChatResult(for id: ChatResult.ID) -> ChatResult?
     
@@ -172,4 +183,72 @@ public protocol ModelController : Sendable {
     func updateQueryParametersHistory(with parameters: AssistiveChatHostQueryParameters) async
     
     func undoLastQueryParameterChange(filters:[String:Any], cacheManager:CacheManager) async throws
+}
+
+public extension ModelController {
+    /// Default implementation to keep `currentlySelectedLocationResult` in sync
+    /// with `selectedDestinationLocationChatResult`.
+    mutating func setSelectedLocation(_ id: LocationResult.ID?) {
+        // Debug logging to trace selection changes
+        print("🗺️ ModelController setSelectedLocation called with: \(id?.uuidString ?? "nil")")
+        let previous = selectedDestinationLocationChatResult
+        print("🗺️ Previous selectedDestinationLocationChatResult: \(previous?.uuidString ?? "nil")")
+
+        // If an id is provided, try to resolve it in known location results first
+        if let id {
+            if let match = locationChatResult(for: id, in: locationResults) {
+                selectedDestinationLocationChatResult = id
+                currentlySelectedLocationResult = match
+                print("🗺️ New selectedDestinationLocationChatResult: \(id.uuidString)")
+                return
+            }
+            // Invalid id — fall back to current selection
+            print("🗺️ Warning: Attempted to set invalid location ID, falling back to current location")
+            selectedDestinationLocationChatResult = currentlySelectedLocationResult.id
+            return
+        }
+
+        // If id is nil, ensure we have a valid selected destination id
+        if selectedDestinationLocationChatResult == nil {
+            selectedDestinationLocationChatResult = currentlySelectedLocationResult.id
+        }
+    }
+
+    /// Cache-aware selection setter that validates against filtered locations
+    mutating func setSelectedLocation(_ id: LocationResult.ID?, cacheManager: CacheManager) {
+        print("🗺️ ModelController (cache-aware) setSelectedLocation called with: \(id?.uuidString ?? "nil")")
+        if let id {
+            let filtered = filteredLocationResults(cacheManager: cacheManager)
+            if let match = filtered.first(where: { $0.id == id }) {
+                selectedDestinationLocationChatResult = id
+                currentlySelectedLocationResult = match
+                print("🗺️ New selectedDestinationLocationChatResult: \(id.uuidString)")
+                return
+            }
+            print("🗺️ Warning: Attempted to set invalid location ID (cache-aware), falling back to current location")
+            selectedDestinationLocationChatResult = currentlySelectedLocationResult.id
+            return
+        }
+        if selectedDestinationLocationChatResult == nil {
+            selectedDestinationLocationChatResult = currentlySelectedLocationResult.id
+        }
+    }
+
+    /// Default validation to ensure the selected destination and current selection are consistent.
+    mutating func validateSelectedDestination(cacheManager: CacheManager) {
+        // If there's a selected id, ensure it exists in our known results; otherwise repair
+        if let id = selectedDestinationLocationChatResult {
+            if let match = locationChatResult(for: id, in: locationResults) {
+                currentlySelectedLocationResult = match
+            } else if let match = locationChatResult(for: id, in: filteredLocationResults(cacheManager: cacheManager)) {
+                currentlySelectedLocationResult = match
+            } else {
+                // Repair: revert the selected id to the current selection
+                selectedDestinationLocationChatResult = currentlySelectedLocationResult.id
+            }
+        } else {
+            // No selected id — set it to the current selection's id
+            selectedDestinationLocationChatResult = currentlySelectedLocationResult.id
+        }
+    }
 }

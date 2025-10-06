@@ -37,8 +37,16 @@ struct FiltersView: View {
                 } maximumValueLabel: {
                     Text("50")
                 } onEditingChanged: { changed in
-                    filters["distance"] = max(distanceFilterValue, 0.5)
-                    kilometers = Float(max(distanceFilterValue, 0.5))
+                    let clampedValue = max(distanceFilterValue, 0.5)
+                    if changed {
+                        // While dragging: update local display only
+                        kilometers = Float(clampedValue)
+                    } else {
+                        // When editing finishes: persist to filters and apply
+                        filters["distance"] = clampedValue
+                        kilometers = Float(clampedValue)
+                        applyFilters()
+                    }
                 }
                 Text(" (\(FiltersView.formatter.string(from:NSNumber(value:distanceFilterValue)) ?? "1") kilometers)")
             }
@@ -54,15 +62,13 @@ struct FiltersView: View {
                 applyFilters()
             }
         }
-        .onChange(of: kilometers) { _, _ in
-            applyFilters()
-        }
         .task {
             if let distance = filters["distance"] as? Double {
                 distanceFilterValue = distance
             } else {
                 distanceFilterValue = 20
             }
+            kilometers = Float(distanceFilterValue)
         }
         .task {
             if let rating = filters["rating"] as? Double {
@@ -81,6 +87,7 @@ struct FiltersView: View {
     
     func applyFilters() {
         if let lastIntent = modelController.queryParametersHistory.last?.queryIntents.last {
+            let selectedDestinationID = modelController.selectedDestinationLocationChatResult ?? modelController.currentlySelectedLocationResult.id
             modelController.isRefreshingPlaces = true
             modelController.fetchMessage = "Searching for places"
             Task(priority:.userInitiated) {
@@ -89,7 +96,7 @@ struct FiltersView: View {
                 } catch {
                     modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
                 }
-                await searchSavedViewModel.search(caption: lastIntent.caption, selectedDestinationChatResultID: lastIntent.selectedDestinationLocationID, intent: .Search, filters: searchSavedViewModel.filters, chatModel: chatModel, cacheManager: cacheManager, modelController: modelController)
+                await searchSavedViewModel.search(caption: lastIntent.caption, selectedDestinationChatResultID: selectedDestinationID, intent: .Search, filters: searchSavedViewModel.filters, chatModel: chatModel, cacheManager: cacheManager, modelController: modelController)
                 await MainActor.run {
                     modelController.isRefreshingPlaces = false
                 }
@@ -97,3 +104,4 @@ struct FiltersView: View {
         }
     }
 }
+

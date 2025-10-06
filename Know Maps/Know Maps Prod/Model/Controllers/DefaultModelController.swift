@@ -1,5 +1,5 @@
 //
-//  Defaultswift
+//  DefaultModelController.swift
 //  Know Maps
 //
 //  Created by Michael A Edgcumbe on 10/8/24.
@@ -9,13 +9,50 @@ import SwiftUI
 import CoreLocation
 import AVKit
 
+// MARK: - Model Controller Errors
+public enum ModelControllerError: Error, LocalizedError {
+    case invalidRecommendedPlaceResponse
+    case missingLocationData
+    case invalidAsyncOperation
+    
+    public var errorDescription: String? {
+        switch self {
+        case .invalidRecommendedPlaceResponse:
+            return "Invalid recommended place response"
+        case .missingLocationData:
+            return "Missing location data"
+        case .invalidAsyncOperation:
+            return "Invalid async operation"
+        }
+    }
+}
+
 @MainActor
 @Observable
 public final class DefaultModelController : ModelController {
     
-    static let shared = DefaultModelController(
-        locationProvider: LocationProvider(),
-        analyticsManager:SegmentAnalyticsService.shared, messagesDelegate: ChatResultViewModel.shared)
+    // MARK: - Shared Instance
+    private static var _shared: DefaultModelController?
+    
+    static var shared: DefaultModelController {
+        if let existing = _shared {
+            return existing
+        }
+        
+        let instance = DefaultModelController(
+            locationProvider: LocationProvider(),
+            analyticsManager: SegmentAnalyticsService.shared, 
+            messagesDelegate: ChatResultViewModel.shared
+        )
+        _shared = instance
+        
+        // Ensure the selected destination is initially set to current location
+        if instance.selectedDestinationLocationChatResult == nil {
+            instance.selectedDestinationLocationChatResult = instance.currentlySelectedLocationResult.id
+        }
+        
+        return instance
+    }
     
     // MARK: - Dependencies
     public let assistiveHostDelegate: AssistiveChatHost
@@ -33,7 +70,16 @@ public final class DefaultModelController : ModelController {
     public var selectedPersonalizedSearchSection:PersonalizedSearchSection?
     public var selectedSavedResult: CategoryResult.ID?
     public var selectedPlaceChatResult: ChatResult.ID?
-    public var selectedDestinationLocationChatResult: LocationResult.ID?
+    public var selectedDestinationLocationChatResult: LocationResult.ID? {
+        didSet {
+            print("🗺️ selectedDestinationLocationChatResult changed from \(oldValue?.uuidString ?? "nil") to \(selectedDestinationLocationChatResult?.uuidString ?? "nil")")
+            // Notify observers of the change
+            analyticsManager.track(event: "selectedDestinationChanged", properties: [
+                "oldValue": oldValue?.uuidString ?? "nil",
+                "newValue": selectedDestinationLocationChatResult?.uuidString ?? "nil"
+            ])
+        }
+    }
     
     // Fetching States
     public var isFetchingPlaceDescription: Bool = false
@@ -69,8 +115,7 @@ public final class DefaultModelController : ModelController {
     public init(
         locationProvider: LocationProvider,
         analyticsManager: AnalyticsService,
-        messagesDelegate:AssistiveChatHostMessagesDelegate
-        
+        messagesDelegate: AssistiveChatHostMessagesDelegate
     ) {
         self.locationProvider = locationProvider
         self.analyticsManager = analyticsManager
@@ -79,7 +124,21 @@ public final class DefaultModelController : ModelController {
         self.locationService = DefaultLocationService(locationProvider: locationProvider)
         self.recommenderService = DefaultRecommenderService()
         self.supabaseService = SupabaseService.shared
-        storyController = StoryRabbitController(playerState: .loading, backgroundTask: UIBackgroundTaskIdentifier.init(rawValue: Int.random(in: 0..<Int.max)))
+        
+        // Initialize selectedDestinationLocationChatResult to current location
+        self.selectedDestinationLocationChatResult = LocationResult(locationName: "Current Location", location:CLLocation(latitude: 37.333562, longitude:-122.004927)).id
+        
+        // Safer initialization of story controller
+        let backgroundTaskId = UIBackgroundTaskIdentifier(rawValue: abs(Int.random(in: Int.min..<Int.max)))
+        self.storyController = StoryRabbitController(playerState: .loading, backgroundTask: backgroundTaskId)
+        
+        // Validate initial state
+        _ = validateState()
+        
+        // Ensure industry results are populated on initialization
+        Task {
+            await categoricalSearchModel()
+        }
     }
     
     // MARK: - Consolidated State Management
@@ -133,16 +192,115 @@ public final class DefaultModelController : ModelController {
     
     /// Safely update location state
     public func setSelectedLocation(_ locationID: LocationResult.ID?) {
-        selectedDestinationLocationChatResult = locationID
+        print("🗺️ ModelController setSelectedLocation called with: \(locationID?.uuidString ?? "nil")")
+        print("🗺️ Previous selectedDestinationLocationChatResult: \(selectedDestinationLocationChatResult?.uuidString ?? "nil")")
+        
+        // Validate that the locationID exists in our results before setting it
+        if let locationID = locationID {
+            let allLocationResults = locationResults + [currentlySelectedLocationResult]
+            if allLocationResults.contains(where: { $0.id == locationID }) {
+                selectedDestinationLocationChatResult = locationID
+            } else {
+                print("🗺️ Warning: Attempted to set invalid location ID, falling back to current location")
+                selectedDestinationLocationChatResult = currentlySelectedLocationResult.id
+            }
+        } else {
+            // If nil is passed, default to current location
+            selectedDestinationLocationChatResult = currentlySelectedLocationResult.id
+        }
+        
+        print("🗺️ New selectedDestinationLocationChatResult: \(selectedDestinationLocationChatResult?.uuidString ?? "nil")")
+    }
+    
+    /// Ensure the selected destination is always valid
+    public func validateSelectedDestination(cacheManager: CacheManager) {
+        guard let selectedID = selectedDestinationLocationChatResult else {
+            selectedDestinationLocationChatResult = currentlySelectedLocationResult.id
+            return
+        }
+        
+        let allResults = filteredLocationResults(cacheManager: cacheManager)
+        if !allResults.contains(where: { $0.id == selectedID }) {
+            print("🗺️ Invalid selected destination detected, resetting to current location")
+            selectedDestinationLocationChatResult = currentlySelectedLocationResult.id
+        }
+    }
+    
+    /// Get the CLLocation for the currently selected destination
+    public func getSelectedDestinationLocation(cacheManager: CacheManager) -> CLLocation {
+        print("🗺️ getSelectedDestinationLocation called")
+        print("🗺️ Current selectedDestinationLocationChatResult: \(selectedDestinationLocationChatResult?.uuidString ?? "nil")")
+        
+        guard let selectedID = selectedDestinationLocationChatResult else {
+            print("🗺️ No selected destination, using current location")
+            return currentlySelectedLocationResult.location ?? locationService.currentLocation()
+        }
+        
+        let filteredResults = filteredLocationResults(cacheManager: cacheManager)
+        print("🗺️ Filtered location results count: \(filteredResults.count)")
+        print("🗺️ Looking for location with ID: \(selectedID.uuidString)")
+        
+        for (index, result) in filteredResults.enumerated() {
+            print("🗺️ Result \(index): \(result.locationName) - ID: \(result.id.uuidString)")
+        }
+        
+        if let selectedLocation = filteredResults.first(where: { $0.id == selectedID }),
+           let location = selectedLocation.location {
+            print("🗺️ Using selected destination: \(selectedLocation.locationName) at \(location.coordinate)")
+            return location
+        }
+        
+        print("🗺️ Selected destination not found in filteredResults, fallback to current location")
+        // Fallback to current location if selected destination is not found
+        return currentlySelectedLocationResult.location ?? locationService.currentLocation()
+    }
+    
+    /// Set the selected location and return the CLLocation synchronously to avoid race conditions
+    public func setSelectedLocationAndGetLocation(_ locationID: LocationResult.ID?, cacheManager: CacheManager) -> CLLocation {
+        print("🗺️ setSelectedLocationAndGetLocation called with: \(locationID?.uuidString ?? "nil")")
+        setSelectedLocation(locationID)
+        
+        // Immediately get the location to avoid race conditions
+        return getSelectedDestinationLocation(cacheManager: cacheManager)
+    }
+    
+    /// Validate internal state consistency
+    private func validateState() -> Bool {
+        // Check for state consistency
+        let hasValidCurrentLocation = currentlySelectedLocationResult.location != nil
+        let hasValidStoryController = storyController.playerState != .error
+        
+        if !hasValidCurrentLocation {
+            analyticsManager.track(event: "invalidCurrentLocation", properties: nil)
+        }
+        
+        if !hasValidStoryController {
+            analyticsManager.track(event: "invalidStoryController", properties: nil)
+        }
+        
+        return hasValidCurrentLocation && hasValidStoryController
     }
     
     public func resetPlaceModel() async throws {
+        let preservedSelectedDestination = selectedDestinationLocationChatResult
+
         // Clear all state consistently
         updateAllResults(clearAll: true)
+
+        // Restore previously selected destination after clearing state
+        if let preservedSelectedDestination {
+            selectedDestinationLocationChatResult = preservedSelectedDestination
+        } else {
+            selectedDestinationLocationChatResult = currentlySelectedLocationResult.id
+        }
         
         // Fetch new data
         currentPOIs = try await SupabaseService.shared.fetchPOIs()
         currentTours = try await SupabaseService.shared.fetchTours()
+        
+        // Always repopulate industry results after reset
+        await categoricalSearchModel()
+        
         analyticsManager.track(event:"resetPlaceModel", properties: nil)
     }
     
@@ -152,8 +310,16 @@ public final class DefaultModelController : ModelController {
         updateAllResults(industry: blendedResults)
     }
     
+    /// Ensures industry results are populated if they're empty
+    public func ensureIndustryResultsPopulated() async {
+        if industryResults.isEmpty {
+            await categoricalSearchModel()
+        }
+    }
+    
     public func categoricalResults()->[CategoryResult] {
         var retval = [CategoryResult]()
+        var categoryMap = [String: Int]() // For efficient lookup
         
         for categoryCode in assistiveHostDelegate.categoryCodes {
             var newChatResults = [ChatResult]()
@@ -172,30 +338,19 @@ public final class DefaultModelController : ModelController {
                 let key = keys[index]
                 newChatResults.append(ChatResult(index:index,identity: key, title: key, list:key, icon:"", rating: 1, section:assistiveHostDelegate.section(for:key), placeResponse:nil, recommendedPlaceResponse: nil))
                 
-                if retval.contains(where: { checkResult in
-                    return checkResult.parentCategory == key
-                }) {
-                    let existingResults = retval.compactMap { checkResult in
-                        if checkResult.parentCategory == key {
-                            return checkResult
-                        }
-                        return nil
+                if let existingIndex = categoryMap[key] {
+                    // Update existing result
+                    let existingResult = retval[existingIndex]
+                    if !existingResult.categoricalChatResults.isEmpty {
+                        newChatResults.append(contentsOf: existingResult.categoricalChatResults)
                     }
                     
-                    for result in existingResults {
-                        if !result.categoricalChatResults.isEmpty {
-                            newChatResults.append(contentsOf:result.categoricalChatResults)
-                        }
-                        retval.removeAll { checkResult in
-                            return checkResult.parentCategory == key
-                        }
-                        
-                        let newResult = CategoryResult(identity:key, parentCategory: key, list:key, icon:"", rating:1, section:assistiveHostDelegate.section(for:key), categoricalChatResults: newChatResults)
-                        retval.append(newResult)
-                    }
-                    
+                    let newResult = CategoryResult(identity:key, parentCategory: key, list:key, icon:"", rating:1, section:assistiveHostDelegate.section(for:key), categoricalChatResults: newChatResults)
+                    retval[existingIndex] = newResult
                 } else {
+                    // Add new result
                     let newResult = CategoryResult(identity: key, parentCategory: key, list:key, icon: "", rating: 1, section:assistiveHostDelegate.section(for:key), categoricalChatResults: newChatResults)
+                    categoryMap[key] = retval.count
                     retval.append(newResult)
                 }
             }
@@ -213,13 +368,26 @@ public final class DefaultModelController : ModelController {
     
     public func filteredLocationResults(cacheManager:CacheManager) -> [LocationResult] {
         var results = [LocationResult]()
+        
+        // Always include current location first
         results.append(currentlySelectedLocationResult)
+        
+        // Add cached locations
         results.append(contentsOf: cacheManager.cachedLocationResults)
+        
+        // Add location results that aren't already in cache
         results.append(contentsOf: locationResults.filter({ result in
             !cacheManager.cachedLocationResults.contains(where: { $0.locationName.lowercased() == result.locationName.lowercased() })
         }))
         
-        return results.sorted(by: { $0.locationName < $1.locationName })
+        let sortedResults = results.sorted(by: { $0.locationName < $1.locationName })
+        
+        print("🗺️ filteredLocationResults returning \(sortedResults.count) results:")
+        for (index, result) in sortedResults.enumerated() {
+            print("🗺️   \(index): \(result.locationName) - ID: \(result.id.uuidString) - hasLocation: \(result.location != nil)")
+        }
+        
+        return sortedResults
     }
     
     public func filteredDestinationLocationResults(with searchText:String, cacheManager:CacheManager) async -> [LocationResult] {
@@ -230,6 +398,12 @@ public final class DefaultModelController : ModelController {
     }
     
     public var filteredResults: [CategoryResult] {
+        // Ensure industry results are populated before filtering
+        if industryResults.isEmpty {
+            Task {
+                await ensureIndustryResultsPopulated()
+            }
+        }
         return industryResults.filter { !$0.categoricalChatResults.isEmpty }
     }
     
@@ -337,7 +511,7 @@ public final class DefaultModelController : ModelController {
         return locationResults.first { $0.id == id }
     }
     
-    public func locationChatResult(with title: String, in locationResults: [LocationResult]) async -> LocationResult {
+    nonisolated public func locationChatResult(with title: String, in locationResults: [LocationResult]) async -> LocationResult {
         if let existingResult = locationResults.first(where: { $0.locationName == title }) {
             return existingResult
         }
@@ -348,13 +522,15 @@ public final class DefaultModelController : ModelController {
                 return LocationResult(locationName: title, location: firstPlacemark.location)
             }
         } catch {
-            analyticsManager.trackError(error: error, additionalInfo: ["title": title])
+            Task { @MainActor in
+                analyticsManager.trackError(error: error, additionalInfo: ["title": title])
+            }
         }
         
         return LocationResult(locationName: title)
     }
     
-    public func checkSearchTextForLocations(with text: String) async throws -> [CLPlacemark]? {
+    nonisolated public func checkSearchTextForLocations(with text: String) async throws -> [CLPlacemark]? {
         let tags = try assistiveHostDelegate.tags(for: text)
         return try await assistiveHostDelegate.nearLocationCoordinate(for: text, tags: tags)
     }
@@ -362,19 +538,26 @@ public final class DefaultModelController : ModelController {
     @discardableResult
     public func refreshModel(query: String, queryIntents: [AssistiveChatHostIntent]?, filters:[String:Any], cacheManager:CacheManager) async throws -> [ChatResult] {
         
+        // Ensure industry results are always populated
+        await ensureIndustryResultsPopulated()
+        
         if let lastIntent = queryIntents?.last {
             return try await model(intent: lastIntent, cacheManager: cacheManager)
         } else {
             let intent = assistiveHostDelegate.determineIntent(for: query, override: nil)
             let location = assistiveHostDelegate.lastLocationIntent()
             let queryParameters = try await assistiveHostDelegate.defaultParameters(for: query,filters:filters )
+            
+            // Use selectedDestinationLocationChatResult as the search location
+            let searchLocationID = selectedDestinationLocationChatResult ?? location?.selectedDestinationLocationID ?? currentlySelectedLocationResult.id
+            
             let newIntent = AssistiveChatHostIntent(
                 caption: query,
                 intent: intent,
                 selectedPlaceSearchResponse: nil,
                 selectedPlaceSearchDetails: nil,
                 placeSearchResponses: [],
-                selectedDestinationLocationID: location?.selectedDestinationLocationID ?? currentlySelectedLocationResult.id,
+                selectedDestinationLocationID: searchLocationID,
                 placeDetailsResponses: nil,
                 queryParameters: queryParameters
             )
@@ -427,6 +610,12 @@ public final class DefaultModelController : ModelController {
     
     
     public func searchIntent(intent: AssistiveChatHostIntent, location:CLLocation, cacheManager:CacheManager) async throws {
+        // Ensure the intent is using the currently selected destination
+        if intent.selectedDestinationLocationID != selectedDestinationLocationChatResult {
+            print("🔍 Updating intent destination from \(intent.selectedDestinationLocationID?.uuidString ?? "nil") to \(selectedDestinationLocationChatResult?.uuidString ?? "nil")")
+            intent.selectedDestinationLocationID = selectedDestinationLocationChatResult
+        }
+        
         switch intent.intent {
             
         case .Place:
@@ -642,7 +831,9 @@ public final class DefaultModelController : ModelController {
                     }
                 }
             } else if !recommendedPlaceSearchResponses.isEmpty {
-                let response = recommendedPlaceSearchResponses[0]
+                guard let response = recommendedPlaceSearchResponses.first else {
+                    throw ModelControllerError.invalidRecommendedPlaceResponse
+                }
                 if !response.fsqID.isEmpty {
                     let placeResponse = PlaceSearchResponse(
                         fsqID: response.fsqID,
@@ -833,6 +1024,14 @@ public final class DefaultModelController : ModelController {
                 relatedChatResults.append(contentsOf: results)
             }
         }
+        
+        let sortedResults = relatedChatResults.sorted(by: { result, checkResult in
+            if result.rating == checkResult.rating {
+                return result.index < checkResult.index
+            }
+            return result.rating > checkResult.rating
+        })
+        updateAllResults(related: sortedResults)
 #endif
     }
     
@@ -899,57 +1098,71 @@ public final class DefaultModelController : ModelController {
     
     public func receiveMessage(caption: String, parameters: AssistiveChatHostQueryParameters, isLocalParticipant: Bool) async throws {
         if parameters.queryIntents.last?.intent == .Location {
-            let placemarks = try? await checkSearchTextForLocations(with: caption)
-            
-            if let placemarks = placemarks, let firstPlacemark = placemarks.first, let _ = firstPlacemark.location {
-                queryParametersHistory.append(parameters)
-                let locations = placemarks.compactMap { placemark in
-                    return LocationResult(locationName: placemark.name ?? "Unknown Location", location: placemark.location)
+            do {
+                let placemarks = try await checkSearchTextForLocations(with: caption)
+                
+                if let placemarks = placemarks, let firstPlacemark = placemarks.first, let _ = firstPlacemark.location {
+                    queryParametersHistory.append(parameters)
+                    let locations = placemarks.compactMap { placemark in
+                        return LocationResult(locationName: placemark.name ?? "Unknown Location", location: placemark.location)
+                    }
+                    let existingLocationNames = locationResults.map { $0.locationName }
+                    let newLocations = locations.filter { !existingLocationNames.contains($0.locationName) }
+                    updateAllResults(locations: newLocations, appendLocations: true)
+                    analyticsManager.track(event:"foundPlacemarksInQuery", properties: nil)
                 }
-                let existingLocationNames = locationResults.map { $0.locationName }
-                let newLocations = locations.filter { !existingLocationNames.contains($0.locationName) }
-                updateAllResults(locations: newLocations, appendLocations: true)
-                analyticsManager.track(event:"foundPlacemarksInQuery", properties: nil)
+            } catch {
+                analyticsManager.trackError(error: error, additionalInfo: ["caption": caption])
             }
         }
         
         if let sourceLocationID = selectedDestinationLocationChatResult,
            let sourceLocationResult = locationChatResult(for: sourceLocationID, in:locationResults),
            let queryLocation = sourceLocationResult.location {
-            let destinationPlacemarks = try await locationService.lookUpLocation(queryLocation)
             
-            let existingLocationNames = locationResults.compactMap { $0.locationName }
-            
-            for queryPlacemark in destinationPlacemarks {
-                if let locality = queryPlacemark.locality, !existingLocationNames.contains(locality) {
-                    var name = locality
-                    if let neighborhood = queryPlacemark.subLocality {
-                        name = "\(neighborhood), \(locality)"
-                    }
-                    let newLocationResult = LocationResult(locationName: name, location: queryPlacemark.location)
-                    if !existingLocationNames.contains(name) {
-                        updateAllResults(locations: [newLocationResult], appendLocations: true)
+            do {
+                let destinationPlacemarks = try await locationService.lookUpLocation(queryLocation)
+                
+                let existingLocationNames = locationResults.compactMap { $0.locationName }
+                
+                for queryPlacemark in destinationPlacemarks {
+                    if let locality = queryPlacemark.locality, !existingLocationNames.contains(locality) {
+                        var name = locality
+                        if let neighborhood = queryPlacemark.subLocality {
+                            name = "\(neighborhood), \(locality)"
+                        }
+                        let newLocationResult = LocationResult(locationName: name, location: queryPlacemark.location)
+                        if !existingLocationNames.contains(name) {
+                            updateAllResults(locations: [newLocationResult], appendLocations: true)
+                        }
                     }
                 }
+            } catch {
+                analyticsManager.trackError(error: error, additionalInfo: ["sourceLocationID": sourceLocationID.uuidString])
             }
         }
         
         if let sourceLocationID = selectedDestinationLocationChatResult,
            let sourceLocationResult = locationChatResult(for: sourceLocationID, in:locationResults),
            sourceLocationResult.location == nil {
-            let destinationPlacemarks = try await locationService.lookUpLocationName(name: sourceLocationResult.locationName)
             
-            let existingLocationNames = locationResults.compactMap { $0.locationName }
-            
-            for queryPlacemark in destinationPlacemarks {
-                if let locality = queryPlacemark.locality, !existingLocationNames.contains(locality) {
-                    var name = locality
-                    if let neighborhood = queryPlacemark.subLocality {
-                        name = "\(neighborhood), \(locality)"
+            do {
+                let destinationPlacemarks = try await locationService.lookUpLocationName(name: sourceLocationResult.locationName)
+                
+                let existingLocationNames = locationResults.compactMap { $0.locationName }
+                
+                for queryPlacemark in destinationPlacemarks {
+                    if let locality = queryPlacemark.locality, !existingLocationNames.contains(locality) {
+                        var name = locality
+                        if let neighborhood = queryPlacemark.subLocality {
+                            name = "\(neighborhood), \(locality)"
+                        }
+                        let newLocationResult = LocationResult(locationName: name, location: queryPlacemark.location)
+                        updateAllResults(locations: [newLocationResult], appendLocations: true)
                     }
-                    let newLocationResult = LocationResult(locationName: name, location: queryPlacemark.location)
-                    updateAllResults(locations: [newLocationResult], appendLocations: true)
                 }
+            } catch {
+                analyticsManager.trackError(error: error, additionalInfo: ["locationName": sourceLocationResult.locationName])
             }
         }
     }
@@ -996,23 +1209,21 @@ public final class DefaultModelController : ModelController {
             } else if let lastIntent = assistiveHostDelegate.queryIntentParameters.queryIntents.last  {
                 let locationChatResult = locationChatResult(for: lastIntent.selectedDestinationLocationID ?? currentlySelectedLocationResult.id, in:filteredLocationResults(cacheManager: cacheManager))
                 selectedDestinationChatResult = locationChatResult?.id
-                await MainActor.run {
-                    selectedDestinationLocationChatResult = locationChatResult?.id
-                }
+                setSelectedLocation(locationChatResult?.id)
             } else {
                 throw ChatResultViewModelError.missingSelectedDestinationLocationChatResult
             }
         }
         
         if let lastIntent = queryParametersHistory.last?.queryIntents.last, lastIntent.intent != .Location {
-            let locationChatResult =  locationChatResult(for: selectedDestinationChatResult ?? currentlySelectedLocationResult.id, in:filteredLocationResults(cacheManager: cacheManager))
+            let searchLocation = getSelectedDestinationLocation(cacheManager: cacheManager)
             
             try await receiveMessage(caption: caption, parameters: parameters, isLocalParticipant: isLocalParticipant)
-            try await searchIntent(intent: lastIntent, location: locationChatResult?.location ?? locationService.currentLocation(), cacheManager: cacheManager)
+            try await searchIntent(intent: lastIntent, location: searchLocation, cacheManager: cacheManager)
             try await didUpdateQuery(with: caption, parameters: parameters, filters: filters, cacheManager: cacheManager)
         } else if let lastIntent = queryParametersHistory.last?.queryIntents.last, lastIntent.intent == .Location {
             try await receiveMessage(caption: caption, parameters: parameters, isLocalParticipant: isLocalParticipant)
-            try await searchIntent(intent: lastIntent, location:locationService.currentLocation(),  cacheManager: cacheManager)
+            try await searchIntent(intent: lastIntent, location: locationService.currentLocation(), cacheManager: cacheManager)
             try await didUpdateQuery(with: caption, parameters: parameters, filters: filters, cacheManager: cacheManager)
         } else {
             let intent:AssistiveChatHostService.Intent = assistiveHostDelegate.determineIntent(for: caption, override: nil)
@@ -1021,7 +1232,10 @@ public final class DefaultModelController : ModelController {
             
             await assistiveHostDelegate.appendIntentParameters(intent: newIntent, modelController: self)
             try await receiveMessage(caption: caption, parameters: parameters, isLocalParticipant: isLocalParticipant)
-            try await searchIntent(intent: newIntent, location: locationChatResult(with:caption,  in:filteredLocationResults(cacheManager: cacheManager)).location!, cacheManager: cacheManager )
+            
+            let searchLocation = getSelectedDestinationLocation(cacheManager: cacheManager)
+            
+            try await searchIntent(intent: newIntent, location: searchLocation, cacheManager: cacheManager)
             try await didUpdateQuery(with: caption, parameters: parameters, filters: filters, cacheManager: cacheManager)
         }
     }
@@ -1041,7 +1255,9 @@ public final class DefaultModelController : ModelController {
         if let lastHistory = history.last, let lastIntent = lastHistory.queryIntents.dropLast().last {
             await assistiveHostDelegate.updateLastIntentParameters(intent: lastIntent, modelController: self)
             try await receiveMessage(caption: lastIntent.caption, parameters: lastHistory, isLocalParticipant: true)
-            try await searchIntent(intent: lastIntent, location: locationChatResult(for: selectedDestinationLocationChatResult ?? currentlySelectedLocationResult.id, in: filteredLocationResults(cacheManager: cacheManager))?.location ?? locationService.currentLocation(), cacheManager: cacheManager )
+            
+            let searchLocation = getSelectedDestinationLocation(cacheManager: cacheManager)
+            try await searchIntent(intent: lastIntent, location: searchLocation, cacheManager: cacheManager)
             try await didUpdateQuery(with: lastIntent.caption, parameters: lastHistory, filters: filters, cacheManager: cacheManager)
         }
     }
