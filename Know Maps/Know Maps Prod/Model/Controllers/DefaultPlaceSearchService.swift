@@ -158,7 +158,7 @@ public final class DefaultPlaceSearchService: PlaceSearchService {
         
     //MARK: - Request Building
     
-    public func placeSearchRequest(intent:AssistiveChatHostIntent, location:CLLocation?) async ->PlaceSearchRequest {
+    public func placeSearchRequest(intent:AssistiveChatHostIntent, location:CLLocation) async ->PlaceSearchRequest {
         var query = intent.caption
         
         var ll:String? = nil
@@ -240,9 +240,9 @@ public final class DefaultPlaceSearchService: PlaceSearchService {
         }
         
         print("Created query for search request:\(query) near location:\(String(describing: nearLocation)) with selected chat result: \(String(describing: location))")
-        if let l = location {
-            ll = "\(l.coordinate.latitude),\(l.coordinate.longitude)"
-        }
+       
+            ll = "\(location.coordinate.latitude),\(location.coordinate.longitude)"
+      
         
         query = query.trimmingCharacters(in: .whitespacesAndNewlines)
         
@@ -250,7 +250,7 @@ public final class DefaultPlaceSearchService: PlaceSearchService {
         return request
     }
     
-    public func recommendedPlaceSearchRequest(intent:AssistiveChatHostIntent, location:CLLocation?) async -> RecommendedPlaceSearchRequest
+    public func recommendedPlaceSearchRequest(intent:AssistiveChatHostIntent, location:CLLocation) async -> RecommendedPlaceSearchRequest
     {
         var query = intent.caption
         
@@ -334,9 +334,8 @@ public final class DefaultPlaceSearchService: PlaceSearchService {
         }
         
         print("Created query for search request:\(query) near location:\(String(describing: nearLocation)) with selected chat result: \(String(describing: location))")
-        if let l = location {
-            ll = "\(l.coordinate.latitude),\(l.coordinate.longitude)"
-        }
+        
+            ll = "\(location.coordinate.latitude),\(location.coordinate.longitude)"
         
         query = query.trimmingCharacters(in: .whitespacesAndNewlines)
         

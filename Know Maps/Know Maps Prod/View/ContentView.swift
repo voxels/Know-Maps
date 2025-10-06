@@ -187,7 +187,7 @@ struct ContentView: View {
             }
             .onChange(of: modelController.selectedPlaceChatResult, { oldValue, newValue in
                 
-                guard let newValue, newValue != oldValue else {
+                guard let newValue else {
                     return
                 }
                 

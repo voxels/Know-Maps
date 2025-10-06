@@ -37,7 +37,7 @@ public final class DefaultModelController : ModelController {
     // Fetching States
     public var isFetchingPlaceDescription: Bool = false
     public var isRefreshingPlaces:Bool = false
-    public var fetchMessage:String = ""
+    public var fetchMessage:String = "Searching near Current Location..."
     
     // TabView
     public var section:Int = 0
@@ -434,10 +434,6 @@ public final class DefaultModelController : ModelController {
         case .Place:
             try await placeQueryModel(intent: intent, cacheManager: cacheManager)
             analyticsManager.track(event:"modelPlaceQueryBuilt", properties: nil)
-        case .Search:
-            try await searchQueryModel(intent: intent, cacheManager: cacheManager)
-            try await placeSearchService.detailIntent(intent: intent, cacheManager: cacheManager)
-            analyticsManager.track(event:"modelSearchQueryBuilt", properties: nil)
         case .Location:
             if let placemarks = try await checkSearchTextForLocations(with: intent.caption) {
                 let locations = placemarks.map {
@@ -460,6 +456,11 @@ public final class DefaultModelController : ModelController {
                     selectedDestinationLocationChatResult = ids.first
                 }
             }
+            fallthrough
+        case .Search:
+            try await searchQueryModel(intent: intent, cacheManager: cacheManager)
+            try await placeSearchService.detailIntent(intent: intent, cacheManager: cacheManager)
+            analyticsManager.track(event:"modelSearchQueryBuilt", properties: nil)
         case .AutocompletePlaceSearch:
             try await autocompletePlaceModel(caption: intent.caption, intent: intent)
             analyticsManager.track(event: "modelAutocompletePlaceModelBuilt", properties: nil)
@@ -475,7 +476,7 @@ public final class DefaultModelController : ModelController {
     }
     
     
-    public func searchIntent(intent: AssistiveChatHostIntent, location:CLLocation?, cacheManager:CacheManager) async throws {
+    public func searchIntent(intent: AssistiveChatHostIntent, location:CLLocation, cacheManager:CacheManager) async throws {
         switch intent.intent {
             
         case .Place:
@@ -496,6 +497,8 @@ public final class DefaultModelController : ModelController {
                 try await placeSearchService.detailIntent(intent: intent, cacheManager: cacheManager)
                 analyticsManager.track(event: "searchIntentWithPlace", properties: nil)
             }
+        case .Location:
+            fallthrough
         case .Search:
             let request = await placeSearchService.recommendedPlaceSearchRequest(intent: intent, location: location)
             do {
@@ -520,12 +523,8 @@ public final class DefaultModelController : ModelController {
             }
             
             analyticsManager.track(event: "searchIntentWithSearch", properties: nil)
-        case .Location:
-            break
+
         case .AutocompletePlaceSearch:
-            guard let location = location else {
-                return
-            }
             let autocompleteResponse = try await placeSearchService.placeSearchSession.autocomplete(caption: intent.caption, parameters: intent.queryParameters, location: location)
             let placeSearchResponses = try PlaceResponseFormatter.autocompletePlaceSearchResponses(with: autocompleteResponse)
             intent.placeSearchResponses = placeSearchResponses
@@ -1039,11 +1038,11 @@ public final class DefaultModelController : ModelController {
             let locationChatResult =  locationChatResult(for: selectedDestinationChatResult ?? currentlySelectedLocationResult.id, in:filteredLocationResults(cacheManager: cacheManager))
             
             try await receiveMessage(caption: caption, parameters: parameters, isLocalParticipant: isLocalParticipant)
-            try await searchIntent(intent: lastIntent, location: locationChatResult?.location, cacheManager: cacheManager)
+            try await searchIntent(intent: lastIntent, location: locationChatResult?.location ?? locationService.currentLocation(), cacheManager: cacheManager)
             try await didUpdateQuery(with: caption, parameters: parameters, filters: filters, cacheManager: cacheManager)
         } else if let lastIntent = queryParametersHistory.last?.queryIntents.last, lastIntent.intent == .Location {
             try await receiveMessage(caption: caption, parameters: parameters, isLocalParticipant: isLocalParticipant)
-            try await searchIntent(intent: lastIntent, location: nil, cacheManager: cacheManager)
+            try await searchIntent(intent: lastIntent, location:locationService.currentLocation(),  cacheManager: cacheManager)
             try await didUpdateQuery(with: caption, parameters: parameters, filters: filters, cacheManager: cacheManager)
         } else {
             let intent:AssistiveChatHostService.Intent = assistiveHostDelegate.determineIntent(for: caption, override: nil)
@@ -1074,7 +1073,7 @@ public final class DefaultModelController : ModelController {
         if let lastHistory = history.last, let lastIntent = lastHistory.queryIntents.dropLast().last {
             await assistiveHostDelegate.updateLastIntentParameters(intent: lastIntent, modelController: self)
             try await receiveMessage(caption: lastIntent.caption, parameters: lastHistory, isLocalParticipant: true)
-            try await searchIntent(intent: lastIntent, location: locationChatResult(for: selectedDestinationLocationChatResult ?? currentlySelectedLocationResult.id, in: filteredLocationResults(cacheManager: cacheManager))?.location, cacheManager: cacheManager )
+            try await searchIntent(intent: lastIntent, location: locationChatResult(for: selectedDestinationLocationChatResult ?? currentlySelectedLocationResult.id, in: filteredLocationResults(cacheManager: cacheManager))?.location ?? locationService.currentLocation(), cacheManager: cacheManager )
             try await didUpdateQuery(with: lastIntent.caption, parameters: lastHistory, filters: filters, cacheManager: cacheManager)
         }
     }

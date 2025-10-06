@@ -383,6 +383,10 @@ public final class AssistiveChatHostService : AssistiveChatHost {
             return retval
         }
         
+        guard !title.isEmpty else {
+            return .topPicks
+        }
+        
         var predictedSection: String = ""
         
         do {

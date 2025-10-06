@@ -163,9 +163,7 @@ struct NavigationLocationView: View {
         .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Point of Interest")
         #endif
         .onChange(of: searchText) { oldValue, newValue in
-                if !newValue.isEmpty, newValue != oldValue {
                     search(intent: .Location, query: newValue )
-                }
             }
     }
     
@@ -179,6 +177,9 @@ struct NavigationLocationView: View {
                     cacheManager: cacheManager,
                     modelController: modelController
                 )
+                if intent == .Location {
+                    await searchSavedViewModel.search(caption: query, selectedDestinationChatResultID: modelController.selectedDestinationLocationChatResult, intent: .Search, filters:searchSavedViewModel.filters, chatModel: chatModel, cacheManager: cacheManager, modelController: modelController)
+                }
             }
         }
     }

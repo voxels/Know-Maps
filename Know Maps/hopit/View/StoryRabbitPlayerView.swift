@@ -18,28 +18,7 @@ struct StoryRabbitPlayerView: View {
     
     var body: some View {
         GeometryReader { geometry in
-            ZStack {
-                Rectangle().fill(Color.black.opacity(0.1))
-                    .frame(width: geometry.size.width, height: geometry.size.height)
-                if let audioData = modelController.currentAudioData, let player = modelController.player  {
-                    if modelController.isPlaying == false {
-                        Button("Play", systemImage: "play") {
-                            Task {
-                                await modelController.play(audioPathURL: audioData)
-                                //modelController.storyController.call(method: .playRabbithole)
-                            }
-                        }
-                    } else {
-                        Button("Pause", systemImage: "pause") {
-                            modelController.pause()
-                        }
-                    }
-                } else {
-                    ProgressView()
-                        .progressViewStyle(.automatic)
-                        .padding(16)
-                }
-            }
+            NowPlayingQueueView(selectedTour: $selectedTour, selectedPOI: $selectedPOI)
             .task {
                 if let tour = selectedTour, let firstPOI = modelController.currentPOIs.filter({$0.tour_id == tour.id}).first {
                     selectedPOI = firstPOI

@@ -189,11 +189,6 @@ struct Know_MapsApp: App {
             .toolbarBackgroundVisibility(self.showOnboarding ? .visible : .hidden)
         }.windowResizability(.contentSize)
         
-        
-        WindowGroup(id:"StoryRabbitView") {
-            StoryRabbitView(chatModel: self.$chatModel, cacheManager: self.$cacheManager, modelController: self.$modelController,  searchSavedViewModel: $searchSavedViewModel, showOnboarding: self.$showOnboarding)
-        }
-        
         WindowGroup(id:"SettingsView"){
             SettingsView(model:authenticationModel, chatModel:$chatModel, cacheManager: $cacheManager, modelController: $modelController, showOnboarding: $showOnboarding)
                 .tag("Settings")

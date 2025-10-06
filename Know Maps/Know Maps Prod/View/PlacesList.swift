@@ -19,12 +19,32 @@ struct PlacesList: View {
     @Binding var modelController:DefaultModelController
     @Binding public var showMapsResultViewSheet:Bool
     
-    // Search status/timeout state
-    @State private var searchStart = Date()
-    @State private var searchTimedOut = false
-    @State private var searchTimeout: TimeInterval = 5.0
-    @State private var searchMaxRetries:Int = 3
-    @State private var searchRetries:Int = 0
+    // MARK: - Search Timeout Timer State
+    @State private var searchTimedOut: Bool = false
+    @State private var searchTimeoutDuration: TimeInterval = 5.0 // seconds; adjust as needed
+    @State private var searchTimerProgress: TimeInterval = 0.0
+    @State private var searchTimer: Timer? = nil
+    
+    private func startSearchTimer() {
+        cancelSearchTimer()
+        searchTimedOut = false
+        searchTimerProgress = 0
+        // Fire every 0.1s to smoothly update progress
+        searchTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { timer in
+            searchTimerProgress += 0.1
+            if searchTimerProgress >= searchTimeoutDuration {
+                searchTimedOut = true
+                cancelSearchTimer()
+            }
+        }
+        // Ensure the timer runs on the main run loop common modes (e.g., while scrolling)
+        RunLoop.main.add(searchTimer!, forMode: .common)
+    }
+    
+    private func cancelSearchTimer() {
+        searchTimer?.invalidate()
+        searchTimer = nil
+    }
     
     static var formatter:NumberFormatter {
         let retval = NumberFormatter()
@@ -192,7 +212,7 @@ struct PlacesList: View {
                     .animation(.snappy(duration: 0.35), value: modelController.filteredPlaceResults)
                     .listRowBackground(Color.clear)
                     .listStyle(.plain)
-
+                    
                 }
                 .scrollContentBackground(.hidden)
                 .background(Color.clear)
@@ -211,63 +231,100 @@ struct PlacesList: View {
                 recommendedGrid(in: geometry)
             } else if modelController.placeResults.count > 0 {
                 placeResultsGrid(in: geometry)
-            } 
+            }
             else if !modelController.queryParametersHistory.isEmpty {
                 ZStack(alignment: .center) {
-                    let recCount = modelController.recommendedPlaceResults.count
-                    let placeCount = modelController.placeResults.count
-
-                    if let selectedDestinationLocationChatResult = modelController.selectedDestinationLocationChatResult,
-                       let locationChatResult = modelController.locationChatResult(
-                           for: selectedDestinationLocationChatResult,
-                           in: modelController.filteredLocationResults(cacheManager: cacheManager)
-                       ) {
-                        if !searchTimedOut && searchRetries < searchMaxRetries {
-                            Text("Searching near \(locationChatResult.locationName)…")
-                                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                                .font(.headline)
-                        } else {
-                            if recCount == 0 && placeCount == 0 {
-                                Text("No results found near \(locationChatResult.locationName).")
-                                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                                    .font(.headline)
+                    if let selectedDestinationLocationChatResult = modelController.selectedDestinationLocationChatResult, let locationChatResult = modelController.locationChatResult(for: selectedDestinationLocationChatResult, in: modelController.locationResults), let _ = locationChatResult.location {
+                    
+                        VStack(spacing: 12) {
+                            Spacer()
+                            if searchTimedOut {
+                                Text("No Results Found")
+                                    .padding()
+                                #if !os(visionOS)
+                                    .glassEffect()
+                                #endif
                             } else {
+                                VStack {
+                                    Text(modelController.fetchMessage)
+                                        .font(Font.subheadline.bold())
+                                        .padding()
+                                    #if !os(visionOS)
+                                        .glassEffect()
+                                    #endif
+
+                                }
+                                .padding()
+                            }
+                            
+                            let recCount = modelController.recommendedPlaceResults.count
+                            let placeCount = modelController.placeResults.count
+                            if recCount == 0 && placeCount == 0 {
+                                ProgressView(value: min(searchTimerProgress / max(searchTimeoutDuration, 0.0001), 1.0))
+                                Text("\(Int(max(searchTimeoutDuration - searchTimerProgress, 0)))s")
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                            }
+                            else {
                                 Text("Found \(recCount) recommended and \(placeCount) places near \(locationChatResult.locationName).")
                                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                                     .font(.headline)
+                                    .onAppear { cancelSearchTimer() }
+                            }
+                            Spacer()
+                        }
+                        .onAppear {
+                            startSearchTimer()
+                        }
+                    } else {
+                        VStack(spacing: 12) {
+                            Spacer()
+                            if searchTimedOut {
+                                Text("No Results Found")
+                                    .padding()
+                                #if !os(visionOS)
+                                    .glassEffect()
+                                #endif
+
+                            } else {
+                                VStack {
+                                    Text(modelController.fetchMessage)
+                                        .font(Font.subheadline.bold())
+                                        .padding()
+                                    #if !os(visionOS)
+                                        .glassEffect()
+                                    #endif
+                                }
+                                .padding()
+                            }
+                            if modelController.recommendedPlaceResults.count == 0 && modelController.placeResults.count == 0 {
+                                ProgressView(value: min(searchTimerProgress / max(searchTimeoutDuration, 0.0001), 1.0))
+                                    .padding()
+                                Text("\(Int(max(searchTimeoutDuration - searchTimerProgress, 0)))s")
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                                    .padding()
+                                #if !os(visionOS)
+                                    .glassEffect()
+                                #endif
+                            }
+                            else {
+                                Text("Found \(modelController.recommendedPlaceResults.count) recommended and \(modelController.placeResults.count) places.")
+                                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                    .font(.headline)
+#if !os(visionOS)
+    .glassEffect()
+#endif
+                            }
+                            Spacer()
+                        }
+                        .onChange(of: cacheManager.isRefreshingCache) { oldValue, newValue in
+                            if !newValue, modelController.placeResults.count == 0 && modelController.recommendedPlaceResults.count == 0 {
+                                startSearchTimer()
                             }
                         }
                     }
                 }
-                .onAppear {
-                    // Start or reset timeout when this status view appears
-                    searchStart = Date()
-                    searchTimedOut = false
-                    let startSnapshot = searchStart
-                    DispatchQueue.main.asyncAfter(deadline: .now() + searchTimeout) {
-                        // Only mark timed out if we're still on the same search and still have no results
-                        if searchStart == startSnapshot &&
-                            modelController.recommendedPlaceResults.isEmpty &&
-                            modelController.placeResults.isEmpty {
-                            searchTimedOut = true
-                        }
-                    }
-                }
-                .onChange(of: modelController.queryParametersHistory) { _ in
-                    // New query parameters indicate a new search
-                    searchStart = Date()
-                    searchTimedOut = false
-                    searchRetries = 0
-                }
-                .onChange(of: modelController.selectedDestinationLocationChatResult) { _ in
-                    // Destination changed; treat as a new search
-                    searchStart = Date()
-                    searchTimedOut = false
-                    searchRetries = 0
-                }
-            }
-            else {
-                EmptyView()
             }
         }
     }

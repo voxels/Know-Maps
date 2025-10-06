@@ -159,7 +159,7 @@ public protocol ModelController : Sendable {
     /// Processes a search intent based on the given intent and location.
     func searchIntent(
         intent: AssistiveChatHostIntent,
-        location: CLLocation?,
+        location: CLLocation,
         cacheManager:CacheManager
     ) async throws
     

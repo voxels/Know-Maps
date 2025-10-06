@@ -339,6 +339,7 @@ public actor PlaceSearchSession : ObservableObject {
             sessionQueue.async {
                 var request = URLRequest(url: url)
                 request.setValue(apiKey, forHTTPHeaderField: "Authorization")
+                request.timeoutInterval = 15.0
                 session.dataTask(with: request) { data, response, error in
                     if let error = error {
                         checkedContinuation.resume(throwing: error)
@@ -460,6 +461,9 @@ public actor PlaceSearchSession : ObservableObject {
 private extension PlaceSearchSession {
     func configuredSession()->URLSession {
         let sessionConfiguration = URLSessionConfiguration.default
+        sessionConfiguration.timeoutIntervalForRequest = 15   // Idle timeout between bytes
+        sessionConfiguration.timeoutIntervalForResource = 30  // Overall resource timeout
+        sessionConfiguration.waitsForConnectivity = false     // Don’t wait minutes for connectivity
         let session = URLSession(configuration: sessionConfiguration)
         return session
     }

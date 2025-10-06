@@ -20,7 +20,7 @@ struct SearchView: View {
     var body: some View {
         SavedListView(searchSavedViewModel: $searchSavedViewModel, cacheManager: $cacheManager, modelController: $modelController, section:$modelController.section, addItemSection: $addItemSection, preferredColumn: $preferredColumn, selectedResult: $modelController.selectedSavedResult)
             .onChange(of: modelController.selectedSavedResult) { oldValue, newValue in
-                guard let newValue = newValue, newValue != oldValue else {
+                guard let newValue = newValue else {
                     return
                 }
                 modelController.isRefreshingPlaces = true

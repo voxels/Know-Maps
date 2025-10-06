@@ -403,6 +403,7 @@
 		1EB32BDB2E8EBAC700280994 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				View/NowPlayingQueueView.swift,
 				View/StoryRabbitContentView.swift,
 				View/StoryRabbitMapView.swift,
 				View/StoryRabbitPlayerView.swift,

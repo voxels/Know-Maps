@@ -467,85 +467,51 @@ public actor PersonalizedSearchSession {
         urlQueryItems: [URLQueryItem],
         httpMethod: String = "GET"
     ) async throws -> Any {
-        
-        // Retry configuration
-        let maxRetries = 3
-        let initialDelay: UInt64 = 1_000_000_000 // 1 second in nanoseconds
-        var attempt = 0
-        var delay = initialDelay
-        
-        while attempt <= maxRetries {
-            do {
-                // Construct URL with query items
-                guard var urlComponents = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
-                    throw PersonalizedSearchSessionError.UnsupportedRequest
-                }
-                
-                let versionQueryItem = URLQueryItem(name: "v", value: PersonalizedSearchSession.foursquareVersionDate)
-                var allQueryItems = [versionQueryItem]
-                allQueryItems.append(contentsOf: urlQueryItems)
-                
-                urlComponents.queryItems = allQueryItems
-                
-                guard let queryUrl = urlComponents.url else {
-                    throw PersonalizedSearchSessionError.UnsupportedRequest
-                }
-                
-                print("Requesting URL: \(queryUrl)")
-                
-                // Prepare URLRequest
-                var request = URLRequest(url: queryUrl)
-                request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
-                request.httpMethod = httpMethod
-                
-                // Perform the network request using async-await
-                let (data, _) = try await URLSession.shared.data(for: request)
-                
-                // Parse JSON
-                let json = try JSONSerialization.jsonObject(with: data, options: [.fragmentsAllowed])
-                
-                if let checkDict = json as? NSDictionary,
-                   let message = checkDict["message"] as? String,
-                   message.hasPrefix("Foursquare servers") {
-                    print("Message from server: \(message)")
-                    throw PersonalizedSearchSessionError.ServerErrorMessage
-                }
-                
-                if let checkDict = json as? NSDictionary,
-                   let meta = checkDict["meta"] as? NSDictionary,
-                   let code = meta["code"] as? Int64,
-                   code == 500 {
-                    print("Server returned error code 500.")
-                    throw PersonalizedSearchSessionError.ServerErrorMessage
-                }
-                
-                // Successful response
-                return json
-                
-            } catch let error as PersonalizedSearchSessionError {
-                if error == .ServerErrorMessage && attempt < maxRetries {
-                    // Exponential delay and retry
-                    let delaySeconds = Double(delay) / 1_000_000_000
-                    print("Attempt \(attempt + 1) failed with server error. Retrying in \(delaySeconds) seconds...")
-                    
-                    try await Task.sleep(nanoseconds: delay)
-                    delay *= 2
-                    attempt += 1
-                } else {
-                    // If it's not a server error or max retries reached, throw the error
-                    if error == .ServerErrorMessage {
-                        print("Max retries reached. Throwing ServerErrorMessage.")
-                        throw PersonalizedSearchSessionError.MaxRetriesReached
-                    }
-                    throw error
-                }
-            } catch {
-                // For any other errors, rethrow
-                throw error
+            // Construct URL with query items
+            guard var urlComponents = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
+                throw PersonalizedSearchSessionError.UnsupportedRequest
             }
-        }
-        
-        // If all retries are exhausted, throw a max retries error
-        throw PersonalizedSearchSessionError.MaxRetriesReached
+            
+            let versionQueryItem = URLQueryItem(name: "v", value: PersonalizedSearchSession.foursquareVersionDate)
+            var allQueryItems = [versionQueryItem]
+            allQueryItems.append(contentsOf: urlQueryItems)
+            
+            urlComponents.queryItems = allQueryItems
+            
+            guard let queryUrl = urlComponents.url else {
+                throw PersonalizedSearchSessionError.UnsupportedRequest
+            }
+            
+            print("Requesting URL: \(queryUrl)")
+            
+            // Prepare URLRequest
+            var request = URLRequest(url: queryUrl)
+            request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+            request.timeoutInterval =   5.0
+            request.httpMethod = httpMethod
+            
+            // Perform the network request using async-await
+            let (data, _) = try await URLSession.shared.data(for: request)
+            
+            // Parse JSON
+            let json = try JSONSerialization.jsonObject(with: data, options: [.fragmentsAllowed])
+            
+            if let checkDict = json as? NSDictionary,
+               let message = checkDict["message"] as? String,
+               message.hasPrefix("Foursquare servers") {
+                print("Message from server: \(message)")
+                throw PersonalizedSearchSessionError.ServerErrorMessage
+            }
+            
+            if let checkDict = json as? NSDictionary,
+               let meta = checkDict["meta"] as? NSDictionary,
+               let code = meta["code"] as? Int64,
+               code == 500 {
+                print("Server returned error code 500.")
+                throw PersonalizedSearchSessionError.ServerErrorMessage
+            }
+            
+            // Successful response
+            return json
     }
 }
