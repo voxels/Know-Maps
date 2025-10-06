@@ -29,14 +29,6 @@ struct StoryRabbitPlayerView: View {
                     selectedPOI = firstPOI
                 }
             }
-            .onChange(of: selectedPOI) { oldValue, newValue in
-                Task {
-                    modelController.currentAudioData = await modelController.audioPOIModel(for: newValue)
-                }
-            }
-            .onDisappear {
-                modelController.pause()
-            }
         }
     }
 }

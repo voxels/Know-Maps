@@ -95,7 +95,7 @@ public final class StoryRabbitController  {
     
     func buildModel() {
         // Init audio player
-        self.streamAudioPlayer = WebSocketAudioPlayer()
+//        self.streamAudioPlayer = WebSocketAudioPlayer()
         
         self.generatingAudioURL0 = Bundle.main.url(forResource: "generating_loop_0", withExtension: "wav")!
         self.generatingAudioURL1 = Bundle.main.url(forResource: "generating_loop_1", withExtension: "wav")!
@@ -106,9 +106,6 @@ public final class StoryRabbitController  {
         self.audioPlayer = AVQueuePlayer(items: [self.playerItem!])
         self.addBoundaryTimeObserver()
         self.registerBackgroundTask()
-       
-        self.startProgressTimer() // Start the timer to update the UI
-   
     }
     
     
@@ -176,7 +173,6 @@ public final class StoryRabbitController  {
         // Kill task
         else if method.rawValue == "killTask" {
             self.streamAudioPlayer!.closeWebSocket(closeCode: 3001, reason: "cancel")
-            self.stopProgressTimer();
             self.endBackgroundTask();
         }
         
@@ -757,15 +753,6 @@ public final class StoryRabbitController  {
             print("Error converting object to dictionary: \(error.localizedDescription)")
         }
         return nil
-    }
-    
-    func startProgressTimer() {
-//        self.progressTimer = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(self.sendPlayerProgress), userInfo: nil, repeats: true)
-    }
-    
-    func stopProgressTimer() {
-        self.progressTimer?.invalidate()
-        self.progressTimer = nil
     }
     
     func endBackgroundTask() {
