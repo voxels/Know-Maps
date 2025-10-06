@@ -136,8 +136,10 @@ struct NowPlayingQueueView: View {
                             get: { player.scrubPosition },
                             set: { newValue in
                                 player.scrubPosition = newValue
-                                if !player.isUserScrubbing {
-                                    player.seek(to: newValue)
+                                // Only seek if we're actively scrubbing (not during programmatic updates)
+                                if player.isUserScrubbing {
+                                    // Update currentTime immediately for visual feedback
+                                    player.currentTime = newValue
                                 }
                             }
                         ),
@@ -348,11 +350,15 @@ final class QueuePlayerEngine: NSObject, ObservableObject {
         ) { [weak self] t in
             guard let self else { return }
             let seconds = t.seconds
-            guard seconds.isFinite else { return }
+            guard seconds.isFinite && seconds >= 0 else { return }
             
-            self.currentTime = seconds
+            // Only update if we're not in the middle of a user interaction
             if !self.isUserScrubbing {
+                self.currentTime = seconds
                 self.scrubPosition = seconds
+            } else {
+                // Still update currentTime for consistency, but not scrubPosition
+                self.currentTime = seconds
             }
         }
 
@@ -502,13 +508,16 @@ final class QueuePlayerEngine: NSObject, ObservableObject {
         let clampedSeconds = max(0, min(duration, seconds))
         let t = CMTime(seconds: clampedSeconds, preferredTimescale: 600)
         
+        // Update UI immediately for responsive feedback
+        currentTime = clampedSeconds
+        scrubPosition = clampedSeconds
+        
         queue.seek(to: t, toleranceBefore: .zero, toleranceAfter: .zero) { [weak self] completed in
             guard let self = self, completed else { return }
             DispatchQueue.main.async {
+                // Confirm the seek completed successfully
                 self.currentTime = clampedSeconds
-                if !self.isUserScrubbing {
-                    self.scrubPosition = clampedSeconds
-                }
+                self.scrubPosition = clampedSeconds
                 self.updateNowPlayingInfo(fullRefresh: false, index: self.currentIndex)
             }
         }
@@ -539,10 +548,11 @@ final class QueuePlayerEngine: NSObject, ObservableObject {
     /// Apple Music behavior: if you tap previous within ~3 seconds of start, go to previous track, else restart.
     func previousTrackOrRestart() {
         if currentTime > 3 || currentIndex == 0 {
+            // Restart current track
             seek(to: 0)
             return
         }
-        // Rebuild queue starting at previous index
+        // Go to previous track - rebuild queue starting at previous index
         currentIndex -= 1
         configureQueue(startingAt: currentIndex)
         if isPlaying { queue.play() }
