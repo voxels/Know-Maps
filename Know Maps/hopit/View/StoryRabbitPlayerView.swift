@@ -14,11 +14,11 @@ struct StoryRabbitPlayerView: View {
     @Binding var modelController:DefaultModelController
     @Binding var searchSavedViewModel:SearchSavedViewModel
     @Binding var selectedTour:Tour?
-    @State private var selectedPOI: POI = POI(id: 0, tour_id: 0, title: "", description: nil, latitude: 0, longitude: 0, script: "", audio_path: "")
+    @State private var selectedPOI: POI = POI(id: 0, tour_id: 0, title: "", description: nil, latitude: 0, longitude: 0, script: "", audio_path: ""/*, order:1, image_path: nil*/)
     
     var body: some View {
         GeometryReader { geometry in
-            NowPlayingQueueView(selectedTour: $selectedTour, selectedPOI: $selectedPOI)
+            NowPlayingQueueView(selectedTour: $selectedTour, selectedPOI: $selectedPOI, pois:modelController.currentPOIs)
             .task {
                 if let tour = selectedTour, let firstPOI = modelController.currentPOIs.filter({$0.tour_id == tour.id}).first {
                     selectedPOI = firstPOI

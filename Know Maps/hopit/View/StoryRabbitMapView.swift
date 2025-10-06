@@ -57,14 +57,7 @@ struct StoryRabbitMapView: View {
                                                     navigateToPlayer = true
                                                 } label: {
                                                     HStack{
-                                                        if let imagePath = tour.image_path {
-                                                            
-                                                        } else {
-                                                            Image(systemName: "photo")
-                                                                .resizable()
-                                                                .frame(width: 60, height: 60, alignment: .center)
-                                                                .aspectRatio(contentMode: .fit)
-                                                        }
+                                                        TourImageView(tour: tour)
                                                         VStack (alignment: .leading) {
                                                             Text(tour.title)
                                                                 .font(.headline)
@@ -74,7 +67,6 @@ struct StoryRabbitMapView: View {
                                                             }
                                                         }
                                                         .padding(.horizontal)
-                                                        
                                                         Spacer()
                                                     }
                                                     .foregroundStyle(.primary)
@@ -126,6 +118,42 @@ struct StoryRabbitMapView: View {
                             }
                     })
                 }
+            }
+        }
+    }
+}
+
+struct TourImageView: View {
+    let tour: Tour
+    @State private var imageURL: URL?
+    @State private var isLoading = true
+    
+    var body: some View {
+        AsyncImage(url: imageURL) { image in
+            image
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+                .frame(width: 60, height: 60)
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+        } placeholder: {
+            if isLoading {
+                ProgressView()
+                    .frame(width: 60, height: 60)
+            } else {
+                Image(systemName: "photo")
+                    .resizable()
+                    .frame(width: 60, height: 60, alignment: .center)
+                    .aspectRatio(contentMode: .fit)
+                    .foregroundColor(.gray)
+            }
+        }
+        .task {
+            do {
+                imageURL = try await tour.downloadImage()
+                isLoading = false
+            } catch {
+                print("Error downloading tour image: \(error)")
+                isLoading = false
             }
         }
     }

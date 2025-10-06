@@ -27,6 +27,7 @@ import NukeUI
 struct NowPlayingQueueView: View {
     @Binding var selectedTour:Tour?
     @Binding var selectedPOI: POI
+    let pois: [POI] // Add this to access all POIs
     @Environment(\.dismiss) private var dismiss
     
     @StateObject private var player = QueuePlayerEngine(
@@ -130,11 +131,21 @@ struct NowPlayingQueueView: View {
 
                 // Scrubber
                 VStack(spacing: 10) {
-                    Slider(value: $player.scrubPosition,
-                           in: 0...max(player.duration, 0.1),
-                           onEditingChanged: { editing in
-                        player.setIsScrubbing(editing)
-                    })
+                    Slider(
+                        value: Binding(
+                            get: { player.scrubPosition },
+                            set: { newValue in
+                                player.scrubPosition = newValue
+                                if !player.isUserScrubbing {
+                                    player.seek(to: newValue)
+                                }
+                            }
+                        ),
+                        in: 0...max(player.duration, 0.1),
+                        onEditingChanged: { editing in
+                            player.setIsScrubbing(editing)
+                        }
+                    )
                     .tint(.white)
 
                     HStack {
@@ -212,7 +223,9 @@ struct NowPlayingQueueView: View {
         .toolbar(.hidden, for: .navigationBar) // Hide the navigation bar for full immersion
         .interactiveDismissDisabled() // Prevent sheet dismissal gestures
         .onAppear {
-            player.replacePlaylist([selectedPOI])
+            let tourPOIs = pois.filter { $0.tour_id == selectedPOI.tour_id }
+            let startIndex = tourPOIs.firstIndex(of: selectedPOI) ?? 0
+            player.replacePlaylist(tourPOIs, startAt: startIndex)
             player.setTourTitleProvider { selectedTour?.title }
             player.activateSession()
         }
@@ -223,7 +236,9 @@ struct NowPlayingQueueView: View {
         }
         .onChange(of: selectedPOI.id) { _ in
             // When selectedPOI changes, update the playlist and start playing
-            player.replacePlaylist([selectedPOI], startAt: 0)
+            let tourPOIs = pois.filter { $0.tour_id == selectedPOI.tour_id }
+            let startIndex = tourPOIs.firstIndex(of: selectedPOI) ?? 0
+            player.replacePlaylist(tourPOIs, startAt: startIndex)
             // Automatically start playing the new POI
             if !player.isPlaying {
                 player.togglePlayPause()
@@ -314,8 +329,11 @@ final class QueuePlayerEngine: NSObject, ObservableObject {
     // Internals
     private let queue = AVQueuePlayer()
     private var timeObserver: Any?
-    private var isUserScrubbing = false
+    @Published var isUserScrubbing = false
     private var itemContext = 0
+    
+    // Track which item we're observing to prevent double removal
+    private var observedItem: AVPlayerItem?
 
     init(playlist: [POI], startAt: Int = 0) {
         self.playlist = playlist
@@ -325,11 +343,13 @@ final class QueuePlayerEngine: NSObject, ObservableObject {
 
         // Periodic time updates
         timeObserver = queue.addPeriodicTimeObserver(
-            forInterval: CMTime(seconds: 0.25, preferredTimescale: 600),
+            forInterval: CMTime(seconds: 0.1, preferredTimescale: 600), // More frequent updates
             queue: .main
         ) { [weak self] t in
             guard let self else { return }
             let seconds = t.seconds
+            guard seconds.isFinite else { return }
+            
             self.currentTime = seconds
             if !self.isUserScrubbing {
                 self.scrubPosition = seconds
@@ -341,6 +361,17 @@ final class QueuePlayerEngine: NSObject, ObservableObject {
             self, selector: #selector(itemDidEnd(_:)),
             name: .AVPlayerItemDidPlayToEndTime, object: nil
         )
+    }
+    
+    deinit {
+        // Clean up observers and time observer
+        cleanupCurrentObserver()
+        
+        if let timeObserver = timeObserver {
+            queue.removeTimeObserver(timeObserver)
+        }
+        
+        NotificationCenter.default.removeObserver(self)
     }
 
     /// Replace the current playlist and rebuild the queue, optionally starting at a given index.
@@ -356,14 +387,15 @@ final class QueuePlayerEngine: NSObject, ObservableObject {
         // Refresh metadata for current track if there is one
         if !playlist.isEmpty && currentIndex < playlist.count {
             refreshMetadataForCurrentTrack()
-            updateNowPlayingInfo(fullRefresh: true)
+            updateNowPlayingInfo(fullRefresh: true, index:currentIndex)
         }
     }
 
     // Build / rebuild the queue from an index
     private func configureQueue(startingAt index: Int) {
+        // Clean up any existing observers first
+        cleanupCurrentObserver()
         queue.removeAllItems()
-        removeKVO(from: queue.currentItem)
 
         guard !playlist.isEmpty else { return }
 
@@ -387,7 +419,7 @@ final class QueuePlayerEngine: NSObject, ObservableObject {
                 self.duration = self.queue.currentItem?.duration.seconds.isFinite == true ? self.queue.currentItem!.duration.seconds : 0
                 self.currentTime = 0
                 self.scrubPosition = 0
-                self.updateNowPlayingInfo(fullRefresh: true)
+                self.updateNowPlayingInfo(fullRefresh: true, index: index)
             }
         }
     }
@@ -427,10 +459,15 @@ final class QueuePlayerEngine: NSObject, ObservableObject {
             print("Audio session error:", error)
         }
         setupRemoteCommands()
-        updateNowPlayingInfo(fullRefresh: true)
+        if playlist.count > 0 {
+            updateNowPlayingInfo(fullRefresh: true, index:0)
+        }
     }
 
     func deactivateSession() {
+        // Clean up observers first
+        cleanupCurrentObserver()
+        
         MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
         let cmd = MPRemoteCommandCenter.shared()
         [cmd.playCommand, cmd.pauseCommand, cmd.togglePlayPauseCommand,
@@ -455,14 +492,25 @@ final class QueuePlayerEngine: NSObject, ObservableObject {
 
     func setIsScrubbing(_ editing: Bool) {
         isUserScrubbing = editing
-        if !editing { seek(to: scrubPosition) }
+        if !editing {
+            // When user finishes scrubbing, seek to the scrub position
+            seek(to: scrubPosition)
+        }
     }
 
-    private func seek(to seconds: Double) {
-        let t = CMTime(seconds: seconds, preferredTimescale: 600)
-        queue.seek(to: t, toleranceBefore: .zero, toleranceAfter: .zero) { [weak self] _ in
-            self?.currentTime = seconds
-            self?.updateNowPlayingInfo(fullRefresh: false)
+    func seek(to seconds: Double) {
+        let clampedSeconds = max(0, min(duration, seconds))
+        let t = CMTime(seconds: clampedSeconds, preferredTimescale: 600)
+        
+        queue.seek(to: t, toleranceBefore: .zero, toleranceAfter: .zero) { [weak self] completed in
+            guard let self = self, completed else { return }
+            DispatchQueue.main.async {
+                self.currentTime = clampedSeconds
+                if !self.isUserScrubbing {
+                    self.scrubPosition = clampedSeconds
+                }
+                self.updateNowPlayingInfo(fullRefresh: false, index: self.currentIndex)
+            }
         }
     }
 
@@ -475,14 +523,17 @@ final class QueuePlayerEngine: NSObject, ObservableObject {
         }
         currentIndex += 1
         queue.advanceToNextItem()
-        removeKVO(from: queue.currentItem)
+        
+        // Clean up observer from previous item and attach to new current item
+        cleanupCurrentObserver()
         attachKVO(to: queue.currentItem)
+        
         refreshMetadataForCurrentTrack()
         duration = queue.currentItem?.duration.seconds.isFinite == true ? queue.currentItem!.duration.seconds : 0
         currentTime = 0
         scrubPosition = 0
         if isPlaying { queue.play() }
-        updateNowPlayingInfo(fullRefresh: true)
+        updateNowPlayingInfo(fullRefresh: true,index:currentIndex)
     }
 
     /// Apple Music behavior: if you tap previous within ~3 seconds of start, go to previous track, else restart.
@@ -518,25 +569,40 @@ final class QueuePlayerEngine: NSObject, ObservableObject {
             duration = queue.currentItem?.duration.seconds.isFinite == true ? queue.currentItem!.duration.seconds : 0
             currentTime = 0
             scrubPosition = 0
-            updateNowPlayingInfo(fullRefresh: true)
+            updateNowPlayingInfo(fullRefresh: true, index:currentIndex)
         } else {
             // End of playlist
             isPlaying = false
             updateNowPlayingPlaybackState()
+            currentIndex = 0
         }
     }
 
     // MARK: Metadata & KVO
 
     private func attachKVO(to item: AVPlayerItem?) {
-        item?.addObserver(self, forKeyPath: "status", options: [.initial, .new], context: &itemContext)
-        item?.addObserver(self, forKeyPath: "duration", options: [.initial, .new], context: &itemContext)
+        // Only attach if we have an item and we're not already observing it
+        guard let item = item, observedItem !== item else { return }
+        
+        // Clean up any existing observer first
+        cleanupCurrentObserver()
+        
+        item.addObserver(self, forKeyPath: "status", options: [.initial, .new], context: &itemContext)
+        item.addObserver(self, forKeyPath: "duration", options: [.initial, .new], context: &itemContext)
+        observedItem = item
     }
 
     private func removeKVO(from item: AVPlayerItem?) {
-        guard let item else { return }
+        guard let item = item, observedItem === item else { return }
         item.removeObserver(self, forKeyPath: "status", context: &itemContext)
         item.removeObserver(self, forKeyPath: "duration", context: &itemContext)
+        observedItem = nil
+    }
+    
+    private func cleanupCurrentObserver() {
+        if let observedItem = observedItem {
+            removeKVO(from: observedItem)
+        }
     }
 
     override func observeValue(
@@ -548,11 +614,11 @@ final class QueuePlayerEngine: NSObject, ObservableObject {
         case "status":
             if item.status == .readyToPlay {
                 duration = item.duration.seconds.isFinite ? item.duration.seconds : 0
-                updateNowPlayingInfo(fullRefresh: true)
+                updateNowPlayingInfo(fullRefresh: true, index:currentIndex)
             }
         case "duration":
             duration = item.duration.seconds.isFinite ? item.duration.seconds : duration
-            updateNowPlayingInfo(fullRefresh: false)
+            updateNowPlayingInfo(fullRefresh: false, index:currentIndex)
         default:
             break
         }
@@ -616,10 +682,11 @@ final class QueuePlayerEngine: NSObject, ObservableObject {
         MPNowPlayingInfoCenter.default().nowPlayingInfo = info
     }
 
-    private func updateNowPlayingInfo(fullRefresh: Bool) {
+    private func updateNowPlayingInfo(fullRefresh: Bool, index: Int? = nil) {
+        guard let index = index else { return }
         var info = MPNowPlayingInfoCenter.default().nowPlayingInfo ?? [:]
         if fullRefresh {
-            info[MPMediaItemPropertyTitle] = currentTitle.isEmpty ? playlist[currentIndex].title : currentTitle
+            info[MPMediaItemPropertyTitle] = currentTitle.isEmpty ? playlist[index].title : currentTitle
             info[MPMediaItemPropertyArtist] = currentArtist.isEmpty ? (tourTitleProvider?() ?? "") : currentArtist
             if let img = currentArtwork {
                 info[MPMediaItemPropertyArtwork] = MPMediaItemArtwork(boundsSize: img.size) { _ in img }

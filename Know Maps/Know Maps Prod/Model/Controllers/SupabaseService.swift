@@ -13,6 +13,14 @@ public struct POI: Decodable, Identifiable, Equatable {
     let longitude: Double
     let script: String?
     let audio_path: String?
+//    let order:Int
+//    let image_path: String?
+    
+    // Convenience method to download POI image
+//    func downloadImage() async throws -> URL? {
+//        guard let image_path = image_path else { return nil }
+//        return try await SupabaseService.shared.downloadPOIImage(at: image_path)
+//    }
 }
 
 public struct Tour: Decodable, Identifiable, Equatable {
@@ -25,6 +33,12 @@ public struct Tour: Decodable, Identifiable, Equatable {
     let updated_at:Date
     let persona_id:Int?
     let image_path:String?
+    
+    // Convenience method to download Tour image
+    func downloadImage() async throws -> URL? {
+        guard let image_path = image_path else { return nil }
+        return try await SupabaseService.shared.downloadTourImage(at: image_path)
+    }
 }
 
 public final class SupabaseService {
@@ -59,12 +73,39 @@ public final class SupabaseService {
         return response
     }
 
-    // Download audio data from Supabase Storage from the 'media' bucket
+    // Download audio data from Supabase Storage from the 'poi-audio' bucket
     func downloadAudio(at path: String) async throws -> URL {
         let filePath = "\(path.components(separatedBy: "/").dropFirst().joined(separator: "/"))"
         let data = try await supabase.storage
             .from("poi-audio")
             .createSignedURL(path: filePath, expiresIn: 3600)
         return data
+    }
+    
+    // Download POI image from Supabase Storage
+    func downloadPOIImage(at path: String) async throws -> URL {
+        let filePath = "\(path.components(separatedBy: "/").dropFirst().joined(separator: "/"))"
+        let signedURL = try await supabase.storage
+            .from("poi-images")
+            .createSignedURL(path: filePath, expiresIn: 3600)
+        return signedURL
+    }
+    
+    // Download Tour image from Supabase Storage
+    func downloadTourImage(at path: String) async throws -> URL {
+        let filePath = "\(path.components(separatedBy: "/").dropFirst().joined(separator: "/"))"
+        let signedURL = try await supabase.storage
+            .from("tour-images")
+            .createSignedURL(path: filePath, expiresIn: 3600)
+        return signedURL
+    }
+    
+    // Generic image download method (if you want to specify the bucket)
+    func downloadImage(from bucket: String, at path: String) async throws -> URL {
+        let filePath = "\(path.components(separatedBy: "/").dropFirst().joined(separator: "/"))"
+        let signedURL = try await supabase.storage
+            .from(bucket)
+            .createSignedURL(path: filePath, expiresIn: 3600)
+        return signedURL
     }
 }
