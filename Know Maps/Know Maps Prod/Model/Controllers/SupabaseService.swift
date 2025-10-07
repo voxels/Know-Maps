@@ -13,14 +13,14 @@ public struct POI: Decodable, Identifiable, Equatable {
     let longitude: Double
     let script: String?
     let audio_path: String?
-//    let order:Int
-//    let image_path: String?
+    let image_path: String?
+    let order:Int
     
     // Convenience method to download POI image
-//    func downloadImage() async throws -> URL? {
-//        guard let image_path = image_path else { return nil }
-//        return try await SupabaseService.shared.downloadPOIImage(at: image_path)
-//    }
+    func downloadImage() async throws -> URL? {
+        guard let image_path = image_path else { return nil }
+        return try await SupabaseService.shared.downloadPOIImage(at: image_path)
+    }
 }
 
 public struct Tour: Decodable, Identifiable, Equatable {

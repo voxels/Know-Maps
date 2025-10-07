@@ -38,218 +38,219 @@ struct NowPlayingQueueView: View {
     @State private var showingQueue = false
 
     var body: some View {
-        ZStack {
-            // Full-bleed blurred background
-            Group {
-                if let art = player.currentArtwork {
-                    Image(uiImage: art)
-                        .resizable()
-                        .scaledToFill()
-                        .blur(radius: 30, opaque: false)
-                        .overlay(
-                            LinearGradient(
-                                colors: [.black.opacity(0.65), .clear, .black.opacity(0.85)],
-                                startPoint: .top, endPoint: .bottom
+        GeometryReader { geometry in
+            ZStack {
+                // Full-bleed blurred background
+                Group {
+                    if let art = player.currentArtwork {
+                        Image(uiImage: art)
+                            .resizable()
+                            .scaledToFill()
+                            .blur(radius: 30, opaque: false)
+                            .overlay(
+                                LinearGradient(
+                                    colors: [.black.opacity(0.65), .clear, .black.opacity(0.85)],
+                                    startPoint: .top, endPoint: .bottom
+                                )
                             )
-                        )
-                } else {
-                    Rectangle().fill(.black)
-                }
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity) // Ensure full screen coverage
-
-            VStack(spacing: 20) {
-                HStack {
-                    // Back button
-                    Button {
-                        dismiss()
-                    } label: {
-                        Image(systemName: "chevron.down")
-                            .font(.title2.weight(.semibold))
-                            .foregroundStyle(.white)
-                            .padding(10)
-                            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    } else {
+                        Rectangle().fill(.black)
                     }
-                    
-                    Spacer()
-                    
-                    HStack(spacing: 12) {
-                        // AirPlay Route Picker
-                        AirPlayRoutePicker()
-                            .frame(width: 44, height: 44)
-                        
+                }
+                .frame(maxWidth: geometry.size.width, maxHeight: .infinity) // Ensure full screen coverage
+                
+                VStack(spacing: 20) {
+                    HStack {
+                        // Back button
                         Button {
-                            showingQueue = true
+                            dismiss()
                         } label: {
-                            Label("Up Next", systemImage: "list.bullet")
-                                .labelStyle(.iconOnly)
-                                .font(.title3.weight(.semibold))
+                            Image(systemName: "chevron.down")
+                                .font(.title2.weight(.semibold))
                                 .foregroundStyle(.white)
                                 .padding(10)
                                 .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
                         }
+                        
+                        Spacer()
+                        
+                        HStack(spacing: 12) {
+                            // AirPlay Route Picker
+                            AirPlayRoutePicker()
+                                .frame(width: 44, height: 44)
+                            
+                            Button {
+                                showingQueue = true
+                            } label: {
+                                Label("Up Next", systemImage: "list.bullet")
+                                    .labelStyle(.iconOnly)
+                                    .font(.title3.weight(.semibold))
+                                    .foregroundStyle(.white)
+                                    .padding(10)
+                                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                            }
+                        }
                     }
-                }
-                .padding([.top, .horizontal])
-
-                // Foreground artwork card
-                if let art = player.currentArtwork {
-                    Image(uiImage: art)
-                        .resizable()
-                        .scaledToFit()
-                        .frame(maxWidth: 360)
-                        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                    .padding([.top, .horizontal])
+                    
+                    // Foreground artwork card
+                    if let art = player.currentArtwork {
+                        Image(uiImage: art)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(maxWidth:geometry.size.width - 32, maxHeight:320)
+                            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                            .shadow(radius: 16)
+                    } else {
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                                .fill(.ultraThinMaterial)
+                            Image(systemName: "music.note")
+                                .font(.system(size: 64, weight: .bold))
+                                .foregroundStyle(.secondary)
+                        }
+                        .frame(maxWidth: geometry.size.width, maxHeight: 320)
                         .shadow(radius: 16)
                         .padding(.horizontal)
-                } else {
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 20, style: .continuous)
-                            .fill(.ultraThinMaterial)
-                        Image(systemName: "music.note")
-                            .font(.system(size: 64, weight: .bold))
+                    }
+                    
+                    // Title / artist
+                    VStack(spacing: 4) {
+                        Text(player.currentTitle.isEmpty ? "Unknown Title" : player.currentTitle)
+                            .font(.title2.weight(.semibold))
+                            .foregroundStyle(.primary)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.7)
+                        Text(player.currentArtist.isEmpty ? "Unknown Artist" : player.currentArtist)
+                            .font(.subheadline)
                             .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.7)
                     }
-                    .frame(width: 320, height: 320)
-                    .shadow(radius: 16)
-                    .padding(.horizontal)
-                }
-
-                // Title / artist
-                VStack(spacing: 4) {
-                    Text(player.currentTitle.isEmpty ? "Unknown Title" : player.currentTitle)
-                        .font(.title2.weight(.semibold))
-                        .foregroundStyle(.primary)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.7)
-                    Text(player.currentArtist.isEmpty ? "Unknown Artist" : player.currentArtist)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.7)
-                }
-                .padding(.top, 8)
-
-                // Scrubber
-                VStack(spacing: 10) {
-                    Slider(
-                        value: Binding(
-                            get: { player.scrubPosition },
-                            set: { newValue in
-                                player.scrubPosition = newValue
-                                // Only seek if we're actively scrubbing (not during programmatic updates)
-                                if player.isUserScrubbing {
-                                    // Update currentTime immediately for visual feedback
-                                    player.currentTime = newValue
+                    .padding(.top, 8)
+                    
+                    // Scrubber
+                    VStack(spacing: 10) {
+                        Slider(
+                            value: Binding(
+                                get: { player.scrubPosition },
+                                set: { newValue in
+                                    player.scrubPosition = newValue
+                                    // Only seek if we're actively scrubbing (not during programmatic updates)
+                                    if player.isUserScrubbing {
+                                        // Update currentTime immediately for visual feedback
+                                        player.currentTime = newValue
+                                    }
                                 }
+                            ),
+                            in: 0...max(player.duration, 0.1),
+                            onEditingChanged: { editing in
+                                player.setIsScrubbing(editing)
                             }
-                        ),
-                        in: 0...max(player.duration, 0.1),
-                        onEditingChanged: { editing in
-                            player.setIsScrubbing(editing)
+                        )
+                        .tint(.white)
+                        
+                        HStack {
+                            Text(Self.format(player.currentTime))
+                            Spacer()
+                            Text(Self.format(player.duration))
                         }
-                    )
-                    .tint(.white)
-
-                    HStack {
-                        Text(Self.format(player.currentTime))
-                        Spacer()
-                        Text(Self.format(player.duration))
+                        .font(.caption.monospacedDigit())
+                        .foregroundStyle(.secondary)
                     }
-                    .font(.caption.monospacedDigit())
-                    .foregroundStyle(.secondary)
-                }
-                .padding(.horizontal)
-
-                // Transport
-                HStack(spacing: 46) {
-                    Button { player.skip(seconds: -15) } label: {
-                        Image(systemName: "gobackward.15").font(.system(size: 28, weight: .semibold))
-                    }
-
-                    HStack(spacing: 34) {
-                        Button { player.previousTrackOrRestart() } label: {
-                            Image(systemName: "backward.end.fill").font(.system(size: 28, weight: .semibold))
-                        }
-
-                        Button { player.togglePlayPause() } label: {
-                            Image(systemName: player.isPlaying ? "pause.circle.fill" : "play.circle.fill")
-                                .font(.system(size: 72))
-                        }
-
-                        Button { player.nextTrack() } label: {
-                            Image(systemName: "forward.end.fill").font(.system(size: 28, weight: .semibold))
-                        }
-                    }
-
-                    Button { player.skip(seconds: +30) } label: {
-                        Image(systemName: "goforward.30").font(.system(size: 28, weight: .semibold))
-                    }
-                }
-                .foregroundStyle(.white)
-                .padding(.top, 6)
-
-                // Volume Controls
-                HStack(spacing: 12) {
-                    // Volume Down Button
-                    Button {
-                        player.adjustVolume(-0.1)
-                    } label: {
-                        Image(systemName: "speaker.fill")
-                            .font(.title2)
-                            .foregroundStyle(.white)
-                    }
+                    .padding(.horizontal)
                     
-                    // Volume Slider
-                    VolumeSlider()
-                        .frame(height: 36)
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
-                    
-                    // Volume Up Button  
-                    Button {
-                        player.adjustVolume(0.1)
-                    } label: {
-                        Image(systemName: "speaker.wave.3.fill")
-                            .font(.title2)
-                            .foregroundStyle(.white)
+                    // Transport
+                    HStack(spacing: 46) {
+                        Button { player.skip(seconds: -15) } label: {
+                            Image(systemName: "gobackward.15").font(.system(size: 28, weight: .semibold))
+                        }
+                        
+                        HStack(spacing: 34) {
+                            Button { player.previousTrackOrRestart() } label: {
+                                Image(systemName: "backward.end.fill").font(.system(size: 28, weight: .semibold))
+                            }
+                            
+                            Button { player.togglePlayPause() } label: {
+                                Image(systemName: player.isPlaying ? "pause.circle.fill" : "play.circle.fill")
+                                    .font(.system(size: 72))
+                            }
+                            
+                            Button { player.nextTrack() } label: {
+                                Image(systemName: "forward.end.fill").font(.system(size: 28, weight: .semibold))
+                            }
+                        }
+                        
+                        Button { player.skip(seconds: +30) } label: {
+                            Image(systemName: "goforward.30").font(.system(size: 28, weight: .semibold))
+                        }
                     }
+                    .foregroundStyle(.white)
+                    .padding(.top, 6)
+                    
+                    // Volume Controls
+                    HStack(spacing: 12) {
+                        // Volume Down Button
+                        Button {
+                            player.adjustVolume(-0.1)
+                        } label: {
+                            Image(systemName: "speaker.fill")
+                                .font(.title2)
+                                .foregroundStyle(.white)
+                        }
+                        
+                        // Volume Slider
+                        VolumeSlider()
+                            .frame(height: 36)
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                        
+                        // Volume Up Button
+                        Button {
+                            player.adjustVolume(0.1)
+                        } label: {
+                            Image(systemName: "speaker.wave.3.fill")
+                                .font(.title2)
+                                .foregroundStyle(.white)
+                        }
+                    }
+                    .padding(.horizontal)
+                    
+                    Spacer(minLength: 40) // Increased spacing for full screen
                 }
-                .padding(.horizontal)
-
-                Spacer(minLength: 40) // Increased spacing for full screen
+                .padding(.bottom, 40) // Increased bottom padding for full screen
+                .padding(.top, 60) // Add top padding for full screen
             }
-            .padding(.bottom, 40) // Increased bottom padding for full screen
-            .padding(.top, 60) // Add top padding for full screen
-        }
-        .ignoresSafeArea(.all) // Add this for full screen
-        .toolbar(.hidden, for: .tabBar) // Hide the tab bar
-        .toolbar(.hidden, for: .navigationBar) // Hide the navigation bar for full immersion
-        .interactiveDismissDisabled() // Prevent sheet dismissal gestures
-        .onAppear {
-            let tourPOIs = pois.filter { $0.tour_id == selectedPOI.tour_id }
-            let startIndex = tourPOIs.firstIndex(of: selectedPOI) ?? 0
-            player.replacePlaylist(tourPOIs, startAt: startIndex)
-            player.setTourTitleProvider { selectedTour?.title }
-            player.activateSession()
-        }
-        .onDisappear { player.deactivateSession() }
-        .onChange(of: selectedTour?.title ?? "") { _ in
-            // Update the tour title provider when tour changes
-            player.setTourTitleProvider { selectedTour?.title }
-        }
-        .onChange(of: selectedPOI.id) { _ in
-            // When selectedPOI changes, update the playlist and start playing
-            let tourPOIs = pois.filter { $0.tour_id == selectedPOI.tour_id }
-            let startIndex = tourPOIs.firstIndex(of: selectedPOI) ?? 0
-            player.replacePlaylist(tourPOIs, startAt: startIndex)
-            // Automatically start playing the new POI
-            if !player.isPlaying {
-                player.togglePlayPause()
+            .ignoresSafeArea(.all) // Add this for full screen
+            .toolbar(.hidden, for: .tabBar) // Hide the tab bar
+            .toolbar(.hidden, for: .navigationBar) // Hide the navigation bar for full immersion
+            .interactiveDismissDisabled() // Prevent sheet dismissal gestures
+            .onAppear {
+                let tourPOIs = pois.filter { $0.tour_id == selectedPOI.tour_id }
+                let startIndex = 0
+                player.replacePlaylist(tourPOIs, startAt: startIndex)
+                player.setTourTitleProvider { selectedTour?.title }
+                player.activateSession()
             }
-        }
-        .preferredColorScheme(.dark)
-        .sheet(isPresented: $showingQueue) {
-            UpNextSheet(player: player)
-                .presentationDetents([.medium, .large])
+            .onDisappear { player.deactivateSession() }
+            .onChange(of: selectedTour?.title ?? "") { _, newValue in
+                // Update the tour title provider when tour changes
+                player.setTourTitleProvider { newValue }
+            }
+            .onChange(of: selectedPOI.id) { _, _ in
+                // When selectedPOI changes, update the playlist and start playing
+                let tourPOIs = pois.filter { $0.tour_id == selectedPOI.tour_id }
+                let startIndex = tourPOIs.firstIndex(of: selectedPOI) ?? 0
+                player.replacePlaylist(tourPOIs, startAt: startIndex)
+                // Automatically start playing the new POI
+                if !player.isPlaying {
+                    player.togglePlayPause()
+                }
+            }
+            .preferredColorScheme(.dark)
+            .sheet(isPresented: $showingQueue) {
+                UpNextSheet(player: player)
+                    .presentationDetents([.medium, .large])
+            }
         }
     }
 
@@ -269,11 +270,12 @@ struct UpNextSheet: View {
     var body: some View {
         NavigationStack {
             List {
-                ForEach(Array(player.playlist.enumerated()), id: \.element.id) { idx, track in
+                ForEach(Array(player.effectivePlaylist.enumerated()), id: \.element.id) { idx, track in
                     HStack(spacing: 12) {
-//                        ArtworkThumb(image:)
+                        ArtworkThumb(poi:track)
                         VStack(alignment: .leading, spacing: 2) {
-                            Text(track.title).font(.subheadline.weight(.semibold)).lineLimit(2)
+                            Text(track.title).font(.subheadline.weight(.semibold)).lineLimit(3)
+                                .padding()
                         }
                         Spacer()
                         if idx == player.currentIndex {
@@ -283,23 +285,34 @@ struct UpNextSheet: View {
                     }
                     .contentShape(Rectangle())
                     .onTapGesture {
-                        player.jump(to: idx)
+                        player.jump(toEffectiveIndex: idx)
                     }
                 }
             }
             .navigationTitle("Up Next")
+            .navigationBarHidden(true)
         }
     }
 }
 
 struct ArtworkThumb: View {
-    let image: URL?
+    let poi: POI
+    @State private var artwork:UIImage?
     var body: some View {
         Group {
-            if let image {
-                LazyImage(url: image)
+            if let artwork {
+                Image(uiImage: artwork)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 44, height: 44)
             } else {
                 ZStack { Rectangle().fill(.quaternary); Image(systemName: "music.note") }
+            }
+        }
+        .task {
+            if let url = try? await poi.downloadImage(), let (data, _) = try? await URLSession.shared.data(from: url), let
+            image = UIImage(data: data) {
+                artwork = image
             }
         }
         .frame(width: 44, height: 44)
@@ -323,7 +336,9 @@ final class QueuePlayerEngine: NSObject, ObservableObject {
 
     // Playlist
     @Published private(set) var playlist: [POI]
+    @Published private(set) var effectivePlaylist: [POI] = []
     @Published private(set) var currentIndex: Int
+    private var enqueuedItems: [AVPlayerItem] = []
 
     // External metadata providers
     private var tourTitleProvider: (() -> String?)?
@@ -337,8 +352,11 @@ final class QueuePlayerEngine: NSObject, ObservableObject {
     // Track which item we're observing to prevent double removal
     private var observedItem: AVPlayerItem?
 
+    // Artwork loading task to avoid races when switching tracks
+    private var artworkTask: Task<Void, Never>?
+
     init(playlist: [POI], startAt: Int = 0) {
-        self.playlist = playlist
+        self.playlist = playlist.sorted(by: {$0.order < $1.order})
         self.currentIndex = max(0, min(startAt, playlist.count - 1))
         super.init()
         configureQueue(startingAt: currentIndex)
@@ -382,7 +400,7 @@ final class QueuePlayerEngine: NSObject, ObservableObject {
 
     /// Replace the current playlist and rebuild the queue, optionally starting at a given index.
     func replacePlaylist(_ newPlaylist: [POI], startAt: Int = 0) {
-        self.playlist = newPlaylist
+        self.playlist = newPlaylist.sorted { $0.order < $1.order }
         self.currentIndex = max(0, min(startAt, max(newPlaylist.count - 1, 0)))
         configureQueue(startingAt: self.currentIndex)
     }
@@ -391,7 +409,7 @@ final class QueuePlayerEngine: NSObject, ObservableObject {
     func setTourTitleProvider(_ provider: @escaping () -> String?) {
         self.tourTitleProvider = provider
         // Refresh metadata for current track if there is one
-        if !playlist.isEmpty && currentIndex < playlist.count {
+        if !effectivePlaylist.isEmpty && currentIndex < effectivePlaylist.count {
             refreshMetadataForCurrentTrack()
             updateNowPlayingInfo(fullRefresh: true, index:currentIndex)
         }
@@ -406,49 +424,67 @@ final class QueuePlayerEngine: NSObject, ObservableObject {
         guard !playlist.isEmpty else { return }
 
         let tail = Array(playlist[index...])
+        let selectedPOI = playlist.indices.contains(index) ? playlist[index] : nil
 
-        // Build items asynchronously using a task group
+        // Build items asynchronously keeping item<->POI pairing
         Task { [weak self] in
             guard let self else { return }
-            let items = await self.loadPlayerItems(for: tail)
+            let pairs = await self.loadPlayerItems(for: tail)
 
             await MainActor.run {
+                // Sort by POI.order to ensure deterministic effective order
+                let sortedPairs = pairs.sorted { $0.poi.order < $1.poi.order }
+
+                // Determine the start position within the sorted tail
+                let startIdx: Int = {
+                    guard let selected = selectedPOI else { return 0 }
+                    return sortedPairs.firstIndex(where: { $0.poi.id == selected.id }) ?? 0
+                }()
+
+                // Rotate so the selected item is first in the queue
+                let rotatedPairs: [(item: AVPlayerItem, poi: POI)] = Array(sortedPairs[startIdx...] + sortedPairs[..<startIdx])
+
+                // Rebuild enqueued items and effective playlist from rotated list
+                self.queue.removeAllItems()
+                self.enqueuedItems = rotatedPairs.map { $0.item }
+                self.effectivePlaylist = rotatedPairs.map { $0.poi }
+
                 var previous: AVPlayerItem? = nil
-                for item in items {
+                for item in self.enqueuedItems {
                     self.queue.insert(item, after: previous)
                     previous = item
                 }
 
-                self.attachKVO(to: items.first)
+                // Current item is now the selected one at index 0
+                self.currentIndex = 0
+                self.attachKVO(to: self.enqueuedItems.first)
                 self.refreshMetadataForCurrentTrack()
                 self.queue.actionAtItemEnd = .advance
                 self.duration = self.queue.currentItem?.duration.seconds.isFinite == true ? self.queue.currentItem!.duration.seconds : 0
                 self.currentTime = 0
                 self.scrubPosition = 0
-                self.updateNowPlayingInfo(fullRefresh: true, index: index)
+                self.updateNowPlayingInfo(fullRefresh: true, index: self.currentIndex)
             }
         }
     }
 
-    private func loadPlayerItems(for pois: [POI]) async -> [AVPlayerItem] {
-        await withTaskGroup(of: AVPlayerItem?.self) { group in
+    private func loadPlayerItems(for pois: [POI]) async -> [(item: AVPlayerItem, poi: POI)] {
+        await withTaskGroup(of: (AVPlayerItem, POI)?.self) { group in
             for poi in pois {
                 group.addTask {
                     guard let audio_path = poi.audio_path else { return nil }
                     do {
                         let audioData = try await SupabaseService.shared.downloadAudio(at: audio_path)
-                        return AVPlayerItem(url: audioData)
+                        return (AVPlayerItem(url: audioData), poi)
                     } catch {
-                        // Failed to download or write; skip this item
                         return nil
                     }
                 }
             }
-
-            var collected: [AVPlayerItem] = []
+            var collected: [(AVPlayerItem, POI)] = []
             for await result in group {
-                if let item = result {
-                    collected.append(item)
+                if let pair = result {
+                    collected.append(pair)
                 }
             }
             return collected
@@ -465,7 +501,7 @@ final class QueuePlayerEngine: NSObject, ObservableObject {
             print("Audio session error:", error)
         }
         setupRemoteCommands()
-        if playlist.count > 0 {
+        if effectivePlaylist.count > 0 {
             updateNowPlayingInfo(fullRefresh: true, index:0)
         }
     }
@@ -524,7 +560,7 @@ final class QueuePlayerEngine: NSObject, ObservableObject {
     }
 
     func nextTrack() {
-        guard currentIndex < playlist.count - 1 else {
+        guard currentIndex < effectivePlaylist.count - 1 else {
             // End of playlist
             queue.pause()
             isPlaying = false
@@ -558,11 +594,15 @@ final class QueuePlayerEngine: NSObject, ObservableObject {
         if isPlaying { queue.play() }
     }
 
-    func jump(to index: Int) {
-        guard playlist.indices.contains(index) else { return }
-        currentIndex = index
-        configureQueue(startingAt: index)
-        if isPlaying { queue.play() }
+    func jump(toEffectiveIndex index: Int) {
+        guard effectivePlaylist.indices.contains(index) else { return }
+        let selected = effectivePlaylist[index]
+        // Find this POI in the base playlist to respect tail building and rotation
+        if let baseIndex = playlist.firstIndex(of: selected) {
+            currentIndex = index
+            configureQueue(startingAt: baseIndex)
+            if isPlaying { queue.play() }
+        }
     }
 
     func adjustVolume(_ delta: Float) {
@@ -573,7 +613,7 @@ final class QueuePlayerEngine: NSObject, ObservableObject {
 
     @objc private func itemDidEnd(_ note: Notification) {
         // When an item ends, AVQueuePlayer auto-advances; keep our index in sync.
-        if currentIndex < playlist.count - 1 {
+        if currentIndex < effectivePlaylist.count - 1 {
             currentIndex += 1
             refreshMetadataForCurrentTrack()
             duration = queue.currentItem?.duration.seconds.isFinite == true ? queue.currentItem!.duration.seconds : 0
@@ -635,20 +675,41 @@ final class QueuePlayerEngine: NSObject, ObservableObject {
     }
 
     private func refreshMetadataForCurrentTrack() {
-        let track = playlist[currentIndex]
+        guard !effectivePlaylist.isEmpty, effectivePlaylist.indices.contains(currentIndex) else {
+            currentTitle = ""
+            currentArtist = tourTitleProvider?() ?? ""
+            currentArtwork = nil
+            return
+        }
+        let track = effectivePlaylist[currentIndex]
         currentTitle = track.title
-        currentArtwork = nil
         currentArtist = tourTitleProvider?() ?? ""
 
-        // Try embedded metadata/artwork if any
-        if let item = queue.currentItem {
-            for meta in item.asset.commonMetadata {
-                guard let key = meta.commonKey?.rawValue else { continue }
-                if key == "title", let s = meta.stringValue { currentTitle = s }
-                if key == "artist", let s = meta.stringValue { currentArtist = s }
-                if key == "artwork", let data = meta.dataValue, let img = UIImage(data: data) {
-                    currentArtwork = img
+        // Reset current artwork immediately for visual feedback
+        currentArtwork = nil
+
+        // Cancel any previous artwork loading task to prevent races
+        artworkTask?.cancel()
+        artworkTask = Task { [weak self] in
+            guard let self = self else { return }
+            do {
+                // Use the POI convenience method to get a signed image URL
+                if let imageURL = try await track.downloadImage() {
+                    // Fetch the image data asynchronously
+                    let (data, _) = try await URLSession.shared.data(from: imageURL)
+                    if let image = UIImage(data: data) {
+                        await MainActor.run {
+                            // Only set if we're still on the same track
+                            if self.effectivePlaylist.indices.contains(self.currentIndex), self.effectivePlaylist[self.currentIndex].id == track.id {
+                                self.currentArtwork = image
+                                // Update Now Playing to include artwork
+                                self.updateNowPlayingInfo(fullRefresh: true, index: self.currentIndex)
+                            }
+                        }
+                    }
                 }
+            } catch {
+                // Silently ignore artwork failures; leave artwork nil
             }
         }
     }
@@ -696,7 +757,7 @@ final class QueuePlayerEngine: NSObject, ObservableObject {
         guard let index = index else { return }
         var info = MPNowPlayingInfoCenter.default().nowPlayingInfo ?? [:]
         if fullRefresh {
-            info[MPMediaItemPropertyTitle] = currentTitle.isEmpty ? playlist[index].title : currentTitle
+            info[MPMediaItemPropertyTitle] = currentTitle.isEmpty ? effectivePlaylist[index].title : currentTitle
             info[MPMediaItemPropertyArtist] = currentArtist.isEmpty ? (tourTitleProvider?() ?? "") : currentArtist
             if let img = currentArtwork {
                 info[MPMediaItemPropertyArtwork] = MPMediaItemArtwork(boundsSize: img.size) { _ in img }

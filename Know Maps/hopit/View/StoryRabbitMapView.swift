@@ -37,7 +37,7 @@ struct StoryRabbitMapView: View {
                                       let location = CLLocation(latitude: coord.latitude, longitude: coord.longitude)
                                       do {
                                           let firstResult = try await modelController.locationService.lookUpLocation(location).first
-                                          self.currentLocationName = firstResult.map { String(localized: $0.displayRepresentation.title) } ?? "Unknown Location"
+                                          self.currentLocationName = firstResult.map { String(localized: $0.displayRepresentation.title) } ?? "Current Location"
                                           sheetIsPresented = true
                                       } catch {
                                           modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
@@ -78,7 +78,7 @@ struct StoryRabbitMapView: View {
                                                     Text(currentLocationName)
                                                         .font(.title)
                                                 } else {
-                                                    Text("Unknown Location")
+                                                    Text("Current Location")
                                                         .font(.title)
                                                 }
                                             }
@@ -132,7 +132,7 @@ struct TourImageView: View {
         AsyncImage(url: imageURL) { image in
             image
                 .resizable()
-                .aspectRatio(contentMode: .fill)
+                .aspectRatio(contentMode: .fit)
                 .frame(width: 60, height: 60)
                 .clipShape(RoundedRectangle(cornerRadius: 8))
         } placeholder: {
@@ -142,8 +142,8 @@ struct TourImageView: View {
             } else {
                 Image(systemName: "photo")
                     .resizable()
-                    .frame(width: 60, height: 60, alignment: .center)
                     .aspectRatio(contentMode: .fit)
+                    .frame(width: 60, height: 60, alignment: .center)
                     .foregroundColor(.gray)
             }
         }

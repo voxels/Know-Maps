@@ -81,6 +81,8 @@ struct PlacesList: View {
                                         ZStack {
                                             Rectangle().fill(.secondary.opacity(0.15))
                                             Image(systemName: "photo")
+                                                .resizable()
+                                                .aspectRatio(contentMode: .fit)
                                                 .font(.title2)
                                                 .foregroundStyle(.secondary)
                                         }

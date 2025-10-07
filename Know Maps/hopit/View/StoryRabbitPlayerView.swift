@@ -14,7 +14,7 @@ struct StoryRabbitPlayerView: View {
     @Binding var modelController:DefaultModelController
     @Binding var searchSavedViewModel:SearchSavedViewModel
     @Binding var selectedTour:Tour?
-    @State private var selectedPOI: POI = POI(id: 0, tour_id: 0, title: "", description: nil, latitude: 0, longitude: 0, script: "", audio_path: ""/*, order:1, image_path: nil*/)
+    @State private var selectedPOI: POI = POI(id: 0, tour_id: 0, title: "", description: nil, latitude: 0, longitude: 0, script: "", audio_path: "", image_path: nil, order:1 )
     
     var body: some View {
         GeometryReader { geometry in
