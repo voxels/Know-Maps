@@ -95,23 +95,29 @@ struct NowPlayingQueueView: View {
                     
                     // Foreground artwork card
                     if let art = player.currentArtwork {
-                        Image(uiImage: art)
-                            .resizable()
-                            .scaledToFill()
-                            .frame(maxWidth:geometry.size.width - 32, maxHeight:320)
-                            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-                            .shadow(radius: 16)
+                        ZStack {
+                            Image(uiImage: art)
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width:geometry.size.width, height:geometry.size.width)
+                                .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                                .padding(.horizontal)
+                        }
+                        .padding(.horizontal)
+                        .frame(width:geometry.size.width,height:geometry.size.width)
+                        .shadow(radius: 16)
                     } else {
                         ZStack {
                             RoundedRectangle(cornerRadius: 20, style: .continuous)
                                 .fill(.ultraThinMaterial)
+
                             Image(systemName: "music.note")
                                 .font(.system(size: 64, weight: .bold))
                                 .foregroundStyle(.secondary)
                         }
-                        .frame(maxWidth: geometry.size.width, maxHeight: 320)
-                        .shadow(radius: 16)
                         .padding(.horizontal)
+                        .frame(width:geometry.size.width,height:geometry.size.width)
+                        .shadow(radius: 16)
                     }
                     
                     // Title / artist
@@ -179,6 +185,7 @@ struct NowPlayingQueueView: View {
                             Button { player.nextTrack() } label: {
                                 Image(systemName: "forward.end.fill").font(.system(size: 28, weight: .semibold))
                             }
+                            .disabled(player.currentIndex >= player.effectivePlaylist.count - 1)
                         }
                         
                         Button { player.skip(seconds: +30) } label: {
@@ -217,13 +224,8 @@ struct NowPlayingQueueView: View {
                     
                     Spacer(minLength: 40) // Increased spacing for full screen
                 }
-                .padding(.bottom, 40) // Increased bottom padding for full screen
-                .padding(.top, 60) // Add top padding for full screen
             }
-            .ignoresSafeArea(.all) // Add this for full screen
             .toolbar(.hidden, for: .tabBar) // Hide the tab bar
-            .toolbar(.hidden, for: .navigationBar) // Hide the navigation bar for full immersion
-            .interactiveDismissDisabled() // Prevent sheet dismissal gestures
             .onAppear {
                 let tourPOIs = pois.filter { $0.tour_id == selectedPOI.tour_id }
                 let startIndex = 0
@@ -824,3 +826,4 @@ extension MPVolumeView {
         }
     }
 }
+

@@ -381,43 +381,12 @@
 			);
 			target = 1E2D2A422E8A536C00EA69DC /* hopit */;
 		};
-		1E2D2AF02E8A583800EA69DC /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Comment.swift,
-				CreateMultiPOIPodcastRequest.swift,
-				ErrorResponse.swift,
-				FollowUp.swift,
-				FollowUpQuestion.swift,
-				Persona.swift,
-				Podcast.swift,
-				PodcastLike.swift,
-				PointOfInterest.swift,
-				PoisResponse.swift,
-				StoryRabbitController.swift,
-				UserProfile.swift,
-				WebSocketAudioPlayer.swift,
-			);
-			target = 1E2D2A422E8A536C00EA69DC /* hopit */;
-		};
-		1EB32BDB2E8EBAC700280994 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				View/NowPlayingQueueView.swift,
-				View/StoryRabbitContentView.swift,
-				View/StoryRabbitMapView.swift,
-				View/StoryRabbitPlayerView.swift,
-				View/StoryRabbitSettingsView.swift,
-			);
-			target = 1E095AF72B778AEF00147119 /* Know Maps */;
-		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		1E2D2A442E8A536C00EA69DC /* hopit */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (1EB32BDB2E8EBAC700280994 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, 1E2D2A6B2E8A536D00EA69DC /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = hopit; sourceTree = "<group>"; };
+		1E2D2A442E8A536C00EA69DC /* hopit */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (1E2D2A6B2E8A536D00EA69DC /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = hopit; sourceTree = "<group>"; };
 		1E2D2A562E8A536D00EA69DC /* hopitTests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = hopitTests; sourceTree = "<group>"; };
 		1E2D2A602E8A536D00EA69DC /* hopitUITests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = hopitUITests; sourceTree = "<group>"; };
-		1EE523AF2E8201A000DE0AAE /* StoryRabbit */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (1E2D2AF02E8A583800EA69DC /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = StoryRabbit; sourceTree = "<group>"; };
 		1EE599B42CA4A6DE00C211A6 /* Know MapsTests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = "Know MapsTests"; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
@@ -676,7 +645,6 @@
 			isa = PBXGroup;
 			children = (
 				1EFFBAA42E8278020088882B /* Audio */,
-				1EE523AF2E8201A000DE0AAE /* StoryRabbit */,
 				1EDF93CD2CB52E9800FDCFDF /* Network */,
 				1E98C7DA2B18E15600283E92 /* Controllers */,
 				1E98C7D92B18E11200283E92 /* ViewModels */,
@@ -725,9 +693,6 @@
 			buildRules = (
 			);
 			dependencies = (
-			);
-			fileSystemSynchronizedGroups = (
-				1EE523AF2E8201A000DE0AAE /* StoryRabbit */,
 			);
 			name = "Know Maps";
 			packageProductDependencies = (
