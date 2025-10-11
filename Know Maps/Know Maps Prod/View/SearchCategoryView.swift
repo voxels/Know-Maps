@@ -42,19 +42,17 @@ struct SearchCategoryView: View {
                                 Spacer()
                                 ratingButton(for: child)
                             }
-                            .padding(.horizontal)
                         }
                     } label: {
                         HStack {
                             Text(parent.parentCategory)
                             Spacer()
                         }
-                        .padding()
                     }
                 }
             }
         }
-        .listStyle(.sidebar)
+        .listStyle(.insetGrouped)
 
         #if os(macOS)
         .searchable(text: $searchText, prompt: "Search Categories")

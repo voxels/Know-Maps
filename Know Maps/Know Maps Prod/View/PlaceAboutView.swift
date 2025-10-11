@@ -360,7 +360,15 @@ struct PlaceAboutView: View {
                                 .padding(.horizontal,16)
                             }
                         } else {
-                            Color.black
+                            Spacer()
+                            Text(modelController.fetchMessage)
+                                .font(.caption)
+                                .padding()
+                                .task {
+                                    modelController.fetchMessage = "Loading..."
+                                }
+                                .padding()
+                            Spacer()
                         }
                     }
                 }

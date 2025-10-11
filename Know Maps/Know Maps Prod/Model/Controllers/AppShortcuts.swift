@@ -14,7 +14,7 @@ struct KnowMapsShortcutsProvider: AppShortcutsProvider {
             AppShortcut(
                 intent: ShowMoodResultsIntent(),
                 phrases: [
-                    "Tell Siri what you're in the mood for from \(.applicationName).",
+                    "I'm in the mood for food from \(.applicationName).",
                     "Ask \(.applicationName) to find a place for \(\.$mood).",
                     "Tell \(.applicationName), \"I'm' in the mood for \(\.$mood).\"",
                 ],
@@ -31,10 +31,10 @@ struct KnowMapsShortcutsProvider: AppShortcutsProvider {
     }
 }
 
-struct ShowMoodResultsIntent: AppIntent {
+struct ShowMoodResultsIntent: AppIntent { 
     static var title: LocalizedStringResource = "Find a story for my mood"
     
-    @Parameter(title: "Story", description: "The type of story you're looking for.")
+    @Parameter(title: "Mood", description: "The type of mood you're looking for.")
     var mood: PersonalizedSearchSection
     static var openAppWhenRun = true
     

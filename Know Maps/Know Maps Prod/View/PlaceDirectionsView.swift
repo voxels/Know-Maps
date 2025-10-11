@@ -69,30 +69,7 @@ struct PlaceDirectionsView: View {
                             .cornerRadius(16)
                             .padding(16)
                         }
-                        if let source = model.source, let destination = model.destination {
-                            let launchOptions = model.appleMapsLaunchOptions()
-                            HStack(alignment: .center) {
-                                if model.lookAroundScene != nil {
-                                    Button("Look Around", systemImage: "binoculars.fill") {
-                                        model.showLookAroundScene.toggle()
-                                    }
-                                    .padding()
-                                    #if !os(visionOS)
-                                    .glassEffect()
-                                    #endif
-                                    .padding()
-                                }
-                                
-                                Button("Open Apple Maps", systemImage: "apple.logo") {
-                                    MKMapItem.openMaps(with: [source,destination], launchOptions: launchOptions)
-                                }
-                                .padding()
-                                #if !os(visionOS)
-                                .glassEffect()
-                                #endif
-                                .padding()
-                            }
-                        }
+                        
                         if !model.showLookAroundScene {
                             Picker("Transport Type", selection: $model.rawTransportType) {
                                 Text(PlaceDirectionsViewModel.RawTransportType.Automobile.rawValue).tag(PlaceDirectionsViewModel.RawTransportType.Automobile)
@@ -100,6 +77,22 @@ struct PlaceDirectionsView: View {
                             }.foregroundStyle(.primary)
                                 .pickerStyle(.palette)
                                 .padding(.horizontal, 16)
+                        }
+                        if let source = model.source, let destination = model.destination {
+                            let launchOptions = model.appleMapsLaunchOptions()
+                            HStack {
+                                if model.lookAroundScene != nil {
+                                    Button("Look Around", systemImage: "binoculars.fill") {
+                                        model.showLookAroundScene.toggle()
+                                    }
+                                    .buttonStyle(.automatic)
+                                }
+                                Button("Maps", systemImage: "apple.logo") {
+                                    MKMapItem.openMaps(with: [source,destination], launchOptions: launchOptions)
+                                }
+                                .buttonStyle(.automatic)
+                                Spacer()
+                            }
                         }
                     }
                 }

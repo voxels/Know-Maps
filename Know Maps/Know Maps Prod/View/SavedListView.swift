@@ -74,7 +74,6 @@ struct SavedListView: View {
                                 }
                             }), id: \.id) { parent in
                                 Text(parent.parentCategory)
-                                    .padding(.vertical, 12)
                             }
                         }
                     } else {
@@ -91,7 +90,6 @@ struct SavedListView: View {
                             }), id: \.id) { parent in
                                 HStack {
                                     Text(parent.parentCategory)
-                                        .padding(.vertical,12)
                                     Spacer()
                                     ratingButton(for: parent)
                                 }
@@ -103,13 +101,13 @@ struct SavedListView: View {
                             }
                         }
                         Button(action: {
-                            section = 5
-                            addItemSection = 2
                             preferredColumn = .sidebar
                         }) {
                             HStack {
                                 Image(systemName: "plus.circle")
                                 Text("Add a feature")
+                                    .padding(.vertical,12)
+
                                 Spacer()
                             }
                             
@@ -127,7 +125,6 @@ struct SavedListView: View {
                             }), id: \.id) { parent in
                                 HStack {
                                     Text(parent.parentCategory)
-                                        .padding(.vertical,12)
                                     Spacer()
                                     ratingButton(for: parent)
                                 }
@@ -139,13 +136,13 @@ struct SavedListView: View {
                             }
                         }
                         Button(action: {
-                            section = 5
-                            addItemSection = 1
                             preferredColumn = .sidebar
                         }) {
                             HStack {
                                 Image(systemName: "plus.circle")
                                 Text("Add a industry")
+                                    .padding(.vertical,12)
+
                                 Spacer()
                             }
                             
@@ -162,7 +159,6 @@ struct SavedListView: View {
                                 }
                             }), id: \.id) { parent in
                                 Text(parent.parentCategory)
-                                    .padding(.vertical,12)
                             }
                             .onDelete { indexSet in
                                 let idsToDelete = indexSet.map { cacheManager.cachedPlaceResults[$0].id }
@@ -170,13 +166,12 @@ struct SavedListView: View {
                             }
                         }
                         Button(action: {
-                            section = 5
-                            addItemSection = 3
                             preferredColumn = .sidebar
                         }) {
                             HStack {
                                 Image(systemName: "plus.circle")
                                 Text("Add a place")
+                                    .padding(.vertical,12)
                                 Spacer()
                             }
                             .foregroundColor(.accentColor)

@@ -19,33 +19,6 @@ struct PlacesList: View {
     @Binding var modelController:DefaultModelController
     @Binding public var showMapsResultViewSheet:Bool
     
-    // MARK: - Search Timeout Timer State
-    @State private var searchTimedOut: Bool = false
-    @State private var searchTimeoutDuration: TimeInterval = 5.0 // seconds; adjust as needed
-    @State private var searchTimerProgress: TimeInterval = 0.0
-    @State private var searchTimer: Timer? = nil
-    
-    private func startSearchTimer() {
-        cancelSearchTimer()
-        searchTimedOut = false
-        searchTimerProgress = 0
-        // Fire every 0.1s to smoothly update progress
-        searchTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { timer in
-            searchTimerProgress += 0.1
-            if searchTimerProgress >= searchTimeoutDuration {
-                searchTimedOut = true
-                cancelSearchTimer()
-            }
-        }
-        // Ensure the timer runs on the main run loop common modes (e.g., while scrolling)
-        RunLoop.main.add(searchTimer!, forMode: .common)
-    }
-    
-    private func cancelSearchTimer() {
-        searchTimer?.invalidate()
-        searchTimer = nil
-    }
-    
     static var formatter:NumberFormatter {
         let retval = NumberFormatter()
         retval.maximumFractionDigits = 1
@@ -67,7 +40,7 @@ struct PlacesList: View {
                     let ar: CGFloat = CGFloat(result.recommendedPlaceResponse?.aspectRatio ?? 1.0)
                     let reservedHeight: CGFloat = itemWidth / ar
                     
-                    VStack {
+                    NavigationLink(value: result.id) {
                         ZStack(alignment: .topTrailing) {
                             if let photo = result.recommendedPlaceResponse?.photo, !photo.isEmpty, let url = URL(string: photo) {
                                 LazyImage(url: url) { state in
@@ -103,32 +76,6 @@ struct PlacesList: View {
 #if os(visionOS)
                                 .hoverEffect(.lift)
 #endif
-                                .onTapGesture {
-                                    if modelController.selectedPlaceChatResult == result.id {
-                                        withAnimation {
-                                            modelController.selectedPlaceChatResult = nil
-                                        }
-                                        DispatchQueue.main.async {
-                                            withAnimation {
-                                                modelController.selectedPlaceChatResult = result.id
-                                                modelController.section = 1
-                                                modelController.addItemSection = 3
-                                            }
-                                        }
-                                    } else {
-                                        if let placeChatResult = modelController.placeChatResult(for: result.id), placeChatResult.placeDetailsResponse == nil {
-                                            modelController.isRefreshingPlaces = true
-                                            modelController.fetchMessage = "Fetching Place Details"
-                                            Task(priority: .userInitiated) {
-                                                try await chatModel.didTap(placeChatResult: placeChatResult, filters: searchSavedViewModel.filters, cacheManager: cacheManager, modelController: modelController)
-                                                await MainActor.run {
-                                                    modelController.addItemSection = 3
-                                                    modelController.isRefreshingPlaces = false
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
                             } else {
                                 Color.clear
                                     .frame(maxWidth: itemWidth, maxHeight:reservedHeight)
@@ -161,6 +108,12 @@ struct PlacesList: View {
                         .contentShape(RoundedRectangle(cornerRadius: 32, style: .continuous))
                         .gridCellAnchor(.top)
                     }
+                    .simultaneousGesture(TapGesture().onEnded {
+                        modelController.selectedPlaceChatResult = result.id
+                        Task { @MainActor in
+                            await modelController.fetchPlaceDetailsIfNeeded(for: result, cacheManager: cacheManager)
+                        }
+                    })
                     .animation(.snappy(duration: 0.35), value: modelController.recommendedPlaceResults)
                 }
             }
@@ -181,41 +134,36 @@ struct PlacesList: View {
         ScrollView(.horizontal) {
             LazyHGrid(rows: columns, alignment: .center, spacing: 32) {
                 ForEach(modelController.filteredPlaceResults) { result in
-                    VStack(alignment: .leading) {
-                        Text(result.title).bold()
-                        if let placeResponse = result.placeResponse, !placeResponse.formattedAddress.isEmpty {
-                            Text(placeResponse.formattedAddress)
-                        }
-                    }
-                    .padding()
-                    .contentTransition(.opacity)
-#if !os(visionOS)
-                    .glassEffect()
-#endif
-                    .clipShape(RoundedRectangle(cornerRadius: 32, style: .continuous))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 32, style: .continuous)
-                            .strokeBorder(.separator, lineWidth: 1)
-                    )
-#if os(visionOS)
-                    .hoverEffect(.lift)
-#endif
-                    .onTapGesture {
-                        if let placeChatResult = modelController.placeChatResult(for: result.id), placeChatResult.placeDetailsResponse == nil {
-                            modelController.isRefreshingPlaces = true
-                            modelController.fetchMessage = "Fetching Place Details"
-                            Task(priority: .userInitiated) {
-                                try await chatModel.didTap(placeChatResult: placeChatResult, filters: searchSavedViewModel.filters, cacheManager: cacheManager, modelController: modelController)
-                                await MainActor.run {
-                                    modelController.isRefreshingPlaces = false
-                                }
+                    NavigationLink(value: result.id) {
+                        VStack(alignment: .leading) {
+                            Text(result.title).bold()
+                            if let placeResponse = result.placeResponse, !placeResponse.formattedAddress.isEmpty {
+                                Text(placeResponse.formattedAddress)
                             }
                         }
+                        .padding()
+                        .contentTransition(.opacity)
+#if !os(visionOS)
+                        .glassEffect()
+#endif
+                        .clipShape(RoundedRectangle(cornerRadius: 32, style: .continuous))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 32, style: .continuous)
+                                .strokeBorder(.separator, lineWidth: 1)
+                        )
+#if os(visionOS)
+                        .hoverEffect(.lift)
+#endif
                     }
+                    .simultaneousGesture(TapGesture().onEnded {
+                        modelController.selectedPlaceChatResult = result.id
+                        Task { @MainActor in
+                            await modelController.fetchPlaceDetailsIfNeeded(for: result, cacheManager: cacheManager)
+                        }
+                    })
                     .animation(.snappy(duration: 0.35), value: modelController.filteredPlaceResults)
                     .listRowBackground(Color.clear)
                     .listStyle(.plain)
-                    
                 }
                 .scrollContentBackground(.hidden)
                 .background(Color.clear)
@@ -237,52 +185,43 @@ struct PlacesList: View {
             }
             else if !modelController.queryParametersHistory.isEmpty {
                 ZStack(alignment: .center) {
+                    Rectangle()
+                        .fill(Color(.systemBackground))
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
                     if let selectedDestinationLocationChatResult = modelController.selectedDestinationLocationChatResult, let locationChatResult = modelController.locationChatResult(for: selectedDestinationLocationChatResult, in: modelController.locationResults), let _ = locationChatResult.location {
                     
-                        VStack(spacing: 12) {
+                        VStack(alignment:.center, spacing: 12) {
                             Spacer()
-                            if searchTimedOut {
+                            if modelController.searchTimedOut {
                                 Text("No Results Found")
                                     .padding()
-                                #if !os(visionOS)
-                                    .glassEffect()
-                                #endif
                             } else {
-                                VStack {
-                                    Text(modelController.fetchMessage)
-                                        .font(Font.subheadline.bold())
-                                        .padding()
-                                    #if !os(visionOS)
-                                        .glassEffect()
-                                    #endif
-
-                                }
+                                Text(modelController.fetchMessage)
+                                    .font(.caption)
+                                    .padding()
                                 .padding()
                             }
                             
                             let recCount = modelController.recommendedPlaceResults.count
                             let placeCount = modelController.placeResults.count
-                            if recCount == 0 && placeCount == 0 {
-                                ProgressView(value: min(searchTimerProgress / max(searchTimeoutDuration, 0.0001), 1.0))
-                                Text("\(Int(max(searchTimeoutDuration - searchTimerProgress, 0)))s")
-                                    .font(.subheadline)
-                                    .foregroundStyle(.secondary)
-                            }
-                            else {
-                                Text("Found \(recCount) recommended and \(placeCount) places near \(locationChatResult.locationName).")
-                                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                                    .font(.headline)
-                                    .onAppear { cancelSearchTimer() }
+                            if recCount > 0 || placeCount > 0 {
+                                EmptyView()
+                                    .onAppear {
+                                        modelController.cancelSearchTimeout()
+                                        modelController.updateFoundResultsMessage(locationName: locationChatResult.locationName)
+                                    }
+                            } else {
+                                EmptyView()
                             }
                             Spacer()
                         }
-                        .onAppear {
-                            startSearchTimer()
+                        .task {
+                            modelController.startSearchTimeout()
                         }
                     } else {
-                        VStack(spacing: 12) {
+                        VStack(alignment:.center, spacing: 12) {
                             Spacer()
-                            if searchTimedOut {
+                            if modelController.searchTimedOut {
                                 Text("No Results Found")
                                     .padding()
                                 #if !os(visionOS)
@@ -290,46 +229,33 @@ struct PlacesList: View {
                                 #endif
 
                             } else {
-                                VStack {
-                                    Text(modelController.fetchMessage)
-                                        .font(Font.subheadline.bold())
-                                        .padding()
-                                    #if !os(visionOS)
-                                        .glassEffect()
-                                    #endif
-                                }
-                                .padding()
-                            }
-                            if modelController.recommendedPlaceResults.count == 0 && modelController.placeResults.count == 0 {
-                                ProgressView(value: min(searchTimerProgress / max(searchTimeoutDuration, 0.0001), 1.0))
+                                Text(modelController.fetchMessage)
+                                    .font(.caption)
                                     .padding()
-                                Text("\(Int(max(searchTimeoutDuration - searchTimerProgress, 0)))s")
-                                    .font(.subheadline)
-                                    .foregroundStyle(.secondary)
-                                    .padding()
-                                #if !os(visionOS)
-                                    .glassEffect()
-                                #endif
-                            }
-                            else {
-                                Text("Found \(modelController.recommendedPlaceResults.count) recommended and \(modelController.placeResults.count) places.")
-                                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                                    .font(.headline)
-#if !os(visionOS)
-    .glassEffect()
-#endif
                             }
                             Spacer()
                         }
+                        .task {
+                            modelController.startSearchTimeout()
+                        }
+                        .onChange(of: modelController.selectedDestinationLocationChatResult) { _, _ in
+                            if modelController.recommendedPlaceResults.isEmpty && modelController.placeResults.isEmpty {
+                                modelController.startSearchTimeout()
+                            } else {
+                                modelController.cancelSearchTimeout()
+                            }
+                        }
                         .onChange(of: cacheManager.isRefreshingCache) { oldValue, newValue in
                             if !newValue, modelController.placeResults.count == 0 && modelController.recommendedPlaceResults.count == 0 {
-                                startSearchTimer()
+                                modelController.startSearchTimeout()
                             }
                         }
                     }
                 }
             }
         }
+        .onDisappear {
+            modelController.cancelSearchTimeout()
+        }
     }
 }
-

@@ -14,14 +14,11 @@ struct PlaceDescriptionView: View {
     var body: some View {
         if let resultId = modelController.selectedPlaceChatResult, let placeChatResult = modelController.placeChatResult(for: resultId), let placeDetailsResponse = placeChatResult.placeDetailsResponse, let _ = placeDetailsResponse.tipsResponses {
             if let description = placeDetailsResponse.description, !description.isEmpty {
-                ZStack() {
-                    Rectangle()
-                        .cornerRadius(32)
+                    Text(description)
+                    .padding()
 #if !os(visionOS)
     .glassEffect()
 #endif
-                    Text(description).padding()
-                }
             }
         }
     }

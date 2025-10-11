@@ -54,7 +54,7 @@ struct SearchPlacesView: View {
                 }
             }
         }
-        .listStyle(.sidebar)
+        .listStyle(.insetGrouped)
 #if os(macOS)
         .searchable(text: $searchText, prompt: "Search by place name")
 #else

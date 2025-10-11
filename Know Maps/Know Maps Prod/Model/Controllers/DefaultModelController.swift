@@ -41,14 +41,14 @@ public final class DefaultModelController : ModelController {
         
         let instance = DefaultModelController(
             locationProvider: LocationProvider(),
-            analyticsManager: SegmentAnalyticsService.shared, 
+            analyticsManager: SegmentAnalyticsService.shared,
             messagesDelegate: ChatResultViewModel.shared
         )
         _shared = instance
         
         // Ensure the selected destination is initially set to current location
         if instance.selectedDestinationLocationChatResult == nil {
-            instance.selectedDestinationLocationChatResult = instance.currentlySelectedLocationResult.id
+            instance.setSelectedLocation(instance.currentlySelectedLocationResult.id)
         }
         
         return instance
@@ -62,14 +62,32 @@ public final class DefaultModelController : ModelController {
     public let analyticsManager: AnalyticsService
     public let recommenderService:RecommenderService
     public let supabaseService:SupabaseService
-//    public var storyController:StoryRabbitController
+    //    public var storyController:StoryRabbitController
     
     // MARK: - Published Properties
     
     // Selection States
     public var selectedPersonalizedSearchSection:PersonalizedSearchSection?
     public var selectedSavedResult: CategoryResult.ID?
-    public var selectedPlaceChatResult: ChatResult.ID?
+    public var selectedPlaceChatResult: ChatResult.ID? {
+        didSet {
+            // Keep an fsqID pointer in sync with the current selection for identity stability
+            if let id = selectedPlaceChatResult {
+                if let result = placeChatResult(for: id) {
+                    selectedPlaceFSQID = result.placeResponse?.fsqID ?? result.recommendedPlaceResponse?.fsqID
+                } else {
+                    // Try to find by scanning all arrays just in case
+                    let anyResult = (
+                        placeResults.first { $0.id == id }
+                        ?? recommendedPlaceResults.first { $0.id == id }
+                        ?? relatedPlaceResults.first { $0.id == id }
+                    )
+                    selectedPlaceFSQID = anyResult?.placeResponse?.fsqID ?? anyResult?.recommendedPlaceResponse?.fsqID
+                }
+            }
+        }
+    }
+    public var selectedPlaceFSQID: String?
     public var selectedDestinationLocationChatResult: LocationResult.ID? {
         didSet {
             print("🗺️ selectedDestinationLocationChatResult changed from \(oldValue?.uuidString ?? "nil") to \(selectedDestinationLocationChatResult?.uuidString ?? "nil")")
@@ -85,6 +103,9 @@ public final class DefaultModelController : ModelController {
     public var isFetchingPlaceDescription: Bool = false
     public var isRefreshingPlaces:Bool = false
     public var fetchMessage:String = "Searching near Current Location..."
+    public var searchTimedOut: Bool = false
+    public var searchTimeoutDuration: TimeInterval = 5.0
+    private var searchTask: Task<Void, Never>? = nil
     
     // TabView
     public var section:Int = 0
@@ -126,11 +147,11 @@ public final class DefaultModelController : ModelController {
         self.supabaseService = SupabaseService.shared
         
         // Initialize selectedDestinationLocationChatResult to current location
-        self.selectedDestinationLocationChatResult = LocationResult(locationName: "Current Location", location:CLLocation(latitude: 37.333562, longitude:-122.004927)).id
+        self.setSelectedLocation(LocationResult(locationName: "Current Location", location: CLLocation(latitude: 37.333562, longitude: -122.004927)).id)
         
         // Safer initialization of story controller
         let backgroundTaskId = UIBackgroundTaskIdentifier(rawValue: abs(Int.random(in: Int.min..<Int.max)))
-//        self.storyController = StoryRabbitController(playerState: .loading, backgroundTask: backgroundTaskId)
+        //        self.storyController = StoryRabbitController(playerState: .loading, backgroundTask: backgroundTaskId)
         
         // Validate initial state
         _ = validateState()
@@ -166,7 +187,7 @@ public final class DefaultModelController : ModelController {
             relatedPlaceResults.removeAll()
             locationResults.removeAll()
             selectedPlaceChatResult = nil
-            selectedDestinationLocationChatResult = nil
+            setSelectedLocation(nil)
         }
         
         if let industry = industry { industryResults = industry }
@@ -186,12 +207,26 @@ public final class DefaultModelController : ModelController {
             }
         }
         
+        // Reconcile selection by FSQID if needed (e.g., when arrays are replaced and IDs change)
+        if let fsq = selectedPlaceFSQID {
+            if let selID = selectedPlaceChatResult, placeChatResult(for: selID) != nil {
+                // Current selection still resolves; no action needed
+            } else if let found = placeChatResult(with: fsq) {
+                selectedPlaceChatResult = found.id
+            }
+        }
+        
         if let selectedPlace = selectedPlace { selectedPlaceChatResult = selectedPlace }
-        if let selectedLocation = selectedLocation { selectedDestinationLocationChatResult = selectedLocation }
+        if let selectedLocation = selectedLocation { setSelectedLocation(selectedLocation) }
     }
     
     /// Safely update location state
     public func setSelectedLocation(_ locationID: LocationResult.ID?) {
+        // No-op if the value is unchanged to avoid churn
+        if selectedDestinationLocationChatResult == locationID {
+            print("🗺️ setSelectedLocation no-op: same ID \(locationID?.uuidString ?? "nil")")
+            return
+        }
         print("🗺️ ModelController setSelectedLocation called with: \(locationID?.uuidString ?? "nil")")
         print("🗺️ Previous selectedDestinationLocationChatResult: \(selectedDestinationLocationChatResult?.uuidString ?? "nil")")
         
@@ -211,18 +246,47 @@ public final class DefaultModelController : ModelController {
         
         print("🗺️ New selectedDestinationLocationChatResult: \(selectedDestinationLocationChatResult?.uuidString ?? "nil")")
     }
+
+    /// Safely update selected place chat result state
+    public func setSelectedPlaceChatResult(_ chatResultID: ChatResult.ID?) {
+        // No-op if the value is unchanged to avoid churn
+        if selectedPlaceChatResult == chatResultID {
+            print("📍 setSelectedPlaceChatResult no-op: same ID \(chatResultID?.uuidString ?? "nil")")
+            return
+        }
+        print("📍 ModelController setSelectedPlaceChatResult called with: \(chatResultID?.uuidString ?? "nil")")
+        print("📍 Previous selectedPlaceChatResult: \(selectedPlaceChatResult?.uuidString ?? "nil")")
+
+        // Validate that the chatResultID exists in our place arrays before setting it
+        if let chatResultID = chatResultID {
+            let exists = placeResults.contains(where: { $0.id == chatResultID })
+                || recommendedPlaceResults.contains(where: { $0.id == chatResultID })
+                || relatedPlaceResults.contains(where: { $0.id == chatResultID })
+            if exists {
+                selectedPlaceChatResult = chatResultID
+            } else {
+                print("📍 Warning: Attempted to set invalid place chat result ID, clearing selection")
+                selectedPlaceChatResult = nil
+            }
+        } else {
+            // If nil is passed, clear the selection
+            selectedPlaceChatResult = nil
+        }
+
+        print("📍 New selectedPlaceChatResult: \(selectedPlaceChatResult?.uuidString ?? "nil")")
+    }
     
     /// Ensure the selected destination is always valid
     public func validateSelectedDestination(cacheManager: CacheManager) {
         guard let selectedID = selectedDestinationLocationChatResult else {
-            selectedDestinationLocationChatResult = currentlySelectedLocationResult.id
+            setSelectedLocation(currentlySelectedLocationResult.id)
             return
         }
         
         let allResults = filteredLocationResults(cacheManager: cacheManager)
         if !allResults.contains(where: { $0.id == selectedID }) {
             print("🗺️ Invalid selected destination detected, resetting to current location")
-            selectedDestinationLocationChatResult = currentlySelectedLocationResult.id
+            setSelectedLocation(currentlySelectedLocationResult.id)
         }
     }
     
@@ -268,31 +332,67 @@ public final class DefaultModelController : ModelController {
     private func validateState() -> Bool {
         // Check for state consistency
         let hasValidCurrentLocation = currentlySelectedLocationResult.location != nil
-//        let hasValidStoryController = storyController.playerState != .error
+        //        let hasValidStoryController = storyController.playerState != .error
         
         if !hasValidCurrentLocation {
             analyticsManager.track(event: "invalidCurrentLocation", properties: nil)
         }
         
-//        if !hasValidStoryController {
-//            analyticsManager.track(event: "invalidStoryController", properties: nil)
-//        }
-//        
-//        return hasValidCurrentLocation && hasValidStoryController
+        //        if !hasValidStoryController {
+        //            analyticsManager.track(event: "invalidStoryController", properties: nil)
+        //        }
+        //
+        //        return hasValidCurrentLocation && hasValidStoryController
         return hasValidCurrentLocation
+    }
+    
+    // MARK: - Search Timeout & Messaging
+    
+    public func startSearchTimeout() {
+        cancelSearchTimeout()
+        searchTimedOut = false
+        fetchMessage = "Searching for places..."
+        let duration = searchTimeoutDuration
+        searchTask = Task { @MainActor in
+            do {
+                try await Task.sleep(nanoseconds: UInt64(max(duration, 0) * 1_000_000_000))
+                let noResults = self.recommendedPlaceResults.isEmpty && self.placeResults.isEmpty
+                if noResults {
+                    self.searchTimedOut = true
+                    self.fetchMessage = "No Results Found"
+                }
+            } catch {
+                // Cancelled; ignore
+            }
+        }
+    }
+    
+    public func cancelSearchTimeout() {
+        searchTask?.cancel()
+        searchTask = nil
+    }
+    
+    public func updateFoundResultsMessage(locationName: String? = nil) {
+        let recCount = recommendedPlaceResults.count
+        let placeCount = placeResults.count
+        if let name = locationName, !name.isEmpty {
+            fetchMessage = "Found \(recCount) recommended and \(placeCount) places near \(name)."
+        } else {
+            fetchMessage = "Found \(recCount) recommended and \(placeCount) places."
+        }
     }
     
     public func resetPlaceModel() async throws {
         let preservedSelectedDestination = selectedDestinationLocationChatResult
-
+        
         // Clear all state consistently
         updateAllResults(clearAll: true)
-
+        
         // Restore previously selected destination after clearing state
         if let preservedSelectedDestination {
-            selectedDestinationLocationChatResult = preservedSelectedDestination
+            setSelectedLocation(preservedSelectedDestination)
         } else {
-            selectedDestinationLocationChatResult = currentlySelectedLocationResult.id
+            setSelectedLocation(currentlySelectedLocationResult.id)
         }
         
         // Fetch new data
@@ -437,7 +537,11 @@ public final class DefaultModelController : ModelController {
     }
     
     public func placeChatResult(with fsqID: String) -> ChatResult? {
-        return placeResults.first { $0.placeResponse?.fsqID == fsqID }
+        return (
+            placeResults.first { $0.placeResponse?.fsqID == fsqID }
+            ?? recommendedPlaceResults.first { $0.recommendedPlaceResponse?.fsqID == fsqID || $0.placeResponse?.fsqID == fsqID }
+            ?? relatedPlaceResults.first { $0.recommendedPlaceResponse?.fsqID == fsqID || $0.placeResponse?.fsqID == fsqID }
+        )
     }
     
     // MARK: Chat Result Methods
@@ -610,6 +714,7 @@ public final class DefaultModelController : ModelController {
     }
     
     
+    
     public func searchIntent(intent: AssistiveChatHostIntent, location:CLLocation, cacheManager:CacheManager) async throws {
         // Ensure the intent is using the currently selected destination
         if intent.selectedDestinationLocationID != selectedDestinationLocationChatResult {
@@ -663,7 +768,7 @@ public final class DefaultModelController : ModelController {
             }
             
             analyticsManager.track(event: "searchIntentWithSearch", properties: nil)
-
+            
         case .AutocompletePlaceSearch:
             let autocompleteResponse = try await placeSearchService.placeSearchSession.autocomplete(caption: intent.caption, parameters: intent.queryParameters, location: location)
             let placeSearchResponses = try PlaceResponseFormatter.autocompletePlaceSearchResponses(with: autocompleteResponse)
@@ -704,41 +809,56 @@ public final class DefaultModelController : ModelController {
     // MARK: Place Query Models
     
     @discardableResult
-    public func placeQueryModel(intent: AssistiveChatHostIntent, cacheManager:CacheManager) async throws -> [ChatResult] {
+    public func placeQueryModel(intent: AssistiveChatHostIntent, cacheManager: CacheManager) async throws -> [ChatResult] {
+        // Prepare inputs
+        let hasSelected = (intent.selectedPlaceSearchResponse != nil && intent.selectedPlaceSearchDetails != nil)
+        let placeResponses = intent.placeSearchResponses
+        let caption = intent.caption
+        let sectionResolver = assistiveHostDelegate
         
-        var chatResults = [ChatResult]()
-        
-        if let response = intent.selectedPlaceSearchResponse, let details = intent.selectedPlaceSearchDetails {
-            let results = PlaceResponseFormatter.placeChatResults(
-                for: intent,
-                place: response,
-                section: assistiveHostDelegate.section(for:intent.caption),
-                list:intent.caption, index: 0,
-                rating: 1,
-                details: details,
-                recommendedPlaceResponse:nil
-            )
-            chatResults.append(contentsOf: results)
-        } else {
-            if !intent.placeSearchResponses.isEmpty {
-                for index in 0..<intent.placeSearchResponses.count {
-                    let response = intent.placeSearchResponses[index]
-                    if !response.name.isEmpty {
-                        let results = PlaceResponseFormatter.placeChatResults(for: intent, place: response, section:assistiveHostDelegate.section(for:intent.caption), list:intent.caption, index: index, rating: 1, details: nil, recommendedPlaceResponse: nil)
-                        chatResults.append(contentsOf: results)
-                    }
+        // Heavy compute off-main: build chatResults
+        let chatResults: [ChatResult] = try await Task.detached(priority: .userInitiated) { () -> [ChatResult] in
+            var results: [ChatResult] = []
+            if hasSelected, let response = intent.selectedPlaceSearchResponse, let details = intent.selectedPlaceSearchDetails {
+                let r = PlaceResponseFormatter.placeChatResults(
+                    for: intent,
+                    place: response,
+                    section: sectionResolver.section(for: caption),
+                    list: caption,
+                    index: 0,
+                    rating: 1,
+                    details: details,
+                    recommendedPlaceResponse: nil
+                )
+                results.append(contentsOf: r)
+            } else if !placeResponses.isEmpty {
+                for index in 0..<placeResponses.count {
+                    let response = placeResponses[index]
+                    guard !response.name.isEmpty else { continue }
+                    let r = PlaceResponseFormatter.placeChatResults(
+                        for: intent,
+                        place: response,
+                        section: sectionResolver.section(for: caption),
+                        list: caption,
+                        index: index,
+                        rating: 1,
+                        details: nil,
+                        recommendedPlaceResponse: nil
+                    )
+                    results.append(contentsOf: r)
                 }
             }
-        }
+            return results
+        }.value
         
+        // Fire related in the background (does not block)
         Task {
-            try await relatedPlaceQueryModel(intent: intent, cacheManager: cacheManager)
+            try? await relatedPlaceQueryModel(intent: intent, cacheManager: cacheManager)
         }
         
-        let mapResults = filteredPlaceResults.contains(where: {$0.identity == intent.selectedPlaceSearchResponse?.fsqID}) ? placeResults : chatResults
-        let selectedPlace = placeResults.filter({ result in
-            result.placeResponse?.fsqID == intent.selectedPlaceSearchResponse?.fsqID
-        }).first?.id
+        // Compute mapResults + selectedPlace and apply on main actor
+        let mapResults = filteredPlaceResults.contains(where: { $0.identity == intent.selectedPlaceSearchResponse?.fsqID }) ? placeResults : chatResults
+        let selectedPlace = placeResults.first(where: { $0.placeResponse?.fsqID == intent.selectedPlaceSearchResponse?.fsqID })?.id
         
         updateAllResults(
             places: chatResults,
@@ -749,208 +869,39 @@ public final class DefaultModelController : ModelController {
         return chatResults
     }
     
-    public func recommendedPlaceQueryModel(intent: AssistiveChatHostIntent, cacheManager:CacheManager) async throws {
-        var recommendedChatResults = [ChatResult]()
+    public func recommendedPlaceQueryModel(intent: AssistiveChatHostIntent, cacheManager: CacheManager) async throws {
+        // Capture dependencies and inputs for off-main work
+        let recResponses = intent.recommendedPlaceSearchResponses ?? []
+        let caption = intent.caption
+        let sectionResolver = assistiveHostDelegate
+        let recommender = recommenderService
         
+        // Early exit: nothing to do
+        if recResponses.isEmpty {
+            updateAllResults(recommended: [])
+            return
+        }
+        
+        // Heavy compute off-main
+        let sortedResults: [ChatResult] = try await Task.detached(priority: .userInitiated) { () -> [ChatResult] in
+            var recommendedChatResults = [ChatResult]()
+            
 #if canImport(CreateML)
-        if let recommendedPlaceSearchResponses = intent.recommendedPlaceSearchResponses {
-            if recommendedPlaceSearchResponses.count > 1 {
-                if cacheManager.cachedTasteResults.count > 2 || cacheManager.cachedIndustryResults.count > 2  {
-
-                    fetchMessage = "Personalizing results"
-                    let trainingData = recommenderService.recommendationData(tasteCategoryResults:cacheManager.cachedTasteResults, industryCategoryResults: cacheManager.cachedIndustryResults, placeRecommendationData: cacheManager.cachedRecommendationData)
-                    let model = try recommenderService.model(with: trainingData)
-                    let testingData = recommenderService.testingData(with:recommendedPlaceSearchResponses)
-                    let recommenderResults = try recommenderService.recommend(from: testingData, with: model)
+            if recResponses.count > 1 {
+                // Personalize when we have enough cached training data
+                if cacheManager.cachedTasteResults.count > 2 || cacheManager.cachedIndustryResults.count > 2 {
+                    let trainingData = recommender.recommendationData(
+                        tasteCategoryResults: cacheManager.cachedTasteResults,
+                        industryCategoryResults: cacheManager.cachedIndustryResults,
+                        placeRecommendationData: cacheManager.cachedRecommendationData
+                    )
+                    let model = try recommender.model(with: trainingData)
+                    let testingData = recommender.testingData(with: recResponses)
+                    let recommenderResults = try recommender.recommend(from: testingData, with: model)
                     
-                    for index in 0..<recommendedPlaceSearchResponses.count {
-                        let response = recommendedPlaceSearchResponses[index]
-                        if !response.fsqID.isEmpty {
-                            let rating = index < recommenderResults.count ? (recommenderResults[index].attributeRatings.first?.value ?? 1) : 1
-                            let placeResponse = PlaceSearchResponse(
-                                fsqID: response.fsqID,
-                                name: response.name,
-                                categories: response.categories,
-                                latitude: response.latitude,
-                                longitude: response.longitude,
-                                address: response.address,
-                                addressExtended: response.formattedAddress,
-                                country: response.country,
-                                dma: response.neighborhood,
-                                formattedAddress: response.formattedAddress,
-                                locality: response.city,
-                                postCode: response.postCode,
-                                region: response.state,
-                                chains: [],
-                                link: "",
-                                childIDs: [],
-                                parentIDs: []
-                            )
-                            let results = PlaceResponseFormatter.placeChatResults(
-                                for: intent,
-                                place: placeResponse,
-                                section: assistiveHostDelegate.section(for: intent.caption), list: intent.caption, index: index, rating: rating,
-                                details: nil,
-                                recommendedPlaceResponse: response
-                            )
-                            recommendedChatResults.append(contentsOf: results)
-                        }
-                    }
-                } else {
-                    for index in 0..<recommendedPlaceSearchResponses.count {
-                        let response = recommendedPlaceSearchResponses[index]
-                        if !response.fsqID.isEmpty {
-                            let rating = 1.0
-                            let placeResponse = PlaceSearchResponse(
-                                fsqID: response.fsqID,
-                                name: response.name,
-                                categories: response.categories,
-                                latitude: response.latitude,
-                                longitude: response.longitude,
-                                address: response.address,
-                                addressExtended: response.formattedAddress,
-                                country: response.country,
-                                dma: response.neighborhood,
-                                formattedAddress: response.formattedAddress,
-                                locality: response.city,
-                                postCode: response.postCode,
-                                region: response.state,
-                                chains: [],
-                                link: "",
-                                childIDs: [],
-                                parentIDs: []
-                            )
-                            let results = PlaceResponseFormatter.placeChatResults(
-                                for: intent,
-                                place: placeResponse,
-                                section: assistiveHostDelegate.section(for: intent.caption), list: intent.caption, index: index, rating: rating,
-                                details: nil,
-                                recommendedPlaceResponse: response
-                            )
-                            recommendedChatResults.append(contentsOf: results)
-                        }
-                    }
-                }
-            } else if !recommendedPlaceSearchResponses.isEmpty {
-                guard let response = recommendedPlaceSearchResponses.first else {
-                    throw ModelControllerError.invalidRecommendedPlaceResponse
-                }
-                if !response.fsqID.isEmpty {
-                    let placeResponse = PlaceSearchResponse(
-                        fsqID: response.fsqID,
-                        name: response.name,
-                        categories: response.categories,
-                        latitude: response.latitude,
-                        longitude: response.longitude,
-                        address: response.address,
-                        addressExtended: response.formattedAddress,
-                        country: response.country,
-                        dma: response.neighborhood,
-                        formattedAddress: response.formattedAddress,
-                        locality: response.city,
-                        postCode: response.postCode,
-                        region: response.state,
-                        chains: [],
-                        link: "",
-                        childIDs: [],
-                        parentIDs: []
-                    )
-                    let results = PlaceResponseFormatter.placeChatResults(
-                        for: intent,
-                        place: placeResponse,
-                        section: assistiveHostDelegate.section(for: intent.caption), list: intent.caption, index: 0, rating: 1,
-                        details: nil,
-                        recommendedPlaceResponse: response
-                    )
-                    recommendedChatResults.append(contentsOf: results)
-                }
-            }
-        }
-        
-        let sortedResults = recommendedChatResults.sorted(by: { result, checkResult in
-            if result.rating == checkResult.rating {
-                return result.index < checkResult.index
-            }
-            
-            return result.rating > checkResult.rating
-        })
-        updateAllResults(recommended: sortedResults)
-#else
-        if let recommendedPlaceSearchResponses = intent.recommendedPlaceSearchResponses, !recommendedPlaceSearchResponses.isEmpty {
-            for index in 0..<recommendedPlaceSearchResponses.count {
-                let response = recommendedPlaceSearchResponses[index]
-                if !response.fsqID.isEmpty {
-                    let placeResponse = PlaceSearchResponse(
-                        fsqID: response.fsqID,
-                        name: response.name,
-                        categories: response.categories,
-                        latitude: response.latitude,
-                        longitude: response.longitude,
-                        address: response.address,
-                        addressExtended: response.formattedAddress,
-                        country: response.country,
-                        dma: response.neighborhood,
-                        formattedAddress: response.formattedAddress,
-                        locality: response.city,
-                        postCode: response.postCode,
-                        region: response.state,
-                        chains: [],
-                        link: "",
-                        childIDs: [],
-                        parentIDs: []
-                    )
-                    let results = PlaceResponseFormatter.placeChatResults(
-                        for: intent,
-                        place: placeResponse,
-                        section: assistiveHostDelegate.section(for: intent.caption), list: intent.caption, index: 0, rating: 1,
-                        details: nil,
-                        recommendedPlaceResponse: response
-                    )
-                    recommendedChatResults.append(contentsOf: results)
-                }
-            }
-        }
-        
-        let sortedResults = recommendedChatResults.sorted(by: { result, checkResult in
-            if result.rating == checkResult.rating {
-                return result.index < checkResult.index
-            }
-            
-            return result.rating > checkResult.rating
-        })
-        updateAllResults(recommended: sortedResults)
-#endif
-    }
-    
-    public func relatedPlaceQueryModel(intent: AssistiveChatHostIntent, cacheManager:CacheManager) async throws {
-        var relatedChatResults = [ChatResult]()
-        
-#if canImport(CreateML)
-        if let relatedPlaceSearchResponses = intent.relatedPlaceSearchResponses, !relatedPlaceSearchResponses.isEmpty {
-            
-            var trainingData = recommenderService.recommendationData(tasteCategoryResults:cacheManager.cachedTasteResults, industryCategoryResults: cacheManager.cachedIndustryResults, placeRecommendationData: cacheManager.cachedRecommendationData)
-            if let recommendedPlaceSearchResponses = intent.recommendedPlaceSearchResponses {
-                let additionalTrainingData = recommenderService.testingData(with: recommendedPlaceSearchResponses)
-                trainingData.append(contentsOf: additionalTrainingData)
-            }
-            
-            let model = try recommenderService.model(with: trainingData)
-            let testingData = recommenderService.testingData(with:relatedPlaceSearchResponses)
-            let recommenderResults = try recommenderService.recommend(from: testingData, with: model)
-            
-            for index in 0..<relatedPlaceSearchResponses.count {
-                let response = relatedPlaceSearchResponses[index]
-                if !response.fsqID.isEmpty {
-                    if response.fsqID == intent.selectedPlaceSearchResponse?.fsqID, let placeSearchResponse = intent.selectedPlaceSearchResponse {
-                        let results = PlaceResponseFormatter.placeChatResults(
-                            for: intent,
-                            place: placeSearchResponse,
-                            section: assistiveHostDelegate.section(for: intent.caption), list: intent.caption, index: index, rating: 1,
-                            details: intent.selectedPlaceSearchDetails,
-                            recommendedPlaceResponse:response
-                        )
-                        relatedChatResults.append(contentsOf: results)
-                    }else {
+                    for index in 0..<recResponses.count {
+                        let response = recResponses[index]
+                        guard !response.fsqID.isEmpty else { continue }
                         let rating = index < recommenderResults.count ? (recommenderResults[index].attributeRatings.first?.value ?? 1) : 1
                         let placeResponse = PlaceSearchResponse(
                             fsqID: response.fsqID,
@@ -974,28 +925,91 @@ public final class DefaultModelController : ModelController {
                         let results = PlaceResponseFormatter.placeChatResults(
                             for: intent,
                             place: placeResponse,
-                            section: assistiveHostDelegate.section(for: intent.caption), list: intent.caption, index: index, rating: rating,
+                            section: sectionResolver.section(for: caption),
+                            list: caption,
+                            index: index,
+                            rating: rating,
                             details: nil,
                             recommendedPlaceResponse: response
                         )
-                        relatedChatResults.append(contentsOf: results)
+                        recommendedChatResults.append(contentsOf: results)
+                    }
+                } else {
+                    for index in 0..<recResponses.count {
+                        let response = recResponses[index]
+                        guard !response.fsqID.isEmpty else { continue }
+                        let placeResponse = PlaceSearchResponse(
+                            fsqID: response.fsqID,
+                            name: response.name,
+                            categories: response.categories,
+                            latitude: response.latitude,
+                            longitude: response.longitude,
+                            address: response.address,
+                            addressExtended: response.formattedAddress,
+                            country: response.country,
+                            dma: response.neighborhood,
+                            formattedAddress: response.formattedAddress,
+                            locality: response.city,
+                            postCode: response.postCode,
+                            region: response.state,
+                            chains: [],
+                            link: "",
+                            childIDs: [],
+                            parentIDs: []
+                        )
+                        let results = PlaceResponseFormatter.placeChatResults(
+                            for: intent,
+                            place: placeResponse,
+                            section: sectionResolver.section(for: caption),
+                            list: caption,
+                            index: index,
+                            rating: 1,
+                            details: nil,
+                            recommendedPlaceResponse: response
+                        )
+                        recommendedChatResults.append(contentsOf: results)
                     }
                 }
+            } else {
+                // Single result path
+                if let response = recResponses.first, !response.fsqID.isEmpty {
+                    let placeResponse = PlaceSearchResponse(
+                        fsqID: response.fsqID,
+                        name: response.name,
+                        categories: response.categories,
+                        latitude: response.latitude,
+                        longitude: response.longitude,
+                        address: response.address,
+                        addressExtended: response.formattedAddress,
+                        country: response.country,
+                        dma: response.neighborhood,
+                        formattedAddress: response.formattedAddress,
+                        locality: response.city,
+                        postCode: response.postCode,
+                        region: response.state,
+                        chains: [],
+                        link: "",
+                        childIDs: [],
+                        parentIDs: []
+                    )
+                    let results = PlaceResponseFormatter.placeChatResults(
+                        for: intent,
+                        place: placeResponse,
+                        section: sectionResolver.section(for: caption),
+                        list: caption,
+                        index: 0,
+                        rating: 1,
+                        details: nil,
+                        recommendedPlaceResponse: response
+                    )
+                    recommendedChatResults.append(contentsOf: results)
+                }
             }
-        }
-        
-        let sortedResults = relatedChatResults.sorted(by: { result, checkResult in
-            if result.rating == checkResult.rating {
-                return result.index < checkResult.index
-            }
-            
-            return result.rating > checkResult.rating
-        })
-        updateAllResults(related: sortedResults)
 #else
-        if let relatedPlaceSearchResponses = intent.relatedPlaceSearchResponses, !relatedPlaceSearchResponses.isEmpty {
-            for index in 0..<relatedPlaceSearchResponses.count {
-                let response = relatedPlaceSearchResponses[index]
+            // No CreateML: simple mapping
+            for index in 0..<recResponses.count {
+                let response = recResponses[index]
+                guard !response.fsqID.isEmpty else { continue }
                 let placeResponse = PlaceSearchResponse(
                     fsqID: response.fsqID,
                     name: response.name,
@@ -1018,22 +1032,180 @@ public final class DefaultModelController : ModelController {
                 let results = PlaceResponseFormatter.placeChatResults(
                     for: intent,
                     place: placeResponse,
-                    section: assistiveHostDelegate.section(for: intent.caption), list: intent.caption, index: index, rating: 1,
+                    section: sectionResolver.section(for: caption),
+                    list: caption,
+                    index: index,
+                    rating: 1,
+                    details: nil,
+                    recommendedPlaceResponse: response
+                )
+                recommendedChatResults.append(contentsOf: results)
+            }
+#endif
+            
+            // Sort deterministically off-main
+            let sorted = recommendedChatResults.sorted { lhs, rhs in
+                if lhs.rating == rhs.rating { return lhs.index < rhs.index }
+                return lhs.rating > rhs.rating
+            }
+            return sorted
+        }.value
+        
+        // Apply on main actor
+        updateAllResults(recommended: sortedResults)
+    }
+    
+    public func relatedPlaceQueryModel(intent: AssistiveChatHostIntent, cacheManager: CacheManager) async throws {
+        // Capture inputs and dependencies
+        let relatedResponses = intent.relatedPlaceSearchResponses ?? []
+        let caption = intent.caption
+        let sectionResolver = assistiveHostDelegate
+        let recommender = recommenderService
+        
+        // Early exit
+        if relatedResponses.isEmpty {
+            updateAllResults(related: [])
+            return
+        }
+        
+        // Heavy compute off-main
+        let sortedResults: [ChatResult] = try await Task.detached(priority: .userInitiated) { () -> [ChatResult] in
+            var relatedChatResults: [ChatResult] = []
+            
+#if canImport(CreateML)
+            if !relatedResponses.isEmpty {
+                if relatedResponses.count > 1 {
+                    // Optionally blend in training from recommended results
+                    var trainingData = recommender.recommendationData(
+                        tasteCategoryResults: cacheManager.cachedTasteResults,
+                        industryCategoryResults: cacheManager.cachedIndustryResults,
+                        placeRecommendationData: cacheManager.cachedRecommendationData
+                    )
+                    if let rec = intent.recommendedPlaceSearchResponses, !rec.isEmpty {
+                        let extra = recommender.testingData(with: rec)
+                        trainingData.append(contentsOf: extra)
+                    }
+                    
+                    let model = try? recommender.model(with: trainingData)
+                    let testingData = recommender.testingData(with: relatedResponses)
+                    let recResults = (try? (model != nil ? recommender.recommend(from: testingData, with: model!) : [])) ?? []
+                    
+                    for index in 0..<relatedResponses.count {
+                        let response = relatedResponses[index]
+                        guard !response.fsqID.isEmpty else { continue }
+                        let rating = index < recResults.count ? (recResults[index].attributeRatings.first?.value ?? 1) : 1
+                        
+                        let placeResponse = PlaceSearchResponse(
+                            fsqID: response.fsqID,
+                            name: response.name,
+                            categories: response.categories,
+                            latitude: response.latitude,
+                            longitude: response.longitude,
+                            address: response.address,
+                            addressExtended: response.formattedAddress,
+                            country: response.country,
+                            dma: response.neighborhood,
+                            formattedAddress: response.formattedAddress,
+                            locality: response.city,
+                            postCode: response.postCode,
+                            region: response.state,
+                            chains: [],
+                            link: "",
+                            childIDs: [],
+                            parentIDs: []
+                        )
+                        
+                        let results = PlaceResponseFormatter.placeChatResults(
+                            for: intent,
+                            place: placeResponse,
+                            section: sectionResolver.section(for: caption),
+                            list: caption,
+                            index: index,
+                            rating: rating,
+                            details: nil,
+                            recommendedPlaceResponse: response
+                        )
+                        relatedChatResults.append(contentsOf: results)
+                    }
+                } else if let response = relatedResponses.first, !response.fsqID.isEmpty {
+                    let placeResponse = PlaceSearchResponse(
+                        fsqID: response.fsqID,
+                        name: response.name,
+                        categories: response.categories,
+                        latitude: response.latitude,
+                        longitude: response.longitude,
+                        address: response.address,
+                        addressExtended: response.formattedAddress,
+                        country: response.country,
+                        dma: response.neighborhood,
+                        formattedAddress: response.formattedAddress,
+                        locality: response.city,
+                        postCode: response.postCode,
+                        region: response.state,
+                        chains: [],
+                        link: "",
+                        childIDs: [],
+                        parentIDs: []
+                    )
+                    let results = PlaceResponseFormatter.placeChatResults(
+                        for: intent,
+                        place: placeResponse,
+                        section: sectionResolver.section(for: caption),
+                        list: caption,
+                        index: 0,
+                        rating: 1,
+                        details: nil,
+                        recommendedPlaceResponse: response
+                    )
+                    relatedChatResults.append(contentsOf: results)
+                }
+            }
+#else
+            for index in 0..<relatedResponses.count {
+                let response = relatedResponses[index]
+                guard !response.fsqID.isEmpty else { continue }
+                let placeResponse = PlaceSearchResponse(
+                    fsqID: response.fsqID,
+                    name: response.name,
+                    categories: response.categories,
+                    latitude: response.latitude,
+                    longitude: response.longitude,
+                    address: response.address,
+                    addressExtended: response.formattedAddress,
+                    country: response.country,
+                    dma: response.neighborhood,
+                    formattedAddress: response.formattedAddress,
+                    locality: response.city,
+                    postCode: response.postCode,
+                    region: response.state,
+                    chains: [],
+                    link: "",
+                    childIDs: [],
+                    parentIDs: []
+                )
+                let results = PlaceResponseFormatter.placeChatResults(
+                    for: intent,
+                    place: placeResponse,
+                    section: sectionResolver.section(for: caption),
+                    list: caption,
+                    index: index,
+                    rating: 1,
                     details: nil,
                     recommendedPlaceResponse: response
                 )
                 relatedChatResults.append(contentsOf: results)
             }
-        }
-        
-        let sortedResults = relatedChatResults.sorted(by: { result, checkResult in
-            if result.rating == checkResult.rating {
-                return result.index < checkResult.index
-            }
-            return result.rating > checkResult.rating
-        })
-        updateAllResults(related: sortedResults)
 #endif
+            
+            let sorted = relatedChatResults.sorted { lhs, rhs in
+                if lhs.rating == rhs.rating { return lhs.index < rhs.index }
+                return lhs.rating > rhs.rating
+            }
+            return sorted
+        }.value
+        
+        // Apply on main actor
+        updateAllResults(related: sortedResults)
     }
     
     @discardableResult
@@ -1095,6 +1267,90 @@ public final class DefaultModelController : ModelController {
         updateAllResults(places: chatResults, mapPlaces: chatResults)
         
         return chatResults
+    }
+    
+    /// Lightweight details prefetch that avoids rebuilding search intent.
+    @MainActor
+    public func fetchPlaceDetailsIfNeeded(for result: ChatResult, cacheManager: CacheManager) async {
+        // Fast exit if details already exist
+        if result.placeDetailsResponse != nil { return }
+        
+        // Capture minimal inputs on main actor, then hop off
+        let fsqID = result.placeResponse?.fsqID ?? result.recommendedPlaceResponse?.fsqID
+        guard let fsqID else { return }
+        let caption = result.title
+        let selectedID = selectedDestinationLocationChatResult
+        let delegate = assistiveHostDelegate
+        let service = placeSearchService
+        
+        // Prepare a base response snapshot (pure data only)
+        let basePlaceResponse: PlaceSearchResponse?
+        if let pr = result.placeResponse {
+            basePlaceResponse = pr
+        } else if let rr = result.recommendedPlaceResponse {
+            basePlaceResponse = PlaceSearchResponse(
+                fsqID: rr.fsqID,
+                name: rr.name,
+                categories: rr.categories,
+                latitude: rr.latitude,
+                longitude: rr.longitude,
+                address: rr.address,
+                addressExtended: rr.formattedAddress,
+                country: rr.country,
+                dma: rr.neighborhood,
+                formattedAddress: rr.formattedAddress,
+                locality: rr.city,
+                postCode: rr.postCode,
+                region: rr.state,
+                chains: [],
+                link: "",
+                childIDs: [],
+                parentIDs: []
+            )
+        } else {
+            basePlaceResponse = nil
+        }
+        guard let basePlaceResponse else { return }
+        
+        // Do the details fetch off-main
+        let detailsResponse = try? await Task.detached(priority: .utility) { () -> PlaceDetailsResponse? in
+            let params = try? await delegate.defaultParameters(for: caption, filters: [:])
+            let intent = AssistiveChatHostIntent(
+                caption: caption,
+                intent: .Place,
+                selectedPlaceSearchResponse: basePlaceResponse,
+                selectedPlaceSearchDetails: nil,
+                placeSearchResponses: [basePlaceResponse],
+                selectedDestinationLocationID: selectedID,
+                placeDetailsResponses: nil,
+                queryParameters: params
+            )
+            try await service.detailIntent(intent: intent, cacheManager: cacheManager)
+            return intent.selectedPlaceSearchDetails
+        }.value
+        
+        guard let details = detailsResponse else { return }
+        
+        // Apply to model on the main actor
+        func update(_ arr: inout [ChatResult]) {
+            var newArr: [ChatResult] = []
+            newArr.reserveCapacity(arr.count)
+            for item in arr {
+                if (item.placeResponse?.fsqID == fsqID || item.recommendedPlaceResponse?.fsqID == fsqID),
+                   item.placeDetailsResponse == nil {
+                    var updated = item
+                    updated.replaceDetails(response: details)
+                    newArr.append(updated)
+                } else {
+                    newArr.append(item)
+                }
+            }
+            arr = newArr
+        }
+        
+        update(&placeResults)
+        update(&recommendedPlaceResults)
+        update(&relatedPlaceResults)
     }
     
     public func receiveMessage(caption: String, parameters: AssistiveChatHostQueryParameters, isLocalParticipant: Bool) async throws {

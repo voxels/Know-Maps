@@ -17,6 +17,6 @@ struct SearchSectionView: View {
                 Text(section.rawValue)
             }
         }
-        .listStyle(.sidebar)
+        .listStyle(.insetGrouped)
     }
 }
