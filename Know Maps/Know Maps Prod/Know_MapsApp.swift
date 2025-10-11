@@ -172,14 +172,11 @@ struct Know_MapsApp: App {
                             .frame(minWidth: 1280, minHeight: 720)
 #endif
                     } else {
-                        if isStoryrabbitEnabled {
-                            StoryRabbitContentView(settingsModel:authenticationModel, chatModel: $chatModel, cacheManager:$cacheManager, modelController:$modelController, searchSavedViewModel: $searchSavedViewModel, showOnboarding: $showOnboarding)
-                        } else {
+
                             ContentView(settingsModel:authenticationModel, chatModel: $chatModel, cacheManager:$cacheManager, modelController:$modelController, searchSavedViewModel: $searchSavedViewModel, showOnboarding: $showOnboarding)
 #if os(visionOS) || os(macOS)
                                 .frame(minWidth: 1280, minHeight: 720)
 #endif
-                        }
                     }
                 }
             }

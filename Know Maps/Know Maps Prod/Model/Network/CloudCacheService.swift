@@ -29,7 +29,7 @@ public enum CloudCacheServiceKey: String {
 public final class CloudCacheService: NSObject, CloudCache {
     
     @MainActor
-    static let shared = CloudCacheService(analyticsManager: SegmentAnalyticsService.shared, modelContext: hopitApp.sharedModelContainer.mainContext)
+    static let shared = CloudCacheService(analyticsManager: SegmentAnalyticsService.shared, modelContext: Know_MapsApp.sharedModelContainer.mainContext)
     
     let analyticsManager: AnalyticsService
     

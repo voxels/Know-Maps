@@ -62,7 +62,7 @@ public final class DefaultModelController : ModelController {
     public let analyticsManager: AnalyticsService
     public let recommenderService:RecommenderService
     public let supabaseService:SupabaseService
-    public var storyController:StoryRabbitController
+//    public var storyController:StoryRabbitController
     
     // MARK: - Published Properties
     
@@ -130,7 +130,7 @@ public final class DefaultModelController : ModelController {
         
         // Safer initialization of story controller
         let backgroundTaskId = UIBackgroundTaskIdentifier(rawValue: abs(Int.random(in: Int.min..<Int.max)))
-        self.storyController = StoryRabbitController(playerState: .loading, backgroundTask: backgroundTaskId)
+//        self.storyController = StoryRabbitController(playerState: .loading, backgroundTask: backgroundTaskId)
         
         // Validate initial state
         _ = validateState()
@@ -268,17 +268,18 @@ public final class DefaultModelController : ModelController {
     private func validateState() -> Bool {
         // Check for state consistency
         let hasValidCurrentLocation = currentlySelectedLocationResult.location != nil
-        let hasValidStoryController = storyController.playerState != .error
+//        let hasValidStoryController = storyController.playerState != .error
         
         if !hasValidCurrentLocation {
             analyticsManager.track(event: "invalidCurrentLocation", properties: nil)
         }
         
-        if !hasValidStoryController {
-            analyticsManager.track(event: "invalidStoryController", properties: nil)
-        }
-        
-        return hasValidCurrentLocation && hasValidStoryController
+//        if !hasValidStoryController {
+//            analyticsManager.track(event: "invalidStoryController", properties: nil)
+//        }
+//        
+//        return hasValidCurrentLocation && hasValidStoryController
+        return hasValidCurrentLocation
     }
     
     public func resetPlaceModel() async throws {

@@ -111,6 +111,7 @@ struct PlacesList: View {
                                         DispatchQueue.main.async {
                                             withAnimation {
                                                 modelController.selectedPlaceChatResult = result.id
+                                                modelController.section = 1
                                                 modelController.addItemSection = 3
                                             }
                                         }

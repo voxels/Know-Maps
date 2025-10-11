@@ -82,18 +82,7 @@ struct PlaceDirectionsView: View {
                                     #endif
                                     .padding()
                                 }
-                                Spacer()
-                                    Text("Route start:")
-                                    Picker("", selection:$model.rawLocationIdent) {
-                                        ForEach(modelController.filteredLocationResults(cacheManager: cacheManager), id:\.self) { result in
-                                            Text(result.locationName).tag(result.id.uuidString)
-                                        }
-                                    }
-                                #if !os(visionOS)
-                                .glassEffect()
-                                #endif
-                                        .pickerStyle(.menu)
-                                Spacer()
+                                
                                 Button("Open Apple Maps", systemImage: "apple.logo") {
                                     MKMapItem.openMaps(with: [source,destination], launchOptions: launchOptions)
                                 }
@@ -111,19 +100,6 @@ struct PlaceDirectionsView: View {
                             }.foregroundStyle(.primary)
                                 .pickerStyle(.palette)
                                 .padding(.horizontal, 16)
-                            if let chatRouteResults = model.chatRouteResults, chatRouteResults.count > 0  {
-                                HStack {
-                                    VStack(alignment: .leading, spacing: 8) {
-                                        ForEach(Array(chatRouteResults.enumerated()), id: \.element.id) { index, step in
-                                            Text("\(index + 1). \(step.instructions)")
-                                                .accessibilityLabel("Step \(index + 1). \(step.instructions)")
-                                        }
-                                    }
-                                    .frame(minWidth:geo.size.width - 32)
-                                    .padding(16)
-                                    Spacer()
-                                }
-                            }
                         }
                     }
                 }
