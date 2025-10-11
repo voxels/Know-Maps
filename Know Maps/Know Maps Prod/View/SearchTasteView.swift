@@ -7,7 +7,6 @@ struct SearchTasteView: View {
     @Binding public var searchSavedViewModel:SearchSavedViewModel
     @Binding public var multiSelection: Set<UUID>
     @Binding public var section: Int
-    @Binding public var addItemSection: Int
     @State private var isPresented:Bool = true
     @State private var isLoadingNextPage = false
     @State private var tasteSearchText:String = ""

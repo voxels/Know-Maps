@@ -118,7 +118,7 @@ struct StoryRabbitContentView: View {
                 }
                 
                 Task { @MainActor in
-                    if let placeChatResult = modelController.placeChatResult(for: newValue), modelController.addItemSection == 3, placeChatResult.placeDetailsResponse == nil {
+                    if let placeChatResult = modelController.placeChatResult(for: newValue), placeChatResult.placeDetailsResponse == nil {
                         Task(priority: .userInitiated) {
                             do {
                                 try await chatModel.didTap(placeChatResult: placeChatResult, filters: searchSavedViewModel.filters, cacheManager: cacheManager, modelController: modelController)

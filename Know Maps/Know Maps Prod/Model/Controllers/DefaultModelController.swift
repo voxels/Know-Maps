@@ -104,12 +104,11 @@ public final class DefaultModelController : ModelController {
     public var isRefreshingPlaces:Bool = false
     public var fetchMessage:String = "Searching near Current Location..."
     public var searchTimedOut: Bool = false
-    public var searchTimeoutDuration: TimeInterval = 5.0
+    public var searchTimeoutDuration: TimeInterval = 15.0
     private var searchTask: Task<Void, Never>? = nil
     
     // TabView
     public var section:Int = 0
-    public var addItemSection:Int = 0
     
     // Results
     public var industryResults = [CategoryResult]()
@@ -218,6 +217,20 @@ public final class DefaultModelController : ModelController {
         
         if let selectedPlace = selectedPlace { selectedPlaceChatResult = selectedPlace }
         if let selectedLocation = selectedLocation { setSelectedLocation(selectedLocation) }
+
+        // Centrally manage search timeout + message based on result presence
+        let hasResults = !(placeResults.isEmpty && recommendedPlaceResults.isEmpty)
+        if hasResults {
+            // Results are present: stop any pending timeout and refresh the found message
+            cancelSearchTimeout()
+            // Optionally include a location name here; keeping it generic avoids extra lookups
+            updateFoundResultsMessage(locationName: nil)
+        } else {
+            // No results yet: if we're not already timed out, (re)start the countdown
+            if !searchTimedOut {
+                startSearchTimeout()
+            }
+        }
     }
     
     /// Safely update location state
@@ -387,6 +400,7 @@ public final class DefaultModelController : ModelController {
         
         // Clear all state consistently
         updateAllResults(clearAll: true)
+        startSearchTimeout()
         
         // Restore previously selected destination after clearing state
         if let preservedSelectedDestination {

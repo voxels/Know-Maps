@@ -11,7 +11,6 @@ struct AddPromptView: View {
     @Binding public var chatModel: ChatResultViewModel
     @Binding public var cacheManager:CloudCacheManager
     @Binding public var modelController:DefaultModelController
-    @Binding public var addItemSection: Int
     @Binding public var multiSelection: Set<UUID>
     
     var body: some View {
@@ -27,24 +26,22 @@ struct AddPromptToolbarView: View {
     @Binding public var cacheManager: CloudCacheManager
     @Binding public var modelController: DefaultModelController
     @Binding public var section: Int
-    @Binding public var addItemSection: Int
     @Binding public var multiSelection: Set<UUID>
-    @Binding public var preferredColumn: NavigationSplitViewColumn
+    @Binding public var searchMode:SearchMode
     
     var body: some View {
-        if section == 5 || addItemSection == 3 {
-            if let selectedPlaceChatResult = modelController.selectedPlaceChatResult,let placeChatResult = modelController.placeChatResult(for: selectedPlaceChatResult), !cacheManager.cachedPlaces(contains:placeChatResult.title){
-                Button(action: {
-                    Task(priority:.userInitiated) {
-                        await viewModel.addPlace(parent: selectedPlaceChatResult, rating: 3, cacheManager: cacheManager, modelController: modelController)
-                    }
-                }) {
-                    Label("Save", systemImage: "plus.circle")
+        if searchMode == .places, let selectedPlaceChatResult = modelController.selectedPlaceChatResult,let placeChatResult = modelController.placeChatResult(for: selectedPlaceChatResult), !cacheManager.cachedPlaces(contains:placeChatResult.title){
+            Button(action: {
+                Task(priority:.userInitiated) {
+                    await viewModel.addPlace(parent: selectedPlaceChatResult, rating: 3, cacheManager: cacheManager, modelController: modelController)
                 }
-                .disabled(modelController.selectedPlaceChatResult == nil)
-                .labelStyle(.titleAndIcon)
+            }) {
+                Label("Save", systemImage: "plus.circle")
             }
-        } else if addItemSection == 1 {
+            .disabled(modelController.selectedPlaceChatResult == nil)
+            .labelStyle(.titleAndIcon)
+        }
+        else if searchMode == .industries {
             Button(action: {
                 Task(priority:.userInitiated) {
                     for parent in multiSelection {
@@ -54,14 +51,13 @@ struct AddPromptToolbarView: View {
                             modelController: modelController
                         )
                     }
-                    multiSelection.removeAll()
                 }
             }) {
                 Label("Save", systemImage: "plus.circle")
             }
             .disabled(multiSelection.count == 0)
             .labelStyle(.titleAndIcon)
-        } else if addItemSection == 2 {
+        } else if searchMode == .features {
             Button(action: {
                 Task(priority:.userInitiated) {
                     for parent in multiSelection {
@@ -71,7 +67,6 @@ struct AddPromptToolbarView: View {
                             modelController: modelController
                         )
                     }
-                    multiSelection.removeAll()
                 }
             }) {
                 Label("Save", systemImage: "plus.circle")

@@ -85,14 +85,22 @@ struct PlaceDirectionsView: View {
                                     Button("Look Around", systemImage: "binoculars.fill") {
                                         model.showLookAroundScene.toggle()
                                     }
-                                    .buttonStyle(.automatic)
+                                    .padding()
+#if !os(visionOS)
+                                    .buttonStyle(.glass)
+                                    #endif
                                 }
+                                Spacer()
                                 Button("Maps", systemImage: "apple.logo") {
                                     MKMapItem.openMaps(with: [source,destination], launchOptions: launchOptions)
                                 }
-                                .buttonStyle(.automatic)
+                                .padding()
+#if !os(visionOS)
+                                    .buttonStyle(.glass)
+                                    #endif
                                 Spacer()
                             }
+                            .padding()
                         }
                     }
                 }

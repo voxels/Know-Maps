@@ -31,7 +31,6 @@ struct SearchPlacesView: View {
     @Binding public var cacheManager:CloudCacheManager
     @Binding public var modelController:DefaultModelController
     @Binding public var multiSelection: Set<UUID>
-    @Binding public var addItemSection: Int
     @State private var searchText: String = "" // State for search text
     
     var body: some View {

@@ -86,6 +86,7 @@ struct SettingsView: View {
             Button {
                 print("Sign Out tapped")
                 Task {
+                    try await modelController.resetPlaceModel()
                     model.signOut()
                     await MainActor.run {
                         showOnboarding = true
@@ -98,6 +99,7 @@ struct SettingsView: View {
                 print("Delete data tapped")
                 Task {
                     do {
+                        try await modelController.resetPlaceModel()
                         try await cacheManager.cloudCache.deleteAllUserCachedGroups()
                         try await cacheManager.refreshCache()
                         await MainActor.run {
@@ -114,6 +116,7 @@ struct SettingsView: View {
                 print("Delete account tapped")
                 Task {
                     do {
+                        try await modelController.resetPlaceModel()
                         try await cacheManager.cloudCache.deleteAllUserCachedGroups()
                         try await cacheManager.refreshCache()
                         model.signOut()

@@ -13,7 +13,6 @@ struct PlaceView: View {
     @Binding public var cacheManager:CloudCacheManager
     @Binding public var modelController:DefaultModelController
     @ObservedObject public var placeDirectionsViewModel:PlaceDirectionsViewModel
-    @Binding public var addItemSection:Int
     @State private var tabItem = 0
     var selectedPlaceID: ChatResult.ID?
 

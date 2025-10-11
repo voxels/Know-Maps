@@ -37,7 +37,7 @@ public enum ContentDetailView {
 enum SearchMode: Hashable {
     case favorites
     case industries
-    case purchases
+    case features
     case places
 }
 
@@ -74,7 +74,7 @@ struct ContentView: View {
     @State private var showNavigationLocationView:Bool = false
     @State private var showAddRecommendationView:Bool = false
     
-    @State private var searchMode: SearchMode = .industries
+    @State private var searchMode: SearchMode = .favorites
     @State private var navigationPath: [ChatResult.ID] = []
     
     @StateObject public var placeDirectionsChatViewModel = PlaceDirectionsViewModel(rawLocationIdent: "Current Location")
@@ -99,7 +99,7 @@ struct ContentView: View {
                 
             }
             .containerBackground(Color(.clear), for:.navigation)
-            .tabViewStyle(.automatic)
+            .tabViewStyle(.sidebarAdaptable)
             .sheet(item: $searchSavedViewModel.editingRecommendationWeightResult) { selectedResult in
                 recommendationWeightSheet(for: selectedResult)
                     .presentationDetents([.medium])
@@ -196,11 +196,10 @@ struct ContentView: View {
                 Label("Filter", systemImage: "line.3.horizontal.decrease")
             }
             .disabled(showNavigationLocationView)
-        }
+        }        
 #endif
+        
     }
-    
-    
     func filterView() -> some View {
         NavigationLocationView(
             searchSavedViewModel: $searchSavedViewModel,
@@ -304,23 +303,23 @@ struct ContentView: View {
                     Picker("Search Mode", selection: $searchMode) {
                         Text("Favorites").tag(SearchMode.favorites)
                         Text("Industries").tag(SearchMode.industries)
-                        Text("Purchases").tag(SearchMode.purchases)
+                        Text("Features").tag(SearchMode.features)
                         Text("Places").tag(SearchMode.places)
                     }
                     .pickerStyle(.segmented)
                     
                     switch searchMode {
                     case .favorites:
-                        SearchView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, searchSavedViewModel: $searchSavedViewModel, preferredColumn: $preferredColumn,  addItemSection: $modelController.addItemSection, showMapsResultViewSheet: $showMapsResultViewSheet, didError: $didError)
+                        SearchView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, searchSavedViewModel: $searchSavedViewModel, preferredColumn: $preferredColumn, searchMode:$searchMode, showMapsResultViewSheet: $showMapsResultViewSheet, didError: $didError)
                             .navigationTitle("Browse")
                     case .industries:
-                        SearchCategoryView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, searchSavedViewModel: $searchSavedViewModel, multiSelection: $multiSelection, section:$modelController.section, addItemSection: $modelController.addItemSection)
+                        SearchCategoryView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, searchSavedViewModel: $searchSavedViewModel, multiSelection: $multiSelection, section:$modelController.section)
                             .navigationTitle("Browse")
-                    case .purchases:
-                        SearchTasteView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, searchSavedViewModel: $searchSavedViewModel, multiSelection: $multiSelection,  section:$modelController.section,addItemSection: $modelController.addItemSection)
+                    case .features:
+                        SearchTasteView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, searchSavedViewModel: $searchSavedViewModel, multiSelection: $multiSelection,  section:$modelController.section)
                             .navigationTitle("Browse")
                     case .places:
-                        SearchPlacesView(searchSavedViewModel: $searchSavedViewModel, chatModel: $chatModel, cacheManager: $cacheManager, modelController:   $modelController, multiSelection: $multiSelection, addItemSection: $modelController.addItemSection)
+                        SearchPlacesView(searchSavedViewModel: $searchSavedViewModel, chatModel: $chatModel, cacheManager: $cacheManager, modelController:   $modelController, multiSelection: $multiSelection)
                             .navigationTitle("Browse")
                     }
                 }
@@ -341,6 +340,11 @@ struct ContentView: View {
             }
         } detail: {
             detailPlacesStack()
+//                .toolbar {
+//                    ToolbarItem{
+//                        AddPromptToolbarView(viewModel: $searchSavedViewModel, chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, section:$modelController.section, multiSelection: $multiSelection, searchMode: $searchMode)
+//                    }
+//                }
         }
     }
     
@@ -354,20 +358,6 @@ struct ContentView: View {
                 modelController: $modelController,
                 showMapsResultViewSheet: $showMapsResultViewSheet
             )
-            .toolbar {
-                ToolbarItemGroup(placement: .primaryAction) {
-                    AddPromptToolbarView(
-                        viewModel: $searchSavedViewModel,
-                        chatModel: $chatModel,
-                        cacheManager: $cacheManager,
-                        modelController: $modelController,
-                        section: $modelController.section,
-                        addItemSection: $modelController.addItemSection,
-                        multiSelection: $multiSelection,
-                        preferredColumn: $preferredColumn
-                    )
-                }
-            }
             .onChange(of: modelController.selectedPlaceChatResult) { _, newID in
                 if let newID {
                     // When model reconciles to a new ChatResult.ID (e.g., after reset),
@@ -386,7 +376,6 @@ struct ContentView: View {
                     cacheManager: $cacheManager,
                     modelController: $modelController,
                     placeDirectionsViewModel: placeDirectionsChatViewModel,
-                    addItemSection: $modelController.addItemSection,
                     selectedPlaceID: placeID
                 )
                 .onDisappear {

@@ -14,7 +14,6 @@ struct SearchCategoryView: View {
     @Binding public var searchSavedViewModel:SearchSavedViewModel
     @Binding public var multiSelection: Set<UUID>
     @Binding public var section: Int
-    @Binding public var addItemSection: Int
     
     @State private var expandedParents: Set<UUID> = []
     @State private var searchText: String = "" // State for search text

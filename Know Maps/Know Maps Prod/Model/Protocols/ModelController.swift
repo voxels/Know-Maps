@@ -34,7 +34,6 @@ public protocol ModelController : Sendable {
     
     // TabView
     var section:Int { get set }
-    var addItemSection:Int { get set }
     
     // Results
     var industryResults:[CategoryResult] { get set }

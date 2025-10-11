@@ -38,10 +38,6 @@ struct PlaceAboutView: View {
                                     Image(systemName: "photo")
                                         .scaledToFit()
                                         .clipShape(RoundedRectangle(cornerRadius: 32, style: .continuous))
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 32, style: .continuous)
-                                                .strokeBorder(.separator, lineWidth: 1)
-                                        )
                                         .frame(maxWidth:.infinity, maxHeight: .infinity)
                                 }
                             } else if let photoResponses = result.placeDetailsResponse?.photoResponses {
@@ -55,18 +51,10 @@ struct PlaceAboutView: View {
                                                             .clipShape(RoundedRectangle(cornerRadius: 32, style: .continuous))
                                                             .scaledToFit()
                                                             .frame(maxWidth:geo.size.width / 2.0, maxHeight: geo.size.height / 2.0)
-                                                            .overlay(
-                                                                RoundedRectangle(cornerRadius: 32, style: .continuous)
-                                                                    .strokeBorder(.separator, lineWidth: 1)
-                                                            )
                                                     } else if state.error != nil {
                                                         Image(systemName: "photo")
                                                             .clipShape(RoundedRectangle(cornerRadius: 32, style: .continuous))
                                                             .frame(maxWidth:geo.size.width / 2.0, maxHeight: geo.size.height / 2.0)
-                                                            .overlay(
-                                                                RoundedRectangle(cornerRadius: 32, style: .continuous)
-                                                                    .strokeBorder(.separator, lineWidth: 1)
-                                                            )
                                                     } else {
                                                         ProgressView()
                                                             .frame(maxWidth:geo.size.width / 2.0, maxHeight: geo.size.height / 2.0)
@@ -318,7 +306,11 @@ struct PlaceAboutView: View {
                                                 
                                                 Text(taste.wrappedValue)
                                                 Spacer()
-                                            }.onTapGesture {
+                                            }
+#if !os(visionOS)
+                                            .glassEffect()
+                                            #endif
+                                            .onTapGesture {
                                                 if isSaved {
                                                     if let cachedTasteResult = modelController.cachedTasteResult(title: taste.wrappedValue, cacheManager: cacheManager) {
                                                         Task(priority:.userInitiated) {

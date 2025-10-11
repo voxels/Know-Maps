@@ -19,7 +19,6 @@ public enum PersonalizedSearchSection: String, Hashable, CaseIterable, AppEnum, 
     case sights = "Sightseeing"
     case trending = "Trending places"
     case topPicks = "Popular places"
-    case orsonWells = "Orson Wells"
 
     // Implement required properties for AppEnum
     public static var typeDisplayRepresentation = TypeDisplayRepresentation(name: "Mood")
@@ -33,8 +32,7 @@ public enum PersonalizedSearchSection: String, Hashable, CaseIterable, AppEnum, 
         .outdoors: DisplayRepresentation(title: "Outdoors"),
         .sights: DisplayRepresentation(title: "Sightseeing"),
         .trending: DisplayRepresentation(title: "Trending Places"),
-        .topPicks: DisplayRepresentation(title: "Popular Places"),
-        .orsonWells: DisplayRepresentation(title: "Orson Wells")
+        .topPicks: DisplayRepresentation(title: "Popular Places")
     ]
 
     // Existing methods (if still needed)
@@ -58,8 +56,6 @@ public enum PersonalizedSearchSection: String, Hashable, CaseIterable, AppEnum, 
             return "trending"
         case .topPicks:
             return "topPicks"
-        case .orsonWells:
-            return "orsonWells"
         @unknown default:
             return "none"
         }

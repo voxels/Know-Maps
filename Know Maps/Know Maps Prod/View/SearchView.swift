@@ -13,12 +13,13 @@ struct SearchView: View {
     @Binding public var modelController:DefaultModelController
     @Binding public var searchSavedViewModel:SearchSavedViewModel
     @Binding public var preferredColumn:NavigationSplitViewColumn
-    @Binding public var addItemSection:Int
+    @Binding public var searchMode:SearchMode
     @Binding public var showMapsResultViewSheet:Bool
     @Binding public var didError:Bool
+    
 
     var body: some View {
-        SavedListView(searchSavedViewModel: $searchSavedViewModel, cacheManager: $cacheManager, modelController: $modelController, section:$modelController.section, addItemSection: $addItemSection, preferredColumn: $preferredColumn, selectedResult: $modelController.selectedSavedResult)
+        SavedListView(searchSavedViewModel: $searchSavedViewModel, cacheManager: $cacheManager, modelController: $modelController, section:$modelController.section,  preferredColumn: $preferredColumn, selectedResult: $modelController.selectedSavedResult, searchMode: $searchMode)
             .onChange(of: modelController.selectedSavedResult) { oldValue, newValue in
                 guard let newValue = newValue else {
                     return

@@ -15,7 +15,7 @@ struct AddItemTip: Tip {
 
 
     var message: Text? {
-        Text("Add a feature to your list to unlock the moods section.")
+        Text("Add some features to your list to unlock the moods section.")
     }
 
 
@@ -32,9 +32,9 @@ struct SavedListView: View {
     @Binding public var cacheManager: CloudCacheManager
     @Binding public var modelController: DefaultModelController
     @Binding public var section: Int
-    @Binding public var addItemSection: Int
     @Binding public var preferredColumn: NavigationSplitViewColumn
     @Binding public var selectedResult: CategoryResult.ID?
+    @Binding public var searchMode:SearchMode
     
     // State variables to manage expanded/collapsed sections
     @AppStorage("isMoodsExpanded") private var isMoodsExpanded = true
@@ -80,41 +80,6 @@ struct SavedListView: View {
                         TipView(AddItemTip())
                     }
                     
-                    DisclosureGroup("Favorite Features", isExpanded: $isItemsExpanded) {
-                        if !cacheManager.cachedTasteResults.isEmpty {
-                            ForEach(cacheManager.cachedTasteResults.filter({ result in
-                                if searchText.isEmpty { return true }
-                                else {
-                                    return result.parentCategory.lowercased().contains(searchText.lowercased())
-                                }
-                            }), id: \.id) { parent in
-                                HStack {
-                                    Text(parent.parentCategory)
-                                    Spacer()
-                                    ratingButton(for: parent)
-                                }
-                                .frame(maxWidth: .infinity)
-                            }
-                            .onDelete { indexSet in
-                                let idsToDelete = indexSet.map { cacheManager.cachedTasteResults[$0].id }
-                                deleteTasteItem(at: idsToDelete)
-                            }
-                        }
-                        Button(action: {
-                            preferredColumn = .sidebar
-                        }) {
-                            HStack {
-                                Image(systemName: "plus.circle")
-                                Text("Add a feature")
-                                    .padding(.vertical,12)
-
-                                Spacer()
-                            }
-                            
-                            .foregroundColor(.accentColor)
-                        }
-                    }
-                    
                     DisclosureGroup("Favorite Industries", isExpanded: $isTypesExpanded) {
                         if !cacheManager.cachedIndustryResults.isEmpty {
                             ForEach(cacheManager.cachedIndustryResults.filter({ result in
@@ -136,7 +101,7 @@ struct SavedListView: View {
                             }
                         }
                         Button(action: {
-                            preferredColumn = .sidebar
+                            searchMode = .industries
                         }) {
                             HStack {
                                 Image(systemName: "plus.circle")
@@ -149,6 +114,43 @@ struct SavedListView: View {
                             .foregroundColor(.accentColor)
                         }
                     }
+                    
+                    DisclosureGroup("Favorite Features", isExpanded: $isItemsExpanded) {
+                        if !cacheManager.cachedTasteResults.isEmpty {
+                            ForEach(cacheManager.cachedTasteResults.filter({ result in
+                                if searchText.isEmpty { return true }
+                                else {
+                                    return result.parentCategory.lowercased().contains(searchText.lowercased())
+                                }
+                            }), id: \.id) { parent in
+                                HStack {
+                                    Text(parent.parentCategory)
+                                    Spacer()
+                                    ratingButton(for: parent)
+                                }
+                                .frame(maxWidth: .infinity)
+                            }
+                            .onDelete { indexSet in
+                                let idsToDelete = indexSet.map { cacheManager.cachedTasteResults[$0].id }
+                                deleteTasteItem(at: idsToDelete)
+                            }
+                        }
+                        Button(action: {
+                            searchMode = .features
+                        }) {
+                            HStack {
+                                Image(systemName: "plus.circle")
+                                Text("Add a feature")
+                                    .padding(.vertical,12)
+
+                                Spacer()
+                            }
+                            
+                            .foregroundColor(.accentColor)
+                        }
+                    }
+                    
+
                     
                     DisclosureGroup("Favorite Places", isExpanded: $isPlacesExpanded) {
                         if !cacheManager.cachedPlaceResults.isEmpty {
@@ -166,7 +168,7 @@ struct SavedListView: View {
                             }
                         }
                         Button(action: {
-                            preferredColumn = .sidebar
+                            searchMode = .places
                         }) {
                             HStack {
                                 Image(systemName: "plus.circle")

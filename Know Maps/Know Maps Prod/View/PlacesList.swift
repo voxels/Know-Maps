@@ -28,9 +28,9 @@ struct PlacesList: View {
     @ViewBuilder
     private func recommendedGrid(in geometry: GeometryProxy) -> some View {
         let sizeWidth: CGFloat = (sizeClass == .compact) ? 1 : 2
-        let itemWidth: CGFloat = geometry.size.width / sizeWidth
+        let itemWidth: CGFloat = geometry.size.width / sizeWidth - 32
         let columns: [GridItem] = Array(
-            repeating: GridItem(.flexible(minimum:0, maximum: itemWidth - 16), spacing: 16, alignment:.top),
+            repeating: GridItem(.flexible(minimum:0, maximum: itemWidth), spacing: 16, alignment:.top),
             count: Int(sizeWidth)
         )
         
@@ -82,7 +82,7 @@ struct PlacesList: View {
                                     .clipShape(RoundedRectangle(cornerRadius: 32, style: .continuous))
                             }
                             
-                            VStack(alignment: .leading, spacing:16) {
+                            VStack(alignment: .leading, spacing:4) {
                                 if let neighborhood = result.recommendedPlaceResponse?.neighborhood, !neighborhood.isEmpty {
                                     Text(result.title).bold()
                                     Text(neighborhood).italic()
@@ -101,11 +101,6 @@ struct PlacesList: View {
 #endif
                         }
                         .clipShape(RoundedRectangle(cornerRadius: 32, style: .continuous))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 32, style: .continuous)
-                                .strokeBorder(.separator, lineWidth: 1)
-                        )
-                        .contentShape(RoundedRectangle(cornerRadius: 32, style: .continuous))
                         .gridCellAnchor(.top)
                     }
                     .simultaneousGesture(TapGesture().onEnded {
@@ -128,11 +123,11 @@ struct PlacesList: View {
 #if os(macOS) || os(visionOS)
         let columns: [GridItem] = Array(repeating: GridItem(.adaptive(minimum: geometry.size.width / sizeWidth)), count: Int(sizeWidth))
 #else
-        let columns: [GridItem] = Array(repeating: GridItem(.adaptive(minimum: geometry.size.height / sizeWidth)), count: Int(sizeWidth))
+        let columns: [GridItem] = Array(repeating: GridItem(.adaptive(minimum: geometry.size.width / sizeWidth - 32.0)), count: Int(sizeWidth))
 #endif
         
-        ScrollView(.horizontal) {
-            LazyHGrid(rows: columns, alignment: .center, spacing: 32) {
+        ScrollView(.vertical) {
+            LazyVGrid(columns: columns, alignment: .leading, spacing: 32) {
                 ForEach(modelController.filteredPlaceResults) { result in
                     NavigationLink(value: result.id) {
                         VStack(alignment: .leading) {
@@ -145,13 +140,7 @@ struct PlacesList: View {
                         .contentTransition(.opacity)
 #if !os(visionOS)
                         .glassEffect()
-#endif
-                        .clipShape(RoundedRectangle(cornerRadius: 32, style: .continuous))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 32, style: .continuous)
-                                .strokeBorder(.separator, lineWidth: 1)
-                        )
-#if os(visionOS)
+#else
                         .hoverEffect(.lift)
 #endif
                     }
@@ -168,6 +157,7 @@ struct PlacesList: View {
                 .scrollContentBackground(.hidden)
                 .background(Color.clear)
             }
+            .padding()
         }
     }
     
@@ -215,40 +205,18 @@ struct PlacesList: View {
                             }
                             Spacer()
                         }
-                        .task {
-                            modelController.startSearchTimeout()
-                        }
                     } else {
                         VStack(alignment:.center, spacing: 12) {
                             Spacer()
                             if modelController.searchTimedOut {
                                 Text("No Results Found")
                                     .padding()
-                                #if !os(visionOS)
-                                    .glassEffect()
-                                #endif
-
                             } else {
                                 Text(modelController.fetchMessage)
                                     .font(.caption)
                                     .padding()
                             }
                             Spacer()
-                        }
-                        .task {
-                            modelController.startSearchTimeout()
-                        }
-                        .onChange(of: modelController.selectedDestinationLocationChatResult) { _, _ in
-                            if modelController.recommendedPlaceResults.isEmpty && modelController.placeResults.isEmpty {
-                                modelController.startSearchTimeout()
-                            } else {
-                                modelController.cancelSearchTimeout()
-                            }
-                        }
-                        .onChange(of: cacheManager.isRefreshingCache) { oldValue, newValue in
-                            if !newValue, modelController.placeResults.count == 0 && modelController.recommendedPlaceResults.count == 0 {
-                                modelController.startSearchTimeout()
-                            }
                         }
                     }
                 }
