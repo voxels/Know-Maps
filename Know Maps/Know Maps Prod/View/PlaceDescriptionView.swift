@@ -17,7 +17,9 @@ struct PlaceDescriptionView: View {
                     Text(description)
                     .padding()
 #if !os(visionOS)
-    .glassEffect()
+                            .glassEffect(.regular, in: .rect(cornerRadius: 32))
+#else
+                            .background(.ultraThinMaterial)
 #endif
             }
         }

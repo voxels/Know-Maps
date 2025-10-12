@@ -36,20 +36,10 @@ struct PlaceDirectionsView: View {
                 ScrollView {
                     VStack(alignment:.leading) {
                         if model.showLookAroundScene, let lookAroundScene = model.lookAroundScene {
-                            HStack {
-                                Spacer()
-                                Button("Directions", systemImage: "map.fill") {
-                                    model.showLookAroundScene.toggle()
-                                }
-                                .padding()
-                                #if !os(visionOS)
-                                .glassEffect()
-                                #endif
-                            }
                             LookAroundPreview(initialScene: lookAroundScene)
-                                .frame(width:geo.size.width - 32, height:geo.size.height - 64)
                                 .padding(16)
-                                .cornerRadius(16)
+                                .frame(width:geo.size.width, height:geo.size.height)
+                                .cornerRadius(32)
                         } else {
                             Map(initialPosition: .automatic, bounds: MapCameraBounds(minimumDistance: 1500, maximumDistance:250000)) {
                                 Marker(title, coordinate: placeCoordinate.coordinate)
@@ -78,29 +68,26 @@ struct PlaceDirectionsView: View {
                                 .pickerStyle(.palette)
                                 .padding(.horizontal, 16)
                         }
+                    }
+                }
+                .toolbar {
+                    ToolbarItemGroup {
+                        
                         if let source = model.source, let destination = model.destination {
                             let launchOptions = model.appleMapsLaunchOptions()
-                            HStack {
-                                if model.lookAroundScene != nil {
-                                    Button("Look Around", systemImage: "binoculars.fill") {
-                                        model.showLookAroundScene.toggle()
-                                    }
-                                    .padding()
-#if !os(visionOS)
-                                    .buttonStyle(.glass)
-                                    #endif
-                                }
-                                Spacer()
-                                Button("Maps", systemImage: "apple.logo") {
-                                    MKMapItem.openMaps(with: [source,destination], launchOptions: launchOptions)
-                                }
-                                .padding()
-#if !os(visionOS)
-                                    .buttonStyle(.glass)
-                                    #endif
-                                Spacer()
+                            Button("Maps", systemImage: "map") {
+                                MKMapItem.openMaps(with: [source,destination], launchOptions: launchOptions)
                             }
-                            .padding()
+                            
+                            if model.lookAroundScene != nil && !model.showLookAroundScene {
+                                Button("Look Around", systemImage: "binoculars") {
+                                    model.showLookAroundScene.toggle()
+                                }
+                            } else if model.lookAroundScene != nil && model.showLookAroundScene {
+                                Button("Directions", systemImage:"list.number") {
+                                    model.showLookAroundScene.toggle()
+                                }
+                            }
                         }
                     }
                 }
@@ -159,19 +146,19 @@ struct PlaceDirectionsView: View {
                 }
             }
             .onChange(of: model.transportType) { oldValue, newValue in
-                    guard let sourceLocation = model.source?.placemark.location, let result = modelController.placeChatResult(for: resultId), let placeResponse = result.placeResponse else {
-                        return
-                    }
-                    
-                    Task{
-                        do {
-                            try await model.refreshDirections(with: sourceLocation, destination:CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude))
-                        } catch {
-                            print(error)
-                            modelController.analyticsManager.trackError(error:error, additionalInfo:nil)
-                        }
+                guard let sourceLocation = model.source?.placemark.location, let result = modelController.placeChatResult(for: resultId), let placeResponse = result.placeResponse else {
+                    return
+                }
+                
+                Task{
+                    do {
+                        try await model.refreshDirections(with: sourceLocation, destination:CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude))
+                    } catch {
+                        print(error)
+                        modelController.analyticsManager.trackError(error:error, additionalInfo:nil)
                     }
                 }
+            }
         }
         else {
             ContentUnavailableView("No route available", systemImage: "x.circle.fill")

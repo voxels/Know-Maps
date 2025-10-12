@@ -60,26 +60,19 @@ struct PlacesList: View {
                                                 .foregroundStyle(.secondary)
                                         }
                                         .frame(width: itemWidth, height: reservedHeight)
-                                        .clipShape(RoundedRectangle(cornerRadius: 32, style: .continuous))
                                     } else {
                                         ZStack {
                                             Rectangle().fill(.secondary.opacity(0.10))
                                             ProgressView()
                                         }
                                         .frame(width: itemWidth, height:reservedHeight)
-                                        .clipShape(RoundedRectangle(cornerRadius: 32, style: .continuous))
                                     }
                                 }
                                 .contentTransition(.opacity)
                                 .frame(maxWidth: itemWidth, maxHeight:reservedHeight)
-                                .clipShape(RoundedRectangle(cornerRadius: 32, style: .continuous))
-#if os(visionOS)
-                                .hoverEffect(.lift)
-#endif
                             } else {
                                 Color.clear
                                     .frame(maxWidth: itemWidth, maxHeight:reservedHeight)
-                                    .clipShape(RoundedRectangle(cornerRadius: 32, style: .continuous))
                             }
                             
                             VStack(alignment: .leading, spacing:4) {
@@ -98,11 +91,19 @@ struct PlacesList: View {
 #if !os(visionOS)
                             .glassEffect(.regular, in: .rect(cornerRadius: 32))
                             .padding(16)
+#else
+                            .background(.ultraThinMaterial)
+                            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                            .padding(16)
 #endif
                         }
                         .clipShape(RoundedRectangle(cornerRadius: 32, style: .continuous))
-                        .gridCellAnchor(.top)
+                        .contentShape(RoundedRectangle(cornerRadius: 32, style: .continuous))
+#if os(visionOS)
+                        .hoverEffect(.lift)
+#endif
                     }
+                    .buttonStyle(.plain)
                     .simultaneousGesture(TapGesture().onEnded {
                         modelController.selectedPlaceChatResult = result.id
                         Task { @MainActor in
@@ -130,20 +131,30 @@ struct PlacesList: View {
             LazyVGrid(columns: columns, alignment: .leading, spacing: 32) {
                 ForEach(modelController.filteredPlaceResults) { result in
                     NavigationLink(value: result.id) {
-                        VStack(alignment: .leading) {
-                            Text(result.title).bold()
-                            if let placeResponse = result.placeResponse, !placeResponse.formattedAddress.isEmpty {
-                                Text(placeResponse.formattedAddress)
+                        ZStack(alignment: .topLeading) {
+                            VStack(alignment: .leading) {
+                                Text(result.title).bold()
+                                if let placeResponse = result.placeResponse, !placeResponse.formattedAddress.isEmpty {
+                                    Text(placeResponse.formattedAddress)
+                                }
                             }
-                        }
-                        .padding()
-                        .contentTransition(.opacity)
+                            .padding()
+                            .contentTransition(.opacity)
 #if !os(visionOS)
-                        .glassEffect()
+                            .background(.thinMaterial)
+                            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
 #else
+                            .background(.ultraThinMaterial)
+                            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+#endif
+                        }
+                        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                        .contentShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+#if os(visionOS)
                         .hoverEffect(.lift)
 #endif
                     }
+                    .buttonStyle(.plain)
                     .simultaneousGesture(TapGesture().onEnded {
                         modelController.selectedPlaceChatResult = result.id
                         Task { @MainActor in
@@ -227,3 +238,4 @@ struct PlacesList: View {
         }
     }
 }
+

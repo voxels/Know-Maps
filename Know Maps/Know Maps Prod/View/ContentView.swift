@@ -49,6 +49,7 @@ struct ContentView: View {
     @Environment(\.openImmersiveSpace) var openImmersiveSpace
     @Environment(\.dismissImmersiveSpace) var dismissImmersiveSpace
 #endif
+    @Environment(\.dismiss) private var dismiss
     
     @ObservedObject var settingsModel:AppleAuthenticationService
     @Binding var chatModel:ChatResultViewModel
@@ -98,12 +99,15 @@ struct ContentView: View {
                     }
                 
             }
-            .containerBackground(Color(.clear), for:.navigation)
+#if !os(visionOS)
+            .containerBackground(Color(.clear), for: .navigation)
+            #endif
             .tabViewStyle(.sidebarAdaptable)
             .sheet(item: $searchSavedViewModel.editingRecommendationWeightResult) { selectedResult in
                 recommendationWeightSheet(for: selectedResult)
                     .presentationDetents([.medium])
                     .presentationDragIndicator(.visible)
+                    .interactiveDismissDisabled(false)
                     .presentationCompactAdaptation(.sheet)
             }
             .onAppear(perform: {
@@ -215,42 +219,8 @@ struct ContentView: View {
         filterView()
             .presentationDetents([.large, .medium])
             .presentationDragIndicator(.visible)
+            .interactiveDismissDisabled(false)
             .presentationCompactAdaptation(.sheet)
-    }
-    
-    func placesList()-> some View {
-        PlacesList(searchSavedViewModel:$searchSavedViewModel,chatModel: $chatModel, cacheManager:$cacheManager, modelController: $modelController, showMapsResultViewSheet: $showMapsResultViewSheet)
-            .alert("Unknown Place", isPresented: $didError) {
-                Button(action: {
-                    DispatchQueue.main.async {
-                        withAnimation {
-                            modelController.selectedPlaceChatResult = nil
-                        }
-                    }
-                }, label: {
-                    Text("Go Back")
-                })
-            } message: {
-                Text("We don't know much about this place.")
-            }
-    }
-    
-    func placesSelectionList() -> some View {
-        List(selection: $modelController.selectedPlaceChatResult) {
-            ForEach(modelController.filteredPlaceResults, id: \.id) { parent in
-                VStack(alignment: .leading) {
-                    Text(parent.title)
-                        .font(.headline)
-                    if let placeResponse = parent.placeResponse, !placeResponse.formattedAddress.isEmpty {
-                        Text(placeResponse.formattedAddress)
-                            .font(.subheadline)
-                    }
-                }
-            }
-        }
-#if os(iOS) || os(visionOS)
-        .listStyle(.insetGrouped)
-#endif
     }
     
     
@@ -266,7 +236,7 @@ struct ContentView: View {
                 searchSavedViewModel.updateRating(for: selectedResult, rating: 0, cacheManager: cacheManager, modelController: modelController)
                 showAddRecommendationView = false
             }) {
-                Label("Recommend rarely", systemImage: "circle.slash")
+                Label("Recommend rarely", systemImage: "star.slash")
                     .foregroundColor(.red)
                     .frame(maxWidth: .infinity)
             }.buttonStyle(.borderless)
@@ -276,7 +246,7 @@ struct ContentView: View {
                 showAddRecommendationView = false
                 
             }) {
-                Label("Recommend occasionally", systemImage: "circle")
+                Label("Recommend occasionally", systemImage: "star.leadinghalf.filled")
                     .foregroundColor(.accentColor)
                     .frame(maxWidth: .infinity)
             }.buttonStyle(.borderless)
@@ -286,7 +256,7 @@ struct ContentView: View {
                 searchSavedViewModel.updateRating(for: selectedResult, rating: 3,  cacheManager: cacheManager, modelController: modelController)
                 showAddRecommendationView = false
             }) {
-                Label("Recommend often", systemImage: "circle.fill")
+                Label("Recommend often", systemImage: "star.fill")
                     .foregroundColor(.green)
                     .frame(maxWidth: .infinity)
             }.buttonStyle(.borderless)
@@ -301,11 +271,12 @@ struct ContentView: View {
                 // Sidebar with mode picker and corresponding search sidebar content
                 VStack(alignment: .leading, spacing: 8) {
                     Picker("Search Mode", selection: $searchMode) {
-                        Text("Favorites").tag(SearchMode.favorites)
-                        Text("Industries").tag(SearchMode.industries)
-                        Text("Features").tag(SearchMode.features)
-                        Text("Places").tag(SearchMode.places)
+                        Text("❤️").accessibilityLabel("Favorites").accessibilityHint("Show your saved favorites").tag(SearchMode.favorites)
+                        Text("🏭").accessibilityLabel("Industries").accessibilityHint("Browse by industry categories").tag(SearchMode.industries)
+                        Text("✨").accessibilityLabel("Features").accessibilityHint("Browse by feature preferences").tag(SearchMode.features)
+                        Text("📍").accessibilityLabel("Places").accessibilityHint("Browse places directly").tag(SearchMode.places)
                     }
+                    .labelsHidden()
                     .pickerStyle(.segmented)
                     
                     switch searchMode {
@@ -340,11 +311,6 @@ struct ContentView: View {
             }
         } detail: {
             detailPlacesStack()
-//                .toolbar {
-//                    ToolbarItem{
-//                        AddPromptToolbarView(viewModel: $searchSavedViewModel, chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, section:$modelController.section, multiSelection: $multiSelection, searchMode: $searchMode)
-//                    }
-//                }
         }
     }
     
@@ -383,25 +349,6 @@ struct ContentView: View {
                         modelController.selectedPlaceChatResult = nil
                     }
                 }
-                .task {
-                    if modelController.selectedPlaceChatResult != placeID {
-                        modelController.selectedPlaceChatResult = placeID
-                    }
-                }
-            }
-        }
-    }
-    
-    func search(intent:AssistiveChatHostService.Intent, searchText: String) {
-        if !searchText.isEmpty {
-            Task(priority:.userInitiated) {
-                await searchSavedViewModel.search(
-                    caption: searchText,
-                    selectedDestinationChatResultID: modelController.selectedDestinationLocationChatResult, intent: intent, filters: searchSavedViewModel.filters,
-                    chatModel: chatModel,
-                    cacheManager: cacheManager,
-                    modelController: modelController
-                )
             }
         }
     }

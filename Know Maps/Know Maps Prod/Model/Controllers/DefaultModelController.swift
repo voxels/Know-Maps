@@ -829,9 +829,10 @@ public final class DefaultModelController : ModelController {
         let placeResponses = intent.placeSearchResponses
         let caption = intent.caption
         let sectionResolver = assistiveHostDelegate
-        
+
         // Heavy compute off-main: build chatResults
-        let chatResults: [ChatResult] = try await Task.detached(priority: .userInitiated) { () -> [ChatResult] in
+        let chatResults: [ChatResult] = await Task.detached(priority: .userInitiated) { () -> [ChatResult] in
+            
             var results: [ChatResult] = []
             if hasSelected, let response = intent.selectedPlaceSearchResponse, let details = intent.selectedPlaceSearchDetails {
                 let r = PlaceResponseFormatter.placeChatResults(
@@ -865,15 +866,12 @@ public final class DefaultModelController : ModelController {
             return results
         }.value
         
-        // Fire related in the background (does not block)
-        Task {
-            try? await relatedPlaceQueryModel(intent: intent, cacheManager: cacheManager)
-        }
         
         // Compute mapResults + selectedPlace and apply on main actor
         let mapResults = filteredPlaceResults.contains(where: { $0.identity == intent.selectedPlaceSearchResponse?.fsqID }) ? placeResults : chatResults
         let selectedPlace = placeResults.first(where: { $0.placeResponse?.fsqID == intent.selectedPlaceSearchResponse?.fsqID })?.id
-        
+        try await relatedPlaceQueryModel(intent: intent, cacheManager: cacheManager)
+
         updateAllResults(
             places: chatResults,
             mapPlaces: mapResults,
@@ -1074,7 +1072,6 @@ public final class DefaultModelController : ModelController {
         let relatedResponses = intent.relatedPlaceSearchResponses ?? []
         let caption = intent.caption
         let sectionResolver = assistiveHostDelegate
-        let recommender = recommenderService
         
         // Early exit
         if relatedResponses.isEmpty {
@@ -1083,98 +1080,9 @@ public final class DefaultModelController : ModelController {
         }
         
         // Heavy compute off-main
-        let sortedResults: [ChatResult] = try await Task.detached(priority: .userInitiated) { () -> [ChatResult] in
+        let sortedResults: [ChatResult] = await Task.detached(priority: .userInitiated) { () -> [ChatResult] in
             var relatedChatResults: [ChatResult] = []
             
-#if canImport(CreateML)
-            if !relatedResponses.isEmpty {
-                if relatedResponses.count > 1 {
-                    // Optionally blend in training from recommended results
-                    var trainingData = recommender.recommendationData(
-                        tasteCategoryResults: cacheManager.cachedTasteResults,
-                        industryCategoryResults: cacheManager.cachedIndustryResults,
-                        placeRecommendationData: cacheManager.cachedRecommendationData
-                    )
-                    if let rec = intent.recommendedPlaceSearchResponses, !rec.isEmpty {
-                        let extra = recommender.testingData(with: rec)
-                        trainingData.append(contentsOf: extra)
-                    }
-                    
-                    let model = try? recommender.model(with: trainingData)
-                    let testingData = recommender.testingData(with: relatedResponses)
-                    let recResults = (try? (model != nil ? recommender.recommend(from: testingData, with: model!) : [])) ?? []
-                    
-                    for index in 0..<relatedResponses.count {
-                        let response = relatedResponses[index]
-                        guard !response.fsqID.isEmpty else { continue }
-                        let rating = index < recResults.count ? (recResults[index].attributeRatings.first?.value ?? 1) : 1
-                        
-                        let placeResponse = PlaceSearchResponse(
-                            fsqID: response.fsqID,
-                            name: response.name,
-                            categories: response.categories,
-                            latitude: response.latitude,
-                            longitude: response.longitude,
-                            address: response.address,
-                            addressExtended: response.formattedAddress,
-                            country: response.country,
-                            dma: response.neighborhood,
-                            formattedAddress: response.formattedAddress,
-                            locality: response.city,
-                            postCode: response.postCode,
-                            region: response.state,
-                            chains: [],
-                            link: "",
-                            childIDs: [],
-                            parentIDs: []
-                        )
-                        
-                        let results = PlaceResponseFormatter.placeChatResults(
-                            for: intent,
-                            place: placeResponse,
-                            section: sectionResolver.section(for: caption),
-                            list: caption,
-                            index: index,
-                            rating: rating,
-                            details: nil,
-                            recommendedPlaceResponse: response
-                        )
-                        relatedChatResults.append(contentsOf: results)
-                    }
-                } else if let response = relatedResponses.first, !response.fsqID.isEmpty {
-                    let placeResponse = PlaceSearchResponse(
-                        fsqID: response.fsqID,
-                        name: response.name,
-                        categories: response.categories,
-                        latitude: response.latitude,
-                        longitude: response.longitude,
-                        address: response.address,
-                        addressExtended: response.formattedAddress,
-                        country: response.country,
-                        dma: response.neighborhood,
-                        formattedAddress: response.formattedAddress,
-                        locality: response.city,
-                        postCode: response.postCode,
-                        region: response.state,
-                        chains: [],
-                        link: "",
-                        childIDs: [],
-                        parentIDs: []
-                    )
-                    let results = PlaceResponseFormatter.placeChatResults(
-                        for: intent,
-                        place: placeResponse,
-                        section: sectionResolver.section(for: caption),
-                        list: caption,
-                        index: 0,
-                        rating: 1,
-                        details: nil,
-                        recommendedPlaceResponse: response
-                    )
-                    relatedChatResults.append(contentsOf: results)
-                }
-            }
-#else
             for index in 0..<relatedResponses.count {
                 let response = relatedResponses[index]
                 guard !response.fsqID.isEmpty else { continue }
@@ -1209,7 +1117,6 @@ public final class DefaultModelController : ModelController {
                 )
                 relatedChatResults.append(contentsOf: results)
             }
-#endif
             
             let sorted = relatedChatResults.sorted { lhs, rhs in
                 if lhs.rating == rhs.rating { return lhs.index < rhs.index }
@@ -1328,18 +1235,19 @@ public final class DefaultModelController : ModelController {
         
         // Do the details fetch off-main
         let detailsResponse = try? await Task.detached(priority: .utility) { () -> PlaceDetailsResponse? in
-            let params = try? await delegate.defaultParameters(for: caption, filters: [:])
-            let intent = AssistiveChatHostIntent(
+            let params = try? await self.assistiveHostDelegate.defaultParameters(for: caption, filters: [:])
+            let intent = await AssistiveChatHostIntent(
                 caption: caption,
                 intent: .Place,
                 selectedPlaceSearchResponse: basePlaceResponse,
                 selectedPlaceSearchDetails: nil,
                 placeSearchResponses: [basePlaceResponse],
-                selectedDestinationLocationID: selectedID,
+                selectedDestinationLocationID: self.selectedDestinationLocationChatResult,
                 placeDetailsResponses: nil,
                 queryParameters: params
             )
-            try await service.detailIntent(intent: intent, cacheManager: cacheManager)
+            try await self.placeSearchService.detailIntent(intent: intent, cacheManager: cacheManager)
+            try await self.relatedPlaceQueryModel(intent: intent, cacheManager: cacheManager)
             return intent.selectedPlaceSearchDetails
         }.value
         
@@ -1364,7 +1272,6 @@ public final class DefaultModelController : ModelController {
         
         update(&placeResults)
         update(&recommendedPlaceResults)
-        update(&relatedPlaceResults)
     }
     
     public func receiveMessage(caption: String, parameters: AssistiveChatHostQueryParameters, isLocalParticipant: Bool) async throws {

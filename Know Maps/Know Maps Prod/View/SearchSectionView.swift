@@ -18,5 +18,6 @@ struct SearchSectionView: View {
             }
         }
         .listStyle(.insetGrouped)
+        .listRowBackground(Color(.systemGroupedBackground))
     }
 }

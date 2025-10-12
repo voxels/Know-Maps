@@ -52,6 +52,7 @@ struct SearchCategoryView: View {
             }
         }
         .listStyle(.insetGrouped)
+        .listRowBackground(Color(.systemGroupedBackground))
 
         #if os(macOS)
         .searchable(text: $searchText, prompt: "Search Categories")
@@ -100,40 +101,56 @@ struct SearchCategoryView: View {
     
     @ViewBuilder
     func ratingButton(for parent: CategoryResult) -> some View {
-        switch parent.rating {
-        case ..<1:
-            Button(action: {
-                searchSavedViewModel.editingRecommendationWeightResult = parent
-            }) {
-                Label("Never", systemImage: "circle.slash")
-                    .foregroundColor(.red)
+        
+        let isSaved = cacheManager.cachedPlaceResults.contains(where: { $0.parentCategory == parent.parentCategory })
+        
+        if isSaved, let rating = cacheManager.cachedPlaceResults.first(where: { $0.parentCategory == parent.parentCategory })?.rating {
+            switch rating {
+            case ..<1:
+                Button(action: {
+                    searchSavedViewModel.editingRecommendationWeightResult = parent
+                }) {
+                    Label("Never", systemImage: "star.slash")
+                        .foregroundColor(.red)
+                }
+                .frame(width: 44, height:44)
+                .buttonStyle(BorderlessButtonStyle())
+                .labelStyle(.iconOnly)
+            case 1..<3:
+                Button(action: {
+                    searchSavedViewModel.editingRecommendationWeightResult = parent
+                }) {
+                    Label("Occasionally", systemImage: "star.leadinghalf.filled")
+                        .foregroundColor(.accentColor)
+                }
+                .frame(width: 44, height:44)
+                .buttonStyle(BorderlessButtonStyle())
+                .labelStyle(.iconOnly)
+            case 3...:
+                Button(action: {
+                    searchSavedViewModel.editingRecommendationWeightResult = parent
+                }) {
+                    Label("Often", systemImage: "star.fill")
+                        .foregroundColor(.green)
+                }
+                .frame(width: 44, height:44)
+                .buttonStyle(BorderlessButtonStyle())
+                .labelStyle(.iconOnly)
+            default:
+                EmptyView()
             }
-            .frame(width: 44, height:44)
-            .buttonStyle(BorderlessButtonStyle())
-            .labelStyle(.iconOnly)
-        case 1..<3:
+        } else {
             Button(action: {
                 searchSavedViewModel.editingRecommendationWeightResult = parent
             }) {
-                Label("Occasionally", systemImage: "circle")
+                Label("Occasionally", systemImage: "star.leadinghalf.filled")
                     .foregroundColor(.accentColor)
             }
             .frame(width: 44, height:44)
             .buttonStyle(BorderlessButtonStyle())
             .labelStyle(.iconOnly)
-        case 3...:
-            Button(action: {
-                searchSavedViewModel.editingRecommendationWeightResult = parent
-            }) {
-                Label("Often", systemImage: "circle.fill")
-                    .foregroundColor(.green)
-            }
-            .frame(width: 44, height:44)
-            .buttonStyle(BorderlessButtonStyle())
-            .labelStyle(.iconOnly)
-        default:
-            EmptyView()
         }
     }
+    
     
 }

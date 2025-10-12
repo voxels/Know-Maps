@@ -32,7 +32,7 @@ struct AddTasteView: View {
                                         multiSelection.remove(tasteResult.id)
                                     }
                                 }) {
-                                    Label("Recommend rarely", systemImage: "circle.slash")
+                                    Label("Recommend rarely", systemImage: "star.slash")
                                         .labelStyle(.titleAndIcon)
                                 }.padding(16)
                                 Button(action: {
@@ -41,7 +41,7 @@ struct AddTasteView: View {
                                         multiSelection.remove(tasteResult.id)
                                     }
                                 }) {
-                                    Label("Recommend occasionally", systemImage: "circle")
+                                    Label("Recommend occasionally", systemImage: "star.leadinghalf.filled")
                                         .labelStyle(.titleAndIcon)
                                 }.padding(16)
                                 Button(action: {
@@ -50,7 +50,7 @@ struct AddTasteView: View {
                                         multiSelection.remove(tasteResult.id)
                                     }
                                 }) {
-                                    Label("Recommend often", systemImage: "circle.fill")
+                                    Label("Recommend often", systemImage: "star.fill")
                                         .labelStyle(.titleAndIcon)
                                 }
                                 .padding(16)

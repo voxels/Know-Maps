@@ -150,8 +150,8 @@ public final class DefaultPlaceSearchService: PlaceSearchService {
         if intent.selectedPlaceSearchDetails == nil {
             if let placeSearchResponse = intent.selectedPlaceSearchResponse {
                 intent.selectedPlaceSearchDetails = try await fetchDetails(for: [placeSearchResponse]).first
-                intent.placeDetailsResponses = [intent.selectedPlaceSearchDetails!]
                 intent.relatedPlaceSearchResponses = try await fetchRelatedPlaces(for: placeSearchResponse.fsqID, cacheManager: cacheManager)
+                intent.placeDetailsResponses = [intent.selectedPlaceSearchDetails!]
             }
         }
     }

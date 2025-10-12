@@ -34,26 +34,17 @@ struct SearchPlacesView: View {
     @State private var searchText: String = "" // State for search text
     
     var body: some View {
-        List(selection: $modelController.selectedPlaceChatResult) {
+        VStack {
             TipView(NavigationLocationMenuIconTip())
             if let selectedDestinationLocationChatResult = modelController.selectedDestinationLocationChatResult, let locationChatResult = modelController.locationChatResult(for: selectedDestinationLocationChatResult, in: (modelController.filteredLocationResults(cacheManager: cacheManager))) {
                 let locationName = locationChatResult.locationName
                 Text("\(modelController.placeResults.count) places found near \(locationName)")
+                    .padding(.vertical)
             } else {
                 Text("Choose a location to search for places")
             }
-            // Use filtered results here
-            ForEach(modelController.filteredPlaceResults, id: \.id) { parent in
-                VStack(alignment: .leading) {
-                    Text(parent.title)
-                        .font(.headline)
-                    if let placeResponse = parent.placeResponse     {
-                        Text(placeResponse.formattedAddress).font(.subheadline)
-                    }
-                }
-            }
+            Spacer()
         }
-        .listStyle(.insetGrouped)
 #if os(macOS)
         .searchable(text: $searchText, prompt: "Search by place name")
 #else
@@ -66,20 +57,5 @@ struct SearchPlacesView: View {
                 }
             }
         })
-    }
-    
-    
-    func search(intent:AssistiveChatHostService.Intent) {
-        if !searchText.isEmpty {
-            Task(priority:.userInitiated) {
-                await searchSavedViewModel.search(
-                    caption: searchText,
-                    selectedDestinationChatResultID: modelController.selectedDestinationLocationChatResult, intent: intent, filters: searchSavedViewModel.filters,
-                    chatModel: chatModel,
-                    cacheManager: cacheManager,
-                    modelController: modelController
-                )
-            }
-        }
     }
 }

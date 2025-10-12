@@ -19,18 +19,20 @@ struct PlaceView: View {
     var body: some View {
         if let selectedPlaceID = selectedPlaceID,let placeChatResult = modelController.placeChatResult(for:selectedPlaceID ) {
             VStack {
-                Picker("About", selection: $tabItem) {
-                    Text("About").tag(0)
-                    Text("Directions").tag(1)
-                    if let detailsResponses = placeChatResult.placeDetailsResponse, let photoResponses = detailsResponses.photoResponses, photoResponses.count > 0 {
-                        Text("Photos").tag(2)
+                if let detailsResponses = placeChatResult.placeDetailsResponse {
+                    Picker("About", selection: $tabItem) {
+                        Text("About").tag(0)
+                        Text("Directions").tag(1)
+                        if let photoResponses = detailsResponses.photoResponses, photoResponses.count > 0 {
+                            Text("Photos").tag(2)
+                        }
+                        if let tipsResponses = detailsResponses.tipsResponses, tipsResponses.count > 0 {
+                            Text("Tips").tag(3)
+                        }
                     }
-                    if let detailsResponses = placeChatResult.placeDetailsResponse, let tipsResponses = detailsResponses.tipsResponses, tipsResponses.count > 0 {
-                        Text("Tips").tag(3)
-                    }
+                    .padding()
+                    .pickerStyle(.palette)
                 }
-                .padding()
-                .pickerStyle(.palette)
                 switch tabItem {
                 case 0:
                     PlaceAboutView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, tabItem: $tabItem)
@@ -77,25 +79,11 @@ struct PlaceView: View {
                         }
                     }
                 default:
-                    VStack {
-                        Spacer()
-                        Spacer()
-                    }
+                    EmptyView()
                 }
             }
             .navigationTitle(placeChatResult.title)
             .id(placeChatResult.id)
-            .onChange(of: placeChatResult.placeDetailsResponse) { _, newValue in
-                if newValue != nil {
-                    modelController.isRefreshingPlaces = false
-                }
-            }
-            .onChange(of: modelController.isRefreshingPlaces) { _, newValue in
-                if newValue == false {
-                    // Trigger a refresh of the view hierarchy when loading completes
-                    _ = placeChatResult.title
-                }
-            }
         } else {
             VStack {
                 Spacer()

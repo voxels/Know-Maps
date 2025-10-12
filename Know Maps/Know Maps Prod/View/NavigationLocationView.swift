@@ -60,6 +60,12 @@ struct NavigationLocationView: View {
                     listView(geometry: geometry)
                 }
                 .toolbar {
+                    ToolbarItem(placement: .navigationBarLeading) {
+                        Button("Done", systemImage: "chevron.backward") {
+                            dismiss()
+                        }
+                            .buttonStyle(.automatic)
+                    }
                     ToolbarItem(placement: .navigationBarTrailing) {
                         Button(action: {
                             addSelectedLocation()
@@ -233,15 +239,11 @@ struct NavigationLocationView: View {
         guard let query, !query.isEmpty else { return }
         
         Task(priority:.userInitiated) {
-            await searchSavedViewModel.search(
-                caption: query,
-                selectedDestinationChatResultID: selectedLocationId, 
-                intent: intent, 
-                filters: searchSavedViewModel.filters,
-                chatModel: chatModel,
-                cacheManager: cacheManager,
-                modelController: modelController
-            )
+            do {
+                try await chatModel.didSearch(caption:query, selectedDestinationChatResultID:modelController.selectedDestinationLocationChatResult, intent:intent, filters: searchSavedViewModel.filters, cacheManager: cacheManager, modelController: modelController)
+            } catch {
+                modelController.analyticsManager.trackError(error:error, additionalInfo: nil)
+            }
             
             if intent == .Location {
                 // Refresh results and validate selection after location search
@@ -252,16 +254,6 @@ struct NavigationLocationView: View {
                         selectedLocationId = modelController.selectedDestinationLocationChatResult
                     }
                 }
-                
-                await searchSavedViewModel.search(
-                    caption: query, 
-                    selectedDestinationChatResultID: selectedLocationId, 
-                    intent: .Search, 
-                    filters:searchSavedViewModel.filters, 
-                    chatModel: chatModel, 
-                    cacheManager: cacheManager, 
-                    modelController: modelController
-                )
             }
         }
     }
