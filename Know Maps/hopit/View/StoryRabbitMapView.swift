@@ -20,6 +20,8 @@ struct StoryRabbitMapView: View {
     @State private var currentLocationName:String? = nil
     @State private var lookupTask: Task<Void, Never>?
     @State private var selectedTour:Tour? = nil
+    @State private var currentPOIs:[POI] = []
+    @State private var currentTours:[Tour] = []
     @State private var navigateToPlayer = false
     @State private var isPlayerActive = false // Track if player is active
 
@@ -50,7 +52,7 @@ struct StoryRabbitMapView: View {
                             )) {
                                     List{
                                         Section {
-                                            ForEach(modelController.currentTours){ tour in
+                                            ForEach(currentTours){ tour in
                                                 Button {
                                                     selectedTour = tour
                                                     sheetIsPresented = false
@@ -98,7 +100,7 @@ struct StoryRabbitMapView: View {
                                         cacheManager: $cacheManager, 
                                         modelController: $modelController, 
                                         searchSavedViewModel: $searchSavedViewModel,
-                                        selectedTour: .constant(selectedTour)
+                                        selectedTour: $selectedTour, currentPOIs: $currentPOIs
                                     )
                                     .onAppear {
                                         isPlayerActive = true
@@ -118,6 +120,14 @@ struct StoryRabbitMapView: View {
                             }
                     })
                 }
+            }
+        }
+        .task {
+            do {
+                currentPOIs = try await SupabaseService.shared.fetchPOIs()
+                currentTours = try await SupabaseService.shared.fetchTours()
+            } catch {
+                modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
             }
         }
     }

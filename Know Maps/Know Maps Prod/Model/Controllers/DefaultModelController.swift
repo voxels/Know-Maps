@@ -73,8 +73,6 @@ public final class DefaultModelController : ModelController {
     public let placeSearchService: PlaceSearchService
     public let analyticsManager: AnalyticsService
     public let recommenderService:RecommenderService
-//    public let supabaseService:SupabaseService
-    //    public var storyController:StoryRabbitController
     
     // MARK: - Published Properties
     
@@ -139,9 +137,6 @@ public final class DefaultModelController : ModelController {
     private var fetchingPlaceID: ChatResult.ID?
     private var sessionRetryCount: Int = 0
     
-    public var currentPOIs:[POI] = []
-    public var currentTours:[Tour] = []
-    
     // MARK: - Initializer
     
     public init(
@@ -155,7 +150,6 @@ public final class DefaultModelController : ModelController {
         self.placeSearchService = DefaultPlaceSearchService(assistiveHostDelegate: assistiveHostDelegate, placeSearchSession: PlaceSearchSession(), personalizedSearchSession: PersonalizedSearchSession(), analyticsManager: analyticsManager)
         self.locationService = DefaultLocationService(locationProvider: locationProvider)
         self.recommenderService = DefaultRecommenderService()
-//        self.supabaseService = SupabaseService.shared
         
         // Initialize selectedDestinationLocationChatResult to current location
         self.setSelectedLocation(LocationResult(locationName: "Current Location", location: CLLocation(latitude: 37.333562, longitude: -122.004927)).id)
@@ -472,9 +466,6 @@ public final class DefaultModelController : ModelController {
             setSelectedLocation(currentlySelectedLocationResult.id)
         }
         
-        // Fetch new data
-        currentPOIs = try await SupabaseService.shared.fetchPOIs()
-        currentTours = try await SupabaseService.shared.fetchTours()
         
         // Always repopulate industry results after reset
         await categoricalSearchModel()

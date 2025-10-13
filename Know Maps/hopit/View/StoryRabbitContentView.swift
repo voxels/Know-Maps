@@ -37,13 +37,6 @@ struct StoryRabbitContentView: View {
                     .tabItem {
                         Label("Explore", systemImage: "globe.americas")
                     }
-                    .task {
-                        do {
-                            try await modelController.resetPlaceModel()
-                        } catch {
-                            modelController.analyticsManager.trackError(error:error, additionalInfo: ["Context":"StoryRabbitContentView"])
-                        }
-                    }
                 StoryRabbitSettingsView()
                     .tabItem {
                         Label("Settings", systemImage: "gear")

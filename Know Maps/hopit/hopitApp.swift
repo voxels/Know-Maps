@@ -296,20 +296,6 @@ struct hopitApp: App {
         let cloudAuth = !authenticationModel.appleUserId.isEmpty
         
         let isLocationAuthorized = modelController.locationProvider.isAuthorized()
-        if isLocationAuthorized  {
-            Task { @MainActor in
-                let location = modelController.locationService.currentLocation()
-                if let name = try? await modelController.locationService.currentLocationName() {
-                    modelController.currentlySelectedLocationResult.replaceLocation(with: location, name: name)
-                    modelController.selectedDestinationLocationChatResult = modelController.currentlySelectedLocationResult.id
-                }
-            }
-        } else {
-            let location = modelController.locationService.currentLocation()
-            let name = "Current Location"
-            modelController.currentlySelectedLocationResult.replaceLocation(with: location, name: name)
-            modelController.selectedDestinationLocationChatResult = modelController.currentlySelectedLocationResult.id
-        }
         
         await MainActor.run {
             if cloudAuth, cacheManager.cloudCache.hasFsqAccess, isLocationAuthorized {

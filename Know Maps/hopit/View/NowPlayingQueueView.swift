@@ -27,7 +27,7 @@ import NukeUI
 struct NowPlayingQueueView: View {
     @Binding var selectedTour:Tour?
     @Binding var selectedPOI: POI
-    let pois: [POI] // Add this to access all POIs
+    @Binding var currentPOIs: [POI] // Add this to access all POIs
     @Environment(\.dismiss) private var dismiss
     
     @StateObject private var player = QueuePlayerEngine(
@@ -227,7 +227,7 @@ struct NowPlayingQueueView: View {
             }
             .toolbar(.hidden, for: .tabBar) // Hide the tab bar
             .onAppear {
-                let tourPOIs = pois.filter { $0.tour_id == selectedPOI.tour_id }
+                let tourPOIs = currentPOIs.filter { $0.tour_id == selectedPOI.tour_id }
                 let startIndex = 0
                 player.replacePlaylist(tourPOIs, startAt: startIndex)
                 player.setTourTitleProvider { selectedTour?.title }
@@ -240,7 +240,7 @@ struct NowPlayingQueueView: View {
             }
             .onChange(of: selectedPOI.id) { _, _ in
                 // When selectedPOI changes, update the playlist and start playing
-                let tourPOIs = pois.filter { $0.tour_id == selectedPOI.tour_id }
+                let tourPOIs = currentPOIs.filter { $0.tour_id == selectedPOI.tour_id }
                 let startIndex = tourPOIs.firstIndex(of: selectedPOI) ?? 0
                 player.replacePlaylist(tourPOIs, startAt: startIndex)
                 // Automatically start playing the new POI

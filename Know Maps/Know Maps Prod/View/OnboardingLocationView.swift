@@ -30,24 +30,34 @@ struct OnboardingLocationView: View {
                 Button("Continue") {
                     Task {
                         modelController.locationProvider.authorize()
-                        locationIsAuthorized = modelController.locationProvider.isAuthorized()
                         
                         if locationIsAuthorized {
                             // Set the selected destination to current location after authorization
-                            await setCurrentLocationAsDestination()
+                            do {
+                                try await setCurrentLocationAsDestination()
+                            } catch {
+                                modelController.analyticsManager.trackError(error: error, additionalInfo:nil)
+                            }
                         }
                         
-                        alertPopverIsPresented = !locationIsAuthorized
+                        alertPopverIsPresented = !modelController.locationProvider.isAuthorized()
+                        locationIsAuthorized = modelController.locationProvider.isAuthorized()
                     }
                 }
                 .onAppear {
                     Task {
-                        modelController.locationProvider.authorize()
                         locationIsAuthorized = modelController.locationProvider.isAuthorized()
                         
                         if locationIsAuthorized {
-                            // Set the selected destination to current location on appear if already authorized
-                            await setCurrentLocationAsDestination()
+                            // Set the selected destination to current location after authorization
+                            do {
+                                try await setCurrentLocationAsDestination()
+                            } catch {
+                                modelController.analyticsManager.trackError(error: error, additionalInfo:nil)
+                            }
+                        } else {
+                            modelController.locationProvider.authorize()
+                            locationIsAuthorized = modelController.locationProvider.isAuthorized()
                         }
                     }
                 }
@@ -65,16 +75,11 @@ struct OnboardingLocationView: View {
             } else {
                 Button("Continue") {
                     Task {
-                        modelController.locationProvider.authorize()
-                        locationIsAuthorized = modelController.locationProvider.isAuthorized()
-                        
-                        if locationIsAuthorized {
-                            // Ensure the selected destination is set to current location
-                            await setCurrentLocationAsDestination()
-                        }
-                        
-                        if !settingsModel.appleUserId.isEmpty, locationIsAuthorized {
-                            showOnboarding = false
+                        // Set the selected destination to current location after authorization
+                        do {
+                            try await setCurrentLocationAsDestination()
+                        } catch {
+                            modelController.analyticsManager.trackError(error: error, additionalInfo:nil)
                         }
                     }
                 }.padding()
@@ -85,13 +90,14 @@ struct OnboardingLocationView: View {
     }
     
     // Helper method to set current location as destination
-    private func setCurrentLocationAsDestination() async {
+    private func setCurrentLocationAsDestination() async throws {
         // Ensure we have a valid current location
         if modelController.currentlySelectedLocationResult.location == nil {
             // Try to get current location if not available
             let currentLocation = modelController.locationService.currentLocation()
+            let name = try await modelController.locationService.currentLocationName()
             modelController.currentlySelectedLocationResult = LocationResult(
-                locationName: "Current Location",
+                locationName: name ?? "Current Location",
                 location: currentLocation
             )
         }

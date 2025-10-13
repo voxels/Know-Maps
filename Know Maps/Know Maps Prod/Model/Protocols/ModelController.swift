@@ -58,9 +58,6 @@ public protocol ModelController : Sendable {
     
     var filteredPlaceResults: [ChatResult] { get }
     
-    var currentPOIs:[POI] { get }
-    var currentTours:[Tour] { get }
-
     // MARK: - Init
     init(
         locationProvider: LocationProvider,
