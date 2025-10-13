@@ -51,8 +51,10 @@ struct SearchCategoryView: View {
                 }
             }
         }
+#if !os(macOS)
         .listStyle(.insetGrouped)
         .listRowBackground(Color(.systemGroupedBackground))
+        #endif
 
         #if os(macOS)
         .searchable(text: $searchText, prompt: "Search Categories")

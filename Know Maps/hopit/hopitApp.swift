@@ -131,7 +131,7 @@ struct hopitApp: App {
                         }
                         Spacer()
                     }
-                    .task(priority:.userInitiated) {
+                    .task(priority:.userInteractive) {
                         checkIfSignedInWithApple { signedIn in
                             if signedIn {
                                 Task {

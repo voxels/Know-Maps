@@ -59,7 +59,27 @@ struct NavigationLocationView: View {
                     makeFiltersView()
                     listView(geometry: geometry)
                 }
+                .frame(maxWidth: .infinity, maxHeight:.infinity, alignment: .init(horizontal: .center, vertical: .top))
                 .toolbar {
+                    #if os(macOS)
+                    ToolbarItem(placement: .primaryAction) {
+                        Button("Done", systemImage: "chevron.backward") {
+                            dismiss()
+                        }
+                            .buttonStyle(.automatic)
+                    }
+                    ToolbarItem(placement: .secondaryAction) {
+                        Button(action: {
+                            addSelectedLocation()
+                        }) {
+                            Image(systemName: "plus")
+                        }
+                        .disabled(selectedLocationId == nil || isSelectedLocationAlreadySaved())
+                        .accessibilityLabel("Add Selected Location")
+                        .accessibilityHint("Adds the currently selected location to your saved locations")
+                    }
+
+                    #else
                     ToolbarItem(placement: .navigationBarLeading) {
                         Button("Done", systemImage: "chevron.backward") {
                             dismiss()
@@ -76,6 +96,7 @@ struct NavigationLocationView: View {
                         .accessibilityLabel("Add Selected Location")
                         .accessibilityHint("Adds the currently selected location to your saved locations")
                     }
+                    #endif
                 }
                 .onAppear {
                     refreshLocationResults()

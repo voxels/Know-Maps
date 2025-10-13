@@ -9,15 +9,16 @@ import SwiftUI
 import MapKit
 
 struct PlaceView: View {
+    @Binding public var searchSavedViewModel:SearchSavedViewModel
     @Binding public var chatModel:ChatResultViewModel
     @Binding public var cacheManager:CloudCacheManager
     @Binding public var modelController:DefaultModelController
     @ObservedObject public var placeDirectionsViewModel:PlaceDirectionsViewModel
     @State private var tabItem = 0
-    var selectedPlaceID: ChatResult.ID?
+    public let selectedPlaceID:ChatResult.ID
 
     var body: some View {
-        if let selectedPlaceID = selectedPlaceID,let placeChatResult = modelController.placeChatResult(for:selectedPlaceID ) {
+        if let placeChatResult = modelController.placeChatResult(for: selectedPlaceID) {
             VStack {
                 if let detailsResponses = placeChatResult.placeDetailsResponse {
                     Picker("About", selection: $tabItem) {
@@ -30,12 +31,11 @@ struct PlaceView: View {
                             Text("Tips").tag(3)
                         }
                     }
-                    .padding()
                     .pickerStyle(.palette)
                 }
                 switch tabItem {
                 case 0:
-                    PlaceAboutView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, tabItem: $tabItem)
+                    PlaceAboutView(searchSavedViewModel:$searchSavedViewModel, chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, tabItem: $tabItem)
                         .tabItem {
                             Label("About", systemImage: "target")
                         }
@@ -87,10 +87,9 @@ struct PlaceView: View {
         } else {
             VStack {
                 Spacer()
-                if let _ = modelController.selectedPlaceChatResult {
+                if let _ = modelController.selectedPlaceFSQID {
                     // We have a target ID but haven't materialized the result yet; show fetch message
                     VStack(spacing: 8) {
-                        ProgressView()
                         Text(modelController.fetchMessage)
                             .font(.subheadline)
                     }

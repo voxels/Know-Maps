@@ -177,8 +177,8 @@ struct SavedListView: View {
                 }
 #if os(iOS) || os(visionOS)
                 .listStyle(InsetGroupedListStyle())
-#endif
                 .listRowBackground(Color(.systemGroupedBackground))
+#endif
                 .refreshable {
                     Task(priority: .userInitiated) {
                         do {

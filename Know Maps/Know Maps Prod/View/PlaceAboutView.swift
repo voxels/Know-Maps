@@ -3,10 +3,14 @@ import CoreLocation
 import MapKit
 import CallKit
 import NukeUI
+#if canImport(UIKit)
+import UIKit
+#endif
 
 struct PlaceAboutView: View {
     @Environment(\.openURL) private var openURL
     @Environment(\.horizontalSizeClass) var sizeClass
+    @Binding public var searchSavedViewModel:SearchSavedViewModel
     @Binding public var chatModel:ChatResultViewModel
     @Binding public var cacheManager:CloudCacheManager
     @Binding public var modelController:DefaultModelController
@@ -56,21 +60,40 @@ struct PlaceAboutView: View {
 
                             RatingsPriceShareRow(sizeClass: sizeClass, placeDetailsResponse: placeDetailsResponse, onShowReviews: { tabItem = 3 }, presentingPopover: $presentingPopover, isPresentingShareSheet: $isPresentingShareSheet) {
                                 if let result = modelController.placeChatResult(for: resultId), let placeDetailsResponse = result.placeDetailsResponse  {
-                                    let items:[Any] = [placeDetailsResponse.website ?? placeDetailsResponse.searchResponse.address]
-                                    ActivityViewController(activityItems:items, applicationActivities:[UIActivity](), isPresentingShareSheet: $isPresentingShareSheet)
+                                    let items: [Any] = [placeDetailsResponse.website ?? placeDetailsResponse.searchResponse.address]
+                                    #if os(macOS)
+                                    ActivityViewController(activityItems: items, isPresentingShareSheet: $isPresentingShareSheet)
                                         .presentationDetents([.medium])
                                         .presentationDragIndicator(.visible)
                                         .presentationCompactAdaptation(.sheet)
+                                    #else
+                                    ActivityViewController(activityItems: items, applicationActivities:[], isPresentingShareSheet: $isPresentingShareSheet)
+                                        .presentationDetents([.medium])
+                                        .presentationDragIndicator(.visible)
+                                        .presentationCompactAdaptation(.sheet)
+                                    #endif
                                 }
                             }
                             .padding(.horizontal, 16)
 
                             RelatedPlacesSection(relatedPlaceResults: modelController.relatedPlaceResults) { relatedPlace in
-                                Task(priority:.userInitiated) {
+                                Task { @MainActor in
+                                    modelController.fetchMessage = "Loading..."
                                     do {
-                                        try await chatModel.didTap(placeChatResult: relatedPlace,filters:[:], cacheManager: cacheManager, modelController: modelController)
+                                        try await modelController.resetPlaceModel()
+                                        try await chatModel.didSearch(
+                                            caption: relatedPlace.title,
+                                            selectedDestinationChatResultID: modelController.selectedDestinationLocationChatResult,
+                                            filters: searchSavedViewModel.filters,
+                                            cacheManager: cacheManager,
+                                            modelController: modelController
+                                        )
+                                        await MainActor.run {
+                                            modelController.isRefreshingPlaces = false
+                                        }
                                     } catch {
-                                        modelController.analyticsManager.trackError(error:error, additionalInfo: nil)
+                                        modelController.fetchMessage = "Failed to load details."
+                                        modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
                                     }
                                 }
                             }
@@ -224,21 +247,20 @@ private struct ActionButtonsRow: View {
             } label: {
                 let isSaved = CloudCacheManager.shared.cachedPlaces(contains: title)
                 Group {
-                    if sizeClass == .compact {
-                        Label(isSaved ? "Delete" : "Add to List", systemImage: isSaved ? "minus.circle" : "plus.circle")
-                            .labelStyle(.iconOnly)
-                            .padding(PlaceAboutView.defaultPadding)
-                    } else {
-                        Label(isSaved ? "Delete" : "Add to List", systemImage: isSaved ? "minus.circle" : "plus.circle")
-                            .labelStyle(.titleAndIcon)
-                            .padding(PlaceAboutView.defaultPadding)
-                    }
+                    Label(isSaved ? "Delete" : "Add to List", systemImage: isSaved ? "minus.circle" : "plus.circle")
+                        .labelStyle(.titleAndIcon)
+                        .padding(PlaceAboutView.defaultPadding)
                 }
             }
             .clipShape(RoundedRectangle(cornerRadius: PlaceAboutView.cornerRadius, style: .continuous))
             .contentShape(RoundedRectangle(cornerRadius: PlaceAboutView.cornerRadius, style: .continuous))
             .padding(PlaceAboutView.defaultPadding)
-            
+#if os(visionOS)
+.background(.ultraThinMaterial)
+#else
+.buttonStyle(.glass)
+#endif
+
 #if os(visionOS)
             .hoverEffect(.lift)
 #endif
@@ -263,7 +285,11 @@ private struct ActionButtonsRow: View {
                 .clipShape(RoundedRectangle(cornerRadius: PlaceAboutView.cornerRadius, style: .continuous))
                 .contentShape(RoundedRectangle(cornerRadius: PlaceAboutView.cornerRadius, style: .continuous))
                 .padding(PlaceAboutView.defaultPadding)
-                
+#if os(visionOS)
+.background(.ultraThinMaterial)
+#else
+.buttonStyle(.glass)
+#endif
 #if os(visionOS)
                 .hoverEffect(.lift)
 #endif
@@ -286,6 +312,11 @@ private struct ActionButtonsRow: View {
                 .clipShape(RoundedRectangle(cornerRadius: PlaceAboutView.cornerRadius, style: .continuous))
                 .contentShape(RoundedRectangle(cornerRadius: PlaceAboutView.cornerRadius, style: .continuous))
                 .padding(PlaceAboutView.defaultPadding)
+#if os(visionOS)
+.background(.ultraThinMaterial)
+#else
+.buttonStyle(.glass)
+#endif
 #if os(visionOS)
                 .hoverEffect(.lift)
 #endif
@@ -328,7 +359,11 @@ private struct RatingsPriceShareRow<ShareSheetContent: View>: View {
                 .clipShape(RoundedRectangle(cornerRadius: PlaceAboutView.cornerRadius, style: .continuous))
                 .contentShape(RoundedRectangle(cornerRadius: PlaceAboutView.cornerRadius, style: .continuous))
                 .padding(PlaceAboutView.defaultPadding)
-                
+#if os(visionOS)
+.background(.ultraThinMaterial)
+#else
+.buttonStyle(.glass)
+#endif
 #if os(visionOS)
                 .hoverEffect(.lift)
 #endif
@@ -350,6 +385,11 @@ private struct RatingsPriceShareRow<ShareSheetContent: View>: View {
             .clipShape(RoundedRectangle(cornerRadius: PlaceAboutView.cornerRadius, style: .continuous))
             .contentShape(RoundedRectangle(cornerRadius: PlaceAboutView.cornerRadius, style: .continuous))
             .padding(PlaceAboutView.defaultPadding)
+#if os(visionOS)
+.background(.ultraThinMaterial)
+#else
+.buttonStyle(.glass)
+#endif
 #if os(visionOS)
             .hoverEffect(.lift)
 #endif
@@ -473,3 +513,4 @@ private struct MapSection: View {
         }
     }
 }
+

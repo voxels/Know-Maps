@@ -17,7 +17,9 @@ struct SearchSectionView: View {
                 Text(section.rawValue)
             }
         }
+#if !os(macOS)
         .listStyle(.insetGrouped)
         .listRowBackground(Color(.systemGroupedBackground))
+        #endif
     }
 }

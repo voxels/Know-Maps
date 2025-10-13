@@ -50,11 +50,29 @@ public final class ChatResultViewModel: AssistiveChatHostMessagesDelegate {
     }
     
     public func didTap(placeChatResult: ChatResult, filters:[String:Any], cacheManager:CacheManager, modelController:  ModelController) async throws {
-        guard let lastIntent = modelController.assistiveHostDelegate.queryIntentParameters.queryIntents.last, lastIntent.placeSearchResponses.count > 0 else {
+        // If we have a last intent with populated placeSearchResponses, update it as before
+        if let lastIntent = modelController.assistiveHostDelegate.queryIntentParameters.queryIntents.last, lastIntent.placeSearchResponses.count > 0 {
+            try await modelController.updateLastIntentParameter(for: placeChatResult, selectedDestinationChatResultID:modelController.selectedDestinationLocationChatResult, filters: filters, cacheManager: cacheManager)
             return
         }
-                
-        try await modelController.updateLastIntentParameter(for: placeChatResult, selectedDestinationChatResultID:modelController.selectedDestinationLocationChatResult, filters: filters, cacheManager: cacheManager)
+
+        // Fallback: construct a fresh intent using the tapped result so details can be fetched
+        let selectedPlaceSearchResponse = placeChatResult.placeResponse
+        let selectedRecommendedPlaceSearchResponse = placeChatResult.recommendedPlaceResponse
+        var inferredIntent: AssistiveChatHostService.Intent = .Search
+        if selectedPlaceSearchResponse != nil { inferredIntent = .Place }
+
+        await didTap(
+            chatResult: placeChatResult,
+            selectedPlaceSearchResponse: selectedPlaceSearchResponse,
+            selectedPlaceSearchDetails: placeChatResult.placeDetailsResponse,
+            selectedRecommendedPlaceSearchResponse: selectedRecommendedPlaceSearchResponse,
+            selectedDestinationChatResultID: modelController.selectedDestinationLocationChatResult,
+            intent: inferredIntent,
+            filters: filters,
+            cacheManager: cacheManager,
+            modelController: modelController
+        )
     }
     
     public func didTap(locationChatResult: LocationResult, cacheManager:CacheManager, modelController: ModelController) async throws {

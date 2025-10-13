@@ -99,7 +99,7 @@ struct ContentView: View {
                     }
                 
             }
-#if !os(visionOS)
+#if !os(visionOS) && !os(macOS)
             .containerBackground(Color(.clear), for: .navigation)
             #endif
             .tabViewStyle(.sidebarAdaptable)
@@ -191,7 +191,9 @@ struct ContentView: View {
         }
 #else
         ToolbarItemGroup(placement: .topBarLeading) {
-            EditButton()
+            if searchMode == .favorites {
+                EditButton()
+            }
             Button {
                 if !showNavigationLocationView {
                     showNavigationLocationView = true
@@ -295,15 +297,6 @@ struct ContentView: View {
                     }
                 }
                 .padding([.top, .horizontal])
-                .navigationDestination(for: ChatResult.ID.self) { placeID in
-                    // Sidebar destination to synchronize selection; actual UI is shown in detail column
-                    EmptyView()
-                        .onAppear {
-                            if modelController.selectedPlaceChatResult != placeID {
-                                modelController.selectedPlaceChatResult = placeID
-                            }
-                        }
-                }
             }
             .toolbar { unifiedBrowseToolbar() }
             .sheet(isPresented: $showNavigationLocationView) {
@@ -326,11 +319,9 @@ struct ContentView: View {
             )
             .onChange(of: modelController.selectedPlaceChatResult) { _, newID in
                 if let newID {
-                    // When model reconciles to a new ChatResult.ID (e.g., after reset),
-                    // ensure the NavigationStack path reflects the new endpoint.
-                    if navigationPath.last != newID {
-                        navigationPath = [newID]
-                    }
+                    // Drive the NavigationStack directly from current selection
+                    // by resetting the path to a single element, ensuring a push.
+                    navigationPath = [newID]
                 } else {
                     // Clear the path when selection is cleared
                     if !navigationPath.isEmpty { navigationPath.removeAll() }
@@ -338,17 +329,13 @@ struct ContentView: View {
             }
             .navigationDestination(for: ChatResult.ID.self) { placeID in
                 PlaceView(
+                    searchSavedViewModel:$searchSavedViewModel,
                     chatModel: $chatModel,
                     cacheManager: $cacheManager,
                     modelController: $modelController,
                     placeDirectionsViewModel: placeDirectionsChatViewModel,
                     selectedPlaceID: placeID
                 )
-                .onDisappear {
-                    if navigationPath.isEmpty {
-                        modelController.selectedPlaceChatResult = nil
-                    }
-                }
             }
         }
     }

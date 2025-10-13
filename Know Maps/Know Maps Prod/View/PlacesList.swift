@@ -105,17 +105,25 @@ struct PlacesList: View {
                     }
                     .buttonStyle(.plain)
                     .simultaneousGesture(TapGesture().onEnded {
-                        modelController.selectedPlaceChatResult = result.id
+                        modelController.setSelectedPlaceChatResult(result.id)
                         Task { @MainActor in
-                            await modelController.fetchPlaceDetailsIfNeeded(for: result, cacheManager: cacheManager)
+                            if let selectedID = modelController.selectedPlaceChatResult,
+                               let placeChatResult = modelController.placeChatResult(for: selectedID) {
+                                // Prefetch details in the background for a snappier transition
+                                do {
+                                    try await modelController.fetchPlaceDetailsIfNeeded(for: placeChatResult, cacheManager: cacheManager)
+
+                                    try await chatModel.didTap(placeChatResult: placeChatResult, filters: searchSavedViewModel.filters, cacheManager: cacheManager, modelController: modelController)
+                                } catch {
+                                    modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
+                                }
+                            }
                         }
                     })
                     .animation(.snappy(duration: 0.35), value: modelController.recommendedPlaceResults)
                 }
             }
         }
-        .scrollContentBackground(.hidden)
-        .background(Color.clear)
     }
     
     @ViewBuilder
@@ -156,9 +164,19 @@ struct PlacesList: View {
                     }
                     .buttonStyle(.plain)
                     .simultaneousGesture(TapGesture().onEnded {
-                        modelController.selectedPlaceChatResult = result.id
+                        modelController.setSelectedPlaceChatResult(result.id)
                         Task { @MainActor in
-                            await modelController.fetchPlaceDetailsIfNeeded(for: result, cacheManager: cacheManager)
+                            if let selectedID = modelController.selectedPlaceChatResult,
+                               let placeChatResult = modelController.placeChatResult(for: selectedID) {
+                                // Prefetch details in the background for a snappier transition
+                                do {
+                                    try await modelController.fetchPlaceDetailsIfNeeded(for: placeChatResult, cacheManager: cacheManager)
+
+                                    try await chatModel.didTap(placeChatResult: placeChatResult, filters: searchSavedViewModel.filters, cacheManager: cacheManager, modelController: modelController)
+                                } catch {
+                                    modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
+                                }
+                            }
                         }
                     })
                     .animation(.snappy(duration: 0.35), value: modelController.filteredPlaceResults)
@@ -185,50 +203,44 @@ struct PlacesList: View {
                 placeResultsGrid(in: geometry)
             }
             else if !modelController.queryParametersHistory.isEmpty {
-                ZStack(alignment: .center) {
-                    Rectangle()
-                        .fill(Color(.systemBackground))
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    if let selectedDestinationLocationChatResult = modelController.selectedDestinationLocationChatResult, let locationChatResult = modelController.locationChatResult(for: selectedDestinationLocationChatResult, in: modelController.locationResults), let _ = locationChatResult.location {
-                    
-                        VStack(alignment:.center, spacing: 12) {
-                            Spacer()
-                            if modelController.searchTimedOut {
-                                Text("No Results Found")
-                                    .padding()
-                            } else {
-                                Text(modelController.fetchMessage)
-                                    .font(.caption)
-                                    .padding()
+                if let selectedDestinationLocationChatResult = modelController.selectedDestinationLocationChatResult {
+                
+                    VStack(alignment:.center, spacing: 12) {
+                        Spacer()
+                        if modelController.searchTimedOut {
+                            Text("No Results Found")
                                 .padding()
-                            }
-                            
-                            let recCount = modelController.recommendedPlaceResults.count
-                            let placeCount = modelController.placeResults.count
-                            if recCount > 0 || placeCount > 0 {
-                                EmptyView()
-                                    .onAppear {
-                                        modelController.cancelSearchTimeout()
-                                        modelController.updateFoundResultsMessage(locationName: locationChatResult.locationName)
-                                    }
-                            } else {
-                                EmptyView()
-                            }
-                            Spacer()
+                        } else {
+                            Text(modelController.fetchMessage)
+                                .font(.caption)
+                                .padding()
+                            .padding()
                         }
-                    } else {
-                        VStack(alignment:.center, spacing: 12) {
-                            Spacer()
-                            if modelController.searchTimedOut {
-                                Text("No Results Found")
-                                    .padding()
-                            } else {
-                                Text(modelController.fetchMessage)
-                                    .font(.caption)
-                                    .padding()
-                            }
-                            Spacer()
+                        
+                        let recCount = modelController.recommendedPlaceResults.count
+                        let placeCount = modelController.placeResults.count
+                        if recCount > 0 || placeCount > 0 {
+                            EmptyView()
+                                .onAppear {
+                                    modelController.cancelSearchTimeout()
+                                }
+                        } else {
+                            EmptyView()
                         }
+                        Spacer()
+                    }
+                } else {
+                    VStack(alignment:.center, spacing: 12) {
+                        Spacer()
+                        if modelController.searchTimedOut {
+                            Text("No Results Found")
+                                .padding()
+                        } else {
+                            Text(modelController.fetchMessage)
+                                .font(.caption)
+                                .padding()
+                        }
+                        Spacer()
                     }
                 }
             }

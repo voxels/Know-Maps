@@ -65,8 +65,10 @@ struct SearchTasteView: View {
                 }
             }
         })
+#if !os(macOS)
         .listStyle(.insetGrouped)
         .listRowBackground(Color(.systemGroupedBackground))
+        #endif
 
 //        .overlay(alignment: .top, content: {
 //            VStack(alignment: .center) {

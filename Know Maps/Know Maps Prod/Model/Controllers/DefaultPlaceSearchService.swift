@@ -147,12 +147,10 @@ public final class DefaultPlaceSearchService: PlaceSearchService {
     // MARK: Detail Intent
     
     public func detailIntent(intent: AssistiveChatHostIntent, cacheManager:CacheManager) async throws {
-        if intent.selectedPlaceSearchDetails == nil {
-            if let placeSearchResponse = intent.selectedPlaceSearchResponse {
-                intent.selectedPlaceSearchDetails = try await fetchDetails(for: [placeSearchResponse]).first
-                intent.relatedPlaceSearchResponses = try await fetchRelatedPlaces(for: placeSearchResponse.fsqID, cacheManager: cacheManager)
-                intent.placeDetailsResponses = [intent.selectedPlaceSearchDetails!]
-            }
+        if let placeSearchResponse = intent.selectedPlaceSearchResponse {
+            intent.selectedPlaceSearchDetails = try await fetchDetails(for: [placeSearchResponse]).first
+            intent.relatedPlaceSearchResponses = try await fetchRelatedPlaces(for: placeSearchResponse.fsqID, cacheManager: cacheManager)
+            intent.placeDetailsResponses = [intent.selectedPlaceSearchDetails!]
         }
     }
         
@@ -197,12 +195,7 @@ public final class DefaultPlaceSearchService: PlaceSearchService {
             
             
             if let rawCategories = rawParameters["categories"] as? [String] {
-                for rawCategory in rawCategories {
-                    categories.append(rawCategory)
-                    if rawCategories.count > 1 {
-                        categories.append(",")
-                    }
-                }
+                categories = rawCategories.joined(separator: ",")
             }
             
             
@@ -239,7 +232,8 @@ public final class DefaultPlaceSearchService: PlaceSearchService {
             }
         }
         
-        print("Created query for search request:\(query) near location:\(String(describing: nearLocation)) with selected chat result: \(String(describing: location))")
+        let nearDisplay = (nearLocation?.isEmpty == false) ? nearLocation! : "Current Location"
+        print("Created query for search request:\(query) near: \(nearDisplay) (ll: \(location.coordinate.latitude),\(location.coordinate.longitude))")
        
             ll = "\(location.coordinate.latitude),\(location.coordinate.longitude)"
       
@@ -286,14 +280,7 @@ public final class DefaultPlaceSearchService: PlaceSearchService {
             
             
             if let rawCategories = rawParameters["categories"] as? [String] {
-                for rawCategory in rawCategories {
-                    categories.append(rawCategory)
-                    if rawCategories.count > 1 {
-                        categories.append(",")
-                    }
-                }
-            } else {
-                
+                categories = rawCategories.joined(separator: ",")
             }
             
             if let rawTips = rawParameters["tips"] as? [String] {
@@ -333,7 +320,8 @@ public final class DefaultPlaceSearchService: PlaceSearchService {
             }
         }
         
-        print("Created query for search request:\(query) near location:\(String(describing: nearLocation)) with selected chat result: \(String(describing: location))")
+        let nearDisplay = (nearLocation?.isEmpty == false) ? nearLocation! : "Current Location"
+        print("Created query for search request:\(query) near: \(nearDisplay) (ll: \(location.coordinate.latitude),\(location.coordinate.longitude))")
         
             ll = "\(location.coordinate.latitude),\(location.coordinate.longitude)"
         
@@ -344,3 +332,4 @@ public final class DefaultPlaceSearchService: PlaceSearchService {
         return request
     }
 }
+

@@ -137,7 +137,7 @@ struct Know_MapsApp: App {
                         }
                         Spacer()
                     }
-                    .task(priority:.userInitiated) {                        
+                    .task(priority:.utility) {                        
                         checkIfSignedInWithApple { signedIn in
                             if signedIn {
                                 Task {
@@ -155,7 +155,7 @@ struct Know_MapsApp: App {
                                     }
                                 }
                                 
-                                Task { @MainActor in
+                                Task(priority: .utility) { @MainActor in
                                     performExistingAccountSetupFlows()
                                 }
                             }
@@ -180,7 +180,7 @@ struct Know_MapsApp: App {
                     }
                 }
             }
-            #if !os(visionOS)
+            #if !os(visionOS) && !os(macOS)
             .containerBackground(.clear, for: .navigation)
             #endif
             .toolbarBackgroundVisibility(self.showOnboarding ? .visible : .hidden)
@@ -245,11 +245,14 @@ struct Know_MapsApp: App {
         }
     }
     
-    @MainActor func performExistingAccountSetupFlows() {
-        let requests = [ASAuthorizationAppleIDProvider().createRequest()]
-        let authorizationController = ASAuthorizationController(authorizationRequests: requests)
-        authorizationController.delegate = authenticationModel
-        authorizationController.performRequests()
+    func performExistingAccountSetupFlows() {
+        // Kick off authorization work on the main actor but at a utility priority to avoid QoS inversion
+        Task(priority: .utility) { @MainActor in
+            let requests = [ASAuthorizationAppleIDProvider().createRequest()]
+            let authorizationController = ASAuthorizationController(authorizationRequests: requests)
+            authorizationController.delegate = authenticationModel
+            authorizationController.performRequests()
+        }
     }
     
     /*
@@ -381,3 +384,4 @@ struct Know_MapsApp: App {
     }
 #endif
 }
+
