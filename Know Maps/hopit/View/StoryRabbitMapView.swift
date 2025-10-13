@@ -24,113 +24,112 @@ struct StoryRabbitMapView: View {
     @State private var currentTours:[Tour] = []
     @State private var navigateToPlayer = false
     @State private var isPlayerActive = false // Track if player is active
-
+    
     var body: some View {
-        NavigationStack {
-            GeometryReader { geometry  in
-                ScrollViewReader { scrollViewProxy in
-                    MapReader(content: { proxy in
-                        Map(initialPosition: .userLocation(fallback: .automatic))
-                            .ignoresSafeArea()
-                            .onMapCameraChange(frequency: .onEnd) { context in
-                                  let coord = context.region.center
-                                  self.currentLocation = coord
-                                  Task { @MainActor in
-                                      let location = CLLocation(latitude: coord.latitude, longitude: coord.longitude)
-                                      do {
-                                          let firstResult = try await modelController.locationService.lookUpLocation(location).first
-                                          self.currentLocationName = firstResult.map { String(localized: $0.displayRepresentation.title) } ?? "Current Location"
-                                          sheetIsPresented = true
-                                      } catch {
-                                          modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
-                                      }
-                                  }
-                              }
-                            .sheet(isPresented: Binding(
-                                get: { sheetIsPresented && !isPlayerActive && !navigateToPlayer },
-                                set: { sheetIsPresented = $0 }
-                            )) {
-                                    List{
-                                        Section {
-                                            ForEach(currentTours){ tour in
-                                                Button {
-                                                    selectedTour = tour
-                                                    sheetIsPresented = false
-                                                    navigateToPlayer = true
-                                                } label: {
-                                                    HStack{
-                                                        TourImageView(tour: tour)
-                                                        VStack (alignment: .leading) {
-                                                            Text(tour.title)
-                                                                .font(.headline)
-                                                            if let description = tour.short_description {
-                                                                Text(description)
-                                                                    .font(.subheadline)
-                                                            }
-                                                        }
-                                                        .padding(.horizontal)
-                                                        Spacer()
-                                                    }
-                                                    .foregroundStyle(.primary)
+        
+            MapReader(content: { proxy in
+                Map(initialPosition: .userLocation(fallback: .automatic))
+                    .ignoresSafeArea()
+                    .onMapCameraChange(frequency: .onEnd) { context in
+                        let coord = context.region.center
+                        self.currentLocation = coord
+                        Task { @MainActor in
+                            let location = CLLocation(latitude: coord.latitude, longitude: coord.longitude)
+                            do {
+                                let firstResult = try await modelController.locationService.lookUpLocation(location).first
+                                self.currentLocationName = firstResult.map { String(localized: $0.displayRepresentation.title) } ?? "Current Location"
+                                sheetIsPresented = true
+                            } catch {
+                                modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
+                            }
+                        }
+                    }
+                    .sheet(isPresented: Binding(
+                        get: { sheetIsPresented && !isPlayerActive && !navigateToPlayer },
+                        set: { sheetIsPresented = $0 }
+                    )) {
+                        List {
+                            Section {
+                                ForEach(currentTours){ tour in
+                                    Button {
+                                        selectedTour = tour
+                                        sheetIsPresented = false
+                                        navigateToPlayer = true
+                                    } label: {
+                                        HStack{
+                                            TourImageView(tour: tour)
+                                            VStack (alignment: .leading) {
+                                                Text(tour.title)
+                                                    .font(.headline)
+                                                if let description = tour.short_description {
+                                                    Text(description)
+                                                        .font(.subheadline)
                                                 }
                                             }
-                                        }  header: {
-                                            VStack(alignment:.leading) {
-                                                if let currentLocationName {
-                                                    Text(currentLocationName)
-                                                        .font(.title)
-                                                } else {
-                                                    Text("Current Location")
-                                                        .font(.title)
-                                                }
-                                            }
+                                            .foregroundStyle(Color(.label))
+                                            .padding(.horizontal)
+                                            Spacer()
                                         }
+                                        .padding()
+                                        .background(Color(.systemBackground))
+                                        .contentShape(.rect(cornerRadius: 16))
+                                        .clipShape(.rect(cornerRadius: 16))
                                     }
-                                    .padding(.top)
-                                    .presentationDetents([.fraction(0.25), .medium, .large])
-                                    .searchable(text: $searchText, placement:.automatic, prompt:"Find a tour")
-                                    .searchSuggestions {
-                                        Text("Orson Wells Tours")
-                                    }
-                            }
-                            .fullScreenCover(isPresented: $navigateToPlayer) {
-                                if let selectedTour = selectedTour {
-                                    StoryRabbitPlayerView(
-                                        chatModel: $chatModel, 
-                                        cacheManager: $cacheManager, 
-                                        modelController: $modelController, 
-                                        searchSavedViewModel: $searchSavedViewModel,
-                                        selectedTour: $selectedTour, currentPOIs: $currentPOIs
-                                    )
-                                    .onAppear {
-                                        isPlayerActive = true
-                                    }
-                                    .onDisappear {
-                                        isPlayerActive = false
-                                        navigateToPlayer = false
-                                        // Re-show sheet when returning from player
-                                        sheetIsPresented = true
+                                    .listRowBackground(Color.clear)
+                                }
+                            }  header: {
+                                VStack(alignment:.leading) {
+                                    if let currentLocationName {
+                                        Text(currentLocationName)
+                                            .font(.title)
+                                    } else {
+                                        Text("Current Location")
+                                            .font(.title)
                                     }
                                 }
                             }
-                            .onAppear(){
-                                if !isPlayerActive {
-                                    sheetIsPresented = true
-                                }
-                            }
-                    })
-                }
-            }
+                        }
+                        .scrollContentBackground(.hidden)
+                        .background(Color.clear)
+                        .listStyle(.plain)
+                        .padding(.top)
+                        .presentationDetents([.fraction(0.25), .medium, .large])
+                        .searchable(text: $searchText, placement:.toolbarPrincipal, prompt:"Find a tour")
+                    }
+                    .fullScreenCover(isPresented: $navigateToPlayer) {
+                        StoryRabbitPlayerView(
+                            chatModel: $chatModel,
+                            cacheManager: $cacheManager,
+                            modelController: $modelController,
+                            searchSavedViewModel: $searchSavedViewModel,
+                            selectedTour: $selectedTour, currentPOIs: $currentPOIs
+                        )
+                        .onAppear {
+                            isPlayerActive = true
+                        }
+                        .onDisappear {
+                            isPlayerActive = false
+                            navigateToPlayer = false
+                            // Re-show sheet when returning from player
+                            sheetIsPresented = true
+                        }
+                    }
+                    .onAppear(){
+                        if !isPlayerActive {
+                            sheetIsPresented = true
+                        }
+                    }
+                    .task {
+                        do {
+                            let results = try await SupabaseService.shared.fetchPOIsAndToursForUI()
+                            currentPOIs = results.0
+                            currentTours = results.1
+                        } catch {
+                            modelController.analyticsManager.trackError(error: error, additionalInfo:nil)
+                        }
+                    }
+            })
         }
-        .task {
-            do {
-                currentPOIs = try await SupabaseService.shared.fetchPOIs()
-                currentTours = try await SupabaseService.shared.fetchTours()
-            } catch {
-                modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
-            }
-        }
-    }
 }
 
 struct TourImageView: View {
@@ -142,7 +141,7 @@ struct TourImageView: View {
         AsyncImage(url: imageURL) { image in
             image
                 .resizable()
-                .aspectRatio(contentMode: .fit)
+                .scaledToFill()
                 .frame(width: 60, height: 60)
                 .clipShape(RoundedRectangle(cornerRadius: 8))
         } placeholder: {
@@ -150,11 +149,9 @@ struct TourImageView: View {
                 ProgressView()
                     .frame(width: 60, height: 60)
             } else {
-                Image(systemName: "photo")
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 60, height: 60, alignment: .center)
+                Image(systemName: "music.note")
                     .foregroundColor(.gray)
+                    .frame(width: 60, height: 60)
             }
         }
         .task {

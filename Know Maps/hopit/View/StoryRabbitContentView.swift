@@ -31,7 +31,7 @@ struct StoryRabbitContentView: View {
     @State private var searchTask: Task<Void, Never>? = nil
 
     var body: some View {
-        GeometryReader { geometry in
+        NavigationStack {
             TabView {
                 StoryRabbitMapView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, searchSavedViewModel: $searchSavedViewModel)
                     .tabItem {

@@ -10,6 +10,18 @@
 // MARK: - Concrete Location Service
 public final class DefaultLocationService: NSObject, LocationService {
     
+    // Debounce support
+    private var reverseGeocodeTask: Task<[CLPlacemark], Error>? = nil
+    private var forwardGeocodeTask: Task<[CLPlacemark], Error>? = nil
+    private let geocodeDebounceInterval: Duration = .milliseconds(300)
+    
+    // Equality / caching support
+    private var lastReverseGeocodeLocation: CLLocation? = nil
+    private var lastReverseGeocodeResult: [CLPlacemark]? = nil
+    private var lastForwardGeocodeName: String? = nil
+    private var lastForwardGeocodeResult: [CLPlacemark]? = nil
+    private let reverseGeocodeEqualityToleranceMeters: CLLocationDistance = 10
+    
     public let locationProvider:LocationProvider
     
     private let geocoder = CLGeocoder()
@@ -19,7 +31,8 @@ public final class DefaultLocationService: NSObject, LocationService {
     }
     
     public func currentLocationName() async throws -> String? {
-        return try await lookUpLocation( locationProvider.currentLocation(delegate:self)).first?.name
+        let placemarks = try await debouncedReverseGeocode(locationProvider.currentLocation(delegate: self))
+        return placemarks.first?.name
     }
     
     public func currentLocation() -> CLLocation {
@@ -27,16 +40,71 @@ public final class DefaultLocationService: NSObject, LocationService {
     }
     
     public func lookUpLocation(_ location: CLLocation) async throws -> [CLPlacemark] {
-        let placemarks = try await geocoder.reverseGeocodeLocation(location)
-        return placemarks
+        return try await debouncedReverseGeocode(location)
     }
     
     public func lookUpLocationName(name: String) async throws -> [CLPlacemark] {
-        let placemarks = try await geocoder.geocodeAddressString(name)
-        return placemarks
+        return try await debouncedForwardGeocode(name)
+    }
+    
+    // MARK: - Debounced Geocoding
+    private func debouncedReverseGeocode(_ location: CLLocation) async throws -> [CLPlacemark] {
+        // Return cached result if location is effectively unchanged
+        if let lastLoc = lastReverseGeocodeLocation,
+           let cached = lastReverseGeocodeResult,
+           lastLoc.distance(from: location) <= reverseGeocodeEqualityToleranceMeters {
+            return cached
+        }
+        // Cancel any in-flight reverse geocode task
+        reverseGeocodeTask?.cancel()
+        let task = Task<[CLPlacemark], Error> {
+            // Small debounce window to coalesce rapid calls
+            try await Task.sleep(for: geocodeDebounceInterval)
+            return try await geocoder.reverseGeocodeLocation(location)
+        }
+        reverseGeocodeTask = task
+        do {
+            let result = try await task.value
+            // Cache input and result for equality short-circuiting
+            lastReverseGeocodeLocation = location
+            lastReverseGeocodeResult = result
+            return result
+        } catch is CancellationError {
+            // Propagate cancellation if the caller cares
+            throw CancellationError()
+        } catch {
+            throw error
+        }
+    }
+
+    private func debouncedForwardGeocode(_ name: String) async throws -> [CLPlacemark] {
+        // Return cached result if name is unchanged
+        if let lastName = lastForwardGeocodeName,
+           let cached = lastForwardGeocodeResult,
+           lastName == name {
+            return cached
+        }
+        // Cancel any in-flight forward geocode task
+        forwardGeocodeTask?.cancel()
+        let task = Task<[CLPlacemark], Error> {
+            // Small debounce window to coalesce rapid calls
+            try await Task.sleep(for: geocodeDebounceInterval)
+            return try await geocoder.geocodeAddressString(name)
+        }
+        forwardGeocodeTask = task
+        do {
+            let result = try await task.value
+            // Cache input and result for equality short-circuiting
+            lastForwardGeocodeName = name
+            lastForwardGeocodeResult = result
+            return result
+        } catch is CancellationError {
+            throw CancellationError()
+        } catch {
+            throw error
+        }
     }
 }
-
 
 extension DefaultLocationService : CLLocationManagerDelegate {
     public func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {

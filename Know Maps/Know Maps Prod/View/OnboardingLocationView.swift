@@ -18,7 +18,7 @@ struct OnboardingLocationView: View {
     @Binding public var showOnboarding:Bool
     @Binding public var locationIsAuthorized:Bool
     @State private var alertPopverIsPresented:Bool = false
-
+    
     var body: some View {
         VStack{
             Spacer()
@@ -61,16 +61,16 @@ struct OnboardingLocationView: View {
                         }
                     }
                 }
-                    .popover(isPresented: $alertPopverIsPresented) {
-                        VStack {
-                            Text("Please open the location settings system preferences to allow Know Maps to find your location.")
-                            Button("Open System Preferences") {
-                                openLocationPreferences()
-                            }
-                        }.padding()
-                    }
-                    .padding()
-
+                .popover(isPresented: $alertPopverIsPresented) {
+                    VStack {
+                        Text("Please open the location settings system preferences to allow Know Maps to find your location.")
+                        Button("Open System Preferences") {
+                            openLocationPreferences()
+                        }
+                    }.padding()
+                }
+                .padding()
+                
                 Spacer()
             } else {
                 Button("Continue") {
@@ -83,7 +83,7 @@ struct OnboardingLocationView: View {
                         }
                     }
                 }.padding()
-
+                
                 Spacer()
             }
         }
@@ -109,18 +109,18 @@ struct OnboardingLocationView: View {
     }
     
 #if os(macOS)
-public func openLocationPreferences() {
-    if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_LocationServices") {
-        NSWorkspace.shared.open(url)
-    }
-}
-#else
-func openLocationPreferences() {
-    if let url = URL(string: UIApplication.openSettingsURLString) {
-        if UIApplication.shared.canOpenURL(url) {
-            UIApplication.shared.open(url, options: [:], completionHandler: nil)
+    public func openLocationPreferences() {
+        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_LocationServices") {
+            NSWorkspace.shared.open(url)
         }
     }
-}
+#else
+    func openLocationPreferences() {
+        if let url = URL(string: UIApplication.openSettingsURLString) {
+            if UIApplication.shared.canOpenURL(url) {
+                UIApplication.shared.open(url, options: [:], completionHandler: nil)
+            }
+        }
+    }
 #endif
 }

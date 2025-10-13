@@ -39,219 +39,226 @@ struct NowPlayingQueueView: View {
 
     var body: some View {
         GeometryReader { geometry in
-            ZStack {
-                // Full-bleed blurred background
-                Group {
-                    if let art = player.currentArtwork {
-                        Image(uiImage: art)
-                            .resizable()
-                            .scaledToFill()
-                            .blur(radius: 30, opaque: false)
+            NavigationStack {
+                ZStack(alignment:.top) {
+                    ZStack(alignment: .center) {
+                        Color.clear
+                        // Full-bleed blurred background
+                        if let art = player.currentArtwork {
+                            Image(uiImage: art)
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                                .transition(.opacity)
+                                .animation(.easeInOut(duration: 0.25), value: player.currentArtwork)
+                        }
+                        
+                        Rectangle()
+                            .fill(.ultraThinMaterial)
                             .overlay(
                                 LinearGradient(
                                     colors: [.black.opacity(0.65), .clear, .black.opacity(0.85)],
                                     startPoint: .top, endPoint: .bottom
                                 )
                             )
-                    } else {
-                        Rectangle().fill(.black)
+                    }
+                    .frame(width:geometry.size.width, height:geometry.size.height)
+                    .ignoresSafeArea()
+                    
+                    VStack(alignment:.center) {
+                        Spacer()
+                        Group {
+                            ZStack(alignment: .center) {
+                                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                                    .fill(.ultraThinMaterial)
+                                    .frame(width: geometry.size.width.scaled(by: 0.8), height:geometry.size.height.scaled(by: 0.4), alignment: .init(horizontal: .center, vertical: .top))
+                                    .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                                
+                                if let art = player.currentArtwork {
+                                    Image(uiImage: art)
+                                        .resizable()
+                                        .scaledToFill()
+                                        .frame(width: geometry.size.width.scaled(by: 0.8), height:geometry.size.height.scaled(by: 0.4), alignment: .init(horizontal: .center, vertical: .top))
+                                        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                                        .transition(.opacity.combined(with: .scale))
+                                        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: player.currentArtwork)
+                                } else {
+                                    Image(systemName: "music.note")
+                                        .font(.system(size: 64, weight: .bold))
+                                        .foregroundStyle(.secondary)
+                                        .transition(.opacity)
+                                        .animation(.easeInOut(duration: 0.25), value: player.currentArtwork)
+                                }
+                            }
+                            .frame(width: geometry.size.width.scaled(by: 0.8), height:geometry.size.height.scaled(by: 0.4), alignment: .init(horizontal: .center, vertical: .top))
+
+                        }
+    
+                        Spacer()
+                        // Title / artist
+                        VStack() {
+                            Text(player.currentTitle.isEmpty ? "Unknown Title" : player.currentTitle)
+                                .font(.title2.weight(.semibold))
+                                .lineLimit(3)
+                                .minimumScaleFactor(0.7)
+                            Text(player.currentArtist.isEmpty ? "Unknown Artist" : player.currentArtist)
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                                .lineLimit(2)
+                                .minimumScaleFactor(0.7)
+                        }
+                        .padding(.bottom, 16)
+                        .animation(.easeInOut(duration: 0.2), value: player.currentTitle)
+                        .animation(.easeInOut(duration: 0.2), value: player.currentArtist)
+                        Spacer()
+                        
+                        // Scrubber
+                        VStack() {
+                            Slider(
+                                value: Binding(
+                                    get: { player.scrubPosition },
+                                    set: { newValue in
+                                        player.scrubPosition = newValue
+                                        // Only seek if we're actively scrubbing (not during programmatic updates)
+                                        if player.isUserScrubbing {
+                                            // Update currentTime immediately for visual feedback
+                                            player.currentTime = newValue
+                                        }
+                                    }
+                                ),
+                                in: 0...max(player.duration, 0.1),
+                                onEditingChanged: { editing in
+                                    player.setIsScrubbing(editing)
+                                }
+                            )
+                            .animation(.linear(duration: 0.1), value: player.scrubPosition)
+                            
+                            HStack {
+                                Text(Self.format(player.currentTime))
+                                Spacer()
+                                Text(Self.format(player.duration))
+                            }
+                            .font(.caption.monospacedDigit())
+                            .foregroundStyle(.secondary)
+                        }
+                        
+                        // Transport
+                        HStack() {
+                            Button { player.skip(seconds: -15) } label: {
+                                Image(systemName: "gobackward.15").font(.system(size: 28, weight: .semibold))
+                                    .padding(.horizontal, 8)
+                            }
+                            
+                            HStack() {
+                                Button { player.previousTrackOrRestart() } label: {
+                                    Image(systemName: "backward.end.fill").font(.system(size: 28, weight: .semibold))
+                                        .padding(.horizontal, 4)
+
+                                }
+                                
+                                Button { player.togglePlayPause() } label: {
+                                    Image(systemName: player.isPlaying ? "pause.circle.fill" : "play.circle.fill")
+                                        .scaleEffect(player.isPlaying ? 1.02 : 1.0)
+                                        .animation(.spring(response: 0.25, dampingFraction: 0.8), value: player.isPlaying)
+                                        .font(.system(size: 72))
+                                        .padding(.horizontal, 4)
+
+                                }
+                                
+                                Button { player.nextTrack() } label: {
+                                    Image(systemName: "forward.end.fill").font(.system(size: 28, weight: .semibold))
+                                        .padding(.horizontal, 4)
+
+                                }
+                                .disabled(player.currentIndex >= player.effectivePlaylist.count - 1)
+                            }
+                            
+                            Button { player.skip(seconds: +30) } label: {
+                                Image(systemName: "goforward.30").font(.system(size: 28, weight: .semibold))
+                                    .padding(.horizontal, 8)
+
+                            }
+                        }
+                        .padding(.vertical, 16)
+                        
+                        // Volume Controls
+                        HStack() {
+                            // Volume Down Button
+                            Button {
+                                player.adjustVolume(-0.1)
+                            } label: {
+                                Image(systemName: "speaker.fill")
+                                    .font(.title2)
+                            }
+                            
+                            // Volume Slider
+                            VolumeSlider()
+                            
+                            // Volume Up Button
+                            Button {
+                                player.adjustVolume(0.1)
+                            } label: {
+                                Image(systemName: "speaker.wave.3.fill")
+                                    .font(.title2)
+                            }
+                        }
+                        .background(.clear)
+                        Spacer()
+                    }
+                    .padding(.horizontal, 16)
+                }
+                .task {
+                    let tourPOIs = currentPOIs.filter { $0.tour_id == selectedPOI.tour_id }
+                    let startIndex = 0
+                    player.replacePlaylist(tourPOIs, startAt: startIndex)
+                    player.setTourTitleProvider { selectedTour?.title }
+                    await MainActor.run {
+                        player.activateSession()
                     }
                 }
-                .frame(maxWidth: geometry.size.width, maxHeight: .infinity) // Ensure full screen coverage
-                
-                VStack(spacing: 20) {
-                    HStack {
-                        // Back button
+                .onDisappear { player.deactivateSession() }
+                .onChange(of: selectedTour?.title ?? "") { _, newValue in
+                    // Update the tour title provider when tour changes
+                    withAnimation(.easeInOut) {
+                        player.setTourTitleProvider { newValue }
+                    }
+                }
+                .onChange(of: selectedPOI.id) { _, _ in
+                    // When selectedPOI changes, update the playlist and start playing
+                    withAnimation(.easeInOut) {
+                        let tourPOIs = currentPOIs.filter { $0.tour_id == selectedPOI.tour_id }
+                        let startIndex = tourPOIs.firstIndex(of: selectedPOI) ?? 0
+                        player.replacePlaylist(tourPOIs, startAt: startIndex)
+                        // Automatically start playing the new POI
+                        if !player.isPlaying {
+                            player.togglePlayPause()
+                        }
+                    }
+                }
+                .sheet(isPresented: $showingQueue) {
+                    UpNextSheet(player: player)
+                        .presentationDetents([.medium, .large])
+                }
+                .toolbar(content: {
+                    ToolbarItem(placement: .topBarLeading) {
                         Button {
                             dismiss()
                         } label: {
                             Image(systemName: "chevron.down")
                                 .font(.title2.weight(.semibold))
-                                .foregroundStyle(.white)
-                                .padding(10)
-                                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-                        }
-                        
-                        Spacer()
-                        
-                        HStack(spacing: 12) {
-                            // AirPlay Route Picker
-                            AirPlayRoutePicker()
-                                .frame(width: 44, height: 44)
-                            
-                            Button {
-                                showingQueue = true
-                            } label: {
-                                Label("Up Next", systemImage: "list.bullet")
-                                    .labelStyle(.iconOnly)
-                                    .font(.title3.weight(.semibold))
-                                    .foregroundStyle(.white)
-                                    .padding(10)
-                                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-                            }
                         }
                     }
-                    .padding([.top, .horizontal])
-                    
-                    // Foreground artwork card
-                    if let art = player.currentArtwork {
-                        ZStack {
-                            Image(uiImage: art)
-                                .resizable()
-                                .scaledToFill()
-                                .frame(width:geometry.size.width, height:geometry.size.width)
-                                .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-                                .padding(.horizontal)
-                        }
-                        .padding(.horizontal)
-                        .frame(width:geometry.size.width,height:geometry.size.width)
-                        .shadow(radius: 16)
-                    } else {
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                                .fill(.ultraThinMaterial)
-
-                            Image(systemName: "music.note")
-                                .font(.system(size: 64, weight: .bold))
-                                .foregroundStyle(.secondary)
-                        }
-                        .padding(.horizontal)
-                        .frame(width:geometry.size.width,height:geometry.size.width)
-                        .shadow(radius: 16)
-                    }
-                    
-                    // Title / artist
-                    VStack(spacing: 4) {
-                        Text(player.currentTitle.isEmpty ? "Unknown Title" : player.currentTitle)
-                            .font(.title2.weight(.semibold))
-                            .foregroundStyle(.primary)
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.7)
-                        Text(player.currentArtist.isEmpty ? "Unknown Artist" : player.currentArtist)
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.7)
-                    }
-                    .padding(.top, 8)
-                    
-                    // Scrubber
-                    VStack(spacing: 10) {
-                        Slider(
-                            value: Binding(
-                                get: { player.scrubPosition },
-                                set: { newValue in
-                                    player.scrubPosition = newValue
-                                    // Only seek if we're actively scrubbing (not during programmatic updates)
-                                    if player.isUserScrubbing {
-                                        // Update currentTime immediately for visual feedback
-                                        player.currentTime = newValue
-                                    }
-                                }
-                            ),
-                            in: 0...max(player.duration, 0.1),
-                            onEditingChanged: { editing in
-                                player.setIsScrubbing(editing)
-                            }
-                        )
-                        .tint(.white)
+                    ToolbarItemGroup(placement: .topBarTrailing) {
+                        // AirPlay Route Picker
+                        AirPlayRoutePicker()
+                            .frame(width: 44, height: 44, alignment: .center)
                         
-                        HStack {
-                            Text(Self.format(player.currentTime))
-                            Spacer()
-                            Text(Self.format(player.duration))
-                        }
-                        .font(.caption.monospacedDigit())
-                        .foregroundStyle(.secondary)
-                    }
-                    .padding(.horizontal)
-                    
-                    // Transport
-                    HStack(spacing: 46) {
-                        Button { player.skip(seconds: -15) } label: {
-                            Image(systemName: "gobackward.15").font(.system(size: 28, weight: .semibold))
-                        }
-                        
-                        HStack(spacing: 34) {
-                            Button { player.previousTrackOrRestart() } label: {
-                                Image(systemName: "backward.end.fill").font(.system(size: 28, weight: .semibold))
-                            }
-                            
-                            Button { player.togglePlayPause() } label: {
-                                Image(systemName: player.isPlaying ? "pause.circle.fill" : "play.circle.fill")
-                                    .font(.system(size: 72))
-                            }
-                            
-                            Button { player.nextTrack() } label: {
-                                Image(systemName: "forward.end.fill").font(.system(size: 28, weight: .semibold))
-                            }
-                            .disabled(player.currentIndex >= player.effectivePlaylist.count - 1)
-                        }
-                        
-                        Button { player.skip(seconds: +30) } label: {
-                            Image(systemName: "goforward.30").font(.system(size: 28, weight: .semibold))
-                        }
-                    }
-                    .foregroundStyle(.white)
-                    .padding(.top, 6)
-                    
-                    // Volume Controls
-                    HStack(spacing: 12) {
-                        // Volume Down Button
                         Button {
-                            player.adjustVolume(-0.1)
+                            showingQueue = true
                         } label: {
-                            Image(systemName: "speaker.fill")
-                                .font(.title2)
-                                .foregroundStyle(.white)
-                        }
-                        
-                        // Volume Slider
-                        VolumeSlider()
-                            .frame(height: 36)
-                            .clipShape(RoundedRectangle(cornerRadius: 8))
-                        
-                        // Volume Up Button
-                        Button {
-                            player.adjustVolume(0.1)
-                        } label: {
-                            Image(systemName: "speaker.wave.3.fill")
-                                .font(.title2)
-                                .foregroundStyle(.white)
+                            Label("Up Next", systemImage: "list.bullet")
                         }
                     }
-                    .padding(.horizontal)
-                    
-                    Spacer(minLength: 40) // Increased spacing for full screen
-                }
-            }
-            .toolbar(.hidden, for: .tabBar) // Hide the tab bar
-            .onAppear {
-                let tourPOIs = currentPOIs.filter { $0.tour_id == selectedPOI.tour_id }
-                let startIndex = 0
-                player.replacePlaylist(tourPOIs, startAt: startIndex)
-                player.setTourTitleProvider { selectedTour?.title }
-                player.activateSession()
-            }
-            .onDisappear { player.deactivateSession() }
-            .onChange(of: selectedTour?.title ?? "") { _, newValue in
-                // Update the tour title provider when tour changes
-                player.setTourTitleProvider { newValue }
-            }
-            .onChange(of: selectedPOI.id) { _, _ in
-                // When selectedPOI changes, update the playlist and start playing
-                let tourPOIs = currentPOIs.filter { $0.tour_id == selectedPOI.tour_id }
-                let startIndex = tourPOIs.firstIndex(of: selectedPOI) ?? 0
-                player.replacePlaylist(tourPOIs, startAt: startIndex)
-                // Automatically start playing the new POI
-                if !player.isPlaying {
-                    player.togglePlayPause()
-                }
-            }
-            .preferredColorScheme(.dark)
-            .sheet(isPresented: $showingQueue) {
-                UpNextSheet(player: player)
-                    .presentationDetents([.medium, .large])
+                })
             }
         }
     }
@@ -282,17 +289,16 @@ struct UpNextSheet: View {
                         Spacer()
                         if idx == player.currentIndex {
                             Image(systemName: player.isPlaying ? "waveform.and.mic" : "pause")
-                                .foregroundStyle(.accent)
                         }
                     }
                     .contentShape(Rectangle())
                     .onTapGesture {
                         player.jump(toEffectiveIndex: idx)
                     }
+                    .animation(.easeInOut(duration: 0.2), value: player.currentIndex)
                 }
             }
             .navigationTitle("Up Next")
-            .navigationBarHidden(true)
         }
     }
 }
@@ -305,19 +311,24 @@ struct ArtworkThumb: View {
             if let artwork {
                 Image(uiImage: artwork)
                     .resizable()
-                    .scaledToFit()
+                    .scaledToFill()
                     .frame(width: 44, height: 44)
             } else {
-                ZStack { Rectangle().fill(.quaternary); Image(systemName: "music.note") }
+                Image(systemName: "music.note")
+                    .resizable()
+                    .frame(width: 60, height: 60)
             }
         }
         .task {
             if let url = try? await poi.downloadImage(), let (data, _) = try? await URLSession.shared.data(from: url), let
             image = UIImage(data: data) {
-                artwork = image
+                await MainActor.run {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        artwork = image
+                    }
+                }
             }
         }
-        .frame(width: 44, height: 44)
         .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
     }
 }
@@ -703,7 +714,9 @@ final class QueuePlayerEngine: NSObject, ObservableObject {
                         await MainActor.run {
                             // Only set if we're still on the same track
                             if self.effectivePlaylist.indices.contains(self.currentIndex), self.effectivePlaylist[self.currentIndex].id == track.id {
-                                self.currentArtwork = image
+                                withAnimation(.easeInOut(duration: 0.2)) {
+                                    self.currentArtwork = image
+                                }
                                 // Update Now Playing to include artwork
                                 self.updateNowPlayingInfo(fullRefresh: true, index: self.currentIndex)
                             }
@@ -780,14 +793,10 @@ struct AirPlayRoutePicker: UIViewRepresentable {
     func makeUIView(context: Context) -> AVRoutePickerView {
         let v = AVRoutePickerView()
         v.prioritizesVideoDevices = false
-        v.tintColor = UIColor.white
-        v.activeTintColor = UIColor.white
         return v
     }
     
     func updateUIView(_ uiView: AVRoutePickerView, context: Context) {
-        uiView.tintColor = UIColor.white
-        uiView.activeTintColor = UIColor.white
     }
 }
 
@@ -803,7 +812,7 @@ struct VolumeSlider: View {
                 MPVolumeView.setVolume(volume)
             }
         ), in: 0...1)
-        .tint(.white)
+        .background(Color.clear)
         .onAppear {
             // Get initial system volume
             volume = AVAudioSession.sharedInstance().outputVolume
