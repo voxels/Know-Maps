@@ -15,10 +15,10 @@ struct PlaceView: View {
     @Binding public var modelController:DefaultModelController
     @ObservedObject public var placeDirectionsViewModel:PlaceDirectionsViewModel
     @State private var tabItem = 0
-    public let selectedPlaceID:ChatResult.ID
+    public let selectedFoursquareID:String
 
     var body: some View {
-        if let placeChatResult = modelController.placeChatResult(for: selectedPlaceID) {
+        if let placeChatResult = modelController.placeChatResult(with: selectedFoursquareID) {
             VStack {
                 if let detailsResponses = placeChatResult.placeDetailsResponse {
                     Picker("About", selection: $tabItem) {
@@ -100,3 +100,4 @@ struct PlaceView: View {
         }
     }
 }
+

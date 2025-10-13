@@ -106,19 +106,6 @@ struct PlacesList: View {
                     .buttonStyle(.plain)
                     .simultaneousGesture(TapGesture().onEnded {
                         modelController.setSelectedPlaceChatResult(result.id)
-                        Task { @MainActor in
-                            if let selectedID = modelController.selectedPlaceChatResult,
-                               let placeChatResult = modelController.placeChatResult(for: selectedID) {
-                                // Prefetch details in the background for a snappier transition
-                                do {
-                                    try await modelController.fetchPlaceDetailsIfNeeded(for: placeChatResult, cacheManager: cacheManager)
-
-                                    try await chatModel.didTap(placeChatResult: placeChatResult, filters: searchSavedViewModel.filters, cacheManager: cacheManager, modelController: modelController)
-                                } catch {
-                                    modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
-                                }
-                            }
-                        }
                     })
                     .animation(.snappy(duration: 0.35), value: modelController.recommendedPlaceResults)
                 }
@@ -165,19 +152,6 @@ struct PlacesList: View {
                     .buttonStyle(.plain)
                     .simultaneousGesture(TapGesture().onEnded {
                         modelController.setSelectedPlaceChatResult(result.id)
-                        Task { @MainActor in
-                            if let selectedID = modelController.selectedPlaceChatResult,
-                               let placeChatResult = modelController.placeChatResult(for: selectedID) {
-                                // Prefetch details in the background for a snappier transition
-                                do {
-                                    try await modelController.fetchPlaceDetailsIfNeeded(for: placeChatResult, cacheManager: cacheManager)
-
-                                    try await chatModel.didTap(placeChatResult: placeChatResult, filters: searchSavedViewModel.filters, cacheManager: cacheManager, modelController: modelController)
-                                } catch {
-                                    modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
-                                }
-                            }
-                        }
                     })
                     .animation(.snappy(duration: 0.35), value: modelController.filteredPlaceResults)
                     .listRowBackground(Color.clear)

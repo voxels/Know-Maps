@@ -19,6 +19,7 @@ struct OnboardingLocationView: View {
     @Binding public var locationIsAuthorized:Bool
     @State private var alertPopverIsPresented:Bool = false
     
+    
     var body: some View {
         VStack{
             Spacer()
@@ -26,67 +27,32 @@ struct OnboardingLocationView: View {
             Text("2. Know Maps uses your current location to suggest places to go near you.")
                 .multilineTextAlignment(.leading)
                 .padding()
-            if !locationIsAuthorized {
-                Button("Continue") {
-                    Task {
-                        modelController.locationProvider.authorize()
-                        
-                        if locationIsAuthorized {
-                            // Set the selected destination to current location after authorization
-                            do {
-                                try await setCurrentLocationAsDestination()
-                            } catch {
-                                modelController.analyticsManager.trackError(error: error, additionalInfo:nil)
-                            }
+            Button("Continue") {
+                Task {
+                    modelController.locationProvider.authorize()
+                    await MainActor.run {
+                        Task {
+                            try? await setCurrentLocationAsDestination()
                         }
-                        
-                        alertPopverIsPresented = !modelController.locationProvider.isAuthorized()
-                        locationIsAuthorized = modelController.locationProvider.isAuthorized()
+                        showOnboarding = false
                     }
                 }
-                .onAppear {
-                    Task {
-                        locationIsAuthorized = modelController.locationProvider.isAuthorized()
-                        
-                        if locationIsAuthorized {
-                            // Set the selected destination to current location after authorization
-                            do {
-                                try await setCurrentLocationAsDestination()
-                            } catch {
-                                modelController.analyticsManager.trackError(error: error, additionalInfo:nil)
-                            }
-                        } else {
-                            modelController.locationProvider.authorize()
-                            locationIsAuthorized = modelController.locationProvider.isAuthorized()
-                        }
-                    }
-                }
-                .popover(isPresented: $alertPopverIsPresented) {
-                    VStack {
-                        Text("Please open the location settings system preferences to allow Know Maps to find your location.")
-                        Button("Open System Preferences") {
-                            openLocationPreferences()
-                        }
-                    }.padding()
-                }
-                .padding()
-                
-                Spacer()
-            } else {
-                Button("Continue") {
-                    Task {
-                        // Set the selected destination to current location after authorization
-                        do {
-                            try await setCurrentLocationAsDestination()
-                        } catch {
-                            modelController.analyticsManager.trackError(error: error, additionalInfo:nil)
-                        }
+            }
+            .popover(isPresented: $alertPopverIsPresented) {
+                VStack {
+                    Text("Please open the location settings system preferences to allow Know Maps to find your location.")
+                    Button("Open System Preferences") {
+                        openLocationPreferences()
                     }
                 }.padding()
-                
-                Spacer()
             }
+            .padding()
+            Spacer()
         }
+        .onAppear {
+            locationIsAuthorized = modelController.locationProvider.isAuthorized()
+        }
+        
     }
     
     // Helper method to set current location as destination

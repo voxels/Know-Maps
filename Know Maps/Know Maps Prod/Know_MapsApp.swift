@@ -55,11 +55,11 @@ struct Know_MapsApp: App {
     @State public var modelController:DefaultModelController
     
     @State private var showReload:Bool = false
-    @State private var showOnboarding:Bool = true
+    @State private var showOnboarding:Bool = false
     @State private var showSplashScreen:Bool = true
     @State private var isStoryrabbitEnabled:Bool = false
     @State private var isStartingApp = false
-
+    @State private var didStartApp = false
     
     init() {
         let cacheManager = CloudCacheManager.shared
@@ -95,20 +95,29 @@ struct Know_MapsApp: App {
     
     var body: some Scene {
         WindowGroup(id:"ContentView") {
-            GeometryReader { geometry in
-                if showSplashScreen{
-                    HStack(alignment: .center){
-                        Spacer()
+            ZStack {
+                if showOnboarding {
+                    OnboardingView( settingsModel: authenticationModel, chatModel: $chatModel, modelController: $modelController, showOnboarding: $showOnboarding)
+#if os(visionOS) || os(macOS)
+                        .frame(minWidth: 1280, minHeight: 720)
+#endif
+                } else {
+                    
+                    ContentView(settingsModel:authenticationModel, chatModel: $chatModel, cacheManager:$cacheManager, modelController:$modelController, searchSavedViewModel: $searchSavedViewModel, showOnboarding: $showOnboarding)
+#if os(visionOS) || os(macOS)
+                        .frame(minWidth: 1280, minHeight: 720)
+#endif
+                }
+                
+                if showSplashScreen {
+                    ZStack(alignment: .center){
+                        Rectangle()
+                            .fill(.background)
+                            .ignoresSafeArea()
                         VStack(alignment: .center) {
                             Spacer()
-                            let text = isStoryrabbitEnabled ? "Welcome to StoryRabbit" : "Welcome to Know Maps"
+                            let text = "Welcome to Know Maps"
                             Text(text).bold().padding()
-                            isStoryrabbitEnabled ? Image(systemName: "hare")
-                                .resizable()
-                                .scaledToFit()
-                                .padding()
-                                .frame(width:100 , height: 100)
-                                .padding() :
                             Image("logo_macOS_512")
                                 .resizable()
                                 .scaledToFit()
@@ -120,70 +129,30 @@ struct Know_MapsApp: App {
                             ProgressView(value: cacheFetchProgress) {
                                 Text("Login in progress...")
                             }
-                                .frame(maxWidth:geometry.size.width / 2)
-                                .padding()
-                            
-                            Spacer()
-                            Button() {
-                                Task(priority: .userInitiated) {
-                                    await startApp()
-                                }
-                            } label: {
-                                Label(isStartingApp ? "Synchronizing" : "Synchronize", systemImage: isStartingApp ? "icloud.fill" : "icloud")
-                                    .labelStyle(.titleAndIcon)
-                            }.disabled(isStartingApp)
+                            .padding()
                             
                             Spacer()
                         }
-                        Spacer()
                     }
-                    .task(priority:.utility) {                        
-                        checkIfSignedInWithApple { signedIn in
-                            if signedIn {
-                                Task {
-                                    await startApp()
-                                }
-                            } else {
-                                authenticationModel.authCompletion = { result in
-                                    if case .success = result {
-                                        Task {
-                                            await startApp()
-                                        }
-                                    } else if case .failure(let error) = result {
-                                        print(error)
-                                        modelController.analyticsManager.trackError(error: error, additionalInfo: ["error": error.localizedDescription])
-                                    }
-                                }
-                                
-                                Task(priority: .utility) { @MainActor in
-                                    performExistingAccountSetupFlows()
-                                }
-                            }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
+            }
+            .task(priority:.utility) {
+                checkIfSignedInWithApple { signedIn in
+                    if signedIn, modelController.locationProvider.isAuthorized()  {
+                        Task {
+                            await startApp()
                         }
-                    }
-                    
-#if os(visionOS) || os(macOS)
-                    .frame(minWidth: 1280, minHeight: 720)
-#endif
-                } else {
-                    if showOnboarding {
-                        OnboardingView( settingsModel: authenticationModel, chatModel: $chatModel, modelController: $modelController, showOnboarding: $showOnboarding)
-#if os(visionOS) || os(macOS)
-                            .frame(minWidth: 1280, minHeight: 720)
-#endif
                     } else {
-
-                            ContentView(settingsModel:authenticationModel, chatModel: $chatModel, cacheManager:$cacheManager, modelController:$modelController, searchSavedViewModel: $searchSavedViewModel, showOnboarding: $showOnboarding)
-#if os(visionOS) || os(macOS)
-                                .frame(minWidth: 1280, minHeight: 720)
-#endif
+                        showSplashScreen = false
+                        showOnboarding = true
                     }
                 }
             }
-            #if !os(visionOS) && !os(macOS)
-            .containerBackground(.clear, for: .navigation)
-            #endif
-            .toolbarBackgroundVisibility(self.showOnboarding ? .visible : .hidden)
+#if !os(visionOS) && !os(macOS)
+.containerBackground(.clear, for: .navigation)
+#endif
+.toolbarBackgroundVisibility(self.showOnboarding ? .visible : .hidden)
         }.windowResizability(.contentSize)
         
         WindowGroup(id:"SettingsView"){
@@ -218,7 +187,6 @@ struct Know_MapsApp: App {
     }
     
     public func checkIfSignedInWithApple(completion:@escaping (Bool)->Void) {
-        
         guard authenticationModel.isSignedIn(), !authenticationModel.appleUserId.isEmpty else {
             DispatchQueue.main.async {
                 completion(false)
@@ -275,6 +243,19 @@ struct Know_MapsApp: App {
 //        }
         await retrieveUser()
         await loadData()
+        await enter()
+    }
+    
+    @MainActor
+    private func enter() async {
+        checkIfSignedInWithApple { signedIn in
+            if signedIn, cacheManager.cloudCache.hasFsqAccess, modelController.locationProvider.isAuthorized() {
+                showOnboarding = false
+                showSplashScreen = false
+            } else {
+                showOnboarding = true
+            }
+        }
     }
     
     private func retrieveUser() async {
@@ -320,10 +301,7 @@ struct Know_MapsApp: App {
     }
     
     private func handleOnboarding(_ chatModel: ChatResultViewModel) async {
-        let cloudAuth = !authenticationModel.appleUserId.isEmpty
-        
-        let isLocationAuthorized = modelController.locationProvider.isAuthorized()
-        if isLocationAuthorized  {
+        if modelController.locationProvider.isAuthorized()  {
             Task { @MainActor in
                 do {
                     let location = modelController.locationService.currentLocation()
@@ -337,12 +315,6 @@ struct Know_MapsApp: App {
             }
         } 
         
-        await MainActor.run {
-            if cloudAuth, cacheManager.cloudCache.hasFsqAccess, isLocationAuthorized {
-                showOnboarding = false
-            }
-            showSplashScreen = false
-        }
     }
     
     func withTimeout<T>(seconds: TimeInterval, operation: @escaping () async throws -> T) async throws -> T {

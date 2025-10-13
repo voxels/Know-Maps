@@ -76,7 +76,7 @@ struct ContentView: View {
     @State private var showAddRecommendationView:Bool = false
     
     @State private var searchMode: SearchMode = .favorites
-    @State private var navigationPath: [ChatResult.ID] = []
+    @State private var navigationPath: [String] = []
     
     @StateObject public var placeDirectionsChatViewModel = PlaceDirectionsViewModel(rawLocationIdent: "Current Location")
     
@@ -318,23 +318,34 @@ struct ContentView: View {
                 showMapsResultViewSheet: $showMapsResultViewSheet
             )
             .onChange(of: modelController.selectedPlaceChatResult) { _, newID in
-                if let newID {
-                    // Drive the NavigationStack directly from current selection
-                    // by resetting the path to a single element, ensuring a push.
-                    navigationPath = [newID]
+                if let newID, let placeChatResult = modelController.placeChatResult(for: newID) {
+                    Task { @MainActor in
+                        do {
+                            // Fetch details (can hop off main if needed inside the method)
+                            try await modelController.fetchPlaceDetailsIfNeeded(for: placeChatResult, cacheManager: cacheManager)
+                            try await chatModel.didTap(
+                                placeChatResult: placeChatResult,
+                                filters: searchSavedViewModel.filters,
+                                cacheManager: cacheManager,
+                                modelController: modelController
+                            )
+                            navigationPath = [placeChatResult.placeResponse?.fsqID ?? ""]
+                        } catch {
+                            modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
+                        }
+                    }
                 } else {
-                    // Clear the path when selection is cleared
                     if !navigationPath.isEmpty { navigationPath.removeAll() }
                 }
             }
-            .navigationDestination(for: ChatResult.ID.self) { placeID in
+            .navigationDestination(for: String.self) { fsqID in
                 PlaceView(
                     searchSavedViewModel:$searchSavedViewModel,
                     chatModel: $chatModel,
                     cacheManager: $cacheManager,
                     modelController: $modelController,
                     placeDirectionsViewModel: placeDirectionsChatViewModel,
-                    selectedPlaceID: placeID
+                    selectedFoursquareID: fsqID
                 )
             }
         }

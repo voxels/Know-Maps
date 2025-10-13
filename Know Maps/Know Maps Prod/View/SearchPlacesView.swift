@@ -51,11 +51,26 @@ struct SearchPlacesView: View {
         .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search by place name") // Add searchable
 #endif
         .onSubmit(of: .search, {
-            if !searchText.isEmpty{
-                Task(priority:.userInitiated) {
-                    await searchSavedViewModel.search(caption: searchText, selectedDestinationChatResultID: modelController.selectedDestinationLocationChatResult ?? modelController.currentlySelectedLocationResult.id, intent: .AutocompletePlaceSearch, filters: searchSavedViewModel.filters, chatModel: chatModel, cacheManager: cacheManager, modelController: modelController)
+            if !searchText.isEmpty {
+                Task(priority: .userInitiated) {
+                    await searchSavedViewModel.search(
+                        caption: searchText,
+                        selectedDestinationChatResultID: modelController.selectedDestinationLocationChatResult ?? modelController.currentlySelectedLocationResult.id,
+                        intent: .AutocompletePlaceSearch,
+                        filters: searchSavedViewModel.filters,
+                        chatModel: chatModel,
+                        cacheManager: cacheManager,
+                        modelController: modelController
+                    )
+                    // After the search completes, push to detail by selecting the first result (iPhone collapses split view)
+                    await MainActor.run {
+                        if let first = modelController.placeResults.first {
+                            modelController.selectedPlaceChatResult = first.id
+                        }
+                    }
                 }
             }
         })
     }
 }
+
