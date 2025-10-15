@@ -60,10 +60,11 @@ public protocol ModelController : Sendable {
     
     // MARK: - Init
     init(
-        locationProvider: LocationProvider,
-        analyticsManager: AnalyticsService,
-        messagesDelegate:AssistiveChatHostMessagesDelegate
-    )
+       locationProvider: LocationProvider,
+       analyticsManager: AnalyticsService,
+       cloudCacheService:CloudCacheService,
+       messagesDelegate: AssistiveChatHostMessagesDelegate
+   )
     
     func resetPlaceModel() async throws
     

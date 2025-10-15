@@ -25,7 +25,6 @@ struct SearchView: View {
                     return
                 }
                 modelController.isRefreshingPlaces = true
-                modelController.fetchMessage = "Fetching places"
                 Task(priority:.userInitiated) {
                     do {
                         try await modelController.resetPlaceModel()

@@ -82,6 +82,9 @@ struct PlaceView: View {
                     EmptyView()
                 }
             }
+            .task(priority: .userInitiated) {
+                await modelController.enqueueLazyDetailFetch(for: placeChatResult, cacheManager: cacheManager)
+            }
             .navigationTitle(placeChatResult.title)
             .id(placeChatResult.id)
         } else {

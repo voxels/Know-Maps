@@ -51,7 +51,6 @@
 		1E2D2AB02E8A583800EA69DC /* CategoryResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EE0688F2B0E57AD0016851A /* CategoryResult.swift */; };
 		1E2D2AB12E8A583800EA69DC /* ChatResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EA7F7812B052D92002AE371 /* ChatResult.swift */; };
 		1E2D2AB22E8A583800EA69DC /* ChatRouteResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EE068912B0FBADE0016851A /* ChatRouteResult.swift */; };
-		1E2D2AB32E8A583800EA69DC /* FoursquareAuthenticationRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E3FE0522CB803610020B3CB /* FoursquareAuthenticationRecord.swift */; };
 		1E2D2AB42E8A583800EA69DC /* LanguageGeneratorRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EA7F7722B052D92002AE371 /* LanguageGeneratorRequest.swift */; };
 		1E2D2AB52E8A583800EA69DC /* LocationResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EE068972B121F710016851A /* LocationResult.swift */; };
 		1E2D2AB62E8A583800EA69DC /* PersonalizedSearchSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E3FE0562CB854FD0020B3CB /* PersonalizedSearchSection.swift */; };
@@ -121,7 +120,6 @@
 		1E3FE0122CB6C5300020B3CB /* RecommenderService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E3FE0112CB6C52C0020B3CB /* RecommenderService.swift */; };
 		1E3FE0142CB6C6BA0020B3CB /* DefaultRecommenderService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E3FE0132CB6C6B60020B3CB /* DefaultRecommenderService.swift */; };
 		1E3FE0162CB7F7B40020B3CB /* SavedListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E3FE0152CB7F7B20020B3CB /* SavedListView.swift */; };
-		1E3FE0532CB8036C0020B3CB /* FoursquareAuthenticationRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E3FE0522CB803610020B3CB /* FoursquareAuthenticationRecord.swift */; };
 		1E3FE0552CB852070020B3CB /* AppShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E3FE0542CB852000020B3CB /* AppShortcuts.swift */; };
 		1E3FE0572CB855020020B3CB /* PersonalizedSearchSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E3FE0562CB854FD0020B3CB /* PersonalizedSearchSection.swift */; };
 		1E601F5D2CB0512900E320D7 /* GoogleBannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E601F5C2CB0512900E320D7 /* GoogleBannerView.swift */; };
@@ -283,7 +281,6 @@
 		1E3FE0112CB6C52C0020B3CB /* RecommenderService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecommenderService.swift; sourceTree = "<group>"; };
 		1E3FE0132CB6C6B60020B3CB /* DefaultRecommenderService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DefaultRecommenderService.swift; sourceTree = "<group>"; };
 		1E3FE0152CB7F7B20020B3CB /* SavedListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedListView.swift; sourceTree = "<group>"; };
-		1E3FE0522CB803610020B3CB /* FoursquareAuthenticationRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoursquareAuthenticationRecord.swift; sourceTree = "<group>"; };
 		1E3FE0542CB852000020B3CB /* AppShortcuts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppShortcuts.swift; sourceTree = "<group>"; };
 		1E3FE0562CB854FD0020B3CB /* PersonalizedSearchSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersonalizedSearchSection.swift; sourceTree = "<group>"; };
 		1E583F7C2B1671F300B2EC26 /* AppleAuthenticationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleAuthenticationService.swift; sourceTree = "<group>"; };
@@ -502,7 +499,6 @@
 				1EE0688F2B0E57AD0016851A /* CategoryResult.swift */,
 				1EA7F7812B052D92002AE371 /* ChatResult.swift */,
 				1EE068912B0FBADE0016851A /* ChatRouteResult.swift */,
-				1E3FE0522CB803610020B3CB /* FoursquareAuthenticationRecord.swift */,
 				1EA7F7722B052D92002AE371 /* LanguageGeneratorRequest.swift */,
 				1EE068972B121F710016851A /* LocationResult.swift */,
 				1E3FE0562CB854FD0020B3CB /* PersonalizedSearchSection.swift */,
@@ -1007,7 +1003,6 @@
 				1EF378E92C986EE7001C5E39 /* ChatResultViewModel.swift in Sources */,
 				1EF378EA2C986EE7001C5E39 /* PlaceDirectionsViewModel.swift in Sources */,
 				1EF378EC2C986EE7001C5E39 /* AppleAuthenticationService.swift in Sources */,
-				1E3FE0532CB8036C0020B3CB /* FoursquareAuthenticationRecord.swift in Sources */,
 				1EF378ED2C986EE7001C5E39 /* AssistiveChatHostIntent.swift in Sources */,
 				1EF378EE2C986EE7001C5E39 /* AssistiveChatHostQueryParameters.swift in Sources */,
 				1EF378EF2C986EE7001C5E39 /* ChatResult.swift in Sources */,
@@ -1130,7 +1125,6 @@
 				1E2D2AB02E8A583800EA69DC /* CategoryResult.swift in Sources */,
 				1E2D2AB12E8A583800EA69DC /* ChatResult.swift in Sources */,
 				1E2D2AB22E8A583800EA69DC /* ChatRouteResult.swift in Sources */,
-				1E2D2AB32E8A583800EA69DC /* FoursquareAuthenticationRecord.swift in Sources */,
 				1E2D2AB42E8A583800EA69DC /* LanguageGeneratorRequest.swift in Sources */,
 				1E2D2AB52E8A583800EA69DC /* LocationResult.swift in Sources */,
 				1E2D2AB62E8A583800EA69DC /* PersonalizedSearchSection.swift in Sources */,

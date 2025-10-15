@@ -11,6 +11,8 @@ import CoreLocation
 @Observable
 public final class SearchSavedViewModel : Sendable {
     
+    public static let shared = SearchSavedViewModel()
+    
     public var filters: [String:Any] {
         get {
             retrieveFiltersFromUserDefaults()
@@ -93,7 +95,7 @@ public final class SearchSavedViewModel : Sendable {
             )
             
             // Store the record in the local cache and CloudKit
-            _ = try await cacheManager.cloudCache.storeUserCachedRecord(recordId: userRecord.recordId,
+            _ = try await cacheManager.cloudCacheService.storeUserCachedRecord(recordId: userRecord.recordId,
                 group: userRecord.group,
                 identity: userRecord.identity,
                 title: userRecord.title,
@@ -133,7 +135,7 @@ public final class SearchSavedViewModel : Sendable {
             )
             
             // Store the record in the local cache and CloudKit
-            _ = try await cacheManager.cloudCache.storeUserCachedRecord(recordId: userRecord.recordId,
+            _ = try await cacheManager.cloudCacheService.storeUserCachedRecord(recordId: userRecord.recordId,
                 group:userRecord.group,
                 identity: userRecord.identity,
                 title: userRecord.title,
@@ -174,7 +176,7 @@ public final class SearchSavedViewModel : Sendable {
             )
             
             // Store the record in the local cache and CloudKit
-            _ = try await cacheManager.cloudCache.storeUserCachedRecord(recordId: userRecord.recordId,
+            _ = try await cacheManager.cloudCacheService.storeUserCachedRecord(recordId: userRecord.recordId,
                 group:userRecord.group,
                 identity: userRecord.identity,
                 title: userRecord.title,
@@ -203,8 +205,8 @@ public final class SearchSavedViewModel : Sendable {
         // Find the cached records for the given category
         do {
             // Attempt to delete the cached record from CloudCache
-            if let cachedRecord = try await cacheManager.cloudCache.fetchGroupedUserCachedRecords(for: "Category").first(where: { $0.title == industryCategoryResult.parentCategory }) {
-                try await cacheManager.cloudCache.deleteUserCachedRecord(for: cachedRecord)
+            if let cachedRecord = try await cacheManager.cloudCacheService.fetchGroupedUserCachedRecords(for: "Category").first(where: { $0.title == industryCategoryResult.parentCategory }) {
+                try await cacheManager.cloudCacheService.deleteUserCachedRecord(for: cachedRecord)
             }
             
             // Refresh the cache after deletion
@@ -239,7 +241,7 @@ public final class SearchSavedViewModel : Sendable {
             )
             
             // Save the record to the cache and CloudKit
-            _ = try await cacheManager.cloudCache.storeUserCachedRecord(recordId: userRecord.recordId,
+            _ = try await cacheManager.cloudCacheService.storeUserCachedRecord(recordId: userRecord.recordId,
                 group: userRecord.group,
                 identity: userRecord.identity,
                 title: userRecord.title,
@@ -267,9 +269,9 @@ public final class SearchSavedViewModel : Sendable {
 
         do {
             // Fetch the cached record for the given taste
-            if let cachedRecord = try await cacheManager.cloudCache.fetchGroupedUserCachedRecords(for: "Taste").first(where: { $0.title == tasteCategoryResult.parentCategory }) {
+            if let cachedRecord = try await cacheManager.cloudCacheService.fetchGroupedUserCachedRecords(for: "Taste").first(where: { $0.title == tasteCategoryResult.parentCategory }) {
                 // Delete the cached record
-                try await cacheManager.cloudCache.deleteUserCachedRecord(for: cachedRecord)
+                try await cacheManager.cloudCacheService.deleteUserCachedRecord(for: cachedRecord)
             }
             // Refresh the cached tastes after deletion
             await cacheManager.refreshCachedTastes()
@@ -283,7 +285,7 @@ public final class SearchSavedViewModel : Sendable {
     func removeCachedResults(group: String, identity: String, cacheManager: CacheManager, modelController: ModelController) async {
         do {
             // Fetch cached records for the given group and identity
-            let cachedRecords = try await cacheManager.cloudCache.fetchGroupedUserCachedRecords(for: group)
+            let cachedRecords = try await cacheManager.cloudCacheService.fetchGroupedUserCachedRecords(for: group)
             let matchingRecords = cachedRecords.filter { $0.identity == identity }
             
             // Delete matching cached records concurrently
@@ -291,7 +293,7 @@ public final class SearchSavedViewModel : Sendable {
                 for record in matchingRecords {
                     group.addTask {
                         do {
-                            try await cacheManager.cloudCache.deleteUserCachedRecord(for: record)
+                            try await cacheManager.cloudCacheService.deleteUserCachedRecord(for: record)
                         } catch {
                             modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
                         }
@@ -328,14 +330,14 @@ public final class SearchSavedViewModel : Sendable {
         } else if let selectedPlaceItem = modelController.cachedPlaceResult(for: selectedSavedResult, cacheManager: cacheManager) {
             if let fsqID = selectedPlaceItem.categoricalChatResults.first?.placeResponse?.fsqID {
                 await removeCachedResults(group: "Place", identity: fsqID, cacheManager: cacheManager, modelController: modelController)
-                _ = try await cacheManager.cloudCache.deleteRecommendationData(for: fsqID)
+                _ = try await cacheManager.cloudCacheService.deleteRecommendationData(for: fsqID)
             }
         }
     }
     
     // Change rating
     func changeRating(rating: Double, for editingResult:String, cacheManager:CacheManager, modelController:ModelController) async throws {
-            try await cacheManager.cloudCache.updateUserCachedRecordRating(identity: editingResult, newRating: rating)
+            try await cacheManager.cloudCacheService.updateUserCachedRecordRating(identity: editingResult, newRating: rating)
 
     }
 }

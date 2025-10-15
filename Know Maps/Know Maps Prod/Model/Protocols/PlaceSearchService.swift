@@ -21,4 +21,3 @@ public protocol PlaceSearchService: Sendable {
     func placeSearchRequest(intent:AssistiveChatHostIntent, location:CLLocation) async ->PlaceSearchRequest
     func recommendedPlaceSearchRequest(intent:AssistiveChatHostIntent, location:CLLocation) async -> RecommendedPlaceSearchRequest
 }
-

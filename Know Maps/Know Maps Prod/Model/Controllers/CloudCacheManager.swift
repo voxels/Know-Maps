@@ -7,14 +7,12 @@
 
 import Foundation
 import CoreLocation
+import SwiftData
 
 @Observable
 public final class CloudCacheManager: CacheManager {
     
-    @MainActor
-    static let shared = CloudCacheManager(cloudCache: CloudCacheService.shared, analyticsManager: SegmentAnalyticsService.shared)
-    
-    public let cloudCache: CloudCache
+    public let cloudCacheService: CloudCacheService
     private let analyticsManager: AnalyticsService
     public var isRefreshingCache: Bool = false
     public var cacheFetchProgress: Double = 0
@@ -29,8 +27,8 @@ public final class CloudCacheManager: CacheManager {
      public var cachedLocationResults = [LocationResult]()
      public var cachedRecommendationData = [RecommendationData]()
 
-    public init(cloudCache: CloudCache, analyticsManager: AnalyticsService) {
-        self.cloudCache = cloudCache
+    public init(analyticsManager: AnalyticsService, modelContext:ModelContext) {
+        self.cloudCacheService = CloudCacheService(analyticsManager: analyticsManager, modelContext: modelContext)
         self.analyticsManager = analyticsManager
     }
 
@@ -83,7 +81,7 @@ public final class CloudCacheManager: CacheManager {
     
     public func refreshCachedCategories() async {
         do {
-            let records = try await cloudCache.fetchGroupedUserCachedRecords(for: "Category")
+            let records = try await cloudCacheService.fetchGroupedUserCachedRecords(for: "Category")
             let results = self.createCategoryResults(from: records)
             await MainActor.run {
                 self.cachedIndustryResults = results
@@ -95,7 +93,7 @@ public final class CloudCacheManager: CacheManager {
 
     public func refreshCachedTastes() async {
         do {
-            let records = try await cloudCache.fetchGroupedUserCachedRecords(for: "Taste")
+            let records = try await cloudCacheService.fetchGroupedUserCachedRecords(for: "Taste")
             let results = self.createCategoryResults(from: records)
             await MainActor.run {
                 self.cachedTasteResults = results
@@ -107,7 +105,7 @@ public final class CloudCacheManager: CacheManager {
 
     public func refreshCachedPlaces() async {
         do {
-            let records = try await cloudCache.fetchGroupedUserCachedRecords(for: "Place")
+            let records = try await cloudCacheService.fetchGroupedUserCachedRecords(for: "Place")
             let results = self.createPlaceResults(from: records)
             await MainActor.run {
                 self.cachedPlaceResults = results
@@ -119,7 +117,7 @@ public final class CloudCacheManager: CacheManager {
 
     public func refreshCachedLocations() async {
         do {
-            let records = try await cloudCache.fetchGroupedUserCachedRecords(for: "Location")
+            let records = try await cloudCacheService.fetchGroupedUserCachedRecords(for: "Location")
             let locationResults = self.createLocationResults(from: records)
             await MainActor.run {
                 self.cachedLocationResults = locationResults
@@ -131,7 +129,7 @@ public final class CloudCacheManager: CacheManager {
 
     public func refreshCachedRecommendationData() async {
         do {
-            let records = try await cloudCache.fetchRecommendationData()
+            let records = try await cloudCacheService.fetchRecommendationData()
             await MainActor.run {
                 self.cachedRecommendationData = records
             }
@@ -156,7 +154,7 @@ public final class CloudCacheManager: CacheManager {
     
     public func restoreCache() async throws {
         print("Restoring all cache records")
-        try await cloudCache.fetchAllRecords(recordTypes: ["UserCachedRecord", "RecommendationData"])
+        try await cloudCacheService.fetchAllRecords(recordTypes: ["UserCachedRecord", "RecommendationData"])
     }
 
     @MainActor

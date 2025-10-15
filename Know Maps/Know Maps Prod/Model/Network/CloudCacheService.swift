@@ -28,9 +28,6 @@ public enum CloudCacheServiceKey: String {
 
 public final class CloudCacheService: NSObject, CloudCache {
     
-    @MainActor
-    static let shared = CloudCacheService(analyticsManager: SegmentAnalyticsService.shared, modelContext: Know_MapsApp.sharedModelContainer.mainContext)
-    
     let analyticsManager: AnalyticsService
     
     @MainActor public var hasFsqAccess: Bool {
@@ -404,6 +401,38 @@ public final class CloudCacheService: NSObject, CloudCache {
         }
     }
     
+    /// Attempts to refresh the Foursquare user token by re-fetching identity and token from CloudKit.
+    /// If no identity is present, this will no-op and return false.
+    /// - Returns: true if a non-empty token is available after refresh; false otherwise.
+    @discardableResult
+    public func refreshFsqToken() async -> Bool {
+        print("[CloudCacheService] refreshFsqToken: starting…")
+        do {
+            let identity = await MainActor.run { self.fsqUserId }
+            let currentToken = await MainActor.run { self.oauthToken }
+            if identity.isEmpty {
+                // Try to fetch identity
+                let fetchedId = try await fetchFsqIdentity()
+                if fetchedId.isEmpty {
+                    print("[CloudCacheService] refreshFsqToken: no identity available.")
+                    return false
+                }
+            }
+            let activeIdentity = await MainActor.run { self.fsqUserId }
+            let token = try await fetchToken(for: activeIdentity)
+            if token.isEmpty {
+                print("[CloudCacheService] refreshFsqToken: token still empty after fetch.")
+                return false
+            }
+            print("[CloudCacheService] refreshFsqToken: token refreshed.")
+            return true
+        } catch {
+            self.analyticsManager.trackError(error: error, additionalInfo: ["operation": "refreshFsqToken"]) 
+            print("[CloudCacheService] refreshFsqToken: error \(error)")
+            return false
+        }
+    }
+    
     public func storeFoursquareIdentityAndToken(for fsqUserId: String, oauthToken: String) {
         let record = CKRecord(recordType: "PersonalizedUser")
         record.setObject(fsqUserId as NSString, forKey: "userId")
@@ -416,6 +445,7 @@ public final class CloudCacheService: NSObject, CloudCache {
             }
         }
     }
+    
     public func fetchGroupedUserCachedRecords(for group: String) async throws -> [UserCachedRecord] {
         // Fetch from local store
         return try await MainActor.run {
@@ -736,6 +766,11 @@ public final class CloudCacheService: NSObject, CloudCache {
 private extension CloudCacheService {
     func defaultSession() -> URLSession {
         let sessionConfiguration = URLSessionConfiguration.default
+        sessionConfiguration.timeoutIntervalForRequest = 10.0
+        sessionConfiguration.timeoutIntervalForResource = 10.0
+        sessionConfiguration.requestCachePolicy = .reloadRevalidatingCacheData
+        sessionConfiguration.waitsForConnectivity = true
         return URLSession(configuration: sessionConfiguration)
     }
 }
+

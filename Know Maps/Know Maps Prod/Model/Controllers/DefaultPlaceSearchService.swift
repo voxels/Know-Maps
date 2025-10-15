@@ -237,6 +237,10 @@ public final class DefaultPlaceSearchService: PlaceSearchService {
        
             ll = "\(location.coordinate.latitude),\(location.coordinate.longitude)"
       
+        // If we have explicit category IDs, prefer category-only search and omit the free-text query
+        if !categories.isEmpty {
+            query = ""
+        }
         
         query = query.trimmingCharacters(in: .whitespacesAndNewlines)
         
@@ -325,6 +329,11 @@ public final class DefaultPlaceSearchService: PlaceSearchService {
         
             ll = "\(location.coordinate.latitude),\(location.coordinate.longitude)"
         
+        // If categories are present for recommendations, omit the free-text query to reduce ambiguity
+        if !categories.isEmpty {
+            query = ""
+        }
+        
         query = query.trimmingCharacters(in: .whitespacesAndNewlines)
         
         let request = RecommendedPlaceSearchRequest(query: query, ll: ll, radius: radius, categories: categories, minPrice:minPrice, maxPrice:maxPrice, openNow: openNow, nearLocation: nearLocation, limit: limit, section:section ?? .topPicks, tags:tags)
@@ -332,4 +341,3 @@ public final class DefaultPlaceSearchService: PlaceSearchService {
         return request
     }
 }
-

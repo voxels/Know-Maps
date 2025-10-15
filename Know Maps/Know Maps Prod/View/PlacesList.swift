@@ -16,7 +16,7 @@ struct PlacesList: View {
     @Binding public var searchSavedViewModel:SearchSavedViewModel
     @Binding public var chatModel:ChatResultViewModel
     @Binding var cacheManager:CloudCacheManager
-    @Binding var modelController:DefaultModelController
+    @Bindable var modelController: DefaultModelController
     @Binding public var showMapsResultViewSheet:Bool
     
     static var formatter:NumberFormatter {
@@ -108,6 +108,9 @@ struct PlacesList: View {
                         modelController.setSelectedPlaceChatResult(result.id)
                     })
                     .animation(.snappy(duration: 0.35), value: modelController.recommendedPlaceResults)
+                    .task(priority: .background) {
+                        await modelController.enqueueLazyDetailFetch(for: result, cacheManager: cacheManager)
+                    }
                 }
             }
         }
@@ -154,6 +157,9 @@ struct PlacesList: View {
                         modelController.setSelectedPlaceChatResult(result.id)
                     })
                     .animation(.snappy(duration: 0.35), value: modelController.filteredPlaceResults)
+                    .task(priority: .background) {
+                        await modelController.enqueueLazyDetailFetch(for: result, cacheManager: cacheManager)
+                    }
                     .listRowBackground(Color.clear)
                     .listStyle(.plain)
                 }
@@ -175,52 +181,24 @@ struct PlacesList: View {
                 recommendedGrid(in: geometry)
             } else if modelController.placeResults.count > 0 {
                 placeResultsGrid(in: geometry)
-            }
-            else if !modelController.queryParametersHistory.isEmpty {
-                if let selectedDestinationLocationChatResult = modelController.selectedDestinationLocationChatResult {
-                
-                    VStack(alignment:.center, spacing: 12) {
-                        Spacer()
-                        if modelController.searchTimedOut {
-                            Text("No Results Found")
-                                .padding()
-                        } else {
-                            Text(modelController.fetchMessage)
-                                .font(.caption)
-                                .padding()
+            } else if !modelController.queryParametersHistory.isEmpty {
+                VStack(alignment: .center, spacing: 12) {
+                    Spacer()
+                    if modelController.isRefreshingPlaces {
+                        let message = modelController.fetchMessage.isEmpty ? "Searching…" : modelController.fetchMessage
+                        ProgressView {
+                            Text(message)
+                        }
+                        .progressViewStyle(.linear)
+                        .padding()
+                    } else {
+                        Text(modelController.fetchMessage)
+                            .font(.caption)
                             .padding()
-                        }
-                        
-                        let recCount = modelController.recommendedPlaceResults.count
-                        let placeCount = modelController.placeResults.count
-                        if recCount > 0 || placeCount > 0 {
-                            EmptyView()
-                                .onAppear {
-                                    modelController.cancelSearchTimeout()
-                                }
-                        } else {
-                            EmptyView()
-                        }
-                        Spacer()
                     }
-                } else {
-                    VStack(alignment:.center, spacing: 12) {
-                        Spacer()
-                        if modelController.searchTimedOut {
-                            Text("No Results Found")
-                                .padding()
-                        } else {
-                            Text(modelController.fetchMessage)
-                                .font(.caption)
-                                .padding()
-                        }
-                        Spacer()
-                    }
+                    Spacer()
                 }
             }
-        }
-        .onDisappear {
-            modelController.cancelSearchTimeout()
         }
     }
 }

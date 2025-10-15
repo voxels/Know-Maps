@@ -100,7 +100,7 @@ struct SettingsView: View {
                 Task {
                     do {
                         try await modelController.resetPlaceModel()
-                        try await cacheManager.cloudCache.deleteAllUserCachedGroups()
+                        try await cacheManager.cloudCacheService.deleteAllUserCachedGroups()
                         try await cacheManager.refreshCache()
                         await MainActor.run {
                             showOnboarding = true
@@ -117,7 +117,7 @@ struct SettingsView: View {
                 Task {
                     do {
                         try await modelController.resetPlaceModel()
-                        try await cacheManager.cloudCache.deleteAllUserCachedGroups()
+                        try await cacheManager.cloudCacheService.deleteAllUserCachedGroups()
                         try await cacheManager.refreshCache()
                         model.signOut()
                         await MainActor.run {

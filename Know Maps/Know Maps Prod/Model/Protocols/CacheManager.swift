@@ -9,7 +9,7 @@ import Foundation
 import CoreLocation
 
 public protocol CacheManager : Sendable {
-    var cloudCache:CloudCache { get }
+    var cloudCacheService:CloudCacheService { get }
     var isRefreshingCache: Bool  { get }
     var cacheFetchProgress:Double { get }
     var completedTasks:Int { get }

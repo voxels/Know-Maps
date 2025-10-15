@@ -48,9 +48,9 @@ struct Know_MapsApp: App {
         }
     }()
     
-    @StateObject public var authenticationModel:AppleAuthenticationService
-    @State public var chatModel:ChatResultViewModel
-    @State public var searchSavedViewModel:SearchSavedViewModel
+    @StateObject public var authenticationModel:AppleAuthenticationService = AppleAuthenticationService.shared
+    @State public var chatModel:ChatResultViewModel = ChatResultViewModel.shared
+    @State public var searchSavedViewModel:SearchSavedViewModel = SearchSavedViewModel.shared
     @State public var cacheManager:CloudCacheManager
     @State public var modelController:DefaultModelController
     
@@ -62,18 +62,18 @@ struct Know_MapsApp: App {
     @State private var didStartApp = false
     
     init() {
-        let cacheManager = CloudCacheManager.shared
         let authModel = AppleAuthenticationService.shared
-        let modelController = DefaultModelController.shared
         let searchSavedViewModel = SearchSavedViewModel()
         let chatModel = ChatResultViewModel.shared
+        let modelController = DefaultModelController(locationProvider:LocationProvider.shared, analyticsManager: SegmentAnalyticsService.shared, cloudCacheService: CloudCacheService(analyticsManager: SegmentAnalyticsService.shared, modelContext: Know_MapsApp.sharedModelContainer.mainContext), messagesDelegate: chatModel)
+        let cacheManager = CloudCacheManager(analyticsManager: modelController.analyticsManager, modelContext: Know_MapsApp.sharedModelContainer.mainContext)
         
         _cacheManager = State(wrappedValue: cacheManager)
         _authenticationModel = StateObject(wrappedValue: authModel)
         _modelController = State(wrappedValue: modelController)
         _searchSavedViewModel = State(wrappedValue: searchSavedViewModel)
         _chatModel = State(wrappedValue: chatModel)
-
+        
         AppDependencyManager.shared.add(dependency: cacheManager)
         AppDependencyManager.shared.add(dependency: modelController)
         AppDependencyManager.shared.add(dependency: chatModel)
@@ -85,12 +85,12 @@ struct Know_MapsApp: App {
          */
         KnowMapsShortcutsProvider.updateAppShortcutParameters()
         do {
-                    // Configure and load all tips in the app.
-                    try Tips.configure()
-                }
-                catch {
-                    print("Error initializing tips: \(error)")
-                }
+            // Configure and load all tips in the app.
+            try Tips.configure()
+        }
+        catch {
+            print("Error initializing tips: \(error)")
+        }
     }
     
     var body: some Scene {
@@ -150,9 +150,9 @@ struct Know_MapsApp: App {
                 }
             }
 #if !os(visionOS) && !os(macOS)
-.containerBackground(.clear, for: .navigation)
+            .containerBackground(.clear, for: .navigation)
 #endif
-.toolbarBackgroundVisibility(self.showOnboarding ? .visible : .hidden)
+            .toolbarBackgroundVisibility(self.showOnboarding ? .visible : .hidden)
         }.windowResizability(.contentSize)
         
         WindowGroup(id:"SettingsView"){
@@ -219,48 +219,54 @@ struct Know_MapsApp: App {
             let requests = [ASAuthorizationAppleIDProvider().createRequest()]
             let authorizationController = ASAuthorizationController(authorizationRequests: requests)
             authorizationController.delegate = authenticationModel
+            authorizationController.presentationContextProvider = authenticationModel
             authorizationController.performRequests()
         }
     }
     
+    // Await a valid access token before proceeding with network-dependent startup work
+    private func ensureValidAccessToken() async {
+        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+            authenticationModel.getValidAccessToken { _ in
+                continuation.resume(returning: ())
+            }
+        }
+    }
+    
     /*
-    private func loadPurchases() async throws {
-        let purchasesId =  settingsModel.purchasesId
-        let revenuecatAPIKey = try await cacheManager.cloudCache.apiKey(for: .revenuecat)
-        Purchases.configure(withAPIKey: revenuecatAPIKey, appUserID: purchasesId)
-        Purchases.shared.delegate = FeatureFlagService.shared
-        
-        settingsModel.fetchSubscriptionOfferings()
-        let customerInfo = try await Purchases.shared.customerInfo()
-        FeatureFlagService.shared.updateFlags(with: customerInfo)
-    }*/
+     private func loadPurchases() async throws {
+     let purchasesId =  settingsModel.purchasesId
+     let revenuecatAPIKey = try await cacheManager.cloudCache.apiKey(for: .revenuecat)
+     Purchases.configure(withAPIKey: revenuecatAPIKey, appUserID: purchasesId)
+     Purchases.shared.delegate = FeatureFlagService.shared
+     
+     settingsModel.fetchSubscriptionOfferings()
+     let customerInfo = try await Purchases.shared.customerInfo()
+     FeatureFlagService.shared.updateFlags(with: customerInfo)
+     }*/
     
     private func startup() async {
-//        do {
-//            try await loadPurchases()
-//        } catch {
-//            modelController.analyticsManager.trackError(error: error, additionalInfo:nil)
-//        }
+        await ensureValidAccessToken()
+        //        do {
+        //            try await loadPurchases()
+        //        } catch {
+        //            modelController.analyticsManager.trackError(error: error, additionalInfo:nil)
+        //        }
         await retrieveUser()
+        await ensureLocationAuthorizedAndSetCurrent()
         await loadData()
         await enter()
     }
     
     @MainActor
     private func enter() async {
-        checkIfSignedInWithApple { signedIn in
-            if signedIn, cacheManager.cloudCache.hasFsqAccess, modelController.locationProvider.isAuthorized() {
-                showOnboarding = false
-                showSplashScreen = false
-            } else {
-                showOnboarding = true
-            }
-        }
+        showOnboarding = false
+        showSplashScreen = false
     }
     
     private func retrieveUser() async {
         // Perform setup tasks
-        if !cacheManager.cloudCache.hasFsqAccess {
+        if !cacheManager.cloudCacheService.hasFsqAccess {
             do {
                 try await modelController.placeSearchService.retrieveFsqUser(cacheManager: cacheManager)
                 
@@ -313,8 +319,28 @@ struct Know_MapsApp: App {
                     modelController.analyticsManager.trackError(error: error, additionalInfo:nil)
                 }
             }
-        } 
+        }
         
+    }
+    
+    @MainActor
+    private func ensureLocationAuthorizedAndSetCurrent() async {
+        if !modelController.locationProvider.isAuthorized() {
+            await modelController.locationProvider.requestAuthorizationIfNeeded()
+        }
+        
+        guard modelController.locationProvider.isAuthorized() else {
+            return
+        }
+        
+        do {
+            let location = modelController.locationService.currentLocation()
+            let name = try await modelController.locationService.currentLocationName()
+            modelController.currentlySelectedLocationResult.replaceLocation(with: location, name: name ?? "Current location")
+            modelController.selectedDestinationLocationChatResult = modelController.currentlySelectedLocationResult.id
+        } catch {
+            modelController.analyticsManager.trackError(error: error, additionalInfo: ["context": "ensureLocationAuthorizedAndSetCurrent"])
+        }
     }
     
     func withTimeout<T>(seconds: TimeInterval, operation: @escaping () async throws -> T) async throws -> T {

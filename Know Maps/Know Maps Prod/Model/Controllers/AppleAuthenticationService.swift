@@ -9,6 +9,12 @@ import Foundation
 import Combine
 import AuthenticationServices
 import Security
+#if canImport(AppKit)
+import AppKit
+#endif
+#if canImport(UIKit)
+import UIKit
+#endif
 
 public enum AppleAuthenticationServiceError : Error {
     case failed
@@ -39,15 +45,18 @@ class AppleAuthenticationService: NSObject, ObservableObject {
     }
     
     // MARK: - Sign In with Apple
+    @MainActor
     func signIn() {
-        let provider = ASAuthorizationAppleIDProvider()
-        let request = provider.createRequest()
-        prepareSignInRequest(request)
-         
-        let controller = ASAuthorizationController(authorizationRequests: [request])
-        controller.delegate = self
-        controller.presentationContextProvider = self
-        controller.performRequests()
+        DispatchQueue.main.async {
+            let provider = ASAuthorizationAppleIDProvider()
+            let request = provider.createRequest()
+            self.prepareSignInRequest(request)
+            
+            let controller = ASAuthorizationController(authorizationRequests: [request])
+            controller.delegate = self
+            controller.presentationContextProvider = self
+            controller.performRequests()
+        }
     }
     
     func prepareSignInRequest(_ request: ASAuthorizationAppleIDRequest) {
@@ -68,6 +77,7 @@ class AppleAuthenticationService: NSObject, ObservableObject {
                     self?.deleteFromKeychain(key: "accessToken")
                     self?.deleteFromKeychain(key: "refreshToken")
                     self?.deleteFromKeychain(key: "appleUserId")
+                    self?.deleteFromKeychain(key: "accessTokenExpiry")
                 } else {
                     self?.signInErrorMessage = "Failed to revoke token."
                 }
@@ -113,7 +123,11 @@ class AppleAuthenticationService: NSObject, ObservableObject {
             do {
                 let tokenResponse = try JSONDecoder().decode(TokenResponse.self, from: data)
                     // Store tokens securely
-                    self?.storeTokens(accessToken: tokenResponse.accessToken, refreshToken: tokenResponse.refreshToken)
+                    self?.storeTokens(
+                        accessToken: tokenResponse.accessToken,
+                        refreshToken: tokenResponse.refreshToken,
+                        expiresIn: tokenResponse.expiresIn
+                    )
                     DispatchQueue.main.async {
                         self?.signInErrorMessage = ""
                     }
@@ -172,9 +186,21 @@ class AppleAuthenticationService: NSObject, ObservableObject {
     }
     
     // MARK: - Keychain Management
-    private func storeTokens(accessToken: String, refreshToken: String) {
+    // Stores tokens and optional expiry
+    private func storeTokens(accessToken: String, refreshToken: String, expiresIn: Int?) {
         saveToKeychain(key: "accessToken", value: accessToken)
         saveToKeychain(key: "refreshToken", value: refreshToken)
+        if let expiresIn = expiresIn {
+            // Add a small buffer (60s) to avoid using a near-expired token
+            let expiry = Date().addingTimeInterval(TimeInterval(max(0, expiresIn - 60)))
+            let timestamp = String(expiry.timeIntervalSince1970)
+            saveToKeychain(key: "accessTokenExpiry", value: timestamp)
+        }
+    }
+
+    // Convenience overload when expiry is unknown
+    private func storeTokens(accessToken: String, refreshToken: String) {
+        storeTokens(accessToken: accessToken, refreshToken: refreshToken, expiresIn: nil)
     }
     
     func retrieveAccessToken() -> String? {
@@ -183,6 +209,94 @@ class AppleAuthenticationService: NSObject, ObservableObject {
     
     func retrieveRefreshToken() -> String? {
         return readFromKeychain(key: "refreshToken")
+    }
+    
+    func retrieveAccessTokenExpiry() -> Date? {
+        guard let ts = readFromKeychain(key: "accessTokenExpiry"), let seconds = TimeInterval(ts) else {
+            return nil
+        }
+        return Date(timeIntervalSince1970: seconds)
+    }
+
+    func isAccessTokenValid() -> Bool {
+        guard let _ = retrieveAccessToken() else { return false }
+        guard let expiry = retrieveAccessTokenExpiry() else { return true } // If no expiry stored, assume valid
+        return Date() < expiry
+    }
+
+    // MARK: - Token Refresh
+    func refreshAccessToken(completion: @escaping (Bool) -> Void) {
+        guard let refreshToken = retrieveRefreshToken() else {
+            DispatchQueue.main.async { self.signInErrorMessage = "No refresh token available." }
+            completion(false)
+            return
+        }
+        guard let url = URL(string: "https://api-ewrihjjgiq-uc.a.run.app/refreshAppleToken") else {
+            print("Invalid refresh token URL.")
+            completion(false)
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        let body: [String: Any] = ["refresh_token": refreshToken]
+        request.httpBody = try? JSONSerialization.data(withJSONObject: body, options: [])
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        let task = URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
+            guard let self = self else { completion(false); return }
+
+            if let error = error {
+                DispatchQueue.main.async {
+                    self.signInErrorMessage = "Network error: \(error.localizedDescription)"
+                }
+                completion(false)
+                return
+            }
+            guard let data = data else {
+                DispatchQueue.main.async {
+                    self.signInErrorMessage = "No data received from server."
+                }
+                completion(false)
+                return
+            }
+
+            do {
+                let tokenResponse = try JSONDecoder().decode(TokenResponse.self, from: data)
+                // Some refresh endpoints may omit refresh_token; keep existing if absent
+                let newRefresh = tokenResponse.refreshToken.isEmpty ? refreshToken : tokenResponse.refreshToken
+                self.storeTokens(
+                    accessToken: tokenResponse.accessToken,
+                    refreshToken: newRefresh,
+                    expiresIn: tokenResponse.expiresIn
+                )
+                DispatchQueue.main.async { self.signInErrorMessage = "" }
+                completion(true)
+            } catch {
+                DispatchQueue.main.async {
+                    self.signInErrorMessage = "Failed to parse refresh token data."
+                }
+                completion(false)
+            }
+        }
+        task.resume()
+    }
+
+    // Returns a valid access token, refreshing if needed
+    func getValidAccessToken(completion: @escaping (String?) -> Void) {
+        if isAccessTokenValid(), let token = retrieveAccessToken() {
+            completion(token)
+            return
+        }
+        // Try to refresh
+        refreshAccessToken { [weak self] success in
+            guard let self = self else { completion(nil); return }
+            if success, let token = self.retrieveAccessToken() {
+                completion(token)
+            } else {
+                completion(nil)
+            }
+        }
     }
     
     private func saveToKeychain(key: String, value: String) {
@@ -305,17 +419,27 @@ extension AppleAuthenticationService: ASAuthorizationControllerDelegate {
 // MARK: - ASAuthorizationControllerPresentationContextProviding
 extension AppleAuthenticationService: ASAuthorizationControllerPresentationContextProviding {
     func presentationAnchor(for controller: ASAuthorizationController) -> ASPresentationAnchor {
-        // Replace with appropriate window for macOS or iOS
         #if os(macOS)
-        return NSApplication.shared.windows.first ?? ASPresentationAnchor()
+        // Prefer the key window, then main window, then any available window; fall back to a new NSWindow if needed.
+        if let keyWindow = NSApp?.keyWindow {
+            return keyWindow
+        }
+        if let mainWindow = NSApp?.mainWindow {
+            return mainWindow
+        }
+        if let anyWindow = NSApplication.shared.windows.first {
+            return anyWindow
+        }
+        return NSWindow()
         #else
+        // iOS: find the active foreground scene's key window
         if let windowScene = UIApplication.shared.connectedScenes
             .compactMap({ $0 as? UIWindowScene })
             .first(where: { $0.activationState == .foregroundActive }),
            let window = windowScene.windows.first(where: { $0.isKeyWindow }) {
             return window
         }
-        return ASPresentationAnchor()
+        return UIWindow()
         #endif
     }
 }

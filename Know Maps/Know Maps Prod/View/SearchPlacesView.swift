@@ -31,11 +31,19 @@ struct SearchPlacesView: View {
     @Binding public var cacheManager:CloudCacheManager
     @Binding public var modelController:DefaultModelController
     @Binding public var multiSelection: Set<UUID>
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @State private var searchText: String = "" // State for search text
     
     var body: some View {
         VStack {
             TipView(NavigationLocationMenuIconTip())
+            if modelController.placeResults.isEmpty && modelController.recommendedPlaceResults.isEmpty {
+                ProgressView()
+                    .padding(.bottom, 4)
+                Text(modelController.fetchMessage)
+                    .foregroundStyle(.secondary)
+                    .padding(.bottom)
+            }
             if let selectedDestinationLocationChatResult = modelController.selectedDestinationLocationChatResult, let locationChatResult = modelController.locationChatResult(for: selectedDestinationLocationChatResult, in: (modelController.filteredLocationResults(cacheManager: cacheManager))) {
                 let locationName = locationChatResult.locationName
                 Text("\(modelController.placeResults.count) places found near \(locationName)")
@@ -64,9 +72,16 @@ struct SearchPlacesView: View {
                     )
                     // After the search completes, push to detail by selecting the first result (iPhone collapses split view)
                     await MainActor.run {
+#if os(macOS) || os(visionOS)
                         if let first = modelController.placeResults.first {
                             modelController.selectedPlaceChatResult = first.id
                         }
+#else
+                        // On iOS, only auto-select on regular width (e.g., iPad in landscape). Avoid on compact to prevent sidebar collapse.
+                        if horizontalSizeClass == .regular, let first = modelController.placeResults.first {
+                            modelController.selectedPlaceChatResult = first.id
+                        }
+#endif
                     }
                 }
             }

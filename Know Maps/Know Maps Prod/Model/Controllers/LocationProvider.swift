@@ -5,13 +5,15 @@
 //  Created by Michael A Edgcumbe on 3/20/23.
 //
 
-import Foundation
+@preconcurrency import Foundation
 @preconcurrency import CoreLocation
 public enum LocationProviderError : Error {
     case LocationManagerFailed
 }
 
 public final class LocationProvider : NSObject  {
+    public static let shared = LocationProvider()
+    
     public var locationManager: CLLocationManager = CLLocationManager()
     
     public func isAuthorized() -> Bool {
@@ -42,11 +44,54 @@ public final class LocationProvider : NSObject  {
 #endif
     }
     
+    @MainActor
+    public func requestAuthorizationIfNeeded() async {
+        // If already authorized, nothing to do
+        if isAuthorized() { return }
+        // Set delegate and request
+        locationManager.delegate = self
+#if os(visionOS) || os(iOS)
+        locationManager.requestWhenInUseAuthorization()
+#elseif os(macOS)
+        locationManager.requestWhenInUseAuthorization()
+#endif
+        // Await a change in authorization via NotificationCenter
+        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+            var authorizedObserver: NSObjectProtocol?
+            var deniedObserver: NSObjectProtocol?
+
+            func cleanup() {
+                if let authorizedObserver { NotificationCenter.default.removeObserver(authorizedObserver) }
+                if let deniedObserver { NotificationCenter.default.removeObserver(deniedObserver) }
+                authorizedObserver = nil
+                deniedObserver = nil
+            }
+
+            authorizedObserver = NotificationCenter.default.addObserver(forName: Notification.Name("LocationProviderAuthorized"), object: nil, queue: .main) { _ in
+                cleanup()
+                continuation.resume()
+            }
+
+            deniedObserver = NotificationCenter.default.addObserver(forName: Notification.Name("LocationProviderDenied"), object: nil, queue: .main) { _ in
+                cleanup()
+                continuation.resume()
+            }
+        }
+    }
+    
     public func currentLocation(delegate:CLLocationManagerDelegate?)->CLLocation {
         if let delegate {
             locationManager.delegate = delegate
         }
         return locationManager.location ?? CLLocation.init(latitude:37.333562 , longitude:-122.004927)
+    }
+    
+    @MainActor
+    public func ensureAuthorizedAndRequestLocation() async {
+        if !isAuthorized() {
+            await requestAuthorizationIfNeeded()
+        }
+        locationManager.requestLocation()
     }
 }
 

@@ -145,7 +145,16 @@ struct ContentView: View {
                         modelController.industryCategoryResult(for: selection)?.parentCategory
                     }.joined(separator: ",")
                     
-                    let caption = "\(tasteCaption), \(categoryCaption)"
+                    var caption = ""
+                    if tasteCaption.isEmpty && categoryCaption.isEmpty {
+                        return
+                    } else if !tasteCaption.isEmpty && !categoryCaption.isEmpty {
+                        caption = "\(tasteCaption), \(categoryCaption)"
+                    } else if !tasteCaption.isEmpty {
+                        caption = tasteCaption
+                    } else {
+                        caption = categoryCaption
+                    }
                     
                     // Check for cancellation again before the async call
                     guard !Task.isCancelled else { return }
@@ -206,6 +215,7 @@ struct ContentView: View {
 #endif
         
     }
+    
     func filterView() -> some View {
         NavigationLocationView(
             searchSavedViewModel: $searchSavedViewModel,
@@ -218,11 +228,19 @@ struct ContentView: View {
     
     @ViewBuilder
     func filterSheet() -> some View {
+#if os(macOS)
+        filterView()
+            .frame(minWidth: 600, minHeight: 500)
+            .presentationSizing(.fitted)
+            .presentationDragIndicator(.visible)
+            .interactiveDismissDisabled(false)
+#else
         filterView()
             .presentationDetents([.large, .medium])
             .presentationDragIndicator(.visible)
             .interactiveDismissDisabled(false)
             .presentationCompactAdaptation(.sheet)
+#endif
     }
     
     
@@ -272,15 +290,6 @@ struct ContentView: View {
             NavigationStack {
                 // Sidebar with mode picker and corresponding search sidebar content
                 VStack(alignment: .leading, spacing: 8) {
-                    Picker("Search Mode", selection: $searchMode) {
-                        Text("❤️").accessibilityLabel("Favorites").accessibilityHint("Show your saved favorites").tag(SearchMode.favorites)
-                        Text("🏭").accessibilityLabel("Industries").accessibilityHint("Browse by industry categories").tag(SearchMode.industries)
-                        Text("✨").accessibilityLabel("Features").accessibilityHint("Browse by feature preferences").tag(SearchMode.features)
-                        Text("📍").accessibilityLabel("Places").accessibilityHint("Browse places directly").tag(SearchMode.places)
-                    }
-                    .labelsHidden()
-                    .pickerStyle(.segmented)
-                    
                     switch searchMode {
                     case .favorites:
                         SearchView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, searchSavedViewModel: $searchSavedViewModel, preferredColumn: $preferredColumn, searchMode:$searchMode, showMapsResultViewSheet: $showMapsResultViewSheet, didError: $didError)
@@ -297,6 +306,30 @@ struct ContentView: View {
                     }
                 }
                 .padding([.top, .horizontal])
+                .toolbar {
+                    #if os(macOS)
+                    ToolbarItem(placement: .secondaryAction) {
+                        Picker("Search Mode", selection: $searchMode) {
+                            Text("❤️").accessibilityLabel("Favorites").tag(SearchMode.favorites)
+                            Text("🏭").accessibilityLabel("Industries").tag(SearchMode.industries)
+                            Text("✨").accessibilityLabel("Features").tag(SearchMode.features)
+                            Text("📍").accessibilityLabel("Places").tag(SearchMode.places)
+                        }
+                        .pickerStyle(.segmented)
+                    }
+                    #else
+                    ToolbarItem(placement: .bottomBar) {
+                        Picker("Search Mode", selection: $searchMode) {
+                            Text("❤️").accessibilityLabel("Favorites").tag(SearchMode.favorites)
+                            Text("🏭").accessibilityLabel("Industries").tag(SearchMode.industries)
+                            Text("✨").accessibilityLabel("Features").tag(SearchMode.features)
+                            Text("📍").accessibilityLabel("Places").tag(SearchMode.places)
+                        }
+                        .labelsHidden()
+                        .pickerStyle(.segmented)
+                    }
+                    #endif
+                }
             }
             .toolbar { unifiedBrowseToolbar() }
             .sheet(isPresented: $showNavigationLocationView) {
@@ -314,7 +347,7 @@ struct ContentView: View {
                 searchSavedViewModel: $searchSavedViewModel,
                 chatModel: $chatModel,
                 cacheManager: $cacheManager,
-                modelController: $modelController,
+                modelController: modelController,
                 showMapsResultViewSheet: $showMapsResultViewSheet
             )
             .onChange(of: modelController.selectedPlaceChatResult) { _, newID in

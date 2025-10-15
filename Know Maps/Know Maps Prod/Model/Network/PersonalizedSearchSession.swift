@@ -17,9 +17,73 @@ public enum PersonalizedSearchSessionError : Error {
     case NoTasteFound
     case NoVenuesFound
     case MaxRetriesReached
+    case TransientNetworkError
 }
 
 public actor PersonalizedSearchSession {
+    // Retry/backoff configuration
+    private static let maxRetryAttempts = 3
+    private static let baseBackoff: TimeInterval = 0.5 // seconds
+
+    private let cloudCacheService: CloudCacheService
+
+    public init(cloudCacheService: CloudCacheService) {
+        self.cloudCacheService = cloudCacheService
+    }
+
+    private func exponentialBackoffDelay(attempt: Int) -> TimeInterval {
+        // Exponential backoff with jitter
+        // attempt starts at 1
+        let exp = pow(2.0, Double(attempt - 1))
+        let jitter = Double.random(in: 0...0.25) // add up to 250ms jitter
+        return PersonalizedSearchSession.baseBackoff * exp + jitter
+    }
+
+    // Centralized token gating helper with observability and optional refresh
+    @discardableResult
+    private func requireAccessToken(
+        cacheManager: CacheManager,
+        refresh: (() async throws -> Void)? = nil
+    ) async throws -> String {
+        print("[PersonalizedSearchSession] requireAccessToken: fetching token…")
+        do {
+            let token = try await fetchManagedUserAccessToken(cacheManager: cacheManager)
+            if token.isEmpty {
+                print("[PersonalizedSearchSession] requireAccessToken: token empty on first fetch.")
+                // Attempt optional refresh if provided
+                if let refresh = refresh {
+                    print("[PersonalizedSearchSession] requireAccessToken: attempting refresh…")
+                    try await refresh()
+                    let refreshed = try await fetchManagedUserAccessToken(cacheManager: cacheManager)
+                    if refreshed.isEmpty {
+                        print("[PersonalizedSearchSession] requireAccessToken: token still empty after refresh.")
+                        throw PersonalizedSearchSessionError.NoTokenFound
+                    }
+                    print("[PersonalizedSearchSession] requireAccessToken: acquired token after refresh.")
+                    return refreshed
+                }
+                throw PersonalizedSearchSessionError.NoTokenFound
+            }
+            print("[PersonalizedSearchSession] requireAccessToken: acquired token.")
+            return token
+        } catch {
+            // If we failed to fetch, try optional refresh once
+            print("[PersonalizedSearchSession] requireAccessToken: fetch error: \(error).")
+            if let refresh = refresh {
+                print("[PersonalizedSearchSession] requireAccessToken: attempting refresh after error…")
+                try await refresh()
+                let refreshed = try await fetchManagedUserAccessToken(cacheManager: cacheManager)
+                guard !refreshed.isEmpty else {
+                    print("[PersonalizedSearchSession] requireAccessToken: token empty after refresh following error.")
+                    throw PersonalizedSearchSessionError.NoTokenFound
+                }
+                print("[PersonalizedSearchSession] requireAccessToken: acquired token after refresh following error.")
+                return refreshed
+            }
+            throw error
+        }
+    }
+    
     public var fsqIdentity:String?
     public var fsqAccessToken:String?
     private var fsqServiceAPIKey:String?
@@ -38,7 +102,7 @@ public actor PersonalizedSearchSession {
     
     @discardableResult
     public func fetchManagedUserIdentity(cacheManager:CacheManager) async throws ->String? {
-        let cloudFsqIdentity = try await cacheManager.cloudCache.fetchFsqIdentity()
+        let cloudFsqIdentity = try await cacheManager.cloudCacheService.fetchFsqIdentity()
         
         if cloudFsqIdentity.isEmpty {
             try await addFoursquareManagedUserIdentity(cacheManager: cacheManager)
@@ -52,11 +116,7 @@ public actor PersonalizedSearchSession {
     
     @discardableResult
     public func fetchManagedUserAccessToken(cacheManager:CacheManager) async throws ->String {
-        guard cacheManager.cloudCache.hasFsqAccess else {
-            return ""
-        }
-        
-        if fsqIdentity == nil, cacheManager.cloudCache.hasFsqAccess {
+        if fsqIdentity == nil {
             try await fetchManagedUserIdentity(cacheManager: cacheManager)
         }
         
@@ -64,7 +124,7 @@ public actor PersonalizedSearchSession {
             throw PersonalizedSearchSessionError.NoUserFound
         }
         
-        let cloudToken = try await cacheManager.cloudCache.fetchToken(for: fsqIdentity)
+        let cloudToken = try await cacheManager.cloudCacheService.fetchToken(for: fsqIdentity)
         fsqAccessToken = cloudToken
         
         guard let token = fsqAccessToken, !token.isEmpty else {
@@ -115,15 +175,17 @@ public actor PersonalizedSearchSession {
             throw PersonalizedSearchSessionError.NoUserFound
         }
                 
-        cacheManager.cloudCache.storeFoursquareIdentityAndToken(for: identity, oauthToken: token)
+        cacheManager.cloudCacheService.storeFoursquareIdentityAndToken(for: identity, oauthToken: token)
         
         return true
     }
 
     public func autocompleteTastes(caption:String, parameters:[String:Any]?, cacheManager:CacheManager) async throws -> [String:Any] {
         
-        let apiKey = try await fetchManagedUserAccessToken(cacheManager: cacheManager)
-        
+        let apiKey = try await requireAccessToken(cacheManager: cacheManager) {
+            _ = await self.cloudCacheService.refreshFsqToken()
+        }
+
         if searchSession == nil {
             let sessionConfiguration = URLSessionConfiguration.default
             let session = URLSession(configuration: sessionConfiguration)
@@ -182,8 +244,10 @@ public actor PersonalizedSearchSession {
     
     public func autocomplete(caption:String, parameters:[String:Any]?, location:CLLocation, cacheManager:CacheManager) async throws -> [String:Any] {
         
-        let apiKey = try await fetchManagedUserAccessToken(cacheManager: cacheManager)
-        
+        let apiKey = try await requireAccessToken(cacheManager: cacheManager) {
+            _ = await self.cloudCacheService.refreshFsqToken()
+        }
+
         if searchSession == nil {
             let sessionConfiguration = URLSessionConfiguration.default
             let session = URLSession(configuration: sessionConfiguration)
@@ -219,7 +283,7 @@ public actor PersonalizedSearchSession {
             let locationQueryItem = URLQueryItem(name: "ll", value: ll)
             queryItems.append(locationQueryItem)
             
-            let radiusQueryItem = URLQueryItem(name: "radius", value:"\(50000)")
+            let radiusQueryItem = URLQueryItem(name: "radius", value:"\(20000)")
             queryItems.append(radiusQueryItem)
         }
         
@@ -245,7 +309,9 @@ public actor PersonalizedSearchSession {
     }
     
     public func fetchRecommendedVenues(with request:RecommendedPlaceSearchRequest, location:CLLocation?, cacheManager:CacheManager) async throws -> [String:Any]{
-        let apiKey = try await fetchManagedUserAccessToken(cacheManager: cacheManager)
+        let apiKey = try await requireAccessToken(cacheManager: cacheManager) {
+            _ = await self.cloudCacheService.refreshFsqToken()
+        }
         
         if searchSession == nil {
             let sessionConfiguration = URLSessionConfiguration.default
@@ -261,78 +327,87 @@ public actor PersonalizedSearchSession {
             throw PersonalizedSearchSessionError.UnsupportedRequest
         }
         
-        var queryItems = [URLQueryItem]()
-        
-        if let location = location, request.nearLocation == nil {
-            let rawLocation = "\(location.coordinate.latitude),\(location.coordinate.longitude)"
-            let radius = request.radius
-            let radiusQueryItem = URLQueryItem(name: "radius", value: "\(radius)")
-            queryItems.append(radiusQueryItem)
-            
-            let locationQueryItem = URLQueryItem(name: "ll", value: rawLocation)
-            queryItems.append(locationQueryItem)
-        } else if let rawLocation = request.ll {
-            let locationQueryItem = URLQueryItem(name: "ll", value: rawLocation)
-            queryItems.append(locationQueryItem)
-        }
-                
-        if !request.categories.isEmpty {
-            let categoriesQueryItem = URLQueryItem(name:"categoryId", value:request.categories)
-            queryItems.append(categoriesQueryItem)
-        } else if request.section.rawValue.lowercased() == request.query.lowercased() {
-            let sectionQueryItem = URLQueryItem(name: "section", value: request.section.key())
-               queryItems.append(sectionQueryItem)
-        }
-        
-        if request.minPrice > 1 {
-            let minPriceQueryItem = URLQueryItem(name: "price", value: "\(request.minPrice)")
-            queryItems.append(minPriceQueryItem)
+        // Progressive radius candidates
+        let progressiveRadii = [20000, 30000, 50000]
+
+        // Helper to build query items for a given radius
+        func buildQueryItems(radius: Int?) -> [URLQueryItem] {
+            var items = [URLQueryItem]()
+
+            if let location = location, request.nearLocation == nil {
+                let rawLocation = "\(location.coordinate.latitude),\(location.coordinate.longitude)"
+                if let radius = radius {
+                    items.append(URLQueryItem(name: "radius", value: "\(radius)"))
+                }
+                items.append(URLQueryItem(name: "ll", value: rawLocation))
+            } else if let rawLocation = request.ll {
+                items.append(URLQueryItem(name: "ll", value: rawLocation))
+                if let radius = radius { items.append(URLQueryItem(name: "radius", value: "\(radius)")) }
+            }
+
+            if !request.categories.isEmpty {
+                items.append(URLQueryItem(name: "categoryId", value: request.categories))
+            } else if request.section.rawValue.lowercased() == request.query.lowercased() {
+                items.append(URLQueryItem(name: "section", value: request.section.key()))
+            }
+
+            if request.minPrice > 1 { items.append(URLQueryItem(name: "price", value: "\(request.minPrice)")) }
+            if request.maxPrice < 4 { items.append(URLQueryItem(name: "price", value: "\(request.maxPrice)")) }
+            if request.openNow == true { items.append(URLQueryItem(name: "open_now", value: "true")) }
+
+            items.append(URLQueryItem(name: "limit", value: "\(request.limit)"))
+            items.append(URLQueryItem(name: "offset", value: "\(request.offset)"))
+
+            if request.categories.isEmpty, request.section.rawValue.lowercased() != request.query.lowercased(), !request.query.isEmpty {
+                items.append(URLQueryItem(name: "query", value: request.query))
+            }
+            return items
         }
 
-        if request.maxPrice < 4 {
-            let maxPriceQueryItem = URLQueryItem(name: "price", value: "\(request.maxPrice)")
-            queryItems.append(maxPriceQueryItem)
-
-        }
-        
-        if request.openNow == true {
-            let openNowQueryItem = URLQueryItem(name: "open_now", value: "true")
-            queryItems.append(openNowQueryItem)
-        }
-        
-        let limitQueryItem = URLQueryItem(name: "limit", value: "\(request.limit)")
-        queryItems.append(limitQueryItem)
-        
-        let offsetQueryItem = URLQueryItem(name: "offset", value: "\(request.offset)")
-        queryItems.append(offsetQueryItem)
-        
-        
-        if  request.categories.isEmpty,  request.section.rawValue.lowercased() != request.query.lowercased(), !request.query.isEmpty {
-            let queryItem = URLQueryItem(name: "query", value: request.query)
-            queryItems.append(queryItem)
-        }
-                
-        guard let url = components.url else {
-            throw PersonalizedSearchSessionError.UnsupportedRequest
-        }
-        
-        let response = try await fetch(url: url, apiKey: apiKey, urlQueryItems: queryItems)
-        
-        guard let response = response as? [String:Any] else {
-            throw PersonalizedSearchSessionError.NoVenuesFound
-        }
-                        
-        var retval = [String:Any]()
-        if let responseDict = response["response"] as? [String:Any] {
-            retval = responseDict
+        // Try with the provided radius first (if any), then progressively expand
+        let radiiToTry: [Int?]
+        if request.radius > 0 {
+            radiiToTry = [request.radius] + progressiveRadii.filter { $0 > request.radius }
+        } else {
+            radiiToTry = [nil] + progressiveRadii
         }
 
-        return retval
+        var lastError: Error?
+        for (index, radius) in radiiToTry.enumerated() {
+            do {
+                let queryItems = buildQueryItems(radius: radius)
+                let response = try await fetch(url: components.url!, apiKey: apiKey, urlQueryItems: queryItems)
+                guard let response = response as? [String:Any] else { throw PersonalizedSearchSessionError.NoVenuesFound }
+                if let responseDict = response["response"] as? [String:Any] {
+                    // If results are sparse, only escalate radius if more attempts remain
+                    if let groups = responseDict["group"] as? [[String:Any]], groups.isEmpty, index < radiiToTry.count - 1 {
+                        continue
+                    }
+                    if let results = responseDict["results"] as? [Any], results.isEmpty, index < radiiToTry.count - 1 {
+                        continue
+                    }
+                    return responseDict
+                }
+                // No response key, attempt next radius if available
+                if index < radiiToTry.count - 1 { continue }
+                throw PersonalizedSearchSessionError.NoVenuesFound
+            } catch {
+                lastError = error
+                // On transient/server errors, try next radius if available
+                if index < radiiToTry.count - 1 { continue }
+                throw error
+            }
+        }
+
+        if let lastError = lastError { throw lastError }
+        throw PersonalizedSearchSessionError.NoVenuesFound
     }
     
     public func fetchTastes(page:Int, cacheManager:CacheManager) async throws -> [String] {
-        let apiKey = try await fetchManagedUserAccessToken(cacheManager: cacheManager)
-        
+        let apiKey = try await requireAccessToken(cacheManager: cacheManager) {
+            _ = await self.cloudCacheService.refreshFsqToken()
+        }
+
         if searchSession == nil {
             let sessionConfiguration = URLSessionConfiguration.default
             let session = URLSession(configuration: sessionConfiguration)
@@ -372,8 +447,10 @@ public actor PersonalizedSearchSession {
     }
     
     public func fetchRelatedVenues(for fsqID:String, cacheManager:CacheManager) async throws -> [String:Any] {
-        let apiKey = try await fetchManagedUserAccessToken(cacheManager: cacheManager)
-        
+        let apiKey = try await requireAccessToken(cacheManager: cacheManager) {
+            _ = await self.cloudCacheService.refreshFsqToken()
+        }
+
         if searchSession == nil {
             let sessionConfiguration = URLSessionConfiguration.default
             let session = URLSession(configuration: sessionConfiguration)
@@ -467,51 +544,63 @@ public actor PersonalizedSearchSession {
         urlQueryItems: [URLQueryItem],
         httpMethod: String = "GET"
     ) async throws -> Any {
-            // Construct URL with query items
-            guard var urlComponents = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
-                throw PersonalizedSearchSessionError.UnsupportedRequest
+        // Construct URL with query items
+        guard var urlComponents = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
+            throw PersonalizedSearchSessionError.UnsupportedRequest
+        }
+        let versionQueryItem = URLQueryItem(name: "v", value: PersonalizedSearchSession.foursquareVersionDate)
+        var allQueryItems = [versionQueryItem]
+        allQueryItems.append(contentsOf: urlQueryItems)
+        urlComponents.queryItems = allQueryItems
+        guard let queryUrl = urlComponents.url else { throw PersonalizedSearchSessionError.UnsupportedRequest }
+
+        var attempt = 0
+        var lastError: Error?
+        while attempt < PersonalizedSearchSession.maxRetryAttempts {
+            attempt += 1
+            do {
+                print("Requesting URL: \(queryUrl) [attempt: \(attempt)]")
+                var request = URLRequest(url: queryUrl)
+                request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+                request.timeoutInterval = 5.0
+                request.httpMethod = httpMethod
+
+                let (data, response) = try await URLSession.shared.data(for: request)
+
+                // Retry on HTTP 5xx
+                if let http = response as? HTTPURLResponse, (500...599).contains(http.statusCode) {
+                    throw PersonalizedSearchSessionError.ServerErrorMessage
+                }
+
+                let json = try JSONSerialization.jsonObject(with: data, options: [.fragmentsAllowed])
+
+                if let checkDict = json as? NSDictionary,
+                   let message = checkDict["message"] as? String,
+                   message.hasPrefix("Foursquare servers") {
+                    print("Message from server: \(message)")
+                    throw PersonalizedSearchSessionError.ServerErrorMessage
+                }
+
+                if let checkDict = json as? NSDictionary,
+                   let meta = checkDict["meta"] as? NSDictionary,
+                   let code = meta["code"] as? Int64,
+                   code == 500 {
+                    print("Server returned error code 500.")
+                    throw PersonalizedSearchSessionError.ServerErrorMessage
+                }
+
+                return json
+            } catch {
+                lastError = error
+                if attempt >= PersonalizedSearchSession.maxRetryAttempts {
+                    break
+                }
+                // Backoff with jitter on likely-transient failures
+                let delay = exponentialBackoffDelay(attempt: attempt)
+                try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
             }
-            
-            let versionQueryItem = URLQueryItem(name: "v", value: PersonalizedSearchSession.foursquareVersionDate)
-            var allQueryItems = [versionQueryItem]
-            allQueryItems.append(contentsOf: urlQueryItems)
-            
-            urlComponents.queryItems = allQueryItems
-            
-            guard let queryUrl = urlComponents.url else {
-                throw PersonalizedSearchSessionError.UnsupportedRequest
-            }
-            
-            print("Requesting URL: \(queryUrl)")
-            
-            // Prepare URLRequest
-            var request = URLRequest(url: queryUrl)
-            request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
-            request.timeoutInterval =   5.0
-            request.httpMethod = httpMethod
-            
-            // Perform the network request using async-await
-            let (data, _) = try await URLSession.shared.data(for: request)
-            
-            // Parse JSON
-            let json = try JSONSerialization.jsonObject(with: data, options: [.fragmentsAllowed])
-            
-            if let checkDict = json as? NSDictionary,
-               let message = checkDict["message"] as? String,
-               message.hasPrefix("Foursquare servers") {
-                print("Message from server: \(message)")
-                throw PersonalizedSearchSessionError.ServerErrorMessage
-            }
-            
-            if let checkDict = json as? NSDictionary,
-               let meta = checkDict["meta"] as? NSDictionary,
-               let code = meta["code"] as? Int64,
-               code == 500 {
-                print("Server returned error code 500.")
-                throw PersonalizedSearchSessionError.ServerErrorMessage
-            }
-            
-            // Successful response
-            return json
+        }
+        throw lastError ?? PersonalizedSearchSessionError.MaxRetriesReached
     }
 }
+

@@ -375,7 +375,7 @@ struct SavedListView: View {
                 if let parent = modelController.cachedPlaceResult(for: id, cacheManager: cacheManager),
                    let fsqID = parent.categoricalChatResults.first?.placeResponse?.fsqID {
                     await searchSavedViewModel.removeCachedResults(group: "Place", identity: fsqID, cacheManager: cacheManager, modelController: modelController)
-                    _ = try? await cacheManager.cloudCache.deleteRecommendationData(for: fsqID)
+                    _ = try? await cacheManager.cloudCacheService.deleteRecommendationData(for: fsqID)
                 }
             }
         }

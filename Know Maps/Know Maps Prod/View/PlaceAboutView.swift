@@ -53,7 +53,7 @@ struct PlaceAboutView: View {
                             }
                             .padding()
 
-                            ActionButtonsRow(sizeClass: sizeClass, title: title, resultId: resultId, placeDetailsResponse: placeDetailsResponse, openURL: openURL, onSave: {
+                            ActionButtonsRow(cacheManager:cacheManager,sizeClass: sizeClass, title: title, resultId: resultId, placeDetailsResponse: placeDetailsResponse, openURL: openURL, onSave: {
                                 await viewModel.toggleSavePlace(resultId: resultId, cacheManager: cacheManager, modelController: modelController)
                             })
                             .padding(.horizontal, 16)
@@ -78,7 +78,6 @@ struct PlaceAboutView: View {
 
                             RelatedPlacesSection(relatedPlaceResults: modelController.relatedPlaceResults) { relatedPlace in
                                 Task { @MainActor in
-                                    modelController.fetchMessage = "Loading..."
                                     do {
                                         try await modelController.resetPlaceModel()
                                         try await chatModel.didSearch(
@@ -92,7 +91,6 @@ struct PlaceAboutView: View {
                                             modelController.isRefreshingPlaces = false
                                         }
                                     } catch {
-                                        modelController.fetchMessage = "Failed to load details."
                                         modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
                                     }
                                 }
@@ -124,13 +122,11 @@ struct PlaceAboutView: View {
                             }
                         } else {
                             Spacer()
-                            Text(modelController.fetchMessage)
-                                .font(.caption)
-                                .padding()
-                                .task {
-                                    modelController.fetchMessage = "Loading..."
-                                }
-                                .padding()
+                            ProgressView {
+                                Text(modelController.fetchMessage)
+                            }
+                            .progressViewStyle(.linear)
+                            .padding()
                             Spacer()
                         }
                     }
@@ -232,6 +228,7 @@ private struct InfoSection: View {
 }
 
 private struct ActionButtonsRow: View {
+    let cacheManager:CloudCacheManager
     let sizeClass: UserInterfaceSizeClass?
     let title: String
     let resultId: UUID
@@ -245,7 +242,7 @@ private struct ActionButtonsRow: View {
             Button {
                 Task(priority: .userInitiated) { await onSave() }
             } label: {
-                let isSaved = CloudCacheManager.shared.cachedPlaces(contains: title)
+                let isSaved = cacheManager.cachedPlaces(contains: title)
                 Group {
                     Label(isSaved ? "Delete" : "Add to List", systemImage: isSaved ? "minus.circle" : "plus.circle")
                         .labelStyle(.titleAndIcon)

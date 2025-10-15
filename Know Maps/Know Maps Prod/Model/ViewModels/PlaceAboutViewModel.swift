@@ -35,7 +35,7 @@ class PlaceAboutViewModel {
             )
             
             // Save the record to the cache and CloudKit
-            let _ = try await cacheManager.cloudCache.storeUserCachedRecord(recordId: userRecord.recordId,
+            let _ = try await cacheManager.cloudCacheService.storeUserCachedRecord(recordId: userRecord.recordId,
                 group: userRecord.group,
                 identity: userRecord.identity,
                 title: userRecord.title,
@@ -59,9 +59,9 @@ class PlaceAboutViewModel {
         if cacheManager.cachedTastes(contains: parent.parentCategory) {
             do {
                 // Fetch the cached record for the given taste
-                if let cachedRecord = try await cacheManager.cloudCache.fetchGroupedUserCachedRecords(for: "Taste").first(where: { $0.title == parent.parentCategory }) {
+                if let cachedRecord = try await cacheManager.cloudCacheService.fetchGroupedUserCachedRecords(for: "Taste").first(where: { $0.title == parent.parentCategory }) {
                     // Delete the cached record
-                    try await cacheManager.cloudCache.deleteUserCachedRecord(for: cachedRecord)
+                    try await cacheManager.cloudCacheService.deleteUserCachedRecord(for: cachedRecord)
                 }
                 // Refresh the cached tastes after deletion
                 await cacheManager.refreshCachedTastes()
@@ -85,11 +85,11 @@ class PlaceAboutViewModel {
             // Delete from cache
             do {
                 // Fetch the cached place record
-                if let cachedRecord = try await cacheManager.cloudCache.fetchGroupedUserCachedRecords(for: "Place")
+                if let cachedRecord = try await cacheManager.cloudCacheService.fetchGroupedUserCachedRecords(for: "Place")
                     .first(where: { $0.identity == placeResponse.fsqID }) {
                     
                     // Delete the record from CloudKit
-                    try await cacheManager.cloudCache.deleteUserCachedRecord(for: cachedRecord)
+                    try await cacheManager.cloudCacheService.deleteUserCachedRecord(for: cachedRecord)
                 }
             } catch {
                 modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
@@ -128,14 +128,14 @@ class PlaceAboutViewModel {
                         attributeRatings: ratings
                     )
                     
-                    let _ = try await cacheManager.cloudCache.storeRecommendationData(
+                    let _ = try await cacheManager.cloudCacheService.storeRecommendationData(
                         for: recommendation.identity,
                         attributes: recommendation.attributes,
                         reviews: recommendation.reviews
                     )
                     
                     // Save the user record with recommendation data
-                    let _ = try await cacheManager.cloudCache.storeUserCachedRecord(recordId:UUID().uuidString,
+                    let _ = try await cacheManager.cloudCacheService.storeUserCachedRecord(recordId:UUID().uuidString,
                         group: userRecord.group,
                         identity: userRecord.identity,
                         title: userRecord.title,
@@ -146,7 +146,7 @@ class PlaceAboutViewModel {
                     )
                 } else {
                     // Save the user record without recommendation data
-                    let _ = try await cacheManager.cloudCache.storeUserCachedRecord(recordId:UUID().uuidString,
+                    let _ = try await cacheManager.cloudCacheService.storeUserCachedRecord(recordId:UUID().uuidString,
                         group: userRecord.group,
                         identity: userRecord.identity,
                         title: userRecord.title,

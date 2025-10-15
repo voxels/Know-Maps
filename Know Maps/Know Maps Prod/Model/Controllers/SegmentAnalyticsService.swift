@@ -15,7 +15,7 @@ public final class SegmentAnalyticsService: AnalyticsService {
         .flushAt(3)
         .flushInterval(10)
     
-    static let shared = SegmentAnalyticsService(analytics: Analytics(configuration: SegmentAnalyticsService.config))
+    public static let shared = SegmentAnalyticsService(analytics: Analytics(configuration: SegmentAnalyticsService.config))
     
     
     private let analytics: Analytics

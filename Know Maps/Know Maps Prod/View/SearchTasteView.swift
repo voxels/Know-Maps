@@ -34,10 +34,11 @@ struct SearchTasteView: View {
         .task{
             Task { @MainActor in
                 do {
-                    modelController.tasteResults = try await modelController.placeSearchService.refreshTastes(page:0, currentTasteResults: [], cacheManager: cacheManager)
+                    modelController.tasteResults = try await modelController.placeSearchService.refreshTastes(page: modelController.placeSearchService.lastFetchedTastePage + 1, currentTasteResults: modelController.tasteResults, cacheManager: cacheManager)
                 } catch {
-                    modelController.analyticsManager.trackError(error:error, additionalInfo: nil)
+                    modelController.analyticsManager.trackError(error:error, additionalInfo: ["page": modelController.placeSearchService.lastFetchedTastePage + 1])
                 }
+                isLoadingNextPage = false
             }
         }
         .refreshable {
