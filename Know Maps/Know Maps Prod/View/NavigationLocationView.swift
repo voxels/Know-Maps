@@ -238,7 +238,7 @@ struct NavigationLocationView: View {
             }
         }
         .onChange(of: selectedLocationId) { oldValue, newValue in
-            print("🗺️ selectedLocationId changed from \(oldValue?.uuidString ?? "nil") to \(newValue?.uuidString ?? "nil")")
+            print("🗺️ selectedLocationId changed from \(oldValue ?? "nil") to \(newValue ?? "nil")")
             if let newLocationId = newValue {
                 handleLocationSelection(newLocationId)
             }
@@ -279,8 +279,8 @@ struct NavigationLocationView: View {
         }
     }
     
-    private func updateCamera(for locationId: UUID) {
-        print("📹 updateCamera called for \(locationId.uuidString)")
+    private func updateCamera(for locationId: String) {
+        print("📹 updateCamera called for \(locationId)")
         if let locationResult = filteredLocationResults.first(where: { $0.id == locationId }),
            let location = locationResult.location {
             print("📹 Found location: \(locationResult.locationName) at \(location.coordinate)")
@@ -376,8 +376,8 @@ struct NavigationLocationView: View {
             syncSelectionToModel()
         }
         
-        print("🎯 initializeSelection: selectedLocationId = \(selectedLocationId?.uuidString ?? "nil")")
-        print("🎯 initializeSelection: model selection = \(modelController.selectedDestinationLocationChatResult?.uuidString ?? "nil")")
+        print("🎯 initializeSelection: selectedLocationId = \(selectedLocationId ?? "nil")")
+        print("🎯 initializeSelection: model selection = \(modelController.selectedDestinationLocationChatResult ?? "nil")")
     }
     
     /// Sync local selection state to model controller
@@ -393,7 +393,7 @@ struct NavigationLocationView: View {
     
     /// Handle location selection from list tap
     private func handleLocationSelection(_ locationId: LocationResult.ID) {
-        print("🎯 handleLocationSelection called with \(locationId.uuidString)")
+        print("🎯 handleLocationSelection called with \(locationId)")
         
         // Don't sync back to avoid loops - the selection binding already updated selectedLocationId
         // Just update camera and model controller
@@ -402,7 +402,7 @@ struct NavigationLocationView: View {
         // Sync to model controller without triggering local state updates
         isUpdatingSelection = true
         Task { @MainActor in
-            print("📍 Setting model controller selection to \(locationId.uuidString)")
+            print("📍 Setting model controller selection to \(locationId)")
             modelController.setSelectedLocation(locationId, cacheManager: cacheManager)
             isUpdatingSelection = false
         }

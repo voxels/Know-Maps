@@ -47,7 +47,7 @@ struct MapResultsView: View {
         }
     }
     
-    private func updateCamera(for locationResult: UUID) {
+    private func updateCamera(for locationResult: String) {
         withAnimation {
             cameraPosition = .automatic
         }

@@ -12,8 +12,8 @@ public struct ChatResult : Identifiable, Equatable, Hashable, Sendable {
         lhs.id == rhs.id
     }
     
-    public let id = UUID()
-    private(set) var parentId:UUID? = nil
+    public let id:String
+    private(set) var parentId:String? = nil
     let index:Int
     let identity:String
     let title:String
@@ -26,7 +26,22 @@ public struct ChatResult : Identifiable, Equatable, Hashable, Sendable {
     
     private(set) var placeDetailsResponse:PlaceDetailsResponse?
     
-    mutating func attachParentId(uuid:UUID) {
+    public init(parentId: String? = nil, index: Int, identity: String, title: String, list: String, icon: String, rating: Double, section: PersonalizedSearchSection, placeResponse: PlaceSearchResponse?, recommendedPlaceResponse: RecommendedPlaceSearchResponse?, placeDetailsResponse: PlaceDetailsResponse? = nil) {
+        self.id = identity
+        self.parentId = parentId
+        self.index = index
+        self.identity = identity
+        self.title = title
+        self.list = list
+        self.icon = icon
+        self.rating = rating
+        self.section = section
+        self.placeResponse = placeResponse
+        self.recommendedPlaceResponse = recommendedPlaceResponse
+        self.placeDetailsResponse = placeDetailsResponse
+    }
+    
+    mutating func attachParentId(_ uuid:String) {
         parentId = uuid
     }
     

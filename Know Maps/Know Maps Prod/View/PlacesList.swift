@@ -16,8 +16,7 @@ struct PlacesList: View {
     @Binding public var searchSavedViewModel:SearchSavedViewModel
     @Binding public var chatModel:ChatResultViewModel
     @Binding var cacheManager:CloudCacheManager
-    @Bindable var modelController: DefaultModelController
-    @Binding public var showMapsResultViewSheet:Bool
+    @Binding var modelController: DefaultModelController
     
     static var formatter:NumberFormatter {
         let retval = NumberFormatter()
@@ -39,8 +38,6 @@ struct PlacesList: View {
                 ForEach(modelController.recommendedPlaceResults, id: \.id) { result in
                     let ar: CGFloat = CGFloat(result.recommendedPlaceResponse?.aspectRatio ?? 1.0)
                     let reservedHeight: CGFloat = itemWidth / ar
-                    
-                    NavigationLink(value: result.id) {
                         ZStack(alignment: .topTrailing) {
                             if let photo = result.recommendedPlaceResponse?.photo, !photo.isEmpty, let url = URL(string: photo) {
                                 LazyImage(url: url) { state in
@@ -102,15 +99,12 @@ struct PlacesList: View {
 #if os(visionOS)
                         .hoverEffect(.lift)
 #endif
-                    }
+                    
                     .buttonStyle(.plain)
+                    .animation(.snappy(duration: 0.35), value: modelController.recommendedPlaceResults)
                     .simultaneousGesture(TapGesture().onEnded {
                         modelController.setSelectedPlaceChatResult(result.id)
                     })
-                    .animation(.snappy(duration: 0.35), value: modelController.recommendedPlaceResults)
-                    .task(priority: .background) {
-                        await modelController.enqueueLazyDetailFetch(for: result, cacheManager: cacheManager)
-                    }
                 }
             }
         }
@@ -128,7 +122,6 @@ struct PlacesList: View {
         ScrollView(.vertical) {
             LazyVGrid(columns: columns, alignment: .leading, spacing: 32) {
                 ForEach(modelController.filteredPlaceResults) { result in
-                    NavigationLink(value: result.id) {
                         ZStack(alignment: .topLeading) {
                             VStack(alignment: .leading) {
                                 Text(result.title).bold()
@@ -151,20 +144,13 @@ struct PlacesList: View {
 #if os(visionOS)
                         .hoverEffect(.lift)
 #endif
-                    }
-                    .buttonStyle(.plain)
-                    .simultaneousGesture(TapGesture().onEnded {
-                        modelController.setSelectedPlaceChatResult(result.id)
-                    })
-                    .animation(.snappy(duration: 0.35), value: modelController.filteredPlaceResults)
-                    .task(priority: .background) {
-                        await modelController.enqueueLazyDetailFetch(for: result, cacheManager: cacheManager)
-                    }
-                    .listRowBackground(Color.clear)
-                    .listStyle(.plain)
+                        .animation(.snappy(duration: 0.35), value: modelController.filteredPlaceResults)
+                        .listRowBackground(Color.clear)
+                        .listStyle(.plain)
+                        .simultaneousGesture(TapGesture().onEnded {
+                            modelController.setSelectedPlaceChatResult(result.id)
+                        })
                 }
-                .scrollContentBackground(.hidden)
-                .background(Color.clear)
             }
             .padding()
         }
@@ -202,4 +188,3 @@ struct PlacesList: View {
         }
     }
 }
-

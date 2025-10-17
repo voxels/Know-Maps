@@ -8,7 +8,7 @@
 import Foundation
 
 public struct TasteAutocompleteResponse: Equatable, Hashable, Sendable {
-    public let uuid = UUID()
+    public let uuid = UUID().uuidString
     public var id: String
     public var text: String
 }

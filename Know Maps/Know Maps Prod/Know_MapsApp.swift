@@ -61,6 +61,9 @@ struct Know_MapsApp: App {
     @State private var isStartingApp = false
     @State private var didStartApp = false
     
+    @State private var searchMode: SearchMode = .favorites
+    @State private var showNavigationLocationView:Bool = false
+
     init() {
         let authModel = AppleAuthenticationService.shared
         let searchSavedViewModel = SearchSavedViewModel()
@@ -98,15 +101,19 @@ struct Know_MapsApp: App {
             ZStack {
                 if showOnboarding {
                     OnboardingView( settingsModel: authenticationModel, chatModel: $chatModel, modelController: $modelController, showOnboarding: $showOnboarding)
-#if os(visionOS) || os(macOS)
-                        .frame(minWidth: 1280, minHeight: 720)
+#if !os(visionOS) && !os(macOS)
+                        .containerBackground(.clear, for: .navigation)
 #endif
+                        .toolbarBackgroundVisibility(self.showOnboarding ? .visible : .hidden)
                 } else {
                     
-                    ContentView(settingsModel:authenticationModel, chatModel: $chatModel, cacheManager:$cacheManager, modelController:$modelController, searchSavedViewModel: $searchSavedViewModel, showOnboarding: $showOnboarding)
+                ContentView(settingsModel:authenticationModel, chatModel: $chatModel, cacheManager:$cacheManager, modelController:$modelController, searchSavedViewModel: $searchSavedViewModel, showOnboarding: $showOnboarding, showNavigationLocationView: $showNavigationLocationView,searchMode: $searchMode )
 #if os(visionOS) || os(macOS)
-                        .frame(minWidth: 1280, minHeight: 720)
+                    .frame(minWidth: 1280, minHeight: 720)
 #endif
+                    .sheet(isPresented: $showNavigationLocationView) {
+                        filterSheet()
+                    }
                 }
                 
                 if showSplashScreen {
@@ -135,24 +142,23 @@ struct Know_MapsApp: App {
                         }
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-                }
-            }
-            .task(priority:.utility) {
-                checkIfSignedInWithApple { signedIn in
-                    if signedIn, modelController.locationProvider.isAuthorized()  {
-                        Task {
-                            await startApp()
+                    .task(priority:.userInitiated) {
+                        checkIfSignedInWithApple { signedIn in
+                            if signedIn, modelController.locationProvider.isAuthorized()  {
+                                Task {
+                                    await startApp()
+                                }
+                            } else {
+                                showSplashScreen = false
+                                showOnboarding = true
+                            }
                         }
-                    } else {
-                        showSplashScreen = false
-                        showOnboarding = true
                     }
+#if os(visionOS) || os(macOS)
+                    .frame(minWidth: 1280, minHeight: 720)
+#endif
                 }
             }
-#if !os(visionOS) && !os(macOS)
-            .containerBackground(.clear, for: .navigation)
-#endif
-            .toolbarBackgroundVisibility(self.showOnboarding ? .visible : .hidden)
         }.windowResizability(.contentSize)
         
         WindowGroup(id:"SettingsView"){
@@ -215,7 +221,7 @@ struct Know_MapsApp: App {
     
     func performExistingAccountSetupFlows() {
         // Kick off authorization work on the main actor but at a utility priority to avoid QoS inversion
-        Task(priority: .utility) { @MainActor in
+        Task(priority: .userInitiated) { @MainActor in
             let requests = [ASAuthorizationAppleIDProvider().createRequest()]
             let authorizationController = ASAuthorizationController(authorizationRequests: requests)
             authorizationController.delegate = authenticationModel
@@ -376,5 +382,32 @@ struct Know_MapsApp: App {
         }
     }
 #endif
+    
+    func filterView() -> some View {
+        NavigationLocationView(
+            searchSavedViewModel: $searchSavedViewModel,
+            chatModel: $chatModel,
+            cacheManager: $cacheManager,
+            modelController: $modelController,
+            filters:$searchSavedViewModel.filters
+        )
+    }
+    
+    @ViewBuilder
+    func filterSheet() -> some View {
+#if os(macOS)
+        filterView()
+            .frame(minWidth: 600, minHeight: 500)
+            .presentationSizing(.fitted)
+            .presentationDragIndicator(.visible)
+            .interactiveDismissDisabled(false)
+#else
+        filterView()
+            .presentationDetents([.large, .medium])
+            .presentationDragIndicator(.visible)
+            .interactiveDismissDisabled(false)
+            .presentationCompactAdaptation(.sheet)
+#endif
+    }
 }
 

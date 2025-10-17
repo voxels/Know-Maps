@@ -23,8 +23,7 @@ public protocol CacheManager : Sendable {
     var cachedRecommendationData:[RecommendationData] { get }
     
     // Refresh the entire cache for different data types
-    func refreshCachedResults() async
-    
+    func refreshCache() async throws    
     func restoreCache() async throws
     
     // Remove all cached results

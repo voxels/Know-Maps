@@ -48,11 +48,11 @@ public final class SearchSavedViewModel : Sendable {
     }
     
     // Search functionality
-    func search(caption: String, selectedDestinationChatResultID: UUID?, intent:AssistiveChatHostService.Intent, filters:[String:Any], chatModel:ChatResultViewModel, cacheManager:CacheManager, modelController:ModelController) async {
+    func search(caption: String, selectedDestinationChatResultID: String?, intent:AssistiveChatHostService.Intent, filters:[String:Any], chatModel:ChatResultViewModel, cacheManager:CacheManager, modelController:ModelController) async {
         do {
             try await chatModel.didSearch(caption: caption, selectedDestinationChatResultID: selectedDestinationChatResultID, intent:intent, filters: filters, cacheManager: cacheManager, modelController:modelController)
         } catch {
-            modelController.analyticsManager.trackError(error:error, additionalInfo: nil)
+            await modelController.analyticsManager.trackError(error:error, additionalInfo: nil)
         }
     }
     
@@ -84,6 +84,7 @@ public final class SearchSavedViewModel : Sendable {
         do {
             // Create a new UserCachedRecord for the location
             let userRecord = UserCachedRecord(
+                id:UUID(),
                 recordId:UUID().uuidString,
                 group: "Location",
                 identity: cacheManager.cachedLocationIdentity(for: location),
@@ -109,7 +110,7 @@ public final class SearchSavedViewModel : Sendable {
             await cacheManager.refreshCachedLocations()
         } catch {
             // Log any errors using the analytics manager
-            modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
+            await modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
             throw error
         }
     }
@@ -117,13 +118,14 @@ public final class SearchSavedViewModel : Sendable {
     // Add Category
     func addPlace(parent: ChatResult.ID, rating:Double, cacheManager: CacheManager, modelController: ModelController) async {
         
-        guard let placeChatResult = modelController.placeChatResult(for: parent), let placeResponse = placeChatResult.placeResponse, !cacheManager.cachedPlaces(contains: placeChatResult.title) else {
+        guard let placeChatResult = await modelController.placeChatResult(for: parent), let placeResponse = placeChatResult.placeResponse, !cacheManager.cachedPlaces(contains: placeChatResult.title) else {
             return
         }
 
         do {
             // Create a new UserCachedRecord for the category
             let userRecord = UserCachedRecord(
+                id:UUID(),
                 recordId: UUID().uuidString,
                 group: "Place",
                 identity: placeResponse.fsqID,
@@ -147,10 +149,10 @@ public final class SearchSavedViewModel : Sendable {
             
             // Refresh the cached categories after adding the new category
             await cacheManager.refreshCachedPlaces()
-            await cacheManager.refreshCachedResults()
+            try await cacheManager.refreshCache()
         } catch {
             // Log any errors with the analytics manager
-            modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
+            await modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
         }
     }
 
@@ -158,13 +160,14 @@ public final class SearchSavedViewModel : Sendable {
     // Add Category
     func addCategory(parent: CategoryResult.ID, rating:Double, cacheManager: CacheManager, modelController: ModelController) async {
         
-        guard let industryCategoryResult = modelController.industryCategoryResult(for: parent), !cacheManager.cachedCategories(contains: industryCategoryResult.parentCategory) else {
+        guard let industryCategoryResult = await modelController.industryCategoryResult(for: parent), !cacheManager.cachedCategories(contains: industryCategoryResult.parentCategory) else {
             return
         }
 
         do {
             // Create a new UserCachedRecord for the category
             let userRecord = UserCachedRecord(
+                id:UUID(),
                 recordId: UUID().uuidString,
                 group: "Category",
                 identity: industryCategoryResult.parentCategory,
@@ -188,17 +191,17 @@ public final class SearchSavedViewModel : Sendable {
             
             // Refresh the cached categories after adding the new category
             await cacheManager.refreshCachedCategories()
-            await cacheManager.refreshCachedResults()
+            try await cacheManager.refreshCache()
         } catch {
             // Log any errors with the analytics manager
-            modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
+            await modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
         }
     }
     
     // Remove Category
     func removeCategory(parent: CategoryResult.ID, cacheManager: CacheManager, modelController: ModelController) async {
         
-        guard let industryCategoryResult = modelController.industryCategoryResult(for: parent) else {
+        guard let industryCategoryResult = await modelController.industryCategoryResult(for: parent) else {
             return
         }
         
@@ -211,25 +214,26 @@ public final class SearchSavedViewModel : Sendable {
             
             // Refresh the cache after deletion
             await cacheManager.refreshCachedCategories()
-            await cacheManager.refreshCachedResults()
+            try await cacheManager.refreshCache()
         } catch {
-            modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
+            await modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
         }
     }
     
     // Add Taste
     func addTaste(parent: CategoryResult.ID, rating:Double, cacheManager: CacheManager, modelController: ModelController) async {
         
-        guard let tasteCategoryResult = modelController.tasteCategoryResult(for: parent), !cacheManager.cachedTastes(contains: tasteCategoryResult.parentCategory) else {
+        guard let tasteCategoryResult = await modelController.tasteCategoryResult(for: parent), !cacheManager.cachedTastes(contains: tasteCategoryResult.parentCategory) else {
             return
         }
         
         do {
             // Fetch the section related to the taste using assistiveHostDelegate
-            let section = modelController.assistiveHostDelegate.section(for: tasteCategoryResult.parentCategory).rawValue
+            let section = await modelController.assistiveHostDelegate.section(for: tasteCategoryResult.parentCategory).rawValue
             
             // Create a new UserCachedRecord for the taste
             let userRecord = UserCachedRecord(
+                id:UUID(),
                 recordId: UUID().uuidString,
                 group: "Taste",
                 identity: tasteCategoryResult.parentCategory,
@@ -253,17 +257,17 @@ public final class SearchSavedViewModel : Sendable {
             
             // Refresh the cached tastes after adding the new record
             await cacheManager.refreshCachedTastes()
-            await cacheManager.refreshCachedResults()
+            try await cacheManager.refreshCache()
         } catch {
             // Track the error in analytics
-            modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
+            await modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
         }
     }
 
     // Remove Taste
     func removeTaste(parent: CategoryResult.ID, cacheManager: CacheManager, modelController: ModelController) async {
         
-        guard let tasteCategoryResult = modelController.cachedTasteResult(for: parent, cacheManager: cacheManager) else {
+        guard let tasteCategoryResult = await modelController.cachedTasteResult(for: parent, cacheManager: cacheManager) else {
             return
         }
 
@@ -275,9 +279,9 @@ public final class SearchSavedViewModel : Sendable {
             }
             // Refresh the cached tastes after deletion
             await cacheManager.refreshCachedTastes()
-            await cacheManager.refreshCachedResults()
+            try await cacheManager.refreshCache()
         } catch {
-            modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
+            await modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
         }
     }
     
@@ -295,7 +299,7 @@ public final class SearchSavedViewModel : Sendable {
                         do {
                             try await cacheManager.cloudCacheService.deleteUserCachedRecord(for: record)
                         } catch {
-                            modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
+                            await modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
                         }
                     }
                 }
@@ -315,19 +319,18 @@ public final class SearchSavedViewModel : Sendable {
                 break
             }
         } catch {
-            modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
+            await modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
         }
     }
     
     // Remove Saved Item
-    func removeSelectedItem(selectedSavedResult: UUID?, cacheManager:CacheManager, modelController:ModelController) async throws {
-        guard let selectedSavedResult = selectedSavedResult else { return }
+    func removeSelectedItem(selectedSavedResult: String, cacheManager:CacheManager, modelController:ModelController) async throws {
         
-        if let selectedTasteItem = modelController.cachedTasteResult(for: selectedSavedResult, cacheManager: cacheManager) {
+        if let selectedTasteItem = await modelController.cachedTasteResult(for: selectedSavedResult, cacheManager: cacheManager) {
             await removeCachedResults(group: "Taste", identity: selectedTasteItem.parentCategory, cacheManager: cacheManager, modelController: modelController)
-        } else if let selectedCategoryItem = modelController.cachedCategoricalResult(for: selectedSavedResult, cacheManager: cacheManager) {
+        } else if let selectedCategoryItem = await modelController.cachedCategoricalResult(for: selectedSavedResult, cacheManager: cacheManager) {
             await removeCachedResults(group: "Category", identity: selectedCategoryItem.parentCategory, cacheManager: cacheManager, modelController: modelController)
-        } else if let selectedPlaceItem = modelController.cachedPlaceResult(for: selectedSavedResult, cacheManager: cacheManager) {
+        } else if let selectedPlaceItem = await modelController.cachedPlaceResult(for: selectedSavedResult, cacheManager: cacheManager) {
             if let fsqID = selectedPlaceItem.categoricalChatResults.first?.placeResponse?.fsqID {
                 await removeCachedResults(group: "Place", identity: fsqID, cacheManager: cacheManager, modelController: modelController)
                 _ = try await cacheManager.cloudCacheService.deleteRecommendationData(for: fsqID)

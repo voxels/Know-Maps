@@ -10,20 +10,15 @@ import CoreLocation
 import CallKit
 
 class PlaceAboutViewModel {
-    
-    // Refresh Cache
-    func refreshCache(cacheManager:CacheManager, modelController:ModelController) async {
-        await cacheManager.refreshCachedResults()
-    }
-    
     // Add Taste
     func addTaste(title: String, cacheManager: CacheManager, modelController: ModelController) async {
         do {
             // Fetch the section related to the taste using assistiveHostDelegate
-            let section = modelController.assistiveHostDelegate.section(for: title).rawValue
+            let section = await modelController.assistiveHostDelegate.section(for: title).rawValue
             
             // Create a new UserCachedRecord for the taste
             let userRecord = UserCachedRecord(
+                id:UUID(),
                 recordId: UUID().uuidString,
                 group: "Taste",
                 identity: title,
@@ -49,7 +44,7 @@ class PlaceAboutViewModel {
             await cacheManager.refreshCachedTastes()
         } catch {
             // Track the error in analytics
-            modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
+            await modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
         }
     }
     
@@ -66,14 +61,14 @@ class PlaceAboutViewModel {
                 // Refresh the cached tastes after deletion
                 await cacheManager.refreshCachedTastes()
             } catch {
-                modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
+                await modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
             }
         }
     }
     
     func toggleSavePlace(resultId: ChatResult.ID?, cacheManager: CacheManager, modelController: ModelController) async {
         guard let resultId = resultId,
-              let placeResult = modelController.placeChatResult(for: resultId),
+              let placeResult = await modelController.placeChatResult(for: resultId),
               let placeResponse = placeResult.placeResponse else {
             return
         }
@@ -92,13 +87,14 @@ class PlaceAboutViewModel {
                     try await cacheManager.cloudCacheService.deleteUserCachedRecord(for: cachedRecord)
                 }
             } catch {
-                modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
+                await modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
             }
         } else {
             // Save to cache
             do {
                 // Create a new cached record for the place
                 let userRecord = UserCachedRecord(
+                    id:UUID(),
                     recordId: UUID().uuidString,
                     group: "Place",
                     identity: placeResponse.fsqID,
@@ -121,6 +117,7 @@ class PlaceAboutViewModel {
                     }
                     
                     let recommendation = RecommendationData(
+                        id:UUID(),
                         recordId: UUID().uuidString,
                         identity: identity,
                         attributes: attributes,
@@ -157,7 +154,7 @@ class PlaceAboutViewModel {
                     )
                 }
             } catch {
-                modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
+                await modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
             }
         }
         // Refresh the cached places after deletion

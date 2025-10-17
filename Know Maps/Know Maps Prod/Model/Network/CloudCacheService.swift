@@ -469,6 +469,7 @@ public final class CloudCacheService: NSObject, CloudCache {
     ) async throws -> Bool {
         await MainActor.run {
             let userCachedRecord = UserCachedRecord(
+                id:UUID(),
                 recordId: recordId,
                 group: group,
                 identity: identity,
@@ -631,6 +632,7 @@ public final class CloudCacheService: NSObject, CloudCache {
                        let rating = record["rating"] as? Double {
                         
                         let userCachedRecord = UserCachedRecord(
+                            id:UUID(),
                             recordId: recordId,
                             group: group,
                             identity: identity,
@@ -653,6 +655,7 @@ public final class CloudCacheService: NSObject, CloudCache {
                        let reviews = record["reviews"] as? [String] {
                         
                         let recommendationData = RecommendationData(
+                            id:UUID(),
                             recordId: recordId,
                             identity: identity,
                             attributes: attributes,
@@ -720,6 +723,7 @@ public final class CloudCacheService: NSObject, CloudCache {
         
         await MainActor.run {
             let recommendationData = RecommendationData(
+                id:UUID(),
                 recordId: recordID,
                 identity: identity,
                 attributes: attributes,

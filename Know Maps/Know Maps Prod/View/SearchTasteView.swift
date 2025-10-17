@@ -5,7 +5,7 @@ struct SearchTasteView: View {
     @Binding public var cacheManager:CloudCacheManager
     @Binding public var modelController:DefaultModelController
     @Binding public var searchSavedViewModel:SearchSavedViewModel
-    @Binding public var multiSelection: Set<UUID>
+    @Binding public var multiSelection: Set<String>
     @Binding public var section: Int
     @State private var isPresented:Bool = true
     @State private var isLoadingNextPage = false

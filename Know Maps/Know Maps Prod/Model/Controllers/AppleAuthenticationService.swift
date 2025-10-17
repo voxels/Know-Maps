@@ -26,6 +26,7 @@ class AppleAuthenticationService: NSObject, ObservableObject {
     @Published var fullName: String = ""
     @Published var appleUserId: String = ""
     @Published var signInErrorMessage: String = ""
+    private var authorizationController: ASAuthorizationController?
     
     public var authCompletion:((Result<ASAuthorization, Error>) -> Void)?
     
@@ -45,16 +46,16 @@ class AppleAuthenticationService: NSObject, ObservableObject {
     }
     
     // MARK: - Sign In with Apple
-    @MainActor
     func signIn() {
-        DispatchQueue.main.async {
+        Task(priority: .userInteractive) { @MainActor in
             let provider = ASAuthorizationAppleIDProvider()
             let request = provider.createRequest()
             self.prepareSignInRequest(request)
-            
+
             let controller = ASAuthorizationController(authorizationRequests: [request])
             controller.delegate = self
             controller.presentationContextProvider = self
+            self.authorizationController = controller // retain to avoid premature deallocation
             controller.performRequests()
         }
     }

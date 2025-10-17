@@ -34,7 +34,7 @@ struct KnowMapsShortcutsProvider: AppShortcutsProvider {
 struct ShowMoodResultsIntent: AppIntent { 
     static var title: LocalizedStringResource = "Find a story for my mood"
     
-    @Parameter(title: "Mood", description: "The type of mood you're looking for.")
+    @Parameter(title: "Mood", description: "The type of mood you're in right now.")
     var mood: PersonalizedSearchSection
     static var openAppWhenRun = true
     
@@ -46,20 +46,7 @@ struct ShowMoodResultsIntent: AppIntent {
     func perform() async throws -> some IntentResult{
         withAnimation {
             modelController.section = 0
-            modelController.selectedPlaceChatResult = nil
         }
-
-        try await modelController.resetPlaceModel()
-
-        withAnimation {
-            modelController.selectedSavedResult = cacheManager.cachedDefaultResults.first(where: { $0.section == mood })?.id
-        }
-
-        if let savedResult = modelController.selectedSavedResult, let chatResult = modelController.cachedChatResult(for:savedResult, cacheManager: cacheManager) {
-            await chatModel.didTap(chatResult:chatResult, selectedDestinationChatResultID: modelController.selectedDestinationLocationChatResult ?? modelController.currentlySelectedLocationResult.id, filters: [:], cacheManager: cacheManager, modelController: modelController)
-        }
-        
-        
         // Provide feedback to the user
         return .result()
     }

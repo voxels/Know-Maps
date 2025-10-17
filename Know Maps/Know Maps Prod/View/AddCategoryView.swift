@@ -14,9 +14,8 @@ struct AddCategoryView: View {
     @Binding public var chatModel:ChatResultViewModel
     @Binding public var cacheManager:CloudCacheManager
     @Binding public var modelController:DefaultModelController
-    @Binding public var preferredColumn: NavigationSplitViewColumn
-    @Binding public var multiSelection: Set<UUID>
-    @State private var multiSelectionArray: [UUID] = []
+    @Binding public var multiSelection: Set<String>
+    @State private var multiSelectionArray: [String] = []
     
     
     var body: some View {

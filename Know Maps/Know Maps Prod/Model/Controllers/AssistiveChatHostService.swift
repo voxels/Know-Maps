@@ -530,12 +530,11 @@ extension AssistiveChatHost {
     
     
     internal func categoryCodes(for rawQuery: String, tags: AssistiveChatHostTaggedWord? = nil) async -> [String]? {
-        let query = rawQuery.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
-        var NAICSCodes = [String]()
-
-
         // Use a task group to process categories concurrently
         return await withTaskGroup(of: [String].self, returning: [String]?.self) { taskGroup in
+            let query = rawQuery.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+            var NAICSCodes = [String]()
+            
             for categoryCode in self.categoryCodes {
                 taskGroup.addTask {
                     let codes = await self.checkCategoriesAndSubcategories(categoryCode: categoryCode, query: query, embedding: NLEmbedding.sentenceEmbedding(for: .english)!)

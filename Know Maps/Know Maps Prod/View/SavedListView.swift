@@ -32,10 +32,10 @@ struct SavedListView: View {
     @Binding public var cacheManager: CloudCacheManager
     @Binding public var modelController: DefaultModelController
     @Binding public var section: Int
-    @Binding public var preferredColumn: NavigationSplitViewColumn
-    @Binding public var selectedResult: CategoryResult.ID?
     @Binding public var searchMode:SearchMode
-    
+    @Binding public var columnVisibility: NavigationSplitViewVisibility
+    @Binding public var preferredCompactColumn: NavigationSplitViewColumn
+
     // State variables to manage expanded/collapsed sections
     @AppStorage("isMoodsExpanded") private var isMoodsExpanded = true
     @AppStorage("isPlacesExpanded") private var isPlacesExpanded = true
@@ -47,19 +47,14 @@ struct SavedListView: View {
     var body: some View {
         NavigationStack {
             GeometryReader { geometry in
-                List(selection: $selectedResult) {
+                List {
 #if !os(macOS)
                     TipView(MenuNavigationIconTip())
 #endif
-                    if !cacheManager.cachedTasteResults.isEmpty {
+                    if !cacheManager.allCachedResults.isEmpty {
 #if !os(macOS)
                         Section() {
                             SiriTipView(intent: ShowMoodResultsIntent())
-                            
-                            //                    Text("Find a place nearby")
-                            //                    Text("Find where to go next")
-                            //                    Text("Save this place")
-                            //                    Text("Visit a new city")
                         } header: {
                             Text("Shortcuts")
                                 .font(.subheadline)
@@ -193,9 +188,9 @@ struct SavedListView: View {
 #else
                 .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search for a favorite")
 #endif
-                .task {
+                .onAppear {
                     Task(priority: .high) {
-                        await cacheManager.refreshCachedResults()
+                        try await cacheManager.refreshCache()
                     }
                 }
             }
@@ -349,7 +344,7 @@ struct SavedListView: View {
         }
     }
     
-    func deleteTasteItem(at idsToDelete: [UUID]) {
+    func deleteTasteItem(at idsToDelete: [String]) {
         for id in idsToDelete {
             Task(priority: .userInitiated) {
                 if let parent = modelController.cachedTasteResult(for: id, cacheManager: cacheManager) {
@@ -359,7 +354,7 @@ struct SavedListView: View {
         }
     }
     
-    func deleteCategoryItem(at idsToDelete: [UUID]) {
+    func deleteCategoryItem(at idsToDelete: [String]) {
         for id in idsToDelete {
             Task(priority: .userInitiated) {
                 if let parent = modelController.cachedCategoricalResult(for: id, cacheManager: cacheManager) {
@@ -369,7 +364,7 @@ struct SavedListView: View {
         }
     }
     
-    func deletePlaceItem(at idsToDelete: [UUID]) {
+    func deletePlaceItem(at idsToDelete: [String]) {
         for id in idsToDelete {
             Task(priority: .userInitiated) {
                 if let parent = modelController.cachedPlaceResult(for: id, cacheManager: cacheManager),

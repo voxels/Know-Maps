@@ -121,13 +121,15 @@ struct PlaceAboutView: View {
                                     .padding(.horizontal,16)
                             }
                         } else {
-                            Spacer()
-                            ProgressView {
-                                Text(modelController.fetchMessage)
+                            VStack {
+                                Spacer()
+                                ProgressView {
+                                    Text(modelController.fetchMessage)
+                                }
+                                .progressViewStyle(.linear)
+                                .padding()
+                                Spacer()
                             }
-                            .progressViewStyle(.linear)
-                            .padding()
-                            Spacer()
                         }
                     }
                 }
@@ -148,7 +150,7 @@ private struct PhotosCarousel: View {
                     Image(systemName: "photo")
                         .scaledToFit()
                         .clipShape(RoundedRectangle(cornerRadius: PlaceAboutView.cornerRadius, style: .continuous))
-                        .frame(maxWidth:.infinity, maxHeight: .infinity)
+                        .frame(maxWidth:geoSize.width / 2.0, maxHeight: geoSize.height / 2.0)
                 }
             } else if let photoResponses, !photoResponses.isEmpty {
                 ScrollView(.horizontal) {
@@ -231,7 +233,7 @@ private struct ActionButtonsRow: View {
     let cacheManager:CloudCacheManager
     let sizeClass: UserInterfaceSizeClass?
     let title: String
-    let resultId: UUID
+    let resultId: String
     let placeDetailsResponse: PlaceDetailsResponse
     let openURL: OpenURLAction
     let onSave: () async -> Void

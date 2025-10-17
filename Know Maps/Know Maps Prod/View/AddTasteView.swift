@@ -13,9 +13,8 @@ struct AddTasteView: View {
     @Binding public var chatModel: ChatResultViewModel
     @Binding public var cacheManager: CloudCacheManager
     @Binding public var modelController: DefaultModelController
-    @Binding public var multiSelection: Set<UUID>
-    @Binding public var preferredColumn: NavigationSplitViewColumn
-    @State private var multiSelectionArray: [UUID] = []
+    @Binding public var multiSelection: Set<String>
+    @State private var multiSelectionArray: [String] = []
     
     var body: some View {
         GeometryReader { geometry in

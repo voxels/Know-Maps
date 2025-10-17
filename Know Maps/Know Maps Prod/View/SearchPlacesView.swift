@@ -8,6 +8,7 @@
 
 import SwiftUI
 import TipKit
+import Combine
 
 struct NavigationLocationMenuIconTip: Tip {
     var title: Text {
@@ -30,28 +31,18 @@ struct SearchPlacesView: View {
     @Binding public var chatModel:ChatResultViewModel
     @Binding public var cacheManager:CloudCacheManager
     @Binding public var modelController:DefaultModelController
-    @Binding public var multiSelection: Set<UUID>
-    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Binding public var multiSelection: Set<String>
+    @ObservedObject public var placeDirectionsChatViewModel:PlaceDirectionsViewModel
     @State private var searchText: String = "" // State for search text
+    @State private var showPlaceList = true
     
     var body: some View {
         VStack {
-            TipView(NavigationLocationMenuIconTip())
             if modelController.placeResults.isEmpty && modelController.recommendedPlaceResults.isEmpty {
-                ProgressView()
-                    .padding(.bottom, 4)
                 Text(modelController.fetchMessage)
                     .foregroundStyle(.secondary)
                     .padding(.bottom)
             }
-            if let selectedDestinationLocationChatResult = modelController.selectedDestinationLocationChatResult, let locationChatResult = modelController.locationChatResult(for: selectedDestinationLocationChatResult, in: (modelController.filteredLocationResults(cacheManager: cacheManager))) {
-                let locationName = locationChatResult.locationName
-                Text("\(modelController.placeResults.count) places found near \(locationName)")
-                    .padding(.vertical)
-            } else {
-                Text("Choose a location to search for places")
-            }
-            Spacer()
         }
 #if os(macOS)
         .searchable(text: $searchText, prompt: "Search by place name")
@@ -70,22 +61,30 @@ struct SearchPlacesView: View {
                         cacheManager: cacheManager,
                         modelController: modelController
                     )
-                    // After the search completes, push to detail by selecting the first result (iPhone collapses split view)
-                    await MainActor.run {
-#if os(macOS) || os(visionOS)
-                        if let first = modelController.placeResults.first {
-                            modelController.selectedPlaceChatResult = first.id
-                        }
-#else
-                        // On iOS, only auto-select on regular width (e.g., iPad in landscape). Avoid on compact to prevent sidebar collapse.
-                        if horizontalSizeClass == .regular, let first = modelController.placeResults.first {
-                            modelController.selectedPlaceChatResult = first.id
-                        }
-#endif
-                    }
                 }
             }
         })
+    }
+    
+    
+    @ViewBuilder
+    func detailView() -> some View {
+        if showPlaceList {
+            PlacesList(
+                searchSavedViewModel: $searchSavedViewModel,
+                chatModel: $chatModel,
+                cacheManager: $cacheManager,
+                modelController: $modelController
+            )
+        } else {
+            PlaceView(
+                searchSavedViewModel: $searchSavedViewModel,
+                chatModel: $chatModel,
+                cacheManager: $cacheManager,
+                modelController: $modelController,
+                placeDirectionsViewModel: placeDirectionsChatViewModel
+            )
+        }
     }
 }
 

@@ -23,12 +23,12 @@ public final class DefaultRecommenderService : RecommenderService {
         var retval = [RecommendationData]()
         
         for tasteCategoryResult in tasteCategoryResults {
-            let data = RecommendationData(recordId: "", identity: tasteCategoryResult.parentCategory, attributes: [tasteCategoryResult.parentCategory], reviews: [], attributeRatings: [tasteCategoryResult.parentCategory: tasteCategoryResult.rating])
+            let data = RecommendationData(                id:UUID(),recordId: "", identity: tasteCategoryResult.parentCategory, attributes: [tasteCategoryResult.parentCategory], reviews: [], attributeRatings: [tasteCategoryResult.parentCategory: tasteCategoryResult.rating])
             retval.append(data)
         }
         
         for industryCategoryResult in industryCategoryResults {
-            let data = RecommendationData(recordId: "", identity: industryCategoryResult.parentCategory, attributes: [industryCategoryResult.parentCategory], reviews: [], attributeRatings: [industryCategoryResult.parentCategory: industryCategoryResult.rating])
+            let data = RecommendationData(                id:UUID(),recordId: "", identity: industryCategoryResult.parentCategory, attributes: [industryCategoryResult.parentCategory], reviews: [], attributeRatings: [industryCategoryResult.parentCategory: industryCategoryResult.rating])
             retval.append(data)
         }
     
@@ -42,12 +42,12 @@ public final class DefaultRecommenderService : RecommenderService {
         
         for response in responses {
             for taste in response.tastes {
-                let data = RecommendationData(recordId: "", identity:response.fsqID, attributes: [taste], reviews: [], attributeRatings: [taste: 1])
+                let data = RecommendationData(                id:UUID(),recordId: "", identity:response.fsqID, attributes: [taste], reviews: [], attributeRatings: [taste: 1])
                 retval.append(data)
             }
             
             for category in response.categories {
-                let data = RecommendationData(recordId: "", identity:response.fsqID, attributes: [category], reviews: [], attributeRatings: [category: 1])
+                let data = RecommendationData(                id:UUID(),recordId: "", identity:response.fsqID, attributes: [category], reviews: [], attributeRatings: [category: 1])
                 retval.append(data)
             }
         }

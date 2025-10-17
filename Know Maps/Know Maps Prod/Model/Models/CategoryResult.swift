@@ -17,7 +17,7 @@ public final class CategoryResult : Identifiable, Equatable, Hashable, Sendable 
         hasher.combine(id)
     }
     
-    public let id = UUID()
+    public let id:String
     var identity:String
     var parentCategory:String
     var list:String
@@ -29,6 +29,7 @@ public final class CategoryResult : Identifiable, Equatable, Hashable, Sendable 
     public var isExpanded:Bool = false
     
     public init(identity:String, parentCategory: String,  list:String, icon:String, rating:Double, section:PersonalizedSearchSection, categoricalChatResults: [ChatResult]) {
+        self.id = identity
         self.identity = identity
         self.parentCategory = parentCategory
         self.list = list

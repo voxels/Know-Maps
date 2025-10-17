@@ -15,10 +15,9 @@ struct PlaceView: View {
     @Binding public var modelController:DefaultModelController
     @ObservedObject public var placeDirectionsViewModel:PlaceDirectionsViewModel
     @State private var tabItem = 0
-    public let selectedFoursquareID:String
 
     var body: some View {
-        if let placeChatResult = modelController.placeChatResult(with: selectedFoursquareID) {
+        if let selectedPlaceChatResult = modelController.selectedPlaceChatResult, let placeChatResult = modelController.placeChatResult(for: selectedPlaceChatResult) {
             VStack {
                 if let detailsResponses = placeChatResult.placeDetailsResponse {
                     Picker("About", selection: $tabItem) {
@@ -32,6 +31,7 @@ struct PlaceView: View {
                         }
                     }
                     .pickerStyle(.palette)
+                    .labelsHidden()
                 }
                 switch tabItem {
                 case 0:
@@ -82,22 +82,16 @@ struct PlaceView: View {
                     EmptyView()
                 }
             }
-            .task(priority: .userInitiated) {
-                await modelController.enqueueLazyDetailFetch(for: placeChatResult, cacheManager: cacheManager)
-            }
             .navigationTitle(placeChatResult.title)
             .id(placeChatResult.id)
         } else {
             VStack {
                 Spacer()
-                if let _ = modelController.selectedPlaceFSQID {
-                    // We have a target ID but haven't materialized the result yet; show fetch message
-                    VStack(spacing: 8) {
-                        Text(modelController.fetchMessage)
-                            .font(.subheadline)
-                    }
-                    .padding()
+                VStack(spacing: 8) {
+                    Text(modelController.fetchMessage)
+                        .font(.subheadline)
                 }
+                .padding()
                 Spacer()
             }
         }

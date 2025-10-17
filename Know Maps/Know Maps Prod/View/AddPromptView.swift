@@ -11,7 +11,7 @@ struct AddPromptView: View {
     @Binding public var chatModel: ChatResultViewModel
     @Binding public var cacheManager:CloudCacheManager
     @Binding public var modelController:DefaultModelController
-    @Binding public var multiSelection: Set<UUID>
+    @Binding public var multiSelection: Set<String>
     
     var body: some View {
         Text("Hello world")
@@ -26,7 +26,7 @@ struct AddPromptToolbarView: View {
     @Binding public var cacheManager: CloudCacheManager
     @Binding public var modelController: DefaultModelController
     @Binding public var section: Int
-    @Binding public var multiSelection: Set<UUID>
+    @Binding public var multiSelection: Set<String>
     @Binding public var searchMode:SearchMode
     
     var body: some View {

@@ -8,7 +8,7 @@
 import Foundation
 
 public struct RecommendedPlaceSearchResponse: Equatable, Hashable, Sendable {
-    let uuid:UUID = UUID()
+    let uuid:String = UUID().uuidString
     let fsqID:String
     let name:String
     let categories:[String]

@@ -8,7 +8,7 @@
 import Foundation
 
 public struct PlaceTipsResponse : Identifiable, Hashable, Sendable  {
-    public var id: UUID
+    public var id: String
     let placeIdent:String
     let ident:String
     let createdAt:String

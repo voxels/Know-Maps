@@ -847,9 +847,9 @@ open class PlaceResponseFormatter {
                 text = textString
             }
             
-            let response = PlaceTipsResponse(id:UUID(), placeIdent:placeID, ident: ident, createdAt: createdAt, text: text)
-            if !containsID.contains(response.id.uuidString){
-                containsID.insert(response.id.uuidString)
+            let response = PlaceTipsResponse(id:ident, placeIdent:placeID, ident: ident, createdAt: createdAt, text: text)
+            if !containsID.contains(response.id){
+                containsID.insert(response.id)
                 retVal.append(response)                
             }
         }

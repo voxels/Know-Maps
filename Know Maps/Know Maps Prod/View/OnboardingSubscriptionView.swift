@@ -15,7 +15,7 @@ public enum SubscriptionPlanType :String {
 }
 
 public struct SubscriptionPlan: Identifiable, Equatable, Hashable {
-    public let id = UUID()
+    public let id = UUID().uuidString
     public let plan:SubscriptionPlanType
 }
 

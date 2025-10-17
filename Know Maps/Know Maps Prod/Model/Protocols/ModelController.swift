@@ -10,6 +10,7 @@ import CoreLocation
 
 // MARK: - ModelController
 
+@MainActor
 public protocol ModelController : Sendable {
     
     var assistiveHostDelegate: AssistiveChatHost { get }
@@ -23,7 +24,6 @@ public protocol ModelController : Sendable {
     
     // Selection States
     var selectedPersonalizedSearchSection:PersonalizedSearchSection? { get set }
-    var selectedSavedResult: CategoryResult.ID? { get set }
     var selectedPlaceChatResult: ChatResult.ID? { get set }
     var selectedDestinationLocationChatResult: LocationResult.ID? { get set }
     
@@ -187,16 +187,16 @@ public extension ModelController {
     /// with `selectedDestinationLocationChatResult`.
     mutating func setSelectedLocation(_ id: LocationResult.ID?) {
         // Debug logging to trace selection changes
-        print("🗺️ ModelController setSelectedLocation called with: \(id?.uuidString ?? "nil")")
+        print("🗺️ ModelController setSelectedLocation called with: \(id ?? "nil")")
         let previous = selectedDestinationLocationChatResult
-        print("🗺️ Previous selectedDestinationLocationChatResult: \(previous?.uuidString ?? "nil")")
+        print("🗺️ Previous selectedDestinationLocationChatResult: \(previous ?? "nil")")
 
         // If an id is provided, try to resolve it in known location results first
         if let id {
             if let match = locationChatResult(for: id, in: locationResults) {
                 selectedDestinationLocationChatResult = id
                 currentlySelectedLocationResult = match
-                print("🗺️ New selectedDestinationLocationChatResult: \(id.uuidString)")
+                print("🗺️ New selectedDestinationLocationChatResult: \(id)")
                 return
             }
             // Invalid id — fall back to current selection
@@ -213,13 +213,13 @@ public extension ModelController {
 
     /// Cache-aware selection setter that validates against filtered locations
     mutating func setSelectedLocation(_ id: LocationResult.ID?, cacheManager: CacheManager) {
-        print("🗺️ ModelController (cache-aware) setSelectedLocation called with: \(id?.uuidString ?? "nil")")
+        print("🗺️ ModelController (cache-aware) setSelectedLocation called with: \(id ?? "nil")")
         if let id {
             let filtered = filteredLocationResults(cacheManager: cacheManager)
             if let match = filtered.first(where: { $0.id == id }) {
                 selectedDestinationLocationChatResult = id
                 currentlySelectedLocationResult = match
-                print("🗺️ New selectedDestinationLocationChatResult: \(id.uuidString)")
+                print("🗺️ New selectedDestinationLocationChatResult: \(id)")
                 return
             }
             print("🗺️ Warning: Attempted to set invalid location ID (cache-aware), falling back to current location")

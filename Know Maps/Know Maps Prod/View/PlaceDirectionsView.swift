@@ -93,7 +93,8 @@ struct PlaceDirectionsView: View {
                 }
             }
             .onChange(of: model.rawLocationIdent, { oldValue, newValue in
-                if let ident = UUID(uuidString: newValue) {
+                if let newValue  {
+                    let ident = newValue
                     guard let sourceLocation = modelController.locationChatResult(for: ident, in:modelController.locationResults)?.location, let result = modelController.placeChatResult(for: resultId), let placeResponse = result.placeResponse else {
                         return
                     }
@@ -114,7 +115,7 @@ struct PlaceDirectionsView: View {
                 
                 let destination = CLLocation(latitude:latitude, longitude: longitude)
                 var minDistance = Double.greatestFiniteMagnitude
-                var minLocation = UUID()
+                var minLocation = ""
                 let allLocationResults = modelController.filteredLocationResults(cacheManager: cacheManager)
                 for locationResult in allLocationResults {
                     if let location = locationResult.location, location.distance(from:destination) < minDistance {
@@ -123,7 +124,7 @@ struct PlaceDirectionsView: View {
                     }
                 }
                 
-                model.rawLocationIdent = minLocation.uuidString
+                model.rawLocationIdent = minLocation
                 
                 guard let sourceLocation = allLocationResults.first(where: { $0.id == minLocation})?.location else {
                     return

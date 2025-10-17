@@ -13,9 +13,15 @@ public struct LocationResult : Identifiable, Equatable, Hashable, Sendable {
         lhs.locationName == rhs.locationName && lhs.location == rhs.location
     }
     
-    public let id = UUID()
+    public let id:String
     public var locationName:String
     public var location:CLLocation?
+    
+    public init(locationName: String, location: CLLocation? = nil) {
+        self.id = UUID().uuidString
+        self.locationName = locationName
+        self.location = location
+    }
     
     mutating public func replaceLocation(with location:CLLocation, name:String) {
         self.location = location

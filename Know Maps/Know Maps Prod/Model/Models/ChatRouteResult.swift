@@ -9,7 +9,7 @@ import Foundation
 import MapKit
 
 public struct ChatRouteResult : Identifiable, Equatable, Hashable {
-    public let id = UUID()
+    public let id:String = UUID().uuidString
     
     public static func == (lhs: ChatRouteResult, rhs: ChatRouteResult) -> Bool {
         lhs.id == rhs.id
