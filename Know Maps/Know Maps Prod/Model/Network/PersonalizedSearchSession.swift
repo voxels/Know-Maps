@@ -88,7 +88,6 @@ public actor PersonalizedSearchSession {
     public var fsqAccessToken:String?
     private var fsqServiceAPIKey:String?
     let keysContainer = CKContainer(identifier:"iCloud.com.secretatomics.knowmaps.Keys")
-    private var searchSession:URLSession?
     static let serverUrl = "https://api.foursquare.com/"
     static let userManagementAPIUrl = "v2/usermanagement"
     static let userManagementCreationPath = "/createuser"
@@ -138,13 +137,7 @@ public actor PersonalizedSearchSession {
     public func addFoursquareManagedUserIdentity(cacheManager:CacheManager) async throws -> Bool {
         let apiKey = try await fetchFoursquareServiceAPIKey()
         
-        if searchSession == nil {
-            let sessionConfiguration = URLSessionConfiguration.default
-            let session = URLSession(configuration: sessionConfiguration)
-            searchSession = session
-        }
-        
-        guard let apiKey = apiKey, searchSession != nil else {
+        guard let apiKey = apiKey else {
             return false
         }
         
@@ -186,12 +179,6 @@ public actor PersonalizedSearchSession {
             _ = await self.cloudCacheService.refreshFsqToken()
         }
 
-        if searchSession == nil {
-            let sessionConfiguration = URLSessionConfiguration.default
-            let session = URLSession(configuration: sessionConfiguration)
-            searchSession = session
-        }
-        
         var limit = 50
         var nameString:String = ""
         
@@ -246,12 +233,6 @@ public actor PersonalizedSearchSession {
         
         let apiKey = try await requireAccessToken(cacheManager: cacheManager) {
             _ = await self.cloudCacheService.refreshFsqToken()
-        }
-
-        if searchSession == nil {
-            let sessionConfiguration = URLSessionConfiguration.default
-            let session = URLSession(configuration: sessionConfiguration)
-            searchSession = session
         }
         
         let ll = "\(location.coordinate.latitude),\(location.coordinate.longitude)"
@@ -308,18 +289,12 @@ public actor PersonalizedSearchSession {
         return retval
     }
     
-    public func fetchRecommendedVenues(with request:RecommendedPlaceSearchRequest, location:CLLocation?, cacheManager:CacheManager) async throws -> [String:Any]{
+    public func fetchRecommendedVenues(with request:RecommendedPlaceSearchRequest, cacheManager:CacheManager) async throws -> [String:Any]{
         let apiKey = try await requireAccessToken(cacheManager: cacheManager) {
             _ = await self.cloudCacheService.refreshFsqToken()
         }
-        
-        if searchSession == nil {
-            let sessionConfiguration = URLSessionConfiguration.default
-            let session = URLSession(configuration: sessionConfiguration)
-            searchSession = session
-        }
-        
-        guard !apiKey.isEmpty, searchSession != nil else {
+                
+        guard !apiKey.isEmpty else {
             throw PersonalizedSearchSessionError.UnsupportedRequest
         }
         
@@ -334,13 +309,7 @@ public actor PersonalizedSearchSession {
         func buildQueryItems(radius: Int?) -> [URLQueryItem] {
             var items = [URLQueryItem]()
 
-            if let location = location, request.nearLocation == nil {
-                let rawLocation = "\(location.coordinate.latitude),\(location.coordinate.longitude)"
-                if let radius = radius {
-                    items.append(URLQueryItem(name: "radius", value: "\(radius)"))
-                }
-                items.append(URLQueryItem(name: "ll", value: rawLocation))
-            } else if let rawLocation = request.ll {
+            if let rawLocation = request.ll {
                 items.append(URLQueryItem(name: "ll", value: rawLocation))
                 if let radius = radius { items.append(URLQueryItem(name: "radius", value: "\(radius)")) }
             }
@@ -407,14 +376,8 @@ public actor PersonalizedSearchSession {
         let apiKey = try await requireAccessToken(cacheManager: cacheManager) {
             _ = await self.cloudCacheService.refreshFsqToken()
         }
-
-        if searchSession == nil {
-            let sessionConfiguration = URLSessionConfiguration.default
-            let session = URLSession(configuration: sessionConfiguration)
-            searchSession = session
-        }
         
-        guard !apiKey.isEmpty, searchSession != nil else {
+        guard !apiKey.isEmpty else {
             throw PersonalizedSearchSessionError.UnsupportedRequest
         }
         
@@ -450,14 +413,8 @@ public actor PersonalizedSearchSession {
         let apiKey = try await requireAccessToken(cacheManager: cacheManager) {
             _ = await self.cloudCacheService.refreshFsqToken()
         }
-
-        if searchSession == nil {
-            let sessionConfiguration = URLSessionConfiguration.default
-            let session = URLSession(configuration: sessionConfiguration)
-            searchSession = session
-        }
         
-        guard !apiKey.isEmpty, searchSession != nil else {
+        guard !apiKey.isEmpty else {
             throw PersonalizedSearchSessionError.UnsupportedRequest
         }
         

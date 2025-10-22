@@ -15,20 +15,20 @@ public final class AssistiveChatHostIntent : Equatable, Sendable {
     public var selectedPlaceSearchResponse:PlaceSearchResponse?
     public var selectedPlaceSearchDetails:PlaceDetailsResponse?
     public var placeSearchResponses:[PlaceSearchResponse]
-    public var selectedDestinationLocationID:LocationResult.ID?
+    public var selectedDestinationLocation:LocationResult
     public var placeDetailsResponses:[PlaceDetailsResponse]?
     public var recommendedPlaceSearchResponses:[RecommendedPlaceSearchResponse]?
     public var relatedPlaceSearchResponses:[RecommendedPlaceSearchResponse]?
     public var tasteAutocompleteResponese:[TasteAutocompleteResponse]?
     public let queryParameters:[String:Any]?
     
-    public init(caption: String, intent: AssistiveChatHostService.Intent, selectedPlaceSearchResponse: PlaceSearchResponse?, selectedPlaceSearchDetails: PlaceDetailsResponse?, placeSearchResponses: [PlaceSearchResponse], selectedDestinationLocationID:LocationResult.ID?, placeDetailsResponses:[PlaceDetailsResponse]?, recommendedPlaceSearchResponses:[RecommendedPlaceSearchResponse]? = nil, relatedPlaceSearchResponses:[RecommendedPlaceSearchResponse]? = nil, queryParameters: [String : Any]?) {
+    public init(caption: String, intent: AssistiveChatHostService.Intent, selectedPlaceSearchResponse: PlaceSearchResponse?, selectedPlaceSearchDetails: PlaceDetailsResponse?, placeSearchResponses: [PlaceSearchResponse], selectedDestinationLocation:LocationResult, placeDetailsResponses:[PlaceDetailsResponse]?, recommendedPlaceSearchResponses:[RecommendedPlaceSearchResponse]? = nil, relatedPlaceSearchResponses:[RecommendedPlaceSearchResponse]? = nil, queryParameters: [String : Any]?) {
         self.caption = caption
         self.intent = intent
         self.selectedPlaceSearchResponse = selectedPlaceSearchResponse
         self.selectedPlaceSearchDetails = selectedPlaceSearchDetails
         self.placeSearchResponses = placeSearchResponses
-        self.selectedDestinationLocationID = selectedDestinationLocationID
+        self.selectedDestinationLocation = selectedDestinationLocation
         self.placeDetailsResponses = placeDetailsResponses
         self.recommendedPlaceSearchResponses = recommendedPlaceSearchResponses
         self.relatedPlaceSearchResponses = relatedPlaceSearchResponses

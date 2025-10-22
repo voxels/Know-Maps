@@ -87,7 +87,7 @@ struct FiltersView: View {
     
     func applyFilters() {
         if let lastIntent = modelController.queryParametersHistory.last?.queryIntents.last {
-            let selectedDestinationID = modelController.selectedDestinationLocationChatResult ?? modelController.currentlySelectedLocationResult.id
+            let selectedDestination = modelController.selectedDestinationLocationChatResult
             modelController.isRefreshingPlaces = true
             Task(priority:.userInitiated) {
                 do {
@@ -95,7 +95,7 @@ struct FiltersView: View {
                 } catch {
                     modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
                 }
-                await searchSavedViewModel.search(caption: lastIntent.caption, selectedDestinationChatResultID: selectedDestinationID, intent: .Search, filters: searchSavedViewModel.filters, chatModel: chatModel, cacheManager: cacheManager, modelController: modelController)
+                await searchSavedViewModel.search(caption: lastIntent.caption, selectedDestinationChatResult: selectedDestination, intent: .Search, filters: searchSavedViewModel.filters, chatModel: chatModel, cacheManager: cacheManager, modelController: modelController)
                 await MainActor.run {
                     modelController.isRefreshingPlaces = false
                 }

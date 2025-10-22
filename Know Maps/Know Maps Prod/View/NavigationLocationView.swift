@@ -25,7 +25,7 @@ struct NavigationLocationView: View {
     @State public var cameraPosition:MapCameraPosition = .automatic
     @State public var selectedMapItem: String? = nil
     @State public var distanceFilterValue: Double = 20
-    @State private var selectedLocationId: LocationResult.ID?
+    @State private var selectedLocation: LocationResult?
     @State private var filteredLocationResults: [LocationResult] = []
     @State private var isUpdatingSelection = false
     @State private var lastCenterCoordinate: CLLocationCoordinate2D? = nil
@@ -88,11 +88,13 @@ struct NavigationLocationView: View {
                     }
                     ToolbarItem(placement: .navigationBarTrailing) {
                         Button(action: {
-                            addSelectedLocation()
+                            if let selectedLocation {
+                                addLocationFromSwipe(selectedLocation)
+                            }
                         }) {
                             Image(systemName: "plus")
                         }
-                        .disabled(selectedLocationId == nil || isSelectedLocationAlreadySaved())
+                        .disabled(selectedLocation == nil || isSelectedLocationAlreadySaved())
                         .accessibilityLabel("Add Selected Location")
                         .accessibilityHint("Adds the currently selected location to your saved locations")
                     }
@@ -109,10 +111,8 @@ struct NavigationLocationView: View {
                 }
                 .onChange(of: modelController.selectedDestinationLocationChatResult) { oldValue, newValue in
                     if !isUpdatingSelection {
-                        selectedLocationId = newValue
-                        if let newLocation = newValue {
-                            updateCamera(for: newLocation)
-                        }
+                        selectedLocation = newValue
+                        updateCamera(for: newValue)
                     }
                 }
                 .onChange(of: cacheManager.cachedLocationResults.count) { _, _ in
@@ -153,19 +153,13 @@ struct NavigationLocationView: View {
             .cornerRadius(32)
             .padding(16)
             .task {
-                let selectedResult = modelController.currentlySelectedLocationResult
-                if let location = selectedResult.location {
-                    lastCenterCoordinate = location.coordinate
+                lastCenterCoordinate = modelController.selectedDestinationLocationChatResult.location.coordinate
                     cameraPosition = MapCameraPosition.camera(
                         MapCamera(
-                            centerCoordinate: location.coordinate,
+                            centerCoordinate: lastCenterCoordinate!,
                             distance: distanceFilterValue * 1000
                         )
                     )
-                } else {
-                    lastCenterCoordinate = nil
-                    cameraPosition = .userLocation(fallback: .automatic)
-                }
             }
             .onChange(of: distanceFilterValue) { oldValue, newValue in
                 // Update the map camera continuously while dragging; do not mutate filters here
@@ -199,59 +193,82 @@ struct NavigationLocationView: View {
     
     
     func listView(geometry:GeometryProxy) -> some View {
-        List(filteredLocationResults, id: \.id, selection: $selectedLocationId) { result in
-            let isSaved = cacheManager.cachedLocation(contains:result.locationName)
-            let isSelected = selectedLocationId == result.id
-            
-            HStack {
-                Text(result.locationName)
-                    .fontWeight(isSelected ? .semibold : .regular)
-                Spacer()
-                if isSaved {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundColor(.green)
-                } else if isSelected {
-                    Image(systemName: "plus.circle")
-                        .foregroundColor(.blue)
-                } else {
-                    Image(systemName: "circle")
-                        .foregroundColor(.gray)
+        List() {
+            // Section for Current Location (always shown as unsaved)
+            Section("Current Location") {
+                let currentLocation = modelController.locationService.currentLocation()
+                let currentResult = LocationResult(locationName: "Current Location", location: currentLocation)
+                let isSelected = selectedLocation == currentResult
+                HStack {
+                    Text(currentResult.locationName)
+                        .fontWeight(isSelected ? .semibold : .regular)
+                    Spacer()
+                    // Always show as unsaved indicator (not a checkmark)
+                    Image(systemName: isSelected ? "plus.circle" : "circle")
+                        .foregroundColor(isSelected ? .blue : .gray)
+                }
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    handleLocationSelection(currentResult)
                 }
             }
-            .contentShape(Rectangle())
-            .swipeActions {
-                if isSaved {
-                    Button(action: {
-                        removeLocation(result)
-                    }, label: {
-                        Label("Remove", systemImage: "minus.circle")
-                    })
-                    .tint(.red)
-                } else {
-                    Button(action: {
-                        addLocationFromSwipe(result)
-                    }, label: {
-                        Label("Add", systemImage: "plus.circle")
-                    })
-                    .tint(.blue)
+
+            // Section for other search results
+            Section("Results") {
+                ForEach(filteredLocationResults, id: \.id) { result in
+                    let isSaved = cacheManager.cachedLocation(contains: result.locationName)
+                    let isSelected = selectedLocation == result
+
+                    HStack {
+                        Text(result.locationName)
+                            .fontWeight(isSelected ? .semibold : .regular)
+                        Spacer()
+                        if isSaved {
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundColor(.green)
+                        } else if isSelected {
+                            Image(systemName: "plus.circle")
+                                .foregroundColor(.blue)
+                        } else {
+                            Image(systemName: "circle")
+                                .foregroundColor(.gray)
+                        }
+                    }
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        handleLocationSelection(result)
+                    }
+                    .swipeActions {
+                        if isSaved {
+                            Button(action: {
+                                removeLocation(result)
+                            }, label: {
+                                Label("Remove", systemImage: "minus.circle")
+                            })
+                            .tint(.red)
+                        } else {
+                            Button(action: {
+                                addLocationFromSwipe(result)
+                            }, label: {
+                                Label("Add", systemImage: "plus.circle")
+                            })
+                            .tint(.blue)
+                        }
+                    }
                 }
             }
         }
-        .onChange(of: selectedLocationId) { oldValue, newValue in
-            print("🗺️ selectedLocationId changed from \(oldValue ?? "nil") to \(newValue ?? "nil")")
-            if let newLocationId = newValue {
-                handleLocationSelection(newLocationId)
-            }
-        }
-        .frame(idealWidth: .infinity, idealHeight:sizeClass == .compact ? geometry.size.height : geometry.size.height / 2)
+        .frame(idealWidth: .infinity, idealHeight: sizeClass == .compact ? geometry.size.height : geometry.size.height / 2)
         #if os(macOS)
         .searchable(text: $searchText, prompt: "Point of Interest")
         #else
         .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Point of Interest")
         #endif
-        .onChange(of: searchText) { oldValue, newValue in
-            if !newValue.isEmpty {
-                search(intent: .Location, query: newValue)
+        // Only search when user submits (presses Return) instead of on every change
+        .onSubmit(of: .search) {
+            let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !query.isEmpty {
+                search(intent: .Location, query: query)
             }
         }
     }
@@ -261,7 +278,7 @@ struct NavigationLocationView: View {
         
         Task(priority:.userInitiated) {
             do {
-                try await chatModel.didSearch(caption:query, selectedDestinationChatResultID:modelController.selectedDestinationLocationChatResult, intent:intent, filters: searchSavedViewModel.filters, cacheManager: cacheManager, modelController: modelController)
+                try await chatModel.didSearch(caption:query, selectedDestinationChatResult:modelController.selectedDestinationLocationChatResult, intent:intent, filters: searchSavedViewModel.filters, modelController: modelController)
             } catch {
                 modelController.analyticsManager.trackError(error:error, additionalInfo: nil)
             }
@@ -271,30 +288,25 @@ struct NavigationLocationView: View {
                 await MainActor.run {
                     refreshLocationResults()
                     // Update selection if it changed in the model controller
-                    if modelController.selectedDestinationLocationChatResult != selectedLocationId {
-                        selectedLocationId = modelController.selectedDestinationLocationChatResult
+                    if modelController.selectedDestinationLocationChatResult != selectedLocation {
+                        selectedLocation = modelController.selectedDestinationLocationChatResult
                     }
                 }
             }
         }
     }
     
-    private func updateCamera(for locationId: String) {
-        print("📹 updateCamera called for \(locationId)")
-        if let locationResult = filteredLocationResults.first(where: { $0.id == locationId }),
-           let location = locationResult.location {
-            print("📹 Found location: \(locationResult.locationName) at \(location.coordinate)")
-            withAnimation(.easeInOut(duration: 0.5)) {
-                lastCenterCoordinate = location.coordinate
-                cameraPosition = MapCameraPosition.camera(
-                    MapCamera(
-                        centerCoordinate: location.coordinate,
-                        distance: distanceFilterValue * 1000
-                    )
+    private func updateCamera(for locationResult: LocationResult) {
+        print("📹 updateCamera called for \(locationResult.id)")
+           print("📹 Found location: \(locationResult.locationName) at \(locationResult.location.coordinate)")
+        withAnimation(.easeInOut(duration: 0.5)) {
+            lastCenterCoordinate = locationResult.location.coordinate
+            cameraPosition = MapCameraPosition.camera(
+                MapCamera(
+                    centerCoordinate: lastCenterCoordinate!,
+                    distance: distanceFilterValue * 1000
                 )
-            }
-        } else {
-            print("📹 Location not found in filteredLocationResults")
+            )
         }
     }
     
@@ -312,72 +324,40 @@ struct NavigationLocationView: View {
         }
 
         // If we have a selected location, update to that location with new distance
-        if let selectedId = selectedLocationId,
-           let locationResult = filteredLocationResults.first(where: { $0.id == selectedId }),
-           let location = locationResult.location {
-            lastCenterCoordinate = location.coordinate
+        lastCenterCoordinate = modelController.selectedDestinationLocationChatResult.location.coordinate
                 cameraPosition = MapCameraPosition.camera(
                     MapCamera(
-                        centerCoordinate: location.coordinate,
+                        centerCoordinate: lastCenterCoordinate!,
                         distance: distanceFilterValue * 1000
                     )
                 )
-        }
     }
     
     private func updateCameraToSelectedDestination() {
-        if let selectedId = selectedLocationId {
-            updateCamera(for: selectedId)
-        } else {
-            // If no destination is selected, use current location
-            let selectedResult = modelController.currentlySelectedLocationResult
-            if let location = selectedResult.location {
-                    lastCenterCoordinate = location.coordinate
-                    cameraPosition = MapCameraPosition.camera(
-                        MapCamera(
-                            centerCoordinate: location.coordinate,
-                            distance: distanceFilterValue * 1000
-                        )
-                    )
-            } else {
-                lastCenterCoordinate = nil
-                cameraPosition = .userLocation(fallback: .automatic)
-            }
-            selectedLocationId = selectedResult.id
-            syncSelectionToModel()
+        if selectedLocation == nil {
+            modelController.setSelectedLocation(nil)
         }
+        syncSelectionToModel()
     }
     
     // MARK: - State Management Functions
     
     /// Refresh the cached filtered location results
     private func refreshLocationResults() {
-        filteredLocationResults = modelController.filteredLocationResults(cacheManager: cacheManager)
-        // Validate that the current selection is still valid after refresh
-        modelController.validateSelectedDestination(cacheManager: cacheManager)
+        filteredLocationResults = modelController.filteredLocationResults()
         
         // Update local selection if model controller's selection changed
-        if selectedLocationId != modelController.selectedDestinationLocationChatResult {
-            selectedLocationId = modelController.selectedDestinationLocationChatResult
+        if selectedLocation != modelController.selectedDestinationLocationChatResult {
+            selectedLocation = modelController.selectedDestinationLocationChatResult
         }
     }
     
     /// Initialize selection state from model controller
     private func initializeSelection() {
-        // Always ensure we have a valid selection
-        if let modelSelection = modelController.selectedDestinationLocationChatResult,
-           filteredLocationResults.contains(where: { $0.id == modelSelection }) {
-            // Use model controller's selection if it's valid
-            selectedLocationId = modelSelection
-        } else {
-            // Default to current location if no valid selection exists
-            selectedLocationId = modelController.currentlySelectedLocationResult.id
-            // Ensure the model controller is also using current location
-            syncSelectionToModel()
-        }
+        selectedLocation = modelController.selectedDestinationLocationChatResult
+        syncSelectionToModel()
         
-        print("🎯 initializeSelection: selectedLocationId = \(selectedLocationId ?? "nil")")
-        print("🎯 initializeSelection: model selection = \(modelController.selectedDestinationLocationChatResult ?? "nil")")
+        print("🎯 initializeSelection: selectedLocationId = \(selectedLocation?.id ?? "nil")")
     }
     
     /// Sync local selection state to model controller
@@ -386,32 +366,33 @@ struct NavigationLocationView: View {
         isUpdatingSelection = true
         
         Task { @MainActor in
-            modelController.setSelectedLocation(selectedLocationId, cacheManager: cacheManager)
+            if let selectedLocation = selectedLocation {
+                handleLocationSelection(selectedLocation)
+            }
             isUpdatingSelection = false
         }
     }
     
     /// Handle location selection from list tap
-    private func handleLocationSelection(_ locationId: LocationResult.ID) {
-        print("🎯 handleLocationSelection called with \(locationId)")
+    private func handleLocationSelection(_ locationResult: LocationResult) {
+        print("🎯 handleLocationSelection called with \(locationResult.id)")
         
         // Don't sync back to avoid loops - the selection binding already updated selectedLocationId
         // Just update camera and model controller
-        updateCamera(for: locationId)
+        updateCamera(for: locationResult)
         
         // Sync to model controller without triggering local state updates
         isUpdatingSelection = true
         Task { @MainActor in
-            print("📍 Setting model controller selection to \(locationId)")
-            modelController.setSelectedLocation(locationId, cacheManager: cacheManager)
+            print("📍 Setting model controller selection to \(locationResult.id)")
+            modelController.setSelectedLocation(locationResult)
             isUpdatingSelection = false
         }
     }
     
     /// Remove a location (from swipe action)
     private func removeLocation(_ result: LocationResult) {
-        guard let location = result.location else { return }
-        
+        let location = result.location
         Task(priority: .userInitiated) {
             await searchSavedViewModel.removeCachedResults(
                 group: "Location",
@@ -428,7 +409,7 @@ struct NavigationLocationView: View {
     
     /// Add location from swipe action  
     private func addLocationFromSwipe(_ result: LocationResult) {
-        guard let location = result.location else { return }
+        let location = result.location
         
         Task(priority: .userInitiated) {
             do {
@@ -441,7 +422,7 @@ struct NavigationLocationView: View {
                 
                 await MainActor.run {
                     refreshLocationResults()
-                    selectedLocationId = result.id
+                    selectedLocation = result
                     syncSelectionToModel()
                 }
                 
@@ -454,50 +435,11 @@ struct NavigationLocationView: View {
         }
     }
     
-    /// Safely update the selected destination with validation  
-    private func safelyUpdateSelectedDestination(to locationName: String) {
-        if let locationId = filteredLocationResults.first(where: { $0.locationName == locationName })?.id {
-            selectedLocationId = locationId
-            syncSelectionToModel()
-        }
-    }
-    
     /// Check if the currently selected location is already saved
     private func isSelectedLocationAlreadySaved() -> Bool {
-        guard let selectedId = selectedLocationId else { return false }
-        guard let selectedLocation = filteredLocationResults.first(where: { $0.id == selectedId }) else { return false }
-        return cacheManager.cachedLocation(contains: selectedLocation.locationName)
-    }
-    
-    /// Add the currently selected location from the table
-    private func addSelectedLocation() {
-        guard let selectedId = selectedLocationId else { return }
-        guard let selectedLocationResult = filteredLocationResults.first(where: { $0.id == selectedId }),
-              let location = selectedLocationResult.location else { return }
         
-        Task(priority: .userInitiated) {
-            do {
-                try await searchSavedViewModel.addLocation(
-                    parent: selectedLocationResult,
-                    location: location,
-                    cacheManager: cacheManager,
-                    modelController: modelController
-                )
-                
-                await MainActor.run {
-                    refreshLocationResults()
-                    // Keep the same selection since we're adding the currently selected location
-                    selectedLocationId = selectedId
-                    syncSelectionToModel()
-                }
-                
-            } catch {
-                modelController.analyticsManager.trackError(
-                    error: error,
-                    additionalInfo: ["locationName": selectedLocationResult.locationName]
-                )
-            }
-        }
+        guard let selected = selectedLocation, let filteredLocation = filteredLocationResults.first(where: { $0.id == selected.id }) else { return false }
+        return cacheManager.cachedLocation(contains: filteredLocation.locationName)
     }
 }
 

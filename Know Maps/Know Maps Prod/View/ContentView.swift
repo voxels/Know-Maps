@@ -62,144 +62,203 @@ struct ContentView: View {
     @Binding var searchMode: SearchMode
     @State private var showImmersiveSpace = false
     @State private var immersiveSpaceIsShown = false
-    @State private var selectedCategoryID:CategoryResult.ID?
     @State public var lastMultiSelection = Set<String>()
     @State public var multiSelection = Set<String>()
-    @State private var columnVisibility: NavigationSplitViewVisibility = .all
-    @State private var preferredCompactColumn: NavigationSplitViewColumn = .sidebar
     
     @State private var showFiltersSheet:Bool = false
     @State private var showSettingsSheet:Bool = false
     @State private var cameraPosition:MapCameraPosition = .automatic
     @State private var selectedMapItem:String?
     @State private var showAddRecommendationView:Bool = false
-    @State private var placesPath = NavigationPath()
-    @State private var lastPushedPlaceID: ChatResult.ID? = nil
     
-    @State private var showPlaceList: Bool = true
     @State private var showSettings:Bool = false
     
     @StateObject public var placeDirectionsChatViewModel = PlaceDirectionsViewModel(rawLocationIdent: "Current Location")
     
     // State to hold the reference to the active search task
     @State private var searchTask: Task<Void, Never>? = nil
-    
+    @State private var columnVisibility: NavigationSplitViewVisibility = .automatic
+    @State private var preferredCompactColumn:NavigationSplitViewColumn = .detail
+    @State private var selectedPlaceChatResult:ChatResult? =  nil
     var body: some View {
         GeometryReader { geometry in
             browseView()
-            .popover(isPresented: $showSettings, content: {
-                SettingsView(model: settingsModel, chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, showOnboarding: $showOnboarding)
-            })
-            .onChange(of: modelController.selectedPlaceChatResult) { _, newValue in
-                if let newValue, let placeChatResult = modelController.placeChatResult(for: newValue) {
-                    preferredCompactColumn = .detail
-                    columnVisibility = .detailOnly
-                    Task {
-                        do {
-                            try await chatModel.didTap(placeChatResult: placeChatResult, filters: searchSavedViewModel.filters, cacheManager: cacheManager, modelController: modelController)
-                        } catch {
-                            modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
+                .popover(isPresented: $showSettings, content: {
+                    SettingsView(model: settingsModel, chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, showOnboarding: $showOnboarding)
+                })
+                .onChange(of:modelController.selectedCategoryChatResult) {_, newValue in
+                    if let id = newValue {
+                        Task {
+                            // Try to resolve an industry category result first (live, then cached)
+                            if let industryCategory = modelController.industryCategoryResult(for: id) ??
+                                                       modelController.cachedIndustryResult(for: id),
+                               let chatResult = modelController.cachedChatResult(for: industryCategory.id) {
+                                do {
+                                    try await handleIndustryCategoryChatResult(chatResult)
+                                } catch {
+                                    modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
+                                }
+                                return
+                            }
+
+                            // Then try a taste category result (live, then cached)
+                            if let tasteCategory = modelController.tasteCategoryResult(for: id) ??
+                                                   modelController.cachedTasteResult(for: id),
+                               let chatResult = modelController.cachedChatResult(for: tasteCategory.id) {
+                                do {
+                                    try await handleTasteCategoryChatResult(chatResult)
+                                } catch {
+                                    modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
+                                }
+                                return
+                            }
+
+                            // Then try a place result from cache
+                            if let placeResult = modelController.cachedPlaceResult(for: id) {
+                                // If we can resolve a corresponding place chat result, treat this category as a place
+                                if let placeChat = placeResult.categoricalChatResults.first {
+                                    do {
+                                        // Ensure details are fetched for the place (e.g., Foursquare ID details)
+                                        try await modelController.fetchPlaceDetailsIfNeeded(for: placeChat)
+
+                                        // Add a message to the chat reflecting the selection
+                                        try await chatModel.didTap(
+                                            placeChatResult: placeChat,
+                                            filters: searchSavedViewModel.filters,
+                                            modelController: modelController
+                                        )
+                                        
+                                        
+
+
+                                        // Lightweight analytics breadcrumbs for debugging selection clearing
+                                        await MainActor.run {
+                                            modelController.analyticsManager.track(event: "ContentView.didTap.placeChatResult.setSelected", properties: ["placeID": String(describing: placeChat.id)])
+                                        }
+                                    } catch {
+                                        modelController.analyticsManager.trackError(error: error, additionalInfo: ["phase": "placeSelectionTap"])
+                                    }
+                                    return
+                                } else {
+                                    // No direct place chat found; fall back to a search using the category caption
+                                    do {
+                                        try await chatModel.didSearch(
+                                            caption: placeResult.parentCategory,
+                                            selectedDestinationChatResult: modelController.selectedDestinationLocationChatResult,
+                                            intent: .Search,
+                                            filters: [:],
+                                            modelController: modelController
+                                        )
+                                    } catch {
+                                        modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
+                                    }
+                                }
+                            }
+
+                            // Finally, fall back to a generic chat result
+                            if let chatResult = modelController.cachedChatResult(for: id) {
+                                do {
+                                    try await handleDefaultCategoryChatResult(chatResult)
+                                } catch {
+                                    modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
+                                }
+                            }
                         }
-                    }
-                } else {
-                    preferredCompactColumn = .content
-                    if horizontalSizeClass == .compact {
-                        columnVisibility = .automatic
-                    } else {
-                        columnVisibility = .all
                     }
                 }
-            }
-#if !os(visionOS) && !os(macOS)
-            .containerBackground(Color(.clear), for: .navigation)
-#endif
-            .tabViewStyle(.tabBarOnly)
-            .sheet(item: $searchSavedViewModel.editingRecommendationWeightResult) { selectedResult in
-                recommendationWeightSheet(for: selectedResult)
-                    .presentationDetents([.medium])
-                    .presentationDragIndicator(.visible)
-                    .interactiveDismissDisabled(false)
-                    .presentationCompactAdaptation(.sheet)
-            }
-            .onAppear(perform: {
-                modelController.analyticsManager.track(event:"ContentView",properties: nil )
-            })
-            .onDisappear { searchTask?.cancel() }
-            .onChange(of: multiSelection) { oldValue, newValue in
-                // Cancel any existing task
-                searchTask?.cancel()
-                
-                searchTask = Task(priority: .userInitiated) {
-                    // Capture the newValue to avoid data races
-                    let selections = newValue
-                    
-                    // Early cancellation
-                    try? Task.checkCancellation()
-                    
-                    // Compute the caption and capture the destination ID with a single @MainActor hop
-                    let (caption, selectedDestinationID): (String, LocationResult.ID?) = await MainActor.run {
-                        let tasteCaption = selections.compactMap { id in
-                            modelController.tasteCategoryResult(for: id)?.parentCategory
-                        }.joined(separator: ",")
-                        
-                        let categoryCaption = selections.compactMap { id in
-                            modelController.industryCategoryResult(for: id)?.parentCategory
-                        }.joined(separator: ",")
-                        
-                        let caption: String = {
-                            if tasteCaption.isEmpty && categoryCaption.isEmpty {
-                                return ""
-                            } else if !tasteCaption.isEmpty && !categoryCaption.isEmpty {
-                                return "\(tasteCaption), \(categoryCaption)"
-                            } else if !tasteCaption.isEmpty {
-                                return tasteCaption
-                            } else {
-                                return categoryCaption
+                .onChange(of: modelController.selectedPlaceChatResult) { _, newValue in
+                    if let newValue, let placeChatResult = modelController.placeChatResult(for: newValue) {
+                        Task {
+                            do {
+                                try await chatModel.didTap(placeChatResult: placeChatResult, filters: searchSavedViewModel.filters, modelController: modelController)
+                            } catch {
+                                modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
                             }
-                        }()
-                        
-                        return (caption, modelController.selectedDestinationLocationChatResult)
-                    }
-                    
-                    // Nothing to search for
-                    if caption.isEmpty { return }
-                    
-                    try? Task.checkCancellation()
-                    
-                    // Flip the refreshing flag and guarantee it resets
-                    await MainActor.run { modelController.isRefreshingPlaces = true }
-                    defer {
-                        Task { @MainActor in
-                            modelController.isRefreshingPlaces = false
                         }
                     }
+                }
+#if !os(visionOS) && !os(macOS)
+                .containerBackground(Color(.clear), for: .navigation)
+#endif
+                .tabViewStyle(.tabBarOnly)
+                .sheet(item: $searchSavedViewModel.editingRecommendationWeightResult) { selectedResult in
+                    recommendationWeightSheet(for: selectedResult)
+                        .presentationDetents([.medium])
+                        .presentationDragIndicator(.visible)
+                        .interactiveDismissDisabled(false)
+                        .presentationCompactAdaptation(.sheet)
+                }
+                .onAppear(perform: {
+                    modelController.analyticsManager.track(event:"ContentView",properties: nil )
+                })
+                .onDisappear { searchTask?.cancel() }
+                .onChange(of: multiSelection) { oldValue, newValue in
+                    // Cancel any existing task
+                    searchTask?.cancel()
                     
-                    do {
+                    searchTask = Task(priority: .userInitiated) {
+                        // Capture the newValue to avoid data races
+                        let selections = newValue
+                        
+                        // Early cancellation
                         try? Task.checkCancellation()
                         
-                        try await chatModel.didSearch(
-                            caption: caption,
-                            selectedDestinationChatResultID: selectedDestinationID,
-                            filters: searchSavedViewModel.filters,
-                            cacheManager: cacheManager,
-                            modelController: modelController
-                        )
-                    } catch is CancellationError {
-                        // Swallow cancellations silently
-                    } catch {
-                        await MainActor.run {
-                            modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
+                        // Compute the caption and capture the destination ID with a single @MainActor hop
+                        let (caption, selectedDestination): (String, LocationResult) = await MainActor.run {
+                            let tasteCaption = selections.compactMap { id in
+                                modelController.tasteCategoryResult(for: id)?.parentCategory
+                            }.joined(separator: ",")
+                            
+                            let categoryCaption = selections.compactMap { id in
+                                modelController.industryCategoryResult(for: id)?.parentCategory
+                            }.joined(separator: ",")
+                            
+                            let caption: String = {
+                                if tasteCaption.isEmpty && categoryCaption.isEmpty {
+                                    return ""
+                                } else if !tasteCaption.isEmpty && !categoryCaption.isEmpty {
+                                    return "\(tasteCaption), \(categoryCaption)"
+                                } else if !tasteCaption.isEmpty {
+                                    return tasteCaption
+                                } else {
+                                    return categoryCaption
+                                }
+                            }()
+                            
+                            return (caption, modelController.selectedDestinationLocationChatResult)
+                        }
+                        
+                        // Nothing to search for
+                        if caption.isEmpty { return }
+                        
+                        try? Task.checkCancellation()
+                        
+                        // Flip the refreshing flag and guarantee it resets
+                        await MainActor.run { modelController.isRefreshingPlaces = true }
+                        defer {
+                            Task { @MainActor in
+                                modelController.isRefreshingPlaces = false
+                            }
+                        }
+                        
+                        do {
+                            try? Task.checkCancellation()
+                            
+                            try await chatModel.didSearch(
+                                caption: caption,
+                                selectedDestinationChatResult: selectedDestination,
+                                filters: searchSavedViewModel.filters,
+                                modelController: modelController
+                            )
+                        } catch is CancellationError {
+                            // Swallow cancellations silently
+                        } catch {
+                            await MainActor.run {
+                                modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
+                            }
                         }
                     }
                 }
-            }
-            .onChange(of: modelController.section) { oldValue, newValue in
-                // Reset navigation when switching tabs
-                placesPath = NavigationPath()
-                lastPushedPlaceID = nil
-                preferredCompactColumn = .sidebar
-                columnVisibility = .all
-            }
         }
     }
     
@@ -214,7 +273,9 @@ struct ContentView: View {
                 Text("✨").accessibilityLabel("Features").tag(SearchMode.features)
                 Text("📍").accessibilityLabel("Places").tag(SearchMode.places)
             }
+            .labelsHidden()
             .pickerStyle(.segmented)
+            .tint(.accentColor)
         }
 #else
         ToolbarItem(placement: .automatic) {
@@ -226,6 +287,7 @@ struct ContentView: View {
             }
             .labelsHidden()
             .pickerStyle(.segmented)
+            .tint(.accentColor)
         }
 #endif
         
@@ -301,10 +363,10 @@ struct ContentView: View {
     
     func browseView() -> some View {
         VStack {
-            NavigationSplitView(columnVisibility: $columnVisibility, preferredCompactColumn: $preferredCompactColumn) {
+            NavigationSplitView(columnVisibility: $columnVisibility) {
                 switch searchMode {
                 case .favorites:
-                    SearchView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, searchSavedViewModel: $searchSavedViewModel, searchMode:$searchMode, columnVisibility: $columnVisibility, preferredCompactColumn: $preferredCompactColumn)
+                    SearchView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, searchSavedViewModel: $searchSavedViewModel, searchMode:$searchMode)
                         .navigationTitle("Favorites")
                         .navigationBarTitleDisplayMode(.large)
                         .toolbar {
@@ -329,24 +391,80 @@ struct ContentView: View {
                             unifiedBrowseToolbar()
                         }
                 }
-            } content:{
-                PlacesList(
-                    searchSavedViewModel: $searchSavedViewModel,
-                    chatModel: $chatModel,
-                    cacheManager: $cacheManager,
-                    modelController: $modelController
-                )
             } detail: {
-                PlaceView(
-                    searchSavedViewModel: $searchSavedViewModel,
-                    chatModel: $chatModel,
-                    cacheManager: $cacheManager,
-                    modelController: $modelController,
-                    placeDirectionsViewModel: placeDirectionsChatViewModel
-                )
+                if let selectedResult = modelController.selectedPlaceChatResult, let placeChatResult = modelController.placeChatResult(for: selectedResult) {
+                    PlaceView(
+                        searchSavedViewModel: $searchSavedViewModel,
+                        chatModel: $chatModel,
+                        cacheManager: $cacheManager,
+                        modelController: $modelController,
+                        placeDirectionsViewModel: placeDirectionsChatViewModel,
+                        selectedResult: placeChatResult
+                    )
+                } else {
+                    PlacesList(
+                        searchSavedViewModel: $searchSavedViewModel,
+                        chatModel: $chatModel,
+                        cacheManager: $cacheManager,
+                        modelController: $modelController, selectedPlace: $selectedPlaceChatResult
+                    )
+                    .onChange(of: selectedPlaceChatResult) { _, newValue in
+                        if let newValue {
+                            Task {
+                                try? await handlePlaceCategoryChatResult(newValue)
+                            }
+                        } else {
+                            modelController.selectedPlaceChatResult = nil
+                        }
+                    }
+                    .onChange(of: modelController.selectedPlaceChatResult) { _, newValue in
+                        if let newValue, let placeChatResult = modelController.placeChatResult(for: newValue) {
+                            selectedPlaceChatResult = placeChatResult
+                        }
+                    }
+                }
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+}
+
+extension ContentView {
+    // MARK: - Category Handling
+    private func handlePlaceCategoryChatResult(_ result:ChatResult) async throws {
+        Task {
+            do {
+                if result.placeDetailsResponse == nil {
+                    try await modelController.fetchPlaceDetailsIfNeeded(for: result)
+                }
+                try await chatModel.didTap(placeChatResult: result, filters: searchSavedViewModel.filters, modelController: modelController)
+
+            } catch {
+                modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
+            }
+        }
+    }
+    
+    private func handleIndustryCategoryChatResult(_ result:ChatResult) async throws {
+        try await handleListCategoryChatResult(result)
+    }
+    
+    private func handleTasteCategoryChatResult(_ result:ChatResult) async throws {
+        try await handleListCategoryChatResult(result)
+    }
+    
+    private func handleDefaultCategoryChatResult(_ result:ChatResult) async throws {
+        try await handleListCategoryChatResult(result)
+    }
+    
+    private func handleListCategoryChatResult(_ result:ChatResult) async throws {
+        try await chatModel.didSearch(
+            caption: result.title,
+            selectedDestinationChatResult: modelController.selectedDestinationLocationChatResult,
+            intent: .Search,
+            filters: [:],
+            modelController: modelController
+        )
     }
 }
 

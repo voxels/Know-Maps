@@ -38,16 +38,12 @@ struct MapResultsView: View {
                 cameraPosition = .automatic
             }
             .onChange(of: modelController.selectedDestinationLocationChatResult) { oldValue, newValue in
-                if let newLocation = newValue {
-                    updateCamera(for: newLocation)
-                } else {
-                    updateCamera(for: modelController.currentlySelectedLocationResult.id)
-                }
+                updateCamera()
             }
         }
     }
     
-    private func updateCamera(for locationResult: String) {
+    private func updateCamera() {
         withAnimation {
             cameraPosition = .automatic
         }

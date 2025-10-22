@@ -33,8 +33,6 @@ struct SavedListView: View {
     @Binding public var modelController: DefaultModelController
     @Binding public var section: Int
     @Binding public var searchMode:SearchMode
-    @Binding public var columnVisibility: NavigationSplitViewVisibility
-    @Binding public var preferredCompactColumn: NavigationSplitViewColumn
 
     // State variables to manage expanded/collapsed sections
     @AppStorage("isMoodsExpanded") private var isMoodsExpanded = true
@@ -47,7 +45,7 @@ struct SavedListView: View {
     var body: some View {
         NavigationStack {
             GeometryReader { geometry in
-                List {
+                List(selection:$modelController.selectedCategoryChatResult) {
 #if !os(macOS)
                     TipView(MenuNavigationIconTip())
 #endif
@@ -347,7 +345,7 @@ struct SavedListView: View {
     func deleteTasteItem(at idsToDelete: [String]) {
         for id in idsToDelete {
             Task(priority: .userInitiated) {
-                if let parent = modelController.cachedTasteResult(for: id, cacheManager: cacheManager) {
+                if let parent = modelController.cachedTasteResult(for: id) {
                     await searchSavedViewModel.removeCachedResults(group: "Taste", identity: parent.parentCategory, cacheManager: cacheManager, modelController: modelController)
                 }
             }
@@ -357,7 +355,7 @@ struct SavedListView: View {
     func deleteCategoryItem(at idsToDelete: [String]) {
         for id in idsToDelete {
             Task(priority: .userInitiated) {
-                if let parent = modelController.cachedCategoricalResult(for: id, cacheManager: cacheManager) {
+                if let parent = modelController.cachedIndustryResult(for: id) {
                     await searchSavedViewModel.removeCachedResults(group: "Category", identity: parent.parentCategory, cacheManager: cacheManager, modelController: modelController)
                 }
             }
@@ -367,7 +365,7 @@ struct SavedListView: View {
     func deletePlaceItem(at idsToDelete: [String]) {
         for id in idsToDelete {
             Task(priority: .userInitiated) {
-                if let parent = modelController.cachedPlaceResult(for: id, cacheManager: cacheManager),
+                if let parent = modelController.cachedPlaceResult(for: id),
                    let fsqID = parent.categoricalChatResults.first?.placeResponse?.fsqID {
                     await searchSavedViewModel.removeCachedResults(group: "Place", identity: fsqID, cacheManager: cacheManager, modelController: modelController)
                     _ = try? await cacheManager.cloudCacheService.deleteRecommendationData(for: fsqID)

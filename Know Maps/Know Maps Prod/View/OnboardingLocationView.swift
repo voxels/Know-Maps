@@ -29,13 +29,8 @@ struct OnboardingLocationView: View {
                 .padding()
             Button("Continue") {
                 Task {
-                    modelController.locationProvider.authorize()
-                    await MainActor.run {
-                        Task {
-                            try? await setCurrentLocationAsDestination()
-                        }
-                        showOnboarding = false
-                    }
+                    modelController.locationService.locationProvider.authorize()
+                    modelController.setSelectedLocation(nil)
                 }
             }
             .popover(isPresented: $alertPopverIsPresented) {
@@ -50,27 +45,7 @@ struct OnboardingLocationView: View {
             Spacer()
         }
         .onAppear {
-            locationIsAuthorized = modelController.locationProvider.isAuthorized()
-        }
-        
-    }
-    
-    // Helper method to set current location as destination
-    private func setCurrentLocationAsDestination() async throws {
-        // Ensure we have a valid current location
-        if modelController.currentlySelectedLocationResult.location == nil {
-            // Try to get current location if not available
-            let currentLocation = modelController.locationService.currentLocation()
-            let name = try await modelController.locationService.currentLocationName()
-            modelController.currentlySelectedLocationResult = LocationResult(
-                locationName: name ?? "Current Location",
-                location: currentLocation
-            )
-        }
-        
-        // Set the selected destination to current location
-        await MainActor.run {
-            modelController.selectedDestinationLocationChatResult = modelController.currentlySelectedLocationResult.id
+            locationIsAuthorized = modelController.locationService.locationProvider.isAuthorized()
         }
     }
     

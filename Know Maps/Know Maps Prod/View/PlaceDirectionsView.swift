@@ -116,9 +116,10 @@ struct PlaceDirectionsView: View {
                 let destination = CLLocation(latitude:latitude, longitude: longitude)
                 var minDistance = Double.greatestFiniteMagnitude
                 var minLocation = ""
-                let allLocationResults = modelController.filteredLocationResults(cacheManager: cacheManager)
+                let allLocationResults = modelController.filteredLocationResults()
                 for locationResult in allLocationResults {
-                    if let location = locationResult.location, location.distance(from:destination) < minDistance {
+                    let location = locationResult.location 
+                    if location.distance(from:destination) < minDistance {
                         minLocation = locationResult.id
                         minDistance = location.distance(from:destination)
                     }

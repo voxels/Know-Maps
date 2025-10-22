@@ -21,7 +21,7 @@ public struct ChatResult : Identifiable, Equatable, Hashable, Sendable {
     let icon:String
     let rating:Double
     let section:PersonalizedSearchSection
-    let placeResponse:PlaceSearchResponse?
+    private(set) var placeResponse:PlaceSearchResponse?
     let recommendedPlaceResponse:RecommendedPlaceSearchResponse?
     
     private(set) var placeDetailsResponse:PlaceDetailsResponse?
@@ -43,6 +43,10 @@ public struct ChatResult : Identifiable, Equatable, Hashable, Sendable {
     
     mutating func attachParentId(_ uuid:String) {
         parentId = uuid
+    }
+    
+    mutating func replace(response:PlaceSearchResponse) {
+        placeResponse = response
     }
     
     mutating func replaceDetails(response:PlaceDetailsResponse) {

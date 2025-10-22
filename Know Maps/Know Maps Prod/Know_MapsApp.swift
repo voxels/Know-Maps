@@ -68,8 +68,9 @@ struct Know_MapsApp: App {
         let authModel = AppleAuthenticationService.shared
         let searchSavedViewModel = SearchSavedViewModel()
         let chatModel = ChatResultViewModel.shared
-        let modelController = DefaultModelController(locationProvider:LocationProvider.shared, analyticsManager: SegmentAnalyticsService.shared, cloudCacheService: CloudCacheService(analyticsManager: SegmentAnalyticsService.shared, modelContext: Know_MapsApp.sharedModelContainer.mainContext), messagesDelegate: chatModel)
-        let cacheManager = CloudCacheManager(analyticsManager: modelController.analyticsManager, modelContext: Know_MapsApp.sharedModelContainer.mainContext)
+        let cloudCacheService = CloudCacheService(analyticsManager: SegmentAnalyticsService.shared, modelContext: Know_MapsApp.sharedModelContainer.mainContext)
+        let cacheManager = CloudCacheManager(cloudCacheService: cloudCacheService)
+        let modelController = DefaultModelController( messagesDelegate: chatModel, cacheManager:cacheManager)
         
         _cacheManager = State(wrappedValue: cacheManager)
         _authenticationModel = StateObject(wrappedValue: authModel)
@@ -144,7 +145,7 @@ struct Know_MapsApp: App {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .task(priority:.userInitiated) {
                         checkIfSignedInWithApple { signedIn in
-                            if signedIn, modelController.locationProvider.isAuthorized()  {
+                            if signedIn, modelController.locationService.locationProvider.isAuthorized()  {
                                 Task {
                                     await startApp()
                                 }
@@ -307,46 +308,19 @@ struct Know_MapsApp: App {
             showReload.toggle()
             modelController.analyticsManager.trackError(error: error, additionalInfo:nil)
         }
-        
-        // Handle onboarding logic based on the loaded data
-        await self.handleOnboarding(chatModel)
-    }
-    
-    private func handleOnboarding(_ chatModel: ChatResultViewModel) async {
-        if modelController.locationProvider.isAuthorized()  {
-            Task { @MainActor in
-                do {
-                    let location = modelController.locationService.currentLocation()
-                    let name = try await modelController.locationService.currentLocationName()
-                    modelController.currentlySelectedLocationResult.replaceLocation(with: location, name: name ?? "Current location")
-                    modelController.selectedDestinationLocationChatResult = modelController.currentlySelectedLocationResult.id
-                }
-                catch {
-                    modelController.analyticsManager.trackError(error: error, additionalInfo:nil)
-                }
-            }
-        }
-        
     }
     
     @MainActor
     private func ensureLocationAuthorizedAndSetCurrent() async {
-        if !modelController.locationProvider.isAuthorized() {
-            await modelController.locationProvider.requestAuthorizationIfNeeded()
+        if !modelController.locationService.locationProvider.isAuthorized() {
+            await modelController.locationService.locationProvider.requestAuthorizationIfNeeded()
         }
         
-        guard modelController.locationProvider.isAuthorized() else {
+        guard modelController.locationService.locationProvider.isAuthorized() else {
             return
         }
         
-        do {
-            let location = modelController.locationService.currentLocation()
-            let name = try await modelController.locationService.currentLocationName()
-            modelController.currentlySelectedLocationResult.replaceLocation(with: location, name: name ?? "Current location")
-            modelController.selectedDestinationLocationChatResult = modelController.currentlySelectedLocationResult.id
-        } catch {
-            modelController.analyticsManager.trackError(error: error, additionalInfo: ["context": "ensureLocationAuthorizedAndSetCurrent"])
-        }
+        modelController.setSelectedLocation(nil)
     }
     
     func withTimeout<T>(seconds: TimeInterval, operation: @escaping () async throws -> T) async throws -> T {

@@ -21,6 +21,7 @@ struct PlaceAboutView: View {
     static let defaultPadding: CGFloat = 8
     static let mapFrameConstraint: Double = 50000
     static let cornerRadius: CGFloat = 16
+    public let selectedResult:ChatResult
     
     var viewModel: PlaceAboutViewModel = .init()
     
@@ -32,13 +33,11 @@ struct PlaceAboutView: View {
                 ScrollView {
                     VStack {
                         // Precompute selected result and unwrap step-by-step to help the type-checker
-                        let selectedId = modelController.selectedPlaceChatResult
-                        let result = selectedId.flatMap { modelController.placeChatResult(for: $0) }
-                        let placeResponse = result?.placeResponse
-                        let placeDetailsResponse = result?.placeDetailsResponse
+                        
+                        let placeResponse = selectedResult.placeResponse
+                        let placeDetailsResponse = selectedResult.placeDetailsResponse
 
-                        if let resultId = selectedId,
-                           let placeResponse,
+                        if let placeResponse,
                            let placeDetailsResponse {
 
                             // Title and Map precomputed values
@@ -53,13 +52,13 @@ struct PlaceAboutView: View {
                             }
                             .padding()
 
-                            ActionButtonsRow(cacheManager:cacheManager,sizeClass: sizeClass, title: title, resultId: resultId, placeDetailsResponse: placeDetailsResponse, openURL: openURL, onSave: {
-                                await viewModel.toggleSavePlace(resultId: resultId, cacheManager: cacheManager, modelController: modelController)
+                            ActionButtonsRow(cacheManager:cacheManager,sizeClass: sizeClass, title: title, resultId: selectedResult.id, placeDetailsResponse: placeDetailsResponse, openURL: openURL, onSave: {
+                                await viewModel.toggleSavePlace(resultId: selectedResult.id, cacheManager: cacheManager, modelController: modelController)
                             })
                             .padding(.horizontal, 16)
 
                             RatingsPriceShareRow(sizeClass: sizeClass, placeDetailsResponse: placeDetailsResponse, onShowReviews: { tabItem = 3 }, presentingPopover: $presentingPopover, isPresentingShareSheet: $isPresentingShareSheet) {
-                                if let result = modelController.placeChatResult(for: resultId), let placeDetailsResponse = result.placeDetailsResponse  {
+                                
                                     let items: [Any] = [placeDetailsResponse.website ?? placeDetailsResponse.searchResponse.address]
                                     #if os(macOS)
                                     ActivityViewController(activityItems: items, isPresentingShareSheet: $isPresentingShareSheet)
@@ -72,7 +71,6 @@ struct PlaceAboutView: View {
                                         .presentationDragIndicator(.visible)
                                         .presentationCompactAdaptation(.sheet)
                                     #endif
-                                }
                             }
                             .padding(.horizontal, 16)
 
@@ -82,9 +80,9 @@ struct PlaceAboutView: View {
                                         try await modelController.resetPlaceModel()
                                         try await chatModel.didSearch(
                                             caption: relatedPlace.title,
-                                            selectedDestinationChatResultID: modelController.selectedDestinationLocationChatResult,
+                                            selectedDestinationChatResult: modelController.selectedDestinationLocationChatResult,
                                             filters: searchSavedViewModel.filters,
-                                            cacheManager: cacheManager,
+                                            
                                             modelController: modelController
                                         )
                                         await MainActor.run {
@@ -103,7 +101,7 @@ struct PlaceAboutView: View {
                                 TastesSection(sizeClass: sizeClass, mutableTastes: $mutableTastes, cachedTastesContains: { taste in
                                     cacheManager.cachedTastes(contains: taste)
                                 }, fetchCachedTasteResult: { taste in
-                                    modelController.cachedTasteResult(title: taste, cacheManager: cacheManager)
+                                    modelController.cachedTasteResultTitle(taste)
                                 }, addTaste: { taste in
                                     await viewModel.addTaste(title: taste, cacheManager: cacheManager, modelController: modelController)
                                 }, removeTaste: { parent in

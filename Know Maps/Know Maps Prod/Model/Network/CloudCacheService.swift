@@ -28,7 +28,7 @@ public enum CloudCacheServiceKey: String {
 
 public final class CloudCacheService: NSObject, CloudCache {
     
-    let analyticsManager: AnalyticsService
+    public let analyticsManager: AnalyticsService
     
     @MainActor public var hasFsqAccess: Bool {
         return !fsqUserId.isEmpty

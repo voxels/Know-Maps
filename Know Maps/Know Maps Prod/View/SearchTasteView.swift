@@ -60,7 +60,7 @@ struct SearchTasteView: View {
             Task(priority:.userInitiated) { @MainActor in
                 modelController.tasteResults.removeAll()
                 do {
-                    try await chatModel.didSearch(caption:tasteSearchText, selectedDestinationChatResultID:modelController.selectedDestinationLocationChatResult, intent:.AutocompleteTastes, filters: [:], cacheManager: cacheManager, modelController: modelController)
+                    try await chatModel.didSearch(caption:tasteSearchText, selectedDestinationChatResult:modelController.selectedDestinationLocationChatResult, intent:.AutocompleteTastes, filters: [:], modelController: modelController)
                 } catch {
                     modelController.analyticsManager.trackError(error:error, additionalInfo: nil)
                 }

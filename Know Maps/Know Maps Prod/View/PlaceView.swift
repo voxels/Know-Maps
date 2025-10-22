@@ -14,28 +14,27 @@ struct PlaceView: View {
     @Binding public var cacheManager:CloudCacheManager
     @Binding public var modelController:DefaultModelController
     @ObservedObject public var placeDirectionsViewModel:PlaceDirectionsViewModel
+    public let selectedResult:ChatResult
     @State private var tabItem = 0
 
     var body: some View {
-        if let selectedPlaceChatResult = modelController.selectedPlaceChatResult, let placeChatResult = modelController.placeChatResult(for: selectedPlaceChatResult) {
+        let placeChatResult = selectedResult
             VStack {
-                if let detailsResponses = placeChatResult.placeDetailsResponse {
-                    Picker("About", selection: $tabItem) {
-                        Text("About").tag(0)
-                        Text("Directions").tag(1)
-                        if let photoResponses = detailsResponses.photoResponses, photoResponses.count > 0 {
-                            Text("Photos").tag(2)
-                        }
-                        if let tipsResponses = detailsResponses.tipsResponses, tipsResponses.count > 0 {
-                            Text("Tips").tag(3)
-                        }
+                Picker("About", selection: $tabItem) {
+                    Text("About").tag(0)
+                    Text("Directions").tag(1)
+                    if let photoResponses = selectedResult.placeDetailsResponse?.photoResponses, photoResponses.count > 0 {
+                        Text("Photos").tag(2)
                     }
-                    .pickerStyle(.palette)
-                    .labelsHidden()
+                    if let tipsResponses = selectedResult.placeDetailsResponse?.tipsResponses, tipsResponses.count > 0 {
+                        Text("Tips").tag(3)
+                    }
                 }
+                .pickerStyle(.palette)
+                .labelsHidden()
                 switch tabItem {
                 case 0:
-                    PlaceAboutView(searchSavedViewModel:$searchSavedViewModel, chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, tabItem: $tabItem)
+                    PlaceAboutView(searchSavedViewModel:$searchSavedViewModel, chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, tabItem: $tabItem, selectedResult: placeChatResult)
                         .tabItem {
                             Label("About", systemImage: "target")
                         }
@@ -84,17 +83,6 @@ struct PlaceView: View {
             }
             .navigationTitle(placeChatResult.title)
             .id(placeChatResult.id)
-        } else {
-            VStack {
-                Spacer()
-                VStack(spacing: 8) {
-                    Text(modelController.fetchMessage)
-                        .font(.subheadline)
-                }
-                .padding()
-                Spacer()
-            }
-        }
     }
 }
 

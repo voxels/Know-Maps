@@ -13,7 +13,6 @@ import SwiftData
 public final class CloudCacheManager: CacheManager {
     
     public let cloudCacheService: CloudCacheService
-    private let analyticsManager: AnalyticsService
     public var isRefreshingCache: Bool = false
     public var cacheFetchProgress: Double = 0
     public var completedTasks = 0
@@ -27,9 +26,8 @@ public final class CloudCacheManager: CacheManager {
      public var cachedLocationResults = [LocationResult]()
      public var cachedRecommendationData = [RecommendationData]()
 
-    public init(analyticsManager: AnalyticsService, modelContext:ModelContext) {
-        self.cloudCacheService = CloudCacheService(analyticsManager: analyticsManager, modelContext: modelContext)
-        self.analyticsManager = analyticsManager
+    public init(cloudCacheService:CloudCacheService) {
+        self.cloudCacheService = cloudCacheService
     }
 
     // MARK: Refresh Cache
@@ -87,7 +85,7 @@ public final class CloudCacheManager: CacheManager {
                 self.cachedIndustryResults = results
             }
         } catch {
-            analyticsManager.trackError(error: error, additionalInfo: nil)
+            cloudCacheService.analyticsManager.trackError(error: error, additionalInfo: nil)
         }
     }
 
@@ -99,7 +97,7 @@ public final class CloudCacheManager: CacheManager {
                 self.cachedTasteResults = results
             }
         } catch {
-            analyticsManager.trackError(error: error, additionalInfo: nil)
+            cloudCacheService.analyticsManager.trackError(error: error, additionalInfo: nil)
         }
     }
 
@@ -111,7 +109,7 @@ public final class CloudCacheManager: CacheManager {
                 self.cachedPlaceResults = results
             }
         } catch {
-            analyticsManager.trackError(error: error, additionalInfo: nil)
+            cloudCacheService.analyticsManager.trackError(error: error, additionalInfo: nil)
         }
     }
 
@@ -123,7 +121,7 @@ public final class CloudCacheManager: CacheManager {
                 self.cachedLocationResults = locationResults
             }
         } catch {
-            analyticsManager.trackError(error: error, additionalInfo: nil)
+            cloudCacheService.analyticsManager.trackError(error: error, additionalInfo: nil)
         }
     }
 
@@ -134,7 +132,7 @@ public final class CloudCacheManager: CacheManager {
                 self.cachedRecommendationData = records
             }
         } catch {
-            analyticsManager.trackError(error: error, additionalInfo: nil)
+            cloudCacheService.analyticsManager.trackError(error: error, additionalInfo: nil)
         }
     }
 

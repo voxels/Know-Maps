@@ -54,7 +54,7 @@ struct SearchPlacesView: View {
                 Task(priority: .userInitiated) {
                     await searchSavedViewModel.search(
                         caption: searchText,
-                        selectedDestinationChatResultID: modelController.selectedDestinationLocationChatResult ?? modelController.currentlySelectedLocationResult.id,
+                        selectedDestinationChatResult: modelController.selectedDestinationLocationChatResult,
                         intent: .AutocompletePlaceSearch,
                         filters: searchSavedViewModel.filters,
                         chatModel: chatModel,
@@ -64,27 +64,6 @@ struct SearchPlacesView: View {
                 }
             }
         })
-    }
-    
-    
-    @ViewBuilder
-    func detailView() -> some View {
-        if showPlaceList {
-            PlacesList(
-                searchSavedViewModel: $searchSavedViewModel,
-                chatModel: $chatModel,
-                cacheManager: $cacheManager,
-                modelController: $modelController
-            )
-        } else {
-            PlaceView(
-                searchSavedViewModel: $searchSavedViewModel,
-                chatModel: $chatModel,
-                cacheManager: $cacheManager,
-                modelController: $modelController,
-                placeDirectionsViewModel: placeDirectionsChatViewModel
-            )
-        }
     }
 }
 

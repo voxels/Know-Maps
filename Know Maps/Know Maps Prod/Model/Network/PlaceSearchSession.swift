@@ -20,7 +20,6 @@ public enum PlaceSearchSessionError : Error {
 
 public actor PlaceSearchSession : ObservableObject {
     private var foursquareApiKey = ""
-    private var searchSession:URLSession?
     let keysContainer = CKContainer(identifier:"iCloud.com.secretatomics.knowmaps.Keys")
     static let serverUrl = "https://api.foursquare.com/"
     static let placeSearchAPIUrl = "v3/places/search"
@@ -37,15 +36,14 @@ public actor PlaceSearchSession : ObservableObject {
 
     }
     
-    init(foursquareApiKey: String = "", foursquareSession: URLSession? = nil) {
+    init(foursquareApiKey: String = "") {
         self.foursquareApiKey = foursquareApiKey
-        self.searchSession = foursquareSession
         if let containerIdentifier = keysContainer.containerIdentifier {
             print(containerIdentifier)
         }
     }
     
-    public func query(request:PlaceSearchRequest, location:CLLocation?) async throws ->[String:Any] {
+    public func query(request:PlaceSearchRequest) async throws ->[String:Any] {
         var components = URLComponents(string:"\(PlaceSearchSession.serverUrl)\(PlaceSearchSession.placeSearchAPIUrl)")
         var queryItems = [URLQueryItem]()
         if request.query.count > 0 {
@@ -53,27 +51,18 @@ public actor PlaceSearchSession : ObservableObject {
             queryItems.append(queryItem)
         }
         
-        if let location = location, request.nearLocation == nil {
-            let rawLocation = "\(location.coordinate.latitude),\(location.coordinate.longitude)"
-            let radius = request.radius
-            let radiusQueryItem = URLQueryItem(name: "radius", value: "\(radius)")
-            queryItems.append(radiusQueryItem)
-            
+        var value = request.radius
+        if let nearLocation = request.nearLocation, !nearLocation.isEmpty {
+            value = 25000
+        }
+        let radiusQueryItem = URLQueryItem(name: "radius", value: "\(value)")
+        queryItems.append(radiusQueryItem)
+
+        if let rawLocation = request.ll {
             let locationQueryItem = URLQueryItem(name: "ll", value: rawLocation)
             queryItems.append(locationQueryItem)
-        } else {
-            var value = request.radius
-            if let nearLocation = request.nearLocation, !nearLocation.isEmpty {
-                value = 25000
-            }
-            let radiusQueryItem = URLQueryItem(name: "radius", value: "\(value)")
-            queryItems.append(radiusQueryItem)
-
-            if let rawLocation = request.ll {
-                let locationQueryItem = URLQueryItem(name: "ll", value: rawLocation)
-                queryItems.append(locationQueryItem)
-            }
         }
+        
         
         if let categories = request.categories, !categories.isEmpty {
             let categoriesQueryItem = URLQueryItem(name:"categories", value:categories)
@@ -238,8 +227,8 @@ public actor PlaceSearchSession : ObservableObject {
         return try await fetch(url: url)
     }
     
-    public func autocomplete(caption:String, parameters:[String:Any]?, location:CLLocation) async throws -> [String:Any] {
-        let ll = "\(location.coordinate.latitude),\(location.coordinate.longitude)"
+    public func autocomplete(caption:String, parameters:[String:Any]?, locationResult:LocationResult) async throws -> [String:Any] {
+        let ll = "\(locationResult.location.coordinate.latitude),\(locationResult.location.coordinate.longitude)"
         var limit = 50
         
         if let parameters = parameters, let rawParameters = parameters["parameters"] as? NSDictionary {
@@ -247,8 +236,6 @@ public actor PlaceSearchSession : ObservableObject {
             if let rawLimit = rawParameters["limit"] as? Int {
                 limit = rawLimit
             }
-            
-            
         }
         
         var queryComponents = URLComponents(string:"\(PlaceSearchSession.serverUrl)\(PlaceSearchSession.autocompleteAPIUrl)")
@@ -287,90 +274,55 @@ public actor PlaceSearchSession : ObservableObject {
         return response
     }
     
-    internal func location(near places:[PlaceSearchResponse]) throws ->CLLocationCoordinate2D {
-        guard let firstPlace = places.first else {
-            throw PlaceSearchSessionError.NoPlaceLocationsFound
-        }
-        
-        let retval = CLLocationCoordinate2D(latitude: firstPlace.latitude, longitude: firstPlace.longitude)
-        let coordinates = places.compactMap { place in
-            return CLLocationCoordinate2D(latitude: place.latitude, longitude: place.longitude)
-        }
-        
-        var minLatitude  = retval.latitude
-        var minLongitude = retval.longitude
-        var maxLatitude = retval.latitude
-        var maxLongitude = retval.longitude
-        
-        for coordinate in coordinates {
-            if coordinate.latitude < minLatitude {
-                minLatitude = coordinate.latitude
-            } else if coordinate.latitude > maxLatitude {
-                maxLatitude = coordinate.latitude
-            }
-            
-            if coordinate.longitude < minLongitude {
-                minLongitude = coordinate.longitude
-            } else if coordinate.longitude > maxLongitude {
-                maxLongitude = coordinate.longitude
-            }
-        }
-
-        let centerLatitude = (maxLatitude - minLatitude) / 2 + minLatitude
-        let centerLongitude = (maxLongitude - minLongitude) / 2 + minLongitude
-        return CLLocationCoordinate2D(latitude: centerLatitude, longitude: centerLongitude)
-    }
-    
-    
     private let sessionQueue = DispatchQueue(label: "com.secretatomics.knowmaps.sessionQueue")
 
     func fetch(url: URL) async throws -> Any {
         print("Requesting URL: \(url)")
 
-        if searchSession == nil {
-            searchSession = try await session()
-        }
+        // Acquire a configured session before entering the continuation to avoid calling async APIs in non-async closures
+        let session = try await self.session()
 
         return try await withCheckedThrowingContinuation { checkedContinuation in
-            let apiKey = foursquareApiKey
-            guard let session = searchSession else {
-                return
-            }
-            sessionQueue.async {
-                var request = URLRequest(url: url)
-                request.setValue(apiKey, forHTTPHeaderField: "Authorization")
-                request.timeoutInterval = 15.0
-                session.dataTask(with: request) { data, response, error in
-                    if let error = error {
-                        checkedContinuation.resume(throwing: error)
-                    } else if let d = data {
-                        do {
-                            let json = try JSONSerialization.jsonObject(with: d, options: [.fragmentsAllowed])
-                            if let checkDict = json as? NSDictionary, let message = checkDict["message"] as? String, message.hasPrefix("Foursquare servers")  {
-                                print("Message from server:")
-                                print(message)
-                                checkedContinuation.resume(throwing: PlaceSearchSessionError.ServerErrorMessage)
-                            } else if let checkDict = json as? NSDictionary, let message = checkDict["message"] as? String, message == "Invalid request token." {
-                                checkedContinuation.resume(throwing: PlaceSearchSessionError.InvalidSession)
-                            } else {
-                                checkedContinuation.resume(returning:json)
-                            }
-                        } catch {
-                            print(error)
-                            let returnedString = String(data: d, encoding: String.Encoding.utf8) ?? ""
-                            print(returnedString)
-                            checkedContinuation.resume(throwing: PlaceSearchSessionError.ServerErrorMessage)
-                        }
+            var request = URLRequest(url: url)
+            request.setValue(self.foursquareApiKey, forHTTPHeaderField: "Authorization")
+            request.timeoutInterval = 15.0
+
+            let task = session.dataTask(with: request) { data, response, error in
+                if let error = error {
+                    checkedContinuation.resume(throwing: error)
+                    return
+                }
+
+                guard let d = data else {
+                    checkedContinuation.resume(throwing: PlaceSearchSessionError.ServerErrorMessage)
+                    return
+                }
+
+                do {
+                    let json = try JSONSerialization.jsonObject(with: d, options: [.fragmentsAllowed])
+                    if let checkDict = json as? NSDictionary, let message = checkDict["message"] as? String, message.hasPrefix("Foursquare servers")  {
+                        print("Message from server:")
+                        print(message)
+                        checkedContinuation.resume(throwing: PlaceSearchSessionError.ServerErrorMessage)
+                    } else if let checkDict = json as? NSDictionary, let message = checkDict["message"] as? String, message == "Invalid request token." {
+                        checkedContinuation.resume(throwing: PlaceSearchSessionError.InvalidSession)
+                    } else {
+                        checkedContinuation.resume(returning: json)
                     }
-                }.resume()
+                } catch {
+                    print(error)
+                    let returnedString = String(data: d, encoding: String.Encoding.utf8) ?? ""
+                    print(returnedString)
+                    checkedContinuation.resume(throwing: PlaceSearchSessionError.ServerErrorMessage)
+                }
             }
+
+            task.resume()
         }
     }
     
     public func invalidateSession() async throws {
         try await deleteAPIKeyRecords()
-        searchSession = nil
-        searchSession = try await session()
     }
 
     func deleteAPIKeyRecords(service:String = PlaceSearchService.foursquare.rawValue) async throws {
@@ -426,7 +378,7 @@ public actor PlaceSearchSession : ObservableObject {
         }
 
         if success {
-            return configuredSession()
+            return ConfiguredSearchSession.shared
         } else {
             throw PlaceSearchSessionError.ServiceNotFound
         }
@@ -458,13 +410,3 @@ public actor PlaceSearchSession : ObservableObject {
     }
 }
 
-private extension PlaceSearchSession {
-    func configuredSession()->URLSession {
-        let sessionConfiguration = URLSessionConfiguration.default
-        sessionConfiguration.timeoutIntervalForRequest = 15   // Idle timeout between bytes
-        sessionConfiguration.timeoutIntervalForResource = 30  // Overall resource timeout
-        sessionConfiguration.waitsForConnectivity = false     // Don’t wait minutes for connectivity
-        let session = URLSession(configuration: sessionConfiguration)
-        return session
-    }
-}

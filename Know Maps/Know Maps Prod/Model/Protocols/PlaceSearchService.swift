@@ -18,6 +18,6 @@ public protocol PlaceSearchService: Sendable {
     func autocompleteTastes(lastIntent: AssistiveChatHostIntent, currentTasteResults:[CategoryResult], cacheManager:CacheManager) async throws -> [CategoryResult]
     func refreshTastes(page: Int, currentTasteResults:[CategoryResult], cacheManager:CacheManager) async throws -> [CategoryResult]
     func detailIntent(intent: AssistiveChatHostIntent, cacheManager:CacheManager) async throws
-    func placeSearchRequest(intent:AssistiveChatHostIntent, location:CLLocation) async ->PlaceSearchRequest
-    func recommendedPlaceSearchRequest(intent:AssistiveChatHostIntent, location:CLLocation) async -> RecommendedPlaceSearchRequest
+    func placeSearchRequest(intent:AssistiveChatHostIntent) async ->PlaceSearchRequest
+    func recommendedPlaceSearchRequest(intent:AssistiveChatHostIntent) async -> RecommendedPlaceSearchRequest
 }

@@ -13,11 +13,9 @@ struct SearchView: View {
     @Binding public var modelController:DefaultModelController
     @Binding public var searchSavedViewModel:SearchSavedViewModel
     @Binding public var searchMode:SearchMode
-    @Binding public var columnVisibility: NavigationSplitViewVisibility
-    @Binding public var preferredCompactColumn: NavigationSplitViewColumn
     
     var body: some View {
-        SavedListView(searchSavedViewModel: $searchSavedViewModel, cacheManager: $cacheManager, modelController: $modelController, section:$modelController.section, searchMode: $searchMode, columnVisibility: $columnVisibility, preferredCompactColumn: $preferredCompactColumn)
+        SavedListView(searchSavedViewModel: $searchSavedViewModel, cacheManager: $cacheManager, modelController: $modelController, section:$modelController.section, searchMode: $searchMode)
     }
 }
 

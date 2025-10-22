@@ -17,6 +17,7 @@ struct PlacesList: View {
     @Binding public var chatModel:ChatResultViewModel
     @Binding var cacheManager:CloudCacheManager
     @Binding var modelController: DefaultModelController
+    @Binding var selectedPlace:ChatResult?
     
     static var formatter:NumberFormatter {
         let retval = NumberFormatter()
@@ -103,7 +104,7 @@ struct PlacesList: View {
                     .buttonStyle(.plain)
                     .animation(.snappy(duration: 0.35), value: modelController.recommendedPlaceResults)
                     .simultaneousGesture(TapGesture().onEnded {
-                        modelController.setSelectedPlaceChatResult(result.id)
+                        selectedPlace = result
                     })
                 }
             }
@@ -148,7 +149,7 @@ struct PlacesList: View {
                         .listRowBackground(Color.clear)
                         .listStyle(.plain)
                         .simultaneousGesture(TapGesture().onEnded {
-                            modelController.setSelectedPlaceChatResult(result.id)
+                            selectedPlace = result
                         })
                 }
             }

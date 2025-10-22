@@ -10,7 +10,6 @@ import CoreLocation
 
 @Observable
 public final class DefaultPlaceSearchService: PlaceSearchService {
-    
     public let assistiveHostDelegate: AssistiveChatHost
     public let placeSearchSession: PlaceSearchSession
     public let personalizedSearchSession: PersonalizedSearchSession
@@ -156,10 +155,10 @@ public final class DefaultPlaceSearchService: PlaceSearchService {
         
     //MARK: - Request Building
     
-    public func placeSearchRequest(intent:AssistiveChatHostIntent, location:CLLocation) async ->PlaceSearchRequest {
+    public func placeSearchRequest(intent:AssistiveChatHostIntent) async ->PlaceSearchRequest {
         var query = intent.caption
         
-        var ll:String? = nil
+        let ll = "\(intent.selectedDestinationLocation.location.coordinate.latitude),\(intent.selectedDestinationLocation.location.coordinate.longitude)"
         var openNow:Bool? = nil
         var openAt:String? = nil
         var nearLocation:String? = nil
@@ -231,11 +230,6 @@ public final class DefaultPlaceSearchService: PlaceSearchService {
                 limit = rawLimit
             }
         }
-        
-        let nearDisplay = (nearLocation?.isEmpty == false) ? nearLocation! : "Current Location"
-        print("Created query for search request:\(query) near: \(nearDisplay) (ll: \(location.coordinate.latitude),\(location.coordinate.longitude))")
-       
-            ll = "\(location.coordinate.latitude),\(location.coordinate.longitude)"
       
         // If we have explicit category IDs, prefer category-only search and omit the free-text query
         if !categories.isEmpty {
@@ -248,13 +242,12 @@ public final class DefaultPlaceSearchService: PlaceSearchService {
         return request
     }
     
-    public func recommendedPlaceSearchRequest(intent:AssistiveChatHostIntent, location:CLLocation) async -> RecommendedPlaceSearchRequest
+    public func recommendedPlaceSearchRequest(intent:AssistiveChatHostIntent) async -> RecommendedPlaceSearchRequest
     {
         var query = intent.caption
         
-        var ll:String? = nil
+        let ll = "\(intent.selectedDestinationLocation.location.coordinate.latitude),\(intent.selectedDestinationLocation.location.coordinate.longitude)"
         var openNow:Bool? = nil
-        var nearLocation:String? = nil
         var minPrice = 1
         var maxPrice = 4
         var radius = 20000
@@ -303,10 +296,6 @@ public final class DefaultPlaceSearchService: PlaceSearchService {
                 }
             }
             
-            if let rawNear = rawParameters["near"] as? String {
-                nearLocation = rawNear
-            }
-            
             if let rawOpenNow = rawParameters["open_now"] as? Bool {
                 openNow = rawOpenNow
             }
@@ -324,11 +313,6 @@ public final class DefaultPlaceSearchService: PlaceSearchService {
             }
         }
         
-        let nearDisplay = (nearLocation?.isEmpty == false) ? nearLocation! : "Current Location"
-        print("Created query for search request:\(query) near: \(nearDisplay) (ll: \(location.coordinate.latitude),\(location.coordinate.longitude))")
-        
-            ll = "\(location.coordinate.latitude),\(location.coordinate.longitude)"
-        
         // If categories are present for recommendations, omit the free-text query to reduce ambiguity
         if !categories.isEmpty {
             query = ""
@@ -336,7 +320,7 @@ public final class DefaultPlaceSearchService: PlaceSearchService {
         
         query = query.trimmingCharacters(in: .whitespacesAndNewlines)
         
-        let request = RecommendedPlaceSearchRequest(query: query, ll: ll, radius: radius, categories: categories, minPrice:minPrice, maxPrice:maxPrice, openNow: openNow, nearLocation: nearLocation, limit: limit, section:section ?? .topPicks, tags:tags)
+        let request = RecommendedPlaceSearchRequest(query: query, ll: ll, radius: radius, categories: categories, minPrice:minPrice, maxPrice:maxPrice, openNow: openNow,  limit: limit, section:section ?? .topPicks, tags:tags)
         
         return request
     }

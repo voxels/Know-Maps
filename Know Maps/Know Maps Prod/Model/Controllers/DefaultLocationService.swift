@@ -30,9 +30,9 @@ public final class DefaultLocationService: NSObject, LocationService {
         self.locationProvider = locationProvider
     }
     
-    public func currentLocationName() async throws -> String? {
+    public func currentLocationName() async throws -> String {
         let placemarks = try await debouncedReverseGeocode(locationProvider.currentLocation(delegate: locationProvider))
-        return placemarks.first?.name
+        return placemarks.first?.name ?? "Current location"
     }
     
     public func currentLocation() -> CLLocation {

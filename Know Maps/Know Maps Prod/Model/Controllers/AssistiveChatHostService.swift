@@ -244,11 +244,11 @@ public final class AssistiveChatHostService : AssistiveChatHost {
         }
     }
     
-    public func updateLastIntent(caption:String, selectedDestinationLocationID:LocationResult.ID, filters:[String:Any], modelController:ModelController) async throws {
+    public func updateLastIntent(caption:String, selectedDestinationLocation:LocationResult, filters:[String:Any], modelController:ModelController) async throws {
         if  let lastIntent = queryIntentParameters.queryIntents.last {
             let queryParamters = try await defaultParameters(for: caption, filters:filters)
             let intent = determineIntent(for: caption)
-            let newIntent = AssistiveChatHostIntent(caption: caption, intent:intent, selectedPlaceSearchResponse: lastIntent.selectedPlaceSearchResponse, selectedPlaceSearchDetails: lastIntent.selectedPlaceSearchDetails, placeSearchResponses: lastIntent.placeSearchResponses, selectedDestinationLocationID: selectedDestinationLocationID, placeDetailsResponses: lastIntent.placeDetailsResponses, recommendedPlaceSearchResponses: lastIntent.recommendedPlaceSearchResponses, relatedPlaceSearchResponses: lastIntent.relatedPlaceSearchResponses, queryParameters: queryParamters)
+            let newIntent = AssistiveChatHostIntent(caption: caption, intent:intent, selectedPlaceSearchResponse: lastIntent.selectedPlaceSearchResponse, selectedPlaceSearchDetails: lastIntent.selectedPlaceSearchDetails, placeSearchResponses: lastIntent.placeSearchResponses, selectedDestinationLocation: selectedDestinationLocation, placeDetailsResponses: lastIntent.placeDetailsResponses, recommendedPlaceSearchResponses: lastIntent.recommendedPlaceSearchResponses, relatedPlaceSearchResponses: lastIntent.relatedPlaceSearchResponses, queryParameters: queryParamters)
             await updateLastIntentParameters(intent: newIntent, modelController: modelController)
         }
     }
@@ -269,8 +269,8 @@ public final class AssistiveChatHostService : AssistiveChatHost {
         queryIntentParameters.queryIntents = [AssistiveChatHostIntent]()
     }
     
-    public func receiveMessage(caption:String, isLocalParticipant:Bool, filters:[String:Any], cacheManager:CacheManager, modelController:ModelController ) async throws {
-        try await messagesDelegate.addReceivedMessage(caption: caption, parameters: queryIntentParameters, isLocalParticipant: isLocalParticipant, filters: filters, cacheManager: cacheManager, modelController: modelController)
+    public func receiveMessage(caption:String, isLocalParticipant:Bool, filters:[String:Any], modelController:ModelController ) async throws {
+        try await messagesDelegate.addReceivedMessage(caption: caption, parameters: queryIntentParameters, isLocalParticipant: isLocalParticipant, filters: filters, modelController: modelController)
     }
 
     

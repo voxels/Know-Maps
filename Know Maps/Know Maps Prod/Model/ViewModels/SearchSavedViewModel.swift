@@ -48,9 +48,9 @@ public final class SearchSavedViewModel : Sendable {
     }
     
     // Search functionality
-    func search(caption: String, selectedDestinationChatResultID: String?, intent:AssistiveChatHostService.Intent, filters:[String:Any], chatModel:ChatResultViewModel, cacheManager:CacheManager, modelController:ModelController) async {
+    func search(caption: String, selectedDestinationChatResult: LocationResult, intent:AssistiveChatHostService.Intent, filters:[String:Any], chatModel:ChatResultViewModel, cacheManager:CacheManager, modelController:ModelController) async {
         do {
-            try await chatModel.didSearch(caption: caption, selectedDestinationChatResultID: selectedDestinationChatResultID, intent:intent, filters: filters, cacheManager: cacheManager, modelController:modelController)
+            try await chatModel.didSearch(caption: caption, selectedDestinationChatResult: selectedDestinationChatResult , intent:intent, filters: filters, modelController:modelController)
         } catch {
             await modelController.analyticsManager.trackError(error:error, additionalInfo: nil)
         }
@@ -267,7 +267,7 @@ public final class SearchSavedViewModel : Sendable {
     // Remove Taste
     func removeTaste(parent: CategoryResult.ID, cacheManager: CacheManager, modelController: ModelController) async {
         
-        guard let tasteCategoryResult = await modelController.cachedTasteResult(for: parent, cacheManager: cacheManager) else {
+        guard let tasteCategoryResult = await modelController.cachedTasteResult(for: parent) else {
             return
         }
 
@@ -326,11 +326,11 @@ public final class SearchSavedViewModel : Sendable {
     // Remove Saved Item
     func removeSelectedItem(selectedSavedResult: String, cacheManager:CacheManager, modelController:ModelController) async throws {
         
-        if let selectedTasteItem = await modelController.cachedTasteResult(for: selectedSavedResult, cacheManager: cacheManager) {
+        if let selectedTasteItem = await modelController.cachedTasteResult(for: selectedSavedResult) {
             await removeCachedResults(group: "Taste", identity: selectedTasteItem.parentCategory, cacheManager: cacheManager, modelController: modelController)
-        } else if let selectedCategoryItem = await modelController.cachedCategoricalResult(for: selectedSavedResult, cacheManager: cacheManager) {
+        } else if let selectedCategoryItem = await modelController.cachedIndustryResult(for: selectedSavedResult) {
             await removeCachedResults(group: "Category", identity: selectedCategoryItem.parentCategory, cacheManager: cacheManager, modelController: modelController)
-        } else if let selectedPlaceItem = await modelController.cachedPlaceResult(for: selectedSavedResult, cacheManager: cacheManager) {
+        } else if let selectedPlaceItem = await modelController.cachedPlaceResult(for: selectedSavedResult) {
             if let fsqID = selectedPlaceItem.categoricalChatResults.first?.placeResponse?.fsqID {
                 await removeCachedResults(group: "Place", identity: fsqID, cacheManager: cacheManager, modelController: modelController)
                 _ = try await cacheManager.cloudCacheService.deleteRecommendationData(for: fsqID)
