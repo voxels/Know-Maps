@@ -71,8 +71,7 @@ struct PlaceDirectionsView: View {
                     }
                 }
                 .toolbar {
-                    ToolbarItemGroup {
-                        
+                    ToolbarItemGroup(placement: .automatic) {
                         if let source = model.source, let destination = model.destination {
                             let launchOptions = model.appleMapsLaunchOptions()
                             Button("Maps", systemImage: "map") {

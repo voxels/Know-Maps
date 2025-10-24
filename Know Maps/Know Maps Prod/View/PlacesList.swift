@@ -172,8 +172,11 @@ struct PlacesList: View {
         // Kick off the place search intent using the DefaultModelController
         Task { @MainActor in
             do {
+                
+                let queryParameters = try await modelController.assistiveHostDelegate.defaultParameters(for: result.title, filters: searchSavedViewModel.filters)
+                
                 // create a new AssistiveChatHostIntent from the chatresult
-                let intent = AssistiveChatHostIntent(caption: result.title, intent: .Place, selectedPlaceSearchResponse: result.placeResponse, selectedPlaceSearchDetails: nil, placeSearchResponses:[result.placeResponse!], selectedDestinationLocation: modelController.selectedDestinationLocationChatResult, placeDetailsResponses: nil, queryParameters: nil)
+                let intent = AssistiveChatHostIntent(caption: result.title, intent: .Place, selectedPlaceSearchResponse: result.placeResponse, selectedPlaceSearchDetails: nil, placeSearchResponses:[result.placeResponse!], selectedDestinationLocation: modelController.selectedDestinationLocationChatResult, placeDetailsResponses: nil, queryParameters: queryParameters)
                 
                 try await modelController.searchIntent(intent: intent)
             } catch {

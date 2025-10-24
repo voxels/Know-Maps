@@ -251,9 +251,9 @@ public final class AssistiveChatHostService : AssistiveChatHost {
     
     public func updateLastIntent(caption:String, selectedDestinationLocation:LocationResult, filters:[String:Any], modelController:ModelController) async throws {
         if  let lastIntent = queryIntentParameters.queryIntents.last {
-            let queryParamters = try await defaultParameters(for: caption, filters:filters)
+            let queryParameters = try await defaultParameters(for: caption, filters:filters)
             let intent = determineIntent(for: caption)
-            let newIntent = AssistiveChatHostIntent(caption: caption, intent:intent, selectedPlaceSearchResponse: lastIntent.selectedPlaceSearchResponse, selectedPlaceSearchDetails: lastIntent.selectedPlaceSearchDetails, placeSearchResponses: lastIntent.placeSearchResponses, selectedDestinationLocation: selectedDestinationLocation, placeDetailsResponses: lastIntent.placeDetailsResponses, recommendedPlaceSearchResponses: lastIntent.recommendedPlaceSearchResponses, relatedPlaceSearchResponses: lastIntent.relatedPlaceSearchResponses, queryParameters: queryParamters)
+            let newIntent = AssistiveChatHostIntent(caption: caption, intent:intent, selectedPlaceSearchResponse: lastIntent.selectedPlaceSearchResponse, selectedPlaceSearchDetails: lastIntent.selectedPlaceSearchDetails, placeSearchResponses: lastIntent.placeSearchResponses, selectedDestinationLocation: selectedDestinationLocation, placeDetailsResponses: lastIntent.placeDetailsResponses, recommendedPlaceSearchResponses: lastIntent.recommendedPlaceSearchResponses, relatedPlaceSearchResponses: lastIntent.relatedPlaceSearchResponses, queryParameters: queryParameters)
             await updateLastIntentParameters(intent: newIntent, modelController: modelController)
         }
     }

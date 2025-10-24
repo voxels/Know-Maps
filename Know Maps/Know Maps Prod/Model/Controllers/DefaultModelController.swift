@@ -1392,7 +1392,10 @@ public final class DefaultModelController : ModelController {
         
         if result.placeDetailsResponse != nil { return }
         if result.placeResponse != nil, result.placeResponse?.latitude == 0 {
-            try await refreshModel(query: result.title, queryIntents: [.init(caption: result.title, intent: .Place, selectedPlaceSearchResponse: nil, selectedPlaceSearchDetails: nil, placeSearchResponses: [], selectedDestinationLocation: selectedDestinationLocationChatResult, placeDetailsResponses: nil, queryParameters: nil)], filters: [:])
+            
+            let queryParameters = try await assistiveHostDelegate.defaultParameters(for: result.title, filters:[:])
+            
+            try await refreshModel(query: result.title, queryIntents: [.init(caption: result.title, intent: .Place, selectedPlaceSearchResponse: nil, selectedPlaceSearchDetails: nil, placeSearchResponses: [], selectedDestinationLocation: selectedDestinationLocationChatResult, placeDetailsResponses: nil, queryParameters: queryParameters)], filters: [:])
         }
         
         // Capture minimal inputs on main actor, then hop off

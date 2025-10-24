@@ -308,10 +308,6 @@ struct ContentView: View {
         }
 #else
         ToolbarItemGroup(placement: .topBarLeading) {
-            Button("Settings", systemImage: "person.crop.circle") {
-                showSettings.toggle()
-            }
-            .labelStyle(.iconOnly)
             Button {
                 if !showNavigationLocationView {
                     showNavigationLocationView = true
@@ -320,6 +316,11 @@ struct ContentView: View {
                 Label("Filter", systemImage: "line.3.horizontal.decrease")
             }
             .disabled(showNavigationLocationView)
+            Button("Settings", systemImage: "person.crop.circle") {
+                showSettings.toggle()
+            }
+            .labelStyle(.iconOnly)
+
         }
 #endif
     }
@@ -371,26 +372,22 @@ struct ContentView: View {
                 switch searchMode {
                 case .favorites:
                     SearchView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, searchSavedViewModel: $searchSavedViewModel, searchMode:$searchMode)
-                        .navigationTitle("Favorites")
                         .navigationBarTitleDisplayMode(.large)
                         .toolbar {
                             unifiedBrowseToolbar()
                         }
                 case .industries:
                     SearchCategoryView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, searchSavedViewModel: $searchSavedViewModel, multiSelection: $multiSelection, section:$modelController.section)
-                        .navigationTitle("Industries")
                         .toolbar {
                             unifiedBrowseToolbar()
                         }
                 case .features:
                     SearchTasteView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, searchSavedViewModel: $searchSavedViewModel, multiSelection: $multiSelection,  section:$modelController.section)
-                        .navigationTitle("Features")
                         .toolbar {
                             unifiedBrowseToolbar()
                         }
                 case .places:
                     SearchPlacesView(searchSavedViewModel: $searchSavedViewModel, chatModel: $chatModel, cacheManager: $cacheManager, modelController:   $modelController, multiSelection: $multiSelection, placeDirectionsChatViewModel: placeDirectionsChatViewModel)
-                        .navigationTitle("Places")
                         .toolbar {
                             unifiedBrowseToolbar()
                         }
@@ -405,7 +402,7 @@ struct ContentView: View {
                         placeDirectionsViewModel: placeDirectionsChatViewModel,
                         selectedResult: placeChatResult
                     )
-                    .navigationBarTitleDisplayMode(.automatic)
+                    .navigationBarTitleDisplayMode(.inline)
                     .navigationTitle(placeChatResult.title)
                 } else {
                     PlacesList(
@@ -414,7 +411,7 @@ struct ContentView: View {
                         cacheManager: $cacheManager,
                         modelController: $modelController
                     )
-                    .navigationBarTitleDisplayMode(.automatic)
+                    .navigationBarTitleDisplayMode(.inline)
                     .navigationTitle("Browse")
                 }
             }
@@ -429,7 +426,10 @@ extension ContentView {
         Task {
             do {
                 if let selectedPlaceSearchResponse = result.placeResponse {
-                    let intent = AssistiveChatHostIntent(caption: result.title, intent: .Place, selectedPlaceSearchResponse: result.placeResponse, selectedPlaceSearchDetails: result.placeDetailsResponse, placeSearchResponses:[], selectedDestinationLocation:modelController.selectedDestinationLocationChatResult, placeDetailsResponses:nil, queryParameters: nil)
+                    
+                    let queryParameters = try await modelController.assistiveHostDelegate.defaultParameters(for: result.title, filters: searchSavedViewModel.filters)
+                    
+                    let intent = AssistiveChatHostIntent(caption: result.title, intent: .Place, selectedPlaceSearchResponse: result.placeResponse, selectedPlaceSearchDetails: result.placeDetailsResponse, placeSearchResponses:[], selectedDestinationLocation:modelController.selectedDestinationLocationChatResult, placeDetailsResponses:nil, queryParameters: queryParameters)
                     try await modelController.searchIntent(intent: intent)
                 }
             } catch {
