@@ -9,6 +9,7 @@ import Foundation
 import CloudKit
 import NaturalLanguage
 import Combine
+import CoreLocation
 
 public enum PlaceSearchSessionError : Error {
     case ServiceNotFound
@@ -53,14 +54,17 @@ public actor PlaceSearchSession : ObservableObject {
         
         var value = request.radius
         if let nearLocation = request.nearLocation, !nearLocation.isEmpty {
-            value = 25000
+            // When using "near", cap radius to a sane upper bound supported by FSQ (100km)
+            value = min(value, 100000)
         }
-        let radiusQueryItem = URLQueryItem(name: "radius", value: "\(value)")
-        queryItems.append(radiusQueryItem)
 
-        if let rawLocation = request.ll {
-            let locationQueryItem = URLQueryItem(name: "ll", value: rawLocation)
-            queryItems.append(locationQueryItem)
+        if let nearLocation = request.nearLocation, !nearLocation.isEmpty {
+            // Remote/city-biased search
+            queryItems.append(URLQueryItem(name: "near", value: nearLocation))
+        } else if let rawLocation = request.ll {
+            // Local/GPS-biased search
+            queryItems.append(URLQueryItem(name: "ll", value: rawLocation))
+            queryItems.append(URLQueryItem(name: "radius", value: "\(value)"))
         }
         
         
@@ -248,17 +252,13 @@ public actor PlaceSearchSession : ObservableObject {
             let locationQueryItem = URLQueryItem(name: "ll", value: ll)
             queryItems.append(locationQueryItem)
             
-            let value = 50000
-            let radiusQueryItem = URLQueryItem(name: "radius", value:"\(value)")
-            queryItems.append(radiusQueryItem)
+            let radiusItem = URLQueryItem(name: "radius", value: "\(100000)")
+            queryItems.append(radiusItem)
         }
         
         let limitQueryItem = URLQueryItem(name: "limit", value: "\(limit)")
         queryItems.append(limitQueryItem)
 
-        let placeQueryItem = URLQueryItem(name: "types", value: "place")
-        queryItems.append(placeQueryItem)
-        
         queryComponents?.queryItems = queryItems
 
         guard let url = queryComponents?.url else {
@@ -272,6 +272,257 @@ public actor PlaceSearchSession : ObservableObject {
         }
                 
         return response
+    }
+
+    private func splitQueryAndNear(_ caption: String) -> (poi: String, near: String?) {
+        let parts = caption.split(separator: ",", maxSplits: 1, omittingEmptySubsequences: true)
+        if parts.count == 2 {
+            let poi = parts[0].trimmingCharacters(in: .whitespacesAndNewlines)
+            let near = parts[1].trimmingCharacters(in: .whitespacesAndNewlines)
+            return (poi, near.isEmpty ? nil : near)
+        } else {
+            return (caption, nil)
+        }
+    }
+    
+    private func placeSearchForAutocomplete(caption: String, locationResult: LocationResult) async throws -> Any {
+        let (poiQuery, nearBias) = splitQueryAndNear(caption)
+
+        var llParam: String? = nil
+        var nearParam: String? = nil
+
+        if let nearBias = nearBias, !nearBias.isEmpty {
+            // User specified a remote locality; prefer `near`
+            nearParam = nearBias
+        } else {
+            // Fall back to local coordinates
+            let coord = locationResult.location.coordinate
+            llParam = "\(coord.latitude),\(coord.longitude)"
+        }
+
+        let request = PlaceSearchRequest(
+            query: poiQuery,
+            ll: llParam,
+            radius: 100000,
+            categories: nil,
+            fields: nil,
+            minPrice: 1,
+            maxPrice: 4,
+            openAt: nil,
+            openNow: nil,
+            nearLocation: nearParam,
+            sort: nil,
+            limit: 20,
+            offset: 0
+        )
+        return try await self.query(request: request)
+    }
+    
+    private func parseAutocompleteToLocationResults(_ response: [String: Any]) -> [LocationResult] {
+        var results: [LocationResult] = []
+
+        // Autocomplete response uses a top-level "results" array
+        guard let items = response["results"] as? [[String: Any]] else {
+            return results
+        }
+
+        for item in items {
+            guard let type = item["type"] as? String else { continue }
+
+            switch type {
+            case "place":
+                // According to docs, place details are under the `place` key
+                guard let place = item["place"] as? [String: Any] else { continue }
+                let name = (place["name"] as? String) ?? "Unknown"
+                let locationDict = place["location"] as? [String: Any]
+                let formatted = locationDict?["formatted_address"] as? String
+
+                var lat: Double?
+                var lon: Double?
+                if let geocodes = place["geocodes"] as? [String: Any] {
+                    if let main = geocodes["main"] as? [String: Any] {
+                        lat = main["latitude"] as? Double
+                        lon = main["longitude"] as? Double
+                    }
+                    if lat == nil || lon == nil, let roof = geocodes["roof"] as? [String: Any] {
+                        lat = roof["latitude"] as? Double
+                        lon = roof["longitude"] as? Double
+                    }
+                }
+
+                if let lat = lat, let lon = lon {
+                    let coord = CLLocationCoordinate2D(latitude: lat, longitude: lon)
+                    let loc = CLLocation(latitude: coord.latitude, longitude: coord.longitude)
+                    let lr = LocationResult(locationName: name, location: loc, formattedAddress: formatted)
+                    results.append(lr)
+                }
+
+            case "address":
+                // Address details are under `address` key in docs
+                let text = (item["text"] as? String) ?? (item["name"] as? String) ?? "Address"
+                let formatted = item["formatted_address"] as? String ?? item["address"] as? String
+
+                var lat: Double?
+                var lon: Double?
+                if let geocodes = item["geocodes"] as? [String: Any],
+                   let main = geocodes["main"] as? [String: Any] {
+                    lat = main["latitude"] as? Double
+                    lon = main["longitude"] as? Double
+                }
+                if (lat == nil || lon == nil), let center = item["center"] as? [String: Any] {
+                    lat = center["latitude"] as? Double
+                    lon = center["longitude"] as? Double
+                }
+
+                if let lat = lat, let lon = lon {
+                    let coord = CLLocationCoordinate2D(latitude: lat, longitude: lon)
+                    let loc = CLLocation(latitude: coord.latitude, longitude: coord.longitude)
+                    let lr = LocationResult(locationName: text, location: loc, formattedAddress: formatted)
+                    results.append(lr)
+                }
+
+            case "geo":
+                // Geo items expose a `text` label and a `center` or `geocodes.main`
+                let text = (item["text"] as? String) ?? (item["name"] as? String) ?? "Area"
+
+                var lat: Double?
+                var lon: Double?
+                if let center = item["center"] as? [String: Any] {
+                    lat = center["latitude"] as? Double
+                    lon = center["longitude"] as? Double
+                }
+                if (lat == nil || lon == nil), let geocodes = item["geocodes"] as? [String: Any],
+                   let main = geocodes["main"] as? [String: Any] {
+                    lat = main["latitude"] as? Double
+                    lon = main["longitude"] as? Double
+                }
+
+                if let lat = lat, let lon = lon {
+                    let coord = CLLocationCoordinate2D(latitude: lat, longitude: lon)
+                    let loc = CLLocation(latitude: coord.latitude, longitude: coord.longitude)
+                    let lr = LocationResult(locationName: text, location: loc)
+                    results.append(lr)
+                }
+
+            default:
+                continue
+            }
+        }
+
+        return results
+    }
+
+    private func resolveCoordinateForNear(_ near: String) async throws -> CLLocationCoordinate2D? {
+        // Build a lightweight request that asks FSQ to bias by `near` and return a single result
+        let request = PlaceSearchRequest(
+            query: "",
+            ll: nil,
+            radius: 100000,
+            categories: nil,
+            fields: nil,
+            minPrice: 1,
+            maxPrice: 4,
+            openAt: nil,
+            openNow: nil,
+            nearLocation: near,
+            sort: nil,
+            limit: 1,
+            offset: 0
+        )
+        let any = try await self.query(request: request)
+        guard let dict = any as? [String: Any],
+              let items = dict["results"] as? [[String: Any]],
+              let first = items.first,
+              let geocodes = first["geocodes"] as? [String: Any],
+              let main = geocodes["main"] as? [String: Any],
+              let lat = main["latitude"] as? Double,
+              let lon = main["longitude"] as? Double else {
+            return nil
+        }
+        return CLLocationCoordinate2D(latitude: lat, longitude: lon)
+    }
+    
+    public func autocompleteLocationResults(caption: String, parameters: [String: Any]?, locationResult: LocationResult) async throws -> [LocationResult] {
+        let (poi, near) = splitQueryAndNear(caption)
+
+        if let near = near, !near.isEmpty {
+            // Remote flow: resolve a representative ll for the city, then run remote-biased autocomplete and place search in parallel
+            if let coord = try await resolveCoordinateForNear(near) {
+                let remoteLoc = CLLocation(latitude: coord.latitude, longitude: coord.longitude)
+                let remoteLR = LocationResult(locationName: near, location: remoteLoc)
+
+                async let raw = autocomplete(caption: poi, parameters: parameters, locationResult: remoteLR)
+                async let placesAny = placeSearchForAutocomplete(caption: caption, locationResult: remoteLR)
+
+                let (rawResponse, placesResponseAny) = try await (raw, placesAny)
+
+                var results = parseAutocompleteToLocationResults(rawResponse)
+
+                if let placesDict = placesResponseAny as? [String: Any],
+                   let items = placesDict["results"] as? [[String: Any]] {
+                    for item in items {
+                        guard let geocodes = item["geocodes"] as? [String: Any],
+                              let main = geocodes["main"] as? [String: Any],
+                              let lat = main["latitude"] as? Double,
+                              let lon = main["longitude"] as? Double else { continue }
+
+                        let name = (item["name"] as? String) ?? "Unknown"
+                        let locationDict = item["location"] as? [String: Any]
+                        let formatted = locationDict?["formatted_address"] as? String
+
+                        let coord = CLLocationCoordinate2D(latitude: lat, longitude: lon)
+                        let loc = CLLocation(latitude: coord.latitude, longitude: coord.longitude)
+                        let lr = LocationResult(locationName: formatted ?? name, location: loc)
+
+                        if !results.contains(where: { existing in
+                            existing.locationName == lr.locationName &&
+                            abs(existing.location.coordinate.latitude - lr.location.coordinate.latitude) < 1e-6 &&
+                            abs(existing.location.coordinate.longitude - lr.location.coordinate.longitude) < 1e-6
+                        }) {
+                            results.append(lr)
+                        }
+                    }
+                }
+
+                return results
+            }
+            // If we failed to resolve the city coordinate, fall back to existing local behavior below.
+        }
+
+        // Local/default flow
+        async let raw = autocomplete(caption: caption, parameters: parameters, locationResult: locationResult)
+        async let placesAny = placeSearchForAutocomplete(caption: caption, locationResult: locationResult)
+        let (rawResponse, placesResponseAny) = try await (raw, placesAny)
+
+        var results = parseAutocompleteToLocationResults(rawResponse)
+
+        if let placesDict = placesResponseAny as? [String: Any],
+           let items = placesDict["results"] as? [[String: Any]] {
+            for item in items {
+                guard let geocodes = item["geocodes"] as? [String: Any],
+                      let main = geocodes["main"] as? [String: Any],
+                      let lat = main["latitude"] as? Double,
+                      let lon = main["longitude"] as? Double else { continue }
+
+                let name = (item["name"] as? String) ?? "Unknown"
+                let locationDict = item["location"] as? [String: Any]
+                let formatted = locationDict?["formatted_address"] as? String
+
+                let coord = CLLocationCoordinate2D(latitude: lat, longitude: lon)
+                let loc = CLLocation(latitude: coord.latitude, longitude: coord.longitude)
+                let lr = LocationResult(locationName: formatted ?? name, location: loc)
+
+                if !results.contains(where: { existing in
+                    existing.locationName == lr.locationName &&
+                    abs(existing.location.coordinate.latitude - lr.location.coordinate.latitude) < 1e-6 &&
+                    abs(existing.location.coordinate.longitude - lr.location.coordinate.longitude) < 1e-6
+                }) {
+                    results.append(lr)
+                }
+            }
+        }
+
+        return results
     }
     
     private let sessionQueue = DispatchQueue(label: "com.secretatomics.knowmaps.sessionQueue")
