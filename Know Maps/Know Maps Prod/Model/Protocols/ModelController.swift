@@ -24,7 +24,7 @@ public protocol ModelController : Sendable {
     
     // Selection States
     var selectedPersonalizedSearchSection:PersonalizedSearchSection? { get set }
-    var selectedPlaceChatResult: ChatResult.ID? { get set }
+    var selectedPlaceChatResultFsqId:String? { get set }
     var selectedDestinationLocationChatResult: LocationResult { get set }
     
     // Fetching States
@@ -57,7 +57,6 @@ public protocol ModelController : Sendable {
     
     // MARK: - Init
     init(
-       messagesDelegate: AssistiveChatHostMessagesDelegate,
        cacheManager:CacheManager
    )
     
@@ -78,9 +77,6 @@ public protocol ModelController : Sendable {
     
     /// Retrieves or creates a `LocationResult` with the given title.
     func locationChatResult(with title: String, in locationResults: [LocationResult]) async -> LocationResult?
-    
-    /// Checks if the search text corresponds to any known locations.
-    func checkSearchTextForLocations(with text: String) async throws -> [CLPlacemark]?
         
     // MARK: Place Chat Result Methods
     func placeChatResult(for id: ChatResult.ID) -> ChatResult?
@@ -140,11 +136,10 @@ public protocol ModelController : Sendable {
     // MARK: - Message Handling
     /// Processes a search intent based on the given intent and location.
     func searchIntent(
-        intent: AssistiveChatHostIntent,
-        locationResult: LocationResult
+        intent: AssistiveChatHostIntent
     ) async throws
     
-    func addReceivedMessage(caption:String, parameters:AssistiveChatHostQueryParameters, isLocalParticipant:Bool, filters:[String:Any]) async throws
+    func addReceivedMessage(caption:String, parameters:AssistiveChatHostQueryParameters, isLocalParticipant:Bool, filters:[String:Any], overrideIntent: AssistiveChatHostService.Intent?, selectedDestinationLocation: LocationResult?) async throws
 
     func didUpdateQuery(with query:String, parameters: AssistiveChatHostQueryParameters, filters:[String:Any]) async throws -> [ChatResult]
 

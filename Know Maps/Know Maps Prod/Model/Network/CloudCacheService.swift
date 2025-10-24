@@ -38,6 +38,7 @@ public final class CloudCacheService: NSObject, CloudCache {
     private var fsqUserId: String = ""
     private var oauthToken: String = ""
     private var serviceAPIKey: String = ""
+    private var cachedSessions: [String: URLSession] = [:]
     
     let cacheContainer = CKContainer(identifier: "iCloud.com.secretatomics.knowmaps.Cache")
     let keysContainer = CKContainer(identifier: "iCloud.com.secretatomics.knowmaps.Keys")
@@ -183,6 +184,10 @@ public final class CloudCacheService: NSObject, CloudCache {
     }
     
     public func session(service: String) async throws -> URLSession {
+        // Fast path: if we already have a session for this service and a cached API key, reuse it
+        if let session = cachedSessions[service], !serviceAPIKey.isEmpty {
+            return session
+        }
         let predicate = NSPredicate(format: "service == %@", service)
         let query = CKQuery(recordType: "KeyString", predicate: predicate)
         let operation = CKQueryOperation(query: query)
@@ -226,13 +231,19 @@ public final class CloudCacheService: NSObject, CloudCache {
         self.removeKeysOperation(operation)
         
         if success {
-            return defaultSession()
+            let session = defaultSession()
+            cachedSessions[service] = session
+            return session
         } else {
             throw CloudCacheError.ServiceNotFound
         }
     }
     
     public func apiKey(for service: CloudCacheServiceKey) async throws -> String {
+        // Fast path: return cached key if available
+        if !serviceAPIKey.isEmpty {
+            return serviceAPIKey
+        }
         let predicate = NSPredicate(format: "service == %@", service.rawValue)
         let query = CKQuery(recordType: "KeyString", predicate: predicate)
         let operation = CKQueryOperation(query: query)

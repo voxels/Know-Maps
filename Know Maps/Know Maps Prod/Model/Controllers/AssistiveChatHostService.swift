@@ -19,7 +19,6 @@ public final class AssistiveChatHostService : AssistiveChatHost {
     public enum Intent : String, Sendable {
         case Search
         case Place
-        case AutocompletePlaceSearch
         case AutocompleteTastes
         case Location
     }
@@ -130,33 +129,43 @@ public final class AssistiveChatHostService : AssistiveChatHost {
         return Array(retval)
     }
     
-    // TODO: Replace with apple foundations framework
     public func determineIntent(for caption:String, override:Intent? = nil) -> Intent
     {
-        let components = caption.components(separatedBy: "near")
-        if let prefix = components.first {
-            for code in categoryCodes {
-                if code.keys.contains(prefix.capitalized) {
-                    return .Search
-                }
-                
-                for values in code.values {
-                    for value in values {
-                        if ((value["category"]?.lowercased().contains( caption.lowercased().trimmingCharacters(in: .whitespaces))) != nil) {
-                            return .Search
-                        }
-                    }
-                }
-            }
-            
-            #if os(visionOS) || os(iOS)
-            if UIReferenceLibraryViewController.dictionaryHasDefinition(forTerm: prefix) {
-                return .Search
-            }
-            #endif
+        if let override = override {
+            return override
         }
-                
-        return .AutocompletePlaceSearch
+        let lower = caption.lowercased()
+        // Quick location check first
+        if override == .Location {
+            return .Location
+        }
+        // Extract tags from our ML + NLTagger pipeline
+        let tagDict = (try? tags(for: caption)) ?? nil
+        // Helpers to inspect tag values
+        let containsTag: (String) -> Bool = { tag in
+            guard let tagDict = tagDict else { return false }
+            for values in tagDict.values {
+                if values.contains(tag) { return true }
+            }
+            return false
+        }
+        // Place intent if we clearly have a place entity
+        if containsTag("PLACE") || containsTag("PlaceName") {
+            return .Place
+        }
+        // Taste/category intent for autocompletion of categories
+        if containsTag("TASTE") || containsTag("CATEGORY") {
+            return .AutocompleteTastes
+        }
+        // Heuristics based on words
+        if lower.contains("near ") || lower.contains("around ") || lower.contains("close to ") {
+            return .Location
+        }
+        if lower.contains("category") || lower.contains("type of") || lower.contains("kinds of") {
+            return .AutocompleteTastes
+        }
+        // Fallback to search
+        return .Search
     }
     
     public func defaultParameters(for query:String, filters:[String:Any]) async throws -> [String:Any]? {
@@ -207,10 +216,6 @@ public final class AssistiveChatHostService : AssistiveChatHost {
                 
                 if let maxPrice = maxPrice(for: query) {
                     rawParameters["max_price"] = maxPrice
-                }
-                
-                if let nearLocation = nearLocation(for: query, tags: tags) {
-                    rawParameters["near"] = nearLocation
                 }
                 
                 if let openAt = openAt(for: query) {
@@ -269,54 +274,8 @@ public final class AssistiveChatHostService : AssistiveChatHost {
         queryIntentParameters.queryIntents = [AssistiveChatHostIntent]()
     }
     
-    public func receiveMessage(caption:String, isLocalParticipant:Bool, filters:[String:Any], modelController:ModelController ) async throws {
-        try await messagesDelegate.addReceivedMessage(caption: caption, parameters: queryIntentParameters, isLocalParticipant: isLocalParticipant, filters: filters, modelController: modelController)
-    }
-
-    
-    public func lastLocationIntent() -> AssistiveChatHostIntent? {
-        return queryIntentParameters.queryIntents.last(where: { intent in
-            intent.intent == .Location
-        })
-    }
-    public func nearLocation(for rawQuery:String, tags:AssistiveChatHostTaggedWord? = nil) -> String? {
-        guard rawQuery.contains("near") else {
-            return nil
-        }
-        
-        let components = rawQuery.lowercased().components(separatedBy: "near")
-        
-        guard let lastComponent = components.last else {
-            return nil
-        }
-        
-        guard lastComponent.count > 0 else {
-            return nil
-        }
-        
-        if let lastCharacter = lastComponent.last, lastCharacter.isLetter || lastCharacter.isWhitespace || lastCharacter.isPunctuation {
-            return lastComponent.trimmingCharacters(in: .whitespacesAndNewlines)
-        }
-        
-        return nil
-    }
-    
-    public func nearLocationCoordinate(for rawQuery:String, tags:AssistiveChatHostTaggedWord? = nil) async throws -> [CLPlacemark]? {
-        
-        let components = rawQuery.lowercased().components(separatedBy: "near")
-        
-        var addressString = rawQuery
-        if let lastComponent = components.last {
-            addressString = lastComponent
-        }
-        
-        guard addressString.count > 0 else {
-            return nil
-        }
-        
-        let placemarks = try await geocoder.geocodeAddressString(addressString)
-
-        return placemarks
+    public func receiveMessage(caption:String, isLocalParticipant:Bool, filters:[String:Any], modelController:ModelController, overrideIntent: AssistiveChatHostService.Intent? = nil, selectedDestinationLocation: LocationResult? = nil ) async throws {
+        try await messagesDelegate.addReceivedMessage(caption: caption, parameters: queryIntentParameters, isLocalParticipant: isLocalParticipant, filters: filters, modelController: modelController, overrideIntent: overrideIntent, selectedDestinationLocation: selectedDestinationLocation)
     }
     
     public func tags(for rawQuery:String) throws ->AssistiveChatHostTaggedWord? {
@@ -594,3 +553,4 @@ extension AssistiveChatHost {
         return codes
     }
 }
+

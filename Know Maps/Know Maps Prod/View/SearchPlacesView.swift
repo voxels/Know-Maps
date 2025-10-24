@@ -51,16 +51,13 @@ struct SearchPlacesView: View {
 #endif
         .onSubmit(of: .search, {
             if !searchText.isEmpty {
-                Task(priority: .userInitiated) {
-                    await searchSavedViewModel.search(
-                        caption: searchText,
-                        selectedDestinationChatResult: modelController.selectedDestinationLocationChatResult,
-                        intent: .AutocompletePlaceSearch,
-                        filters: searchSavedViewModel.filters,
-                        chatModel: chatModel,
-                        cacheManager: cacheManager,
-                        modelController: modelController
-                    )
+                let intent = AssistiveChatHostIntent(caption: searchText, intent: .Search, selectedPlaceSearchResponse: nil, selectedPlaceSearchDetails: nil, placeSearchResponses: [], selectedDestinationLocation: modelController.selectedDestinationLocationChatResult, placeDetailsResponses: nil, queryParameters: nil)
+                Task {
+                    do {
+                        try await modelController.searchIntent(intent: intent)
+                    } catch {
+                        modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
+                    }
                 }
             }
         })

@@ -29,7 +29,7 @@ struct PlaceDirectionsView: View {
     }
     
     var body: some View {
-        if let resultId = modelController.selectedPlaceChatResult, let result = modelController.placeChatResult(for: resultId), let placeResponse = result.placeResponse {
+        if let resultId = modelController.selectedPlaceChatResultFsqId, let result = modelController.placeChatResult(with: resultId), let placeResponse = result.placeResponse {
             let placeCoordinate = CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude)
             let title = placeResponse.name
             GeometryReader { geo in

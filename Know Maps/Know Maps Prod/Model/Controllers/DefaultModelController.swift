@@ -43,11 +43,11 @@ public final class DefaultModelController : ModelController {
     
     // Selection States
     public var selectedPersonalizedSearchSection:PersonalizedSearchSection?
-    public var selectedPlaceChatResult: ChatResult.ID?
+    public var selectedPlaceChatResultFsqId:String?
     public var selectedCategoryChatResult:CategoryResult.ID?
     public var selectedDestinationLocationChatResult: LocationResult {
         didSet {
-            print("🗺️ selectedDestinationLocationChatResult changed to \(selectedDestinationLocationChatResult)")
+            print("🗺️ selectedDestinationLocationChatResult changed to \(selectedDestinationLocationChatResult.locationName)")
         }
     }
     
@@ -124,6 +124,12 @@ public final class DefaultModelController : ModelController {
     // Added re-entrancy guard for selectedDestinationLocationChatResult updates
     private var isUpdatingSelectedLocation: Bool = false
     
+    // New private property for in-flight duplicate search guarding
+    private var inFlightSearchKey: String? = nil
+    
+    // Tracks in-flight component operations (e.g., placeQueryModel/recommendedPlaceQueryModel) per search key
+    private var inFlightComponentKeys: Set<String> = []
+    
     // MARK: - Lazy Detail Fetch Concurrency Gate
     private actor DetailFetchLimiter {
         private let limit: Int
@@ -169,12 +175,11 @@ public final class DefaultModelController : ModelController {
     // MARK: - Initializer
     
     public init(
-        messagesDelegate: AssistiveChatHostMessagesDelegate,
         cacheManager:CacheManager
     ) {
         self.cacheManager = cacheManager
         self.analyticsManager = cacheManager.cloudCacheService.analyticsManager
-        self.assistiveHostDelegate = AssistiveChatHostService(analyticsManager: analyticsManager, messagesDelegate: messagesDelegate)
+        self.assistiveHostDelegate = AssistiveChatHostService(analyticsManager: analyticsManager, messagesDelegate: ChatResultViewModel.shared)
         self.placeSearchService = DefaultPlaceSearchService(assistiveHostDelegate: assistiveHostDelegate, placeSearchSession: PlaceSearchSession(), personalizedSearchSession: PersonalizedSearchSession(cloudCacheService: cacheManager.cloudCacheService), analyticsManager: analyticsManager)
         self.locationService = DefaultLocationService(locationProvider: LocationProvider.shared)
         self.recommenderService = DefaultRecommenderService()
@@ -197,55 +202,58 @@ public final class DefaultModelController : ModelController {
         related: [ChatResult]? = nil,
         locations: [LocationResult]? = nil,
         appendLocations: Bool = false,
-        selectedPlace: ChatResult.ID? = nil,
+        selectedPlaceFsqId: String? = nil,
         selectedLocation: LocationResult? = nil,
         clearAll: Bool = false
     ) {
         coalesceOnNextFrame {
-            if clearAll {
-                self.tasteResults.removeAll()
-                self.placeResults.removeAll()
-                self.mapPlaceResults.removeAll()
-                self.recommendedPlaceResults.removeAll()
-                self.relatedPlaceResults.removeAll()
-                self.locationResults.removeAll()
-                self.selectedPlaceChatResult = nil
-                self.industryResults = self.filteredResults
-            }
-            
-            if let industry = industry { self.industryResults = industry }
-            if let taste = taste { self.tasteResults = taste }
-            if let places = places {
-                self.previousPlaceResults = self.placeResults
-                self.placeResults = places
-            }
-            if let mapPlaces = mapPlaces { self.mapPlaceResults = mapPlaces }
-            if let recommended = recommended { self.recommendedPlaceResults = recommended }
-            if let related = related { self.relatedPlaceResults = related }
-            
-            if let locations = locations {
-                if appendLocations {
-                    let existingLocationNames = self.locationResults.map { $0.locationName }
-                    let newLocations = locations.filter { !existingLocationNames.contains($0.locationName) }
-                    self.locationResults.append(contentsOf: newLocations)
-                } else {
-                    self.locationResults = locations
+                if clearAll {
+                    self.tasteResults.removeAll()
+                    self.placeResults.removeAll()
+                    self.mapPlaceResults.removeAll()
+                    self.recommendedPlaceResults.removeAll()
+                    self.relatedPlaceResults.removeAll()
+                    self.locationResults.removeAll()
+                    self.selectedPlaceChatResultFsqId = nil
+                    self.industryResults = self.filteredResults
+                }
+                
+                if let industry = industry { self.industryResults = industry }
+                if let taste = taste { self.tasteResults = taste }
+                if let places = places {
+                    self.previousPlaceResults = self.placeResults
+                    self.placeResults = places
+                }
+                if let mapPlaces = mapPlaces { self.mapPlaceResults = mapPlaces }
+                if let recommended = recommended { self.recommendedPlaceResults = recommended }
+                if let related = related { self.relatedPlaceResults = related }
+                
+                if let locations = locations {
+                    if appendLocations {
+                        let existingLocationNames = self.locationResults.map { $0.locationName }
+                        let newLocations = locations.filter { !existingLocationNames.contains($0.locationName) }
+                        self.locationResults.append(contentsOf: newLocations)
+                    } else {
+                        self.locationResults = locations
+                    }
+                }
+                
+                if let selectedPlaceFsqId {
+                    self.selectedPlaceChatResultFsqId = selectedPlaceFsqId
+                }
+                
+                if let selectedLocation = selectedLocation { self.setSelectedLocation(selectedLocation)
+                }
+                
+                // Centrally manage message based on result presence (no timeout)
+                let proposedPlaces = places ?? self.placeResults
+                let proposedRecommended = recommended ?? self.recommendedPlaceResults
+                let hasResults = !(proposedPlaces.isEmpty && proposedRecommended.isEmpty)
+                if hasResults {
+                    // Results are present: refresh the found message
+                    self.updateFoundResultsMessage()
                 }
             }
-            
-            if let selectedPlace = selectedPlace { self.selectedPlaceChatResult = selectedPlace }
-            if let selectedLocation = selectedLocation { self.setSelectedLocation(selectedLocation)
-            }
-            
-            // Centrally manage message based on result presence (no timeout)
-            let proposedPlaces = places ?? self.placeResults
-            let proposedRecommended = recommended ?? self.recommendedPlaceResults
-            let hasResults = !(proposedPlaces.isEmpty && proposedRecommended.isEmpty)
-            if hasResults {
-                // Results are present: refresh the found message
-                self.updateFoundResultsMessage()
-            }
-        }
     }
     
     /// Safely update location state
@@ -313,9 +321,9 @@ public final class DefaultModelController : ModelController {
     }
     
     /// Safely update selected place chat result state (supports reselection)
-    public func setSelectedPlaceChatResult(_ chatResultID: ChatResult.ID?) {
-        print("📍 ModelController setSelectedPlaceChatResult called with: \(String(describing: chatResultID))")
-        print("📍 Previous selectedPlaceChatResult: \(String(describing: selectedPlaceChatResult))")
+    public func setSelectedPlaceChatResult(_ fsqId:String?) {
+        print("📍 ModelController setSelectedPlaceChatResult called with: \(String(describing: fsqId))")
+        print("📍 Previous selectedPlaceChatResult: \(String(describing: selectedPlaceChatResultFsqId))")
         
         // Re-entrancy guard
         if isUpdatingSelectedPlace {
@@ -324,17 +332,17 @@ public final class DefaultModelController : ModelController {
         }
         
         // Handle same-ID assignments
-        if let id = chatResultID, id == selectedPlaceChatResult {
+        if let id = fsqId, id == selectedPlaceChatResultFsqId {
             print("📍 setSelectedPlaceChatResult no-op: same ID \(id)")
             return
         }
         
         isUpdatingSelectedPlace = true
         
-        self.selectedPlaceChatResult = chatResultID
+        self.selectedPlaceChatResultFsqId = fsqId
         
         isUpdatingSelectedPlace = false
-        print("📍 New selectedPlaceChatResult: \(String(describing: selectedPlaceChatResult))")
+        print("📍 New selectedPlaceChatResult: \(String(describing: selectedPlaceChatResultFsqId))")
     }
     
     /// Get the CLLocation for the currently selected destination
@@ -407,6 +415,14 @@ public final class DefaultModelController : ModelController {
         selectedDestinationLocationChatResult.locationName
     }
     
+    /// Generate a stable in-flight search key for duplicate suppression
+    private func makeSearchKey(for intent: AssistiveChatHostIntent) -> String {
+        let caption = intent.caption
+        let locationName = intent.selectedDestinationLocation.locationName
+        let radius = currentDistanceThresholdMeters()
+        return "\(caption)|\(locationName)|\(radius)"
+    }
+    
     // MARK: - Progress Instrumentation
     private func setProgressMessage(phase: String, caption: String?, locationName: String?) {
         let cleanCaption = (caption?.isEmpty == false) ? caption : nil
@@ -433,6 +449,28 @@ public final class DefaultModelController : ModelController {
         analyticsManager.track(event: "progressPhase", properties: props)
     }
     
+    // MARK: - Recommendation Payload Normalization / Diagnostics
+    /// Attempts to coerce the raw personalized recommendations payload into the
+    /// `[String: Any]` dictionary shape expected by
+    /// `PlaceResponseFormatter.recommendedPlaceSearchResponses(with:)`.
+    ///
+    /// Tries envelope style first (["response": ...], ["data": ...]), then falls back to top-level dict.
+    private func normalizeRecommendedResponsePayload(_ raw: Any) -> [String: Any]? {
+        // Try envelope style first
+        if let outer = raw as? [String: Any] {
+            if let inner = outer["response"] as? [String: Any] {
+                return inner
+            }
+            if let inner = outer["data"] as? [String: Any] {
+                return inner
+            }
+            // Fall back to top-level dict as-is
+            return outer
+        }
+        // Not a dictionary or recognizable envelope
+        return nil
+    }
+
     // MARK: - Search Timeout & Messaging
     
     public func updateFoundResultsMessage() {
@@ -487,7 +525,7 @@ public final class DefaultModelController : ModelController {
             let keys = Array(categoryCode.keys.sorted())
             for index in 0..<keys.count {
                 let key = keys[index]
-                newChatResults.append(ChatResult(index:index,identity: key, title: key, list:key, icon:"", rating: 1, section:assistiveHostDelegate.section(for:key), placeResponse:nil, recommendedPlaceResponse: nil))
+                newChatResults.append(ChatResult(index:index,identity: key, title: key, list:key, icon:"", rating: 1, section: assistiveHostDelegate.section(for:key), placeResponse:nil, recommendedPlaceResponse: nil))
                 
                 if let existingIndex = categoryMap[key] {
                     // Update existing result
@@ -529,12 +567,6 @@ public final class DefaultModelController : ModelController {
         }))
         
         let sortedResults = results.sorted(by: { $0.locationName < $1.locationName })
-        
-        print("🗺️ filteredLocationResults returning \(sortedResults.count) results:")
-        for (index, result) in sortedResults.enumerated() {
-            print("🗺️   \(index): \(result.locationName) - ID: \(result.id) - hasLocation: \(result.location != nil)")
-        }
-        
         return sortedResults
     }
     
@@ -668,11 +700,6 @@ public final class DefaultModelController : ModelController {
         return nil
     }
     
-    public func checkSearchTextForLocations(with text: String) async throws -> [CLPlacemark]? {
-        let tags = try assistiveHostDelegate.tags(for: text)
-        return try await assistiveHostDelegate.nearLocationCoordinate(for: text, tags: tags)
-    }
-    
     @discardableResult
     public func refreshModel(query: String, queryIntents: [AssistiveChatHostIntent]?, filters:[String:Any]) async throws -> [ChatResult] {
         
@@ -708,6 +735,8 @@ public final class DefaultModelController : ModelController {
     }
     
     
+    
+    
     /// Build autocomplete place results and update model state.
     public func autocompletePlaceModel(caption: String, intent: AssistiveChatHostIntent) async throws -> [ChatResult] {
         
@@ -737,7 +766,11 @@ public final class DefaultModelController : ModelController {
         }
         
         // Update model results on main actor
-        updateAllResults(places: chatResults, mapPlaces: chatResults)
+        if placeSearchResponses.count == 1 {
+            updateAllResults(places: chatResults, mapPlaces: chatResults, selectedPlaceFsqId: placeSearchResponses.first?.fsqID)
+        } else {
+            updateAllResults(places: chatResults, mapPlaces: chatResults)
+        }
         return chatResults
     }
     
@@ -777,8 +810,155 @@ public final class DefaultModelController : ModelController {
         }
     }
     
+    /// Orchestrates fetching recommendations and places, merges responses, prefetches details, and builds results.
+    private func performSearch(for intent: AssistiveChatHostIntent) async throws {
+        let destinationName = selectedDestinationLocationName()
+        let caption = intent.caption
+        setProgressMessage(phase: "Fetching recommendations", caption: caption, locationName: destinationName)
+        trackProgress(phase: "search.fetchRecommendations.begin", caption: caption, locationName: destinationName)
+        let recHandle = Task(priority: .userInitiated) { () -> ([RecommendedPlaceSearchResponse], Bool) in
+            do {
+                let rawPayload = try await placeSearchService.personalizedSearchSession.fetchRecommendedVenues(
+                    with: await placeSearchService.recommendedPlaceSearchRequest(intent: intent),
+                    cacheManager: cacheManager
+                )
+                
+                // --- Diagnostics BEFORE normalization/parse ---
+                var topLevelKeys: [String] = []
+                if let dict = rawPayload as? [String: Any] {
+                    topLevelKeys = Array(dict.keys)
+                }
+                
+                self.analyticsManager.track(
+                    event: "recommendedSearch.rawPayload",
+                    properties: [
+                        "type": String(describing: type(of: rawPayload)),
+                        "topLevelKeys": topLevelKeys
+                    ]
+                )
+                
+                // Normalize common envelopes like { "response": {...} } into a flat dictionary.
+                let normalized = self.normalizeRecommendedResponsePayload(rawPayload)
+                
+                var normalizedKeys: [String] = []
+                if let nk = normalized {
+                    normalizedKeys = Array(nk.keys)
+                }
+                
+                self.analyticsManager.track(
+                    event: "recommendedSearch.normalizedPayload",
+                    properties: [
+                        "didNormalize": normalized != nil,
+                        "normalizedKeys": normalizedKeys
+                    ]
+                )
+                
+                // Gracefully handle bad / unexpected shapes.
+                guard let normalizedDict = normalized else {
+                    self.analyticsManager.track(
+                        event: "recommendedSearch.missingNormalizedDict",
+                        properties: [
+                            "reason": "Payload not dictionary / unrecognized envelope"
+                        ]
+                    )
+                    return ([], false)
+                }
+                
+                // Attempt parse
+                do {
+                    let recs = try PlaceResponseFormatter.recommendedPlaceSearchResponses(with: normalizedDict)
+                    
+                    self.analyticsManager.track(
+                        event: "recommendedSearch.parsed",
+                        properties: [
+                            "count": recs.count
+                        ]
+                    )
+                    
+                    return (recs, true)
+                } catch {
+                    // Parsing failed, but we don't want to throw upstream.
+                    self.analyticsManager.trackError(
+                        error: error,
+                        additionalInfo: [
+                            "phase": "recommendedSearch.parseError",
+                            "normalizedKeys": normalizedKeys
+                        ]
+                    )
+                    return ([], false)
+                }
+            } catch {
+                // Network / request layer threw.
+                self.analyticsManager.trackError(
+                    error: error,
+                    additionalInfo: ["phase": "recommendedSearch.fetchError"]
+                )
+                return ([], false)
+            }
+        }
+        
+        setProgressMessage(phase: "Fetching places", caption: caption, locationName: destinationName)
+        trackProgress(phase: "search.fetchPlaces.begin", caption: caption, locationName: destinationName)
+        let placeHandle = Task(priority: .userInitiated) { () -> ([PlaceSearchResponse], Bool) in
+            do {
+                let raw = try await placeSearchService.placeSearchSession.query(request: await placeSearchService.placeSearchRequest(intent: intent))
+                let places = try PlaceResponseFormatter.placeSearchResponses(with: raw)
+                return (places, true)
+            } catch {
+                analyticsManager.trackError(error: error, additionalInfo: ["phase": "placeSearch"])
+                return ([], false)
+            }
+        }
+        
+        let (recs, recOK) = await recHandle.value
+        let (places, placeOK) = await placeHandle.value
+
+        trackProgress(phase: "search.fetchRecommendations.end", caption: caption, locationName: destinationName)
+        trackProgress(phase: "search.fetchPlaces.end", caption: caption, locationName: destinationName)
+        setProgressMessage(phase: "Merging results", caption: caption, locationName: destinationName)
+        
+        var finalPlaceResponses: [PlaceSearchResponse] = places
+
+        if !recs.isEmpty {
+            // keep the raw recommended objects for downstream display/details
+            intent.recommendedPlaceSearchResponses = recs
+
+            // convert recs -> PlaceSearchResponse rows for UI
+            let recAsPlaces = PlaceResponseFormatter.placeSearchResponses(from: recs)
+
+            if !recAsPlaces.isEmpty {
+                finalPlaceResponses = recAsPlaces
+                print("✅ Using \(recAsPlaces.count) recommended places as finalPlaceResponses")
+            } else {
+                print("⚠️ Parsed \(recs.count) recs but produced 0 PlaceSearchResponse rows. Falling back to \(places.count) /v3 places.")
+            }
+        }
+
+        intent.placeSearchResponses = finalPlaceResponses
+        
+        setProgressMessage(phase: "Prefetching details", caption: caption, locationName: destinationName)
+        trackProgress(phase: "search.prefetchDetails.begin", caption: caption, locationName: destinationName)
+        try await prefetchInitialDetailsIfNeeded(intent: intent, initialCount: 8)
+        trackProgress(phase: "search.prefetchDetails.end", caption: caption, locationName: destinationName)
+        setProgressMessage(phase: "Building results", caption: caption, locationName: destinationName)
+        
+        try await searchQueryModel(intent: intent)
+        trackProgress(phase: "search.buildResults.end", caption: caption, locationName: destinationName)
+        updateFoundResultsMessage()
+    }
+    
     @discardableResult
     public func placeQueryModel(intent: AssistiveChatHostIntent) async throws -> [ChatResult] {
+        // Component-level in-flight guard to prevent duplicate place queries for the same intent key
+        let _placeComponentKey = makeSearchKey(for: intent) + "::place"
+        if inFlightComponentKeys.contains(_placeComponentKey) {
+            print("🔁 Suppressing duplicate placeQueryModel for key: \(_placeComponentKey)")
+            analyticsManager.track(event: "placeQueryModel.duplicateSuppressed", properties: ["key": _placeComponentKey])
+            return placeResults
+        }
+        inFlightComponentKeys.insert(_placeComponentKey)
+        defer { inFlightComponentKeys.remove(_placeComponentKey) }
+        
         // Prepare inputs
         let hasSelected = (intent.selectedPlaceSearchResponse != nil && intent.selectedPlaceSearchDetails != nil)
         let placeResponses = intent.placeSearchResponses
@@ -786,10 +966,38 @@ public final class DefaultModelController : ModelController {
         let section = assistiveHostDelegate.section(for: caption)
         
         try await relatedPlaceQueryModel(intent: intent)
-        
+        // Ensure details are present for unselected flows by fetching any missing ones
+        if !hasSelected && !placeResponses.isEmpty {
+            let existingIDs = Set((intent.placeDetailsResponses ?? []).map { $0.fsqID })
+            let missingResponses = placeResponses.filter { !existingIDs.contains($0.fsqID) }
+            if !missingResponses.isEmpty {
+                let tempIntent = AssistiveChatHostIntent(
+                    caption: intent.caption,
+                    intent: .Place,
+                    selectedPlaceSearchResponse: nil,
+                    selectedPlaceSearchDetails: nil,
+                    placeSearchResponses: missingResponses,
+                    selectedDestinationLocation: intent.selectedDestinationLocation,
+                    placeDetailsResponses: nil,
+                    recommendedPlaceSearchResponses: intent.recommendedPlaceSearchResponses,
+                    relatedPlaceSearchResponses: intent.relatedPlaceSearchResponses,
+                    queryParameters: intent.queryParameters
+                )
+                do {
+                    try await placeSearchService.detailIntent(intent: tempIntent, cacheManager: cacheManager)
+                    if let fetched = tempIntent.placeDetailsResponses, !fetched.isEmpty {
+                        let merged = intent.placeDetailsResponses ?? []
+                        let mergedIDs = Set(merged.map { $0.fsqID })
+                        let newOnes = fetched.filter { !mergedIDs.contains($0.fsqID) }
+                        if !newOnes.isEmpty { intent.placeDetailsResponses = merged + newOnes }
+                    }
+                } catch {
+                    analyticsManager.trackError(error: error, additionalInfo: ["phase": "placeQueryModel.ensureDetails"])
+                }
+            }
+        }
         // Heavy compute off-main: build chatResults
         let chatResults: [ChatResult] = await Task.detached(priority: .userInitiated) { () -> [ChatResult] in
-            
             var results: [ChatResult] = []
             if hasSelected, let response = intent.selectedPlaceSearchResponse, let details = intent.selectedPlaceSearchDetails {
                 let r = PlaceResponseFormatter.placeChatResults(
@@ -804,9 +1012,17 @@ public final class DefaultModelController : ModelController {
                 )
                 results.append(contentsOf: r)
             } else if !placeResponses.isEmpty {
+                let detailsByID: [String: PlaceDetailsResponse] = {
+                    var dict: [String: PlaceDetailsResponse] = [:]
+                    if let all = intent.placeDetailsResponses {
+                        for d in all { dict[d.fsqID] = d }
+                    }
+                    return dict
+                }()
                 for index in 0..<placeResponses.count {
                     let response = placeResponses[index]
                     guard !response.name.isEmpty else { continue }
+                    let details = detailsByID[response.fsqID]
                     let r = PlaceResponseFormatter.placeChatResults(
                         for: intent,
                         place: response,
@@ -814,31 +1030,35 @@ public final class DefaultModelController : ModelController {
                         list: caption,
                         index: index,
                         rating: 1,
-                        details: nil,
+                        details: details,
                         recommendedPlaceResponse: nil
                     )
                     results.append(contentsOf: r)
                 }
             }
-            
+
             return results
         }.value
         
-        
-        // Compute mapResults + selectedPlace and apply on main actor
-        let mapResults = self.filteredPlaceResults.contains(where: { $0.identity == intent.selectedPlaceSearchResponse?.fsqID }) ? self.placeResults : chatResults
-        let selectedPlace = self.placeResults.first(where: { $0.placeResponse?.fsqID == intent.selectedPlaceSearchResponse?.fsqID })?.id
-        
         updateAllResults(
             places: chatResults,
-            mapPlaces: mapResults,
-            selectedPlace: selectedPlace
+            selectedPlaceFsqId: intent.selectedPlaceSearchResponse?.fsqID
         )
         
         return chatResults
     }
     
     public func recommendedPlaceQueryModel(intent: AssistiveChatHostIntent, cacheManager: CacheManager) async throws {
+        // Component-level in-flight guard to prevent duplicate recommendations queries for the same intent key
+        let _recsComponentKey = makeSearchKey(for: intent) + "::recs"
+        if inFlightComponentKeys.contains(_recsComponentKey) {
+            print("🔁 Suppressing duplicate recommendedPlaceQueryModel for key: \(_recsComponentKey)")
+            analyticsManager.track(event: "recommendedPlaceQueryModel.duplicateSuppressed", properties: ["key": _recsComponentKey])
+            return
+        }
+        inFlightComponentKeys.insert(_recsComponentKey)
+        defer { inFlightComponentKeys.remove(_recsComponentKey) }
+        
         // Capture dependencies and inputs for off-main work
         let recResponses = intent.recommendedPlaceSearchResponses ?? []
         let caption = intent.caption
@@ -862,7 +1082,7 @@ public final class DefaultModelController : ModelController {
         if hasSufficientTrainingData {
             let destinationName = selectedDestinationLocationName()
             let caption = intent.caption
-            setProgressMessage(phase: "Building ML recommendations", caption: caption, locationName: destinationName)
+            setProgressMessage(phase: "Personalizing recommendations", caption: caption, locationName: destinationName)
             trackProgress(phase: "recommendations.ml.begin", caption: caption, locationName: destinationName)
         }
 #endif
@@ -1112,8 +1332,8 @@ public final class DefaultModelController : ModelController {
         
         if existingPlaceResults == intent.placeSearchResponses,
            let selectedPlaceSearchDetails = intent.selectedPlaceSearchDetails,
-           let selectedPlaceChatResult = selectedPlaceChatResult,
-           let placeChatResult = placeChatResult(for: selectedPlaceChatResult) {
+           let selectedPlaceChatResultFsqId = selectedPlaceChatResultFsqId,
+           let placeChatResult = placeChatResult(with: selectedPlaceChatResultFsqId) {
             var newResults = [ChatResult]()
             for placeResult in placeResults {
                 if placeResult.placeResponse?.fsqID == placeChatResult.placeResponse?.fsqID, placeResult.placeDetailsResponse == nil {
@@ -1169,6 +1389,7 @@ public final class DefaultModelController : ModelController {
     @MainActor
     public func fetchPlaceDetailsIfNeeded(for result: ChatResult) async throws {
         // Fast exit if details already exist
+        
         if result.placeDetailsResponse != nil { return }
         if result.placeResponse != nil, result.placeResponse?.latitude == 0 {
             try await refreshModel(query: result.title, queryIntents: [.init(caption: result.title, intent: .Place, selectedPlaceSearchResponse: nil, selectedPlaceSearchDetails: nil, placeSearchResponses: [], selectedDestinationLocation: selectedDestinationLocationChatResult, placeDetailsResponses: nil, queryParameters: nil)], filters: [:])
@@ -1252,26 +1473,7 @@ public final class DefaultModelController : ModelController {
         
         update(&self.placeResults)
         update(&self.recommendedPlaceResults)
-        
-        // After details apply, ensure destination is synced if needed
-        let newCoord: CLLocationCoordinate2D? = {
-            if let sr = details.searchResponse as PlaceSearchResponse? {
-                if sr.latitude != 0, sr.longitude != 0 { return CLLocationCoordinate2D(latitude: sr.latitude, longitude: sr.longitude) }
-            }
-            return nil
-        }()
-        if let coord = newCoord {
-            if isOutsideThreshold(from: selectedDestinationLocationChatResult.location.coordinate, to: coord) {
-                if let existing = self.locationResults.first(where: { return coordinatesEqual($0.location.coordinate, coord)}) {
-                    self.setSelectedLocation(existing)
-                } else {
-                    let name = result.title.isEmpty ? (result.placeResponse?.name ?? "Selected Place") : result.title
-                    let temp = LocationResult(locationName: name, location: CLLocation(latitude: coord.latitude, longitude: coord.longitude))
-                    self.locationResults.append(temp)
-                    self.setSelectedLocation(temp)
-                }
-            }
-        }
+        self.updateFoundResultsMessage()
     }
     
     public func updateLastIntentParameter(for placeChatResult: ChatResult, selectedDestinationChatResult: LocationResult, filters: [String : Any]) async throws {
@@ -1284,7 +1486,7 @@ public final class DefaultModelController : ModelController {
         
         guard placeChatResult.placeResponse != nil, placeChatResult.placeResponse?.latitude != 0 else {
             await assistiveHostDelegate.updateLastIntentParameters(intent: newIntent, modelController: self)
-            try await assistiveHostDelegate.receiveMessage(caption: newIntent.caption, isLocalParticipant: true, filters: filters, modelController: self)
+            try await assistiveHostDelegate.receiveMessage(caption: newIntent.caption, isLocalParticipant: true, filters: filters, modelController: self, overrideIntent: nil, selectedDestinationLocation: selectedDestinationChatResult)
             return
         }
         
@@ -1297,22 +1499,28 @@ public final class DefaultModelController : ModelController {
         
     }
     
-    public func addReceivedMessage(caption: String, parameters: AssistiveChatHostQueryParameters, isLocalParticipant: Bool, filters: [String : Any]) async throws {
+    public func addReceivedMessage(caption: String, parameters: AssistiveChatHostQueryParameters, isLocalParticipant: Bool, filters: [String : Any], overrideIntent: AssistiveChatHostService.Intent? = nil, selectedDestinationLocation: LocationResult? = nil) async throws {
         
         let safeCaption = sanitizeCaption(caption)
         
-        let selectedPlaceChatResult = selectedPlaceChatResult
-        
         if let lastIntent = queryParametersHistory.last?.queryIntents.last {
-            try await searchIntent(intent: lastIntent, locationResult: lastIntent.selectedDestinationLocation)
+            try await searchIntent(intent: lastIntent)
             try await didUpdateQuery(with: safeCaption, parameters: parameters, filters: filters)
         } else {
-            let intent:AssistiveChatHostService.Intent = assistiveHostDelegate.determineIntent(for: safeCaption, override: nil)
+            var intent:AssistiveChatHostService.Intent = assistiveHostDelegate.determineIntent(for: safeCaption, override: nil)
+            if let overrideIntent {
+                intent = overrideIntent
+            }
+            
+            if selectedDestinationLocation != nil, overrideIntent == .Location {
+                intent = .Location
+            }
+            
             let queryParameters = try await assistiveHostDelegate.defaultParameters(for: safeCaption ,filters: filters)
-            let newIntent = AssistiveChatHostIntent(caption: safeCaption, intent: intent, selectedPlaceSearchResponse: nil, selectedPlaceSearchDetails: nil, placeSearchResponses: [PlaceSearchResponse](), selectedDestinationLocation: selectedDestinationLocationChatResult, placeDetailsResponses:nil, queryParameters: queryParameters)
+            let newIntent = AssistiveChatHostIntent(caption: safeCaption, intent: intent, selectedPlaceSearchResponse: nil, selectedPlaceSearchDetails: nil, placeSearchResponses: [PlaceSearchResponse](), selectedDestinationLocation: selectedDestinationLocation ??  selectedDestinationLocationChatResult, placeDetailsResponses:nil, queryParameters: queryParameters)
             
             await assistiveHostDelegate.appendIntentParameters(intent: newIntent, modelController: self)
-            try await searchIntent(intent: newIntent, locationResult:selectedDestinationLocationChatResult)
+            try await searchIntent(intent: newIntent)
             try await didUpdateQuery(with: safeCaption, parameters: parameters, filters: filters)
         }
     }
@@ -1335,78 +1543,47 @@ public final class DefaultModelController : ModelController {
         setProgressMessage(phase: "Starting search", caption: caption, locationName: destinationName)
         trackProgress(phase: "start", caption: caption, locationName: destinationName)
         
-        switch intent.intent {
+        // Minimal in-flight guard for duplicate search flows
+        // Only applies to .Search and .Location, leaving .Place and autocomplete flows untouched.
+        let intentKind = intent.intent
+        if intentKind == .Search || intentKind == .Location {
+            let key = makeSearchKey(for: intent)
+            if inFlightSearchKey == key {
+                print("🔁 Suppressing duplicate model search for key: \(key)")
+                analyticsManager.track(event: "model.duplicateSearchSuppressed", properties: ["key": key])
+                return placeResults
+            }
+            inFlightSearchKey = key
+            defer { if inFlightSearchKey == key { inFlightSearchKey = nil } }
+        }
+        
+        switch intentKind {
         case .Place:
             setProgressMessage(phase: "Building place results", caption: caption, locationName: destinationName)
             trackProgress(phase: "place.buildResults", caption: caption, locationName: destinationName)
             try await placeQueryModel(intent: intent)
             analyticsManager.track(event:"modelPlaceQueryBuilt", properties: nil)
         case .Location:
-            fallthrough
+            // Use PlaceSearchSession to search for locations and update NavigationLocationView via locationResults
+            setProgressMessage(phase: "Searching locations", caption: caption, locationName: destinationName)
+            trackProgress(phase: "location.autocomplete.begin", caption: caption, locationName: destinationName)
+             do {
+                 let locs = try await placeSearchService.placeSearchSession.autocompleteLocationResults(
+                     caption: intent.caption,
+                     parameters: intent.queryParameters,
+                     locationResult: intent.selectedDestinationLocation
+                 )
+                 updateAllResults(locations: locs, appendLocations: true)
+                 trackProgress(phase: "location.autocomplete.end", caption: caption, locationName: destinationName)
+                 analyticsManager.track(event: "searchIntentLocationAutocompleteBuilt", properties: ["count": locs.count])
+             } catch {
+                 analyticsManager.trackError(error: error, additionalInfo: ["phase": "searchIntent.location.autocomplete"])
+                 throw error
+             }
         case .Search:
-            setProgressMessage(phase: "Fetching recommendations", caption: caption, locationName: destinationName)
-            trackProgress(phase: "search.fetchRecommendations.begin", caption: caption, locationName: destinationName)
-            // Prepare both requests
-            let recHandle = Task(priority: .userInitiated) { () -> ([RecommendedPlaceSearchResponse], Bool) in
-                do {
-                    let raw = try await placeSearchService.personalizedSearchSession.fetchRecommendedVenues(with: await placeSearchService.recommendedPlaceSearchRequest(intent: intent), cacheManager: cacheManager)
-                    let recs = try PlaceResponseFormatter.recommendedPlaceSearchResponses(with: raw)
-                    return (recs, true)
-                } catch {
-                    analyticsManager.trackError(error: error, additionalInfo: ["phase": "recommendedSearch"])
-                    return ([], false)
-                }
-            }
-            
-            setProgressMessage(phase: "Fetching places", caption: caption, locationName: destinationName)
-            trackProgress(phase: "search.fetchPlaces.begin", caption: caption, locationName: destinationName)
-            let placeHandle = Task(priority: .userInitiated) { () -> ([PlaceSearchResponse], Bool) in
-                do {
-                    let raw = try await placeSearchService.placeSearchSession.query(request: await placeSearchService.placeSearchRequest(intent: intent))
-                    let places = try PlaceResponseFormatter.placeSearchResponses(with: raw)
-                    return (places, true)
-                } catch {
-                    analyticsManager.trackError(error: error, additionalInfo: ["phase": "placeSearch"])
-                    return ([], false)
-                }
-            }
-            
-            let (recs, _) = await recHandle.value
-            let (places, _) = await placeHandle.value
-            
-            trackProgress(phase: "search.fetchRecommendations.end", caption: caption, locationName: destinationName)
-            trackProgress(phase: "search.fetchPlaces.end", caption: caption, locationName: destinationName)
-            setProgressMessage(phase: "Merging results", caption: caption, locationName: destinationName)
-            
-            // Prefer recommended if available; otherwise use place results
-            var finalPlaceResponses: [PlaceSearchResponse] = places
-            if !recs.isEmpty {
-                intent.recommendedPlaceSearchResponses = recs
-                finalPlaceResponses = PlaceResponseFormatter.placeSearchResponses(from: recs)
-            }
-            
-            // Populate intent with chosen responses
-            intent.placeSearchResponses = finalPlaceResponses
-            
-            trackProgress(phase: "search.prefetchDetails.begin", caption: caption, locationName: destinationName)
-            setProgressMessage(phase: "Prefetching details", caption: caption, locationName: destinationName)
-            // Prefetch details for the first few items to make first paint faster
-            try await prefetchInitialDetailsIfNeeded(intent: intent, initialCount: 8)
-            trackProgress(phase: "search.prefetchDetails.end", caption: caption, locationName: destinationName)
-            setProgressMessage(phase: "Building results", caption: caption, locationName: destinationName)
-            
-            try await searchQueryModel(intent: intent)
-            trackProgress(phase: "search.buildResults.end", caption: caption, locationName: destinationName)
-            updateFoundResultsMessage()
+            try await performSearch(for: intent)
             analyticsManager.track(event:"modelSearchQueryBuilt", properties: nil)
             analyticsManager.track(event: "searchIntentWithSearch", properties: nil)
-        case .AutocompletePlaceSearch:
-            setProgressMessage(phase: "Fetching autocomplete places", caption: caption, locationName: destinationName)
-            trackProgress(phase: "autocomplete.place.begin", caption: caption, locationName: destinationName)
-            try await autocompletePlaceModel(caption: intent.caption, intent: intent)
-            trackProgress(phase: "autocomplete.place.end", caption: caption, locationName: destinationName)
-            updateFoundResultsMessage()
-            analyticsManager.track(event: "modelAutocompletePlaceModelBuilt", properties: nil)
         case .AutocompleteTastes:
             setProgressMessage(phase: "Fetching autocomplete tastes", caption: caption, locationName: destinationName)
             trackProgress(phase: "autocomplete.tastes.begin", caption: caption, locationName: destinationName)
@@ -1420,17 +1597,31 @@ public final class DefaultModelController : ModelController {
     }
     
     
-    public func searchIntent(intent: AssistiveChatHostIntent, locationResult:LocationResult) async throws {
-        let destinationName = locationResult.locationName
+    public func searchIntent(intent: AssistiveChatHostIntent) async throws {
+        let destinationName = intent.selectedDestinationLocation.locationName
         
         let caption = intent.caption
         setProgressMessage(phase: "Starting search", caption: caption, locationName: destinationName)
         trackProgress(phase: "start", caption: caption, locationName: destinationName)
         
-        switch intent.intent {
+        // Minimal in-flight guard for duplicate search flows in searchIntent
+        // Only applies to .Search and .Location, leaving .Place and autocomplete flows untouched.
+        let intentKind = intent.intent
+        if intentKind == .Search || intentKind == .Location {
+            let key = makeSearchKey(for: intent)
+            if inFlightSearchKey == key {
+                print("🔁 Suppressing duplicate searchIntent for key: \(key)")
+                analyticsManager.track(event: "searchIntent.duplicateSearchSuppressed", properties: ["key": key])
+                return
+            }
+            inFlightSearchKey = key
+            do { if inFlightSearchKey == key { inFlightSearchKey = nil } }
+        }
+        
+        switch intentKind {
             
         case .Place:
-            if let selectedPlaceSearchResponse = intent.selectedPlaceSearchResponse {
+            if intent.selectedPlaceSearchResponse != nil {
                 setProgressMessage(phase: "Fetching place details", caption: caption, locationName: destinationName)
                 trackProgress(phase: "place.details.begin", caption: caption, locationName: destinationName)
                 try await placeSearchService.detailIntent(intent: intent, cacheManager: cacheManager)
@@ -1467,72 +1658,24 @@ public final class DefaultModelController : ModelController {
                 analyticsManager.track(event: "searchIntentWithPlace", properties: nil)
             }
         case .Location:
-            fallthrough
+            // Use PlaceSearchSession to search for locations and update NavigationLocationView via locationResults
+            setProgressMessage(phase: "Searching locations", caption: caption, locationName: destinationName)
+            trackProgress(phase: "location.autocomplete.begin", caption: caption, locationName: destinationName)
+             do {
+                 let locs = try await placeSearchService.placeSearchSession.autocompleteLocationResults(
+                     caption: intent.caption,
+                     parameters: intent.queryParameters,
+                     locationResult: intent.selectedDestinationLocation
+                 )
+                 updateAllResults(locations: locs, appendLocations: true)
+                 trackProgress(phase: "location.autocomplete.end", caption: caption, locationName: destinationName)
+                 analyticsManager.track(event: "searchIntentLocationAutocompleteBuilt", properties: ["count": locs.count])
+             } catch {
+                 analyticsManager.trackError(error: error, additionalInfo: ["phase": "searchIntent.location.autocomplete"])
+                 throw error
+             }
         case .Search:
-            setProgressMessage(phase: "Fetching recommendations", caption: caption, locationName: destinationName)
-            trackProgress(phase: "search.fetchRecommendations.begin", caption: caption, locationName: destinationName)
-            // Prepare both requests
-            let recHandle = Task(priority: .userInitiated) { () -> ([RecommendedPlaceSearchResponse], Bool) in
-                do {
-                    let raw = try await placeSearchService.personalizedSearchSession.fetchRecommendedVenues(with: await placeSearchService.recommendedPlaceSearchRequest(intent: intent), cacheManager:cacheManager)
-                    let recs = try PlaceResponseFormatter.recommendedPlaceSearchResponses(with: raw)
-                    return (recs, true)
-                } catch {
-                    analyticsManager.trackError(error: error, additionalInfo: ["phase": "recommendedSearch"])
-                    return ([], false)
-                }
-            }
-            
-            setProgressMessage(phase: "Fetching places", caption: caption, locationName: destinationName)
-            trackProgress(phase: "search.fetchPlaces.begin", caption: caption, locationName: destinationName)
-            let placeHandle = Task(priority: .userInitiated) { () -> ([PlaceSearchResponse], Bool) in
-                do {
-                    let raw = try await placeSearchService.placeSearchSession.query(request: await placeSearchService.placeSearchRequest(intent: intent))
-                    let places = try PlaceResponseFormatter.placeSearchResponses(with: raw)
-                    return (places, true)
-                } catch {
-                    analyticsManager.trackError(error: error, additionalInfo: ["phase": "placeSearch"])
-                    return ([], false)
-                }
-            }
-            
-            let (recs, _) = await recHandle.value
-            let (places, _) = await placeHandle.value
-            
-            trackProgress(phase: "search.fetchRecommendations.end", caption: caption, locationName: destinationName)
-            trackProgress(phase: "search.fetchPlaces.end", caption: caption, locationName: destinationName)
-            setProgressMessage(phase: "Merging results", caption: caption, locationName: destinationName)
-            
-            // Prefer recommended if available; otherwise use place results
-            var finalPlaceResponses: [PlaceSearchResponse] = places
-            if !recs.isEmpty {
-                intent.recommendedPlaceSearchResponses = recs
-                finalPlaceResponses = PlaceResponseFormatter.placeSearchResponses(from: recs)
-            }
-            
-            // Populate intent with chosen responses
-            intent.placeSearchResponses = finalPlaceResponses
-            
-            setProgressMessage(phase: "Prefetching details", caption: caption, locationName: destinationName)
-            trackProgress(phase: "search.prefetchDetails.begin", caption: caption, locationName: destinationName)
-            // Prefetch details for the first few items to make first paint faster
-            try await prefetchInitialDetailsIfNeeded(intent: intent, initialCount: 8)
-            trackProgress(phase: "search.prefetchDetails.end", caption: caption, locationName: destinationName)
-            setProgressMessage(phase: "Building results", caption: caption, locationName: destinationName)
-            
-            try await searchQueryModel(intent: intent)
-            trackProgress(phase: "search.buildResults.end", caption: caption, locationName: destinationName)
-            updateFoundResultsMessage()
-            
-        case .AutocompletePlaceSearch:
-            setProgressMessage(phase: "Fetching autocomplete places", caption: caption, locationName: destinationName)
-            trackProgress(phase: "autocomplete.place.begin", caption: caption, locationName: destinationName)
-            let autocompleteResponse = try await placeSearchService.placeSearchSession.autocomplete(caption: intent.caption, parameters: intent.queryParameters, locationResult:locationResult)
-            let placeSearchResponses = try PlaceResponseFormatter.autocompletePlaceSearchResponses(with: autocompleteResponse)
-            intent.placeSearchResponses = placeSearchResponses
-            trackProgress(phase: "autocomplete.place.end", caption: caption, locationName: destinationName)
-            updateFoundResultsMessage()
-            analyticsManager.track(event: "searchIntentWithPersonalizedAutocomplete", properties: nil)
+            try await performSearch(for: intent)
         case .AutocompleteTastes:
             setProgressMessage(phase: "Fetching autocomplete tastes", caption: caption, locationName: destinationName)
             trackProgress(phase: "autocomplete.tastes.begin", caption: caption, locationName: destinationName)

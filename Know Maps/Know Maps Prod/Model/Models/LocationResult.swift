@@ -8,19 +8,22 @@
 import Foundation
 import CoreLocation
 
-public class LocationResult : Identifiable, Equatable, Hashable, Sendable {
-    public static func == (lhs: LocationResult, rhs: LocationResult) -> Bool {
-        lhs.locationName == rhs.locationName && lhs.location == rhs.location
-    }
+public final class LocationResult : Identifiable, Equatable, Hashable, Sendable {
     
     public let id:String
     public let locationName:String
     public let location:CLLocation
+    public let formattedAddress:String?
     
-    public init(locationName: String, location: CLLocation) {
+    public init(locationName: String, location: CLLocation, formattedAddress: String? = nil) {
         self.id = UUID().uuidString
         self.locationName = locationName
         self.location = location
+        self.formattedAddress = formattedAddress
+    }
+    
+    static public func == (lhs: LocationResult, rhs: LocationResult) -> Bool {
+        lhs.id == rhs.id
     }
     
     public func hash(into hasher: inout Hasher) {

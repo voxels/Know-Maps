@@ -42,6 +42,9 @@ struct SavedListView: View {
     
     @State private var searchText:String = ""
     
+    @State private var lastTapCategoryID: CategoryResult.ID? = nil
+    @State private var lastTapAt: Date = .distantPast
+    
     var body: some View {
         NavigationStack {
             GeometryReader { geometry in
@@ -87,7 +90,7 @@ struct SavedListView: View {
                                     ratingButton(for: parent, searchMode: .industries)
                                 }
                                 .frame(maxWidth: .infinity)
-                                
+                                .contentShape(Rectangle())
                             }
                             .onDelete { indexSet in
                                 let idsToDelete = indexSet.map { cacheManager.cachedIndustryResults[$0].id }
@@ -120,6 +123,7 @@ struct SavedListView: View {
                                     ratingButton(for: parent, searchMode: .features)
                                 }
                                 .frame(maxWidth: .infinity)
+                                .contentShape(Rectangle())
                             }
                             .onDelete { indexSet in
                                 let idsToDelete = indexSet.map { cacheManager.cachedTasteResults[$0].id }
@@ -139,8 +143,6 @@ struct SavedListView: View {
                         }
                     }
                     
-
-                    
                     DisclosureGroup("Favorite Places", isExpanded: $isPlacesExpanded) {
                         if !cacheManager.cachedPlaceResults.isEmpty {
                             ForEach(cacheManager.cachedPlaceResults.filter({ result in
@@ -150,6 +152,7 @@ struct SavedListView: View {
                                 }
                             }), id: \.id) { parent in
                                 Text(parent.parentCategory)
+                                    .contentShape(Rectangle())
                             }
                             .onDelete { indexSet in
                                 let idsToDelete = indexSet.map { cacheManager.cachedPlaceResults[$0].id }
@@ -186,9 +189,13 @@ struct SavedListView: View {
 #else
                 .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search for a favorite")
 #endif
-                .onAppear {
+                .task {
                     Task(priority: .high) {
-                        try await cacheManager.refreshCache()
+                        do {
+                            try await cacheManager.refreshCache()
+                        } catch {
+                            modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
+                        }
                     }
                 }
             }
@@ -196,6 +203,16 @@ struct SavedListView: View {
     }
     
     // MARK: - Helper Views
+    
+    private func shouldAllowSelection(for id: CategoryResult.ID) -> Bool {
+        let now = Date()
+        let debounce: TimeInterval = 0.2
+        defer { lastTapCategoryID = id; lastTapAt = now }
+        if lastTapCategoryID == id, now.timeIntervalSince(lastTapAt) < debounce {
+            return false
+        }
+        return true
+    }
     
     @ViewBuilder
     func ratingButton(for parent: CategoryResult, searchMode:SearchMode) -> some View {
@@ -374,3 +391,4 @@ struct SavedListView: View {
         }
     }
 }
+

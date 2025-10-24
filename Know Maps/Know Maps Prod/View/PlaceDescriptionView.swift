@@ -12,7 +12,7 @@ struct PlaceDescriptionView: View {
     @Binding var modelController:DefaultModelController
     
     var body: some View {
-        if let resultId = modelController.selectedPlaceChatResult, let placeChatResult = modelController.placeChatResult(for: resultId), let placeDetailsResponse = placeChatResult.placeDetailsResponse, let _ = placeDetailsResponse.tipsResponses {
+        if let resultId = modelController.selectedPlaceChatResultFsqId, let placeChatResult = modelController.placeChatResult(with: resultId), let placeDetailsResponse = placeChatResult.placeDetailsResponse, let _ = placeDetailsResponse.tipsResponses {
             if let description = placeDetailsResponse.description, !description.isEmpty {
                     Text(description)
                     .padding()

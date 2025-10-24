@@ -47,7 +47,7 @@ class AppleAuthenticationService: NSObject, ObservableObject {
     
     // MARK: - Sign In with Apple
     func signIn() {
-        Task(priority: .userInteractive) { @MainActor in
+        Task(priority: .userInitiated) { @MainActor in
             let provider = ASAuthorizationAppleIDProvider()
             let request = provider.createRequest()
             self.prepareSignInRequest(request)
@@ -436,11 +436,31 @@ extension AppleAuthenticationService: ASAuthorizationControllerPresentationConte
         // iOS: find the active foreground scene's key window
         if let windowScene = UIApplication.shared.connectedScenes
             .compactMap({ $0 as? UIWindowScene })
-            .first(where: { $0.activationState == .foregroundActive }),
-           let window = windowScene.windows.first(where: { $0.isKeyWindow }) {
-            return window
+            .first(where: { $0.activationState == .foregroundActive }) {
+            // Prefer an existing key window in the active scene
+            if let keyWindow = windowScene.windows.first(where: { $0.isKeyWindow }) {
+                return keyWindow
+            }
+            // Fallback: create a temporary window anchored to the active scene
+            let tempWindow = UIWindow(windowScene: windowScene)
+            // Make it as unobtrusive as possible; no root VC needed for anchor
+            tempWindow.isHidden = false
+            return tempWindow
         }
-        return UIWindow()
+        // If no active scene is available, try any connected scene
+        if let anyScene = UIApplication.shared.connectedScenes.compactMap({ $0 as? UIWindowScene }).first {
+            if let anyWindow = anyScene.windows.first {
+                return anyWindow
+            }
+            let tempWindow = UIWindow(windowScene: anyScene)
+            tempWindow.isHidden = false
+            return tempWindow
+        }
+        // As a last resort, return a new, hidden window only on platforms where a scene isn't required
+        // However, on iOS 26+, UIWindow() is deprecated; avoid constructing without a scene
+        // Return a minimal, non-nil anchor by creating a detached window if APIs change.
+        // In practice, this path should rarely be hit.
+        return ASPresentationAnchor()
         #endif
     }
 }

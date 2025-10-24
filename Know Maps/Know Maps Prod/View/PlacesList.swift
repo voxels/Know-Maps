@@ -17,7 +17,9 @@ struct PlacesList: View {
     @Binding public var chatModel:ChatResultViewModel
     @Binding var cacheManager:CloudCacheManager
     @Binding var modelController: DefaultModelController
-    @Binding var selectedPlace:ChatResult?
+    
+    @State private var lastTapPlaceID: ChatResult.ID? = nil
+    @State private var lastTapTime: Date = .distantPast
     
     static var formatter:NumberFormatter {
         let retval = NumberFormatter()
@@ -39,72 +41,72 @@ struct PlacesList: View {
                 ForEach(modelController.recommendedPlaceResults, id: \.id) { result in
                     let ar: CGFloat = CGFloat(result.recommendedPlaceResponse?.aspectRatio ?? 1.0)
                     let reservedHeight: CGFloat = itemWidth / ar
-                        ZStack(alignment: .topTrailing) {
-                            if let photo = result.recommendedPlaceResponse?.photo, !photo.isEmpty, let url = URL(string: photo) {
-                                LazyImage(url: url) { state in
-                                    if let image = state.image {
-                                        image
-                                            .resizable()
-                                            .aspectRatio(ar, contentMode: .fill)
-                                            .frame(width: itemWidth, height: reservedHeight)
-                                            .clipped()
-                                    } else if state.error != nil {
-                                        ZStack {
-                                            Rectangle().fill(.secondary.opacity(0.15))
-                                            Image(systemName: "photo")
-                                                .resizable()
-                                                .aspectRatio(contentMode: .fit)
-                                                .font(.title2)
-                                                .foregroundStyle(.secondary)
-                                        }
+                    ZStack(alignment: .topTrailing) {
+                        if let photo = result.recommendedPlaceResponse?.photo, !photo.isEmpty, let url = URL(string: photo) {
+                            LazyImage(url: url) { state in
+                                if let image = state.image {
+                                    image
+                                        .resizable()
+                                        .aspectRatio(ar, contentMode: .fill)
                                         .frame(width: itemWidth, height: reservedHeight)
-                                    } else {
-                                        ZStack {
-                                            Rectangle().fill(.secondary.opacity(0.10))
-                                            ProgressView()
-                                        }
-                                        .frame(width: itemWidth, height:reservedHeight)
+                                        .clipped()
+                                } else if state.error != nil {
+                                    ZStack {
+                                        Rectangle().fill(.secondary.opacity(0.15))
+                                        Image(systemName: "photo")
+                                            .resizable()
+                                            .aspectRatio(contentMode: .fit)
+                                            .font(.title2)
+                                            .foregroundStyle(.secondary)
                                     }
-                                }
-                                .contentTransition(.opacity)
-                                .frame(maxWidth: itemWidth, maxHeight:reservedHeight)
-                            } else {
-                                Color.clear
-                                    .frame(maxWidth: itemWidth, maxHeight:reservedHeight)
-                            }
-                            
-                            VStack(alignment: .leading, spacing:4) {
-                                if let neighborhood = result.recommendedPlaceResponse?.neighborhood, !neighborhood.isEmpty {
-                                    Text(result.title).bold()
-                                    Text(neighborhood).italic()
+                                    .frame(width: itemWidth, height: reservedHeight)
                                 } else {
-                                    Text(result.title).bold()
-                                }
-                                if let placeResponse = result.recommendedPlaceResponse, !placeResponse.address.isEmpty {
-                                    Text(placeResponse.address)
-                                    Text(placeResponse.city)
+                                    ZStack {
+                                        Rectangle().fill(.secondary.opacity(0.10))
+                                        ProgressView()
+                                    }
+                                    .frame(width: itemWidth, height:reservedHeight)
                                 }
                             }
-                            .padding(16)
-#if !os(visionOS)
-                            .glassEffect(.regular, in: .rect(cornerRadius: 32))
-                            .padding(16)
-#else
-                            .background(.ultraThinMaterial)
-                            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-                            .padding(16)
-#endif
+                            .contentTransition(.opacity)
+                            .frame(maxWidth: itemWidth, maxHeight:reservedHeight)
+                        } else {
+                            Color.clear
+                                .frame(maxWidth: itemWidth, maxHeight:reservedHeight)
                         }
-                        .clipShape(RoundedRectangle(cornerRadius: 32, style: .continuous))
-                        .contentShape(RoundedRectangle(cornerRadius: 32, style: .continuous))
+                        
+                        VStack(alignment: .leading, spacing:4) {
+                            if let neighborhood = result.recommendedPlaceResponse?.neighborhood, !neighborhood.isEmpty {
+                                Text(result.title).bold()
+                                Text(neighborhood).italic()
+                            } else {
+                                Text(result.title).bold()
+                            }
+                            if let placeResponse = result.recommendedPlaceResponse, !placeResponse.address.isEmpty {
+                                Text(placeResponse.address)
+                                Text(placeResponse.city)
+                            }
+                        }
+                        .padding(16)
+#if !os(visionOS)
+                        .glassEffect(.regular, in: .rect(cornerRadius: 32))
+                        .padding(16)
+#else
+                        .background(.ultraThinMaterial)
+                        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                        .padding(16)
+#endif
+                    }
+                    .clipShape(RoundedRectangle(cornerRadius: 32, style: .continuous))
+                    .contentShape(RoundedRectangle(cornerRadius: 32, style: .continuous))
 #if os(visionOS)
-                        .hoverEffect(.lift)
+                    .hoverEffect(.lift)
 #endif
                     
                     .buttonStyle(.plain)
                     .animation(.snappy(duration: 0.35), value: modelController.recommendedPlaceResults)
                     .simultaneousGesture(TapGesture().onEnded {
-                        selectedPlace = result
+                        handlePlaceTap(result)
                     })
                 }
             }
@@ -123,37 +125,60 @@ struct PlacesList: View {
         ScrollView(.vertical) {
             LazyVGrid(columns: columns, alignment: .leading, spacing: 32) {
                 ForEach(modelController.filteredPlaceResults) { result in
-                        ZStack(alignment: .topLeading) {
-                            VStack(alignment: .leading) {
-                                Text(result.title).bold()
-                                if let placeResponse = result.placeResponse, !placeResponse.formattedAddress.isEmpty {
-                                    Text(placeResponse.formattedAddress)
-                                }
+                    ZStack(alignment: .topLeading) {
+                        VStack(alignment: .leading) {
+                            Text(result.title).bold()
+                            if let placeResponse = result.placeResponse, !placeResponse.formattedAddress.isEmpty {
+                                Text(placeResponse.formattedAddress)
                             }
-                            .padding()
-                            .contentTransition(.opacity)
-#if !os(visionOS)
-                            .background(.thinMaterial)
-                            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-#else
-                            .background(.ultraThinMaterial)
-                            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-#endif
                         }
-                        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-                        .contentShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-#if os(visionOS)
-                        .hoverEffect(.lift)
+                        .padding()
+                        .contentTransition(.opacity)
+#if !os(visionOS)
+                        .background(.thinMaterial)
+                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+#else
+                        .background(.ultraThinMaterial)
+                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
 #endif
-                        .animation(.snappy(duration: 0.35), value: modelController.filteredPlaceResults)
-                        .listRowBackground(Color.clear)
-                        .listStyle(.plain)
-                        .simultaneousGesture(TapGesture().onEnded {
-                            selectedPlace = result
-                        })
+                    }
+                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    .contentShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+#if os(visionOS)
+                    .hoverEffect(.lift)
+#endif
+                    .animation(.snappy(duration: 0.35), value: modelController.filteredPlaceResults)
+                    .listRowBackground(Color.clear)
+                    .listStyle(.plain)
+                    .simultaneousGesture(TapGesture().onEnded {
+                        handlePlaceTap(result)
+                    })
                 }
             }
             .padding()
+        }
+    }
+    
+    private func handlePlaceTap(_ result: ChatResult) {
+        let now = Date()
+        let debounce: TimeInterval = 0.2
+        if lastTapPlaceID == result.id, now.timeIntervalSince(lastTapTime) < debounce {
+            // Debounced identical re-tap
+            return
+        }
+        lastTapPlaceID = result.id
+        lastTapTime = now
+
+        // Kick off the place search intent using the DefaultModelController
+        Task { @MainActor in
+            do {
+                // create a new AssistiveChatHostIntent from the chatresult
+                let intent = AssistiveChatHostIntent(caption: result.title, intent: .Place, selectedPlaceSearchResponse: result.placeResponse, selectedPlaceSearchDetails: nil, placeSearchResponses:[result.placeResponse!], selectedDestinationLocation: modelController.selectedDestinationLocationChatResult, placeDetailsResponses: nil, queryParameters: nil)
+                
+                try await modelController.searchIntent(intent: intent)
+            } catch {
+                modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
+            }
         }
     }
     

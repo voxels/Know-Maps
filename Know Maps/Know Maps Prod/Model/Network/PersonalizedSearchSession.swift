@@ -18,12 +18,14 @@ public enum PersonalizedSearchSessionError : Error {
     case NoVenuesFound
     case MaxRetriesReached
     case TransientNetworkError
+    case Debounce
 }
 
 public actor PersonalizedSearchSession {
     // Retry/backoff configuration
     private static let maxRetryAttempts = 3
     private static let baseBackoff: TimeInterval = 0.5 // seconds
+    private var isFetchingRecommendations:Bool = false
 
     private let cloudCacheService: CloudCacheService
 
@@ -39,49 +41,59 @@ public actor PersonalizedSearchSession {
         return PersonalizedSearchSession.baseBackoff * exp + jitter
     }
 
+    // Memoization for in-flight token fetches
+    private var tokenTask: Task<String, Error>? = nil
+    private var cachedAccessToken: String = ""
+
     // Centralized token gating helper with observability and optional refresh
     @discardableResult
     private func requireAccessToken(
         cacheManager: CacheManager,
         refresh: (() async throws -> Void)? = nil
     ) async throws -> String {
-        print("[PersonalizedSearchSession] requireAccessToken: fetching token…")
-        do {
-            let token = try await fetchManagedUserAccessToken(cacheManager: cacheManager)
-            if token.isEmpty {
-                print("[PersonalizedSearchSession] requireAccessToken: token empty on first fetch.")
-                // Attempt optional refresh if provided
-                if let refresh = refresh {
-                    print("[PersonalizedSearchSession] requireAccessToken: attempting refresh…")
-                    try await refresh()
-                    let refreshed = try await fetchManagedUserAccessToken(cacheManager: cacheManager)
-                    if refreshed.isEmpty {
-                        print("[PersonalizedSearchSession] requireAccessToken: token still empty after refresh.")
-                        throw PersonalizedSearchSessionError.NoTokenFound
-                    }
-                    print("[PersonalizedSearchSession] requireAccessToken: acquired token after refresh.")
-                    return refreshed
-                }
-                throw PersonalizedSearchSessionError.NoTokenFound
-            }
-            print("[PersonalizedSearchSession] requireAccessToken: acquired token.")
+        // Fast path: return cached token if available
+        if !cachedAccessToken.isEmpty {
+            return cachedAccessToken
+        }
+        if let token = fsqAccessToken, !token.isEmpty {
+            cachedAccessToken = token
             return token
-        } catch {
-            // If we failed to fetch, try optional refresh once
-            print("[PersonalizedSearchSession] requireAccessToken: fetch error: \(error).")
-            if let refresh = refresh {
-                print("[PersonalizedSearchSession] requireAccessToken: attempting refresh after error…")
-                try await refresh()
-                let refreshed = try await fetchManagedUserAccessToken(cacheManager: cacheManager)
-                guard !refreshed.isEmpty else {
-                    print("[PersonalizedSearchSession] requireAccessToken: token empty after refresh following error.")
+        }
+        // Share any in-flight token fetch across concurrent callers
+        if let task = tokenTask {
+            return try await task.value
+        }
+
+        let task = Task { () throws -> String in
+            do {
+                let token = try await fetchManagedUserAccessToken(cacheManager: cacheManager)
+                if token.isEmpty {
+                    if let refresh = refresh {
+                        try await refresh()
+                        let refreshed = try await fetchManagedUserAccessToken(cacheManager: cacheManager)
+                        guard !refreshed.isEmpty else { throw PersonalizedSearchSessionError.NoTokenFound }
+                        return refreshed
+                    }
                     throw PersonalizedSearchSessionError.NoTokenFound
                 }
-                print("[PersonalizedSearchSession] requireAccessToken: acquired token after refresh following error.")
-                return refreshed
+                return token
+            } catch {
+                if let refresh = refresh {
+                    try await refresh()
+                    let refreshed = try await fetchManagedUserAccessToken(cacheManager: cacheManager)
+                    guard !refreshed.isEmpty else { throw PersonalizedSearchSessionError.NoTokenFound }
+                    return refreshed
+                }
+                throw error
             }
-            throw error
         }
+        tokenTask = task
+        defer { tokenTask = nil }
+        let acquired = try await task.value
+        // Cache the acquired token for fast-path next time
+        cachedAccessToken = acquired
+        fsqAccessToken = acquired
+        return acquired
     }
     
     public var fsqIdentity:String?
@@ -229,67 +241,9 @@ public actor PersonalizedSearchSession {
         return retval
     }
     
-    public func autocomplete(caption:String, parameters:[String:Any]?, location:CLLocation, cacheManager:CacheManager) async throws -> [String:Any] {
-        
-        let apiKey = try await requireAccessToken(cacheManager: cacheManager) {
-            _ = await self.cloudCacheService.refreshFsqToken()
-        }
-        
-        let ll = "\(location.coordinate.latitude),\(location.coordinate.longitude)"
-        var limit = 50
-        let nameString:String = ""
-                
-        if let parameters = parameters, let rawParameters = parameters["parameters"] as? NSDictionary {
-            
-            if let rawLimit = rawParameters["limit"] as? Int {
-                limit = rawLimit
-            }
-        }
-        
-        guard let queryComponents = URLComponents(string:"\(PersonalizedSearchSession.serverUrl)\(PersonalizedSearchSession.autocompleteAPIUrl)") else {
-            throw PersonalizedSearchSessionError.UnsupportedRequest
-        }
-        
-        var queryItems = [URLQueryItem]()
-
-        if nameString.count > 0 {
-            let queryUrlItem = URLQueryItem(name: "query", value: nameString.trimmingCharacters(in: .whitespacesAndNewlines))
-            queryItems.append(queryUrlItem)
-        } else {
-            let queryUrlItem = URLQueryItem(name: "query", value: caption)
-            queryItems.append(queryUrlItem)
-        }
-        
-        if ll.count > 0 {
-            let locationQueryItem = URLQueryItem(name: "ll", value: ll)
-            queryItems.append(locationQueryItem)
-            
-            let radiusQueryItem = URLQueryItem(name: "radius", value:"\(20000)")
-            queryItems.append(radiusQueryItem)
-        }
-        
-        let limitQueryItem = URLQueryItem(name: "limit", value: "\(limit)")
-        queryItems.append(limitQueryItem)
-
-        guard let url = queryComponents.url else {
-            throw PlaceSearchSessionError.UnsupportedRequest
-        }
-        
-        let placeSearchResponse = try await fetch(url: url, apiKey: apiKey, urlQueryItems: queryItems)
-        
-        guard let response = placeSearchResponse as? [String:Any] else {
-            return [String:Any]()
-        }
-                
-        var retval = [String:Any]()
-        if let responseDict = response["response"] as? [String:Any] {
-            retval = responseDict
-        }
-
-        return retval
-    }
-    
     public func fetchRecommendedVenues(with request:RecommendedPlaceSearchRequest, cacheManager:CacheManager) async throws -> [String:Any]{
+        guard !isFetchingRecommendations else { throw PersonalizedSearchSessionError.Debounce }
+        isFetchingRecommendations = true
         let apiKey = try await requireAccessToken(cacheManager: cacheManager) {
             _ = await self.cloudCacheService.refreshFsqToken()
         }
@@ -346,6 +300,7 @@ public actor PersonalizedSearchSession {
             do {
                 let queryItems = buildQueryItems(radius: radius)
                 let response = try await fetch(url: components.url!, apiKey: apiKey, urlQueryItems: queryItems)
+                isFetchingRecommendations = false
                 guard let response = response as? [String:Any] else { throw PersonalizedSearchSessionError.NoVenuesFound }
                 if let responseDict = response["response"] as? [String:Any] {
                     // If results are sparse, only escalate radius if more attempts remain
@@ -361,6 +316,7 @@ public actor PersonalizedSearchSession {
                 if index < radiiToTry.count - 1 { continue }
                 throw PersonalizedSearchSessionError.NoVenuesFound
             } catch {
+                isFetchingRecommendations = false
                 lastError = error
                 // On transient/server errors, try next radius if available
                 if index < radiiToTry.count - 1 { continue }

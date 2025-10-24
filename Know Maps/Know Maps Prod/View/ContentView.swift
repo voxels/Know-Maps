@@ -79,7 +79,6 @@ struct ContentView: View {
     @State private var searchTask: Task<Void, Never>? = nil
     @State private var columnVisibility: NavigationSplitViewVisibility = .automatic
     @State private var preferredCompactColumn:NavigationSplitViewColumn = .detail
-    @State private var selectedPlaceChatResult:ChatResult? =  nil
     var body: some View {
         GeometryReader { geometry in
             browseView()
@@ -118,23 +117,7 @@ struct ContentView: View {
                                 // If we can resolve a corresponding place chat result, treat this category as a place
                                 if let placeChat = placeResult.categoricalChatResults.first {
                                     do {
-                                        // Ensure details are fetched for the place (e.g., Foursquare ID details)
-                                        try await modelController.fetchPlaceDetailsIfNeeded(for: placeChat)
-
-                                        // Add a message to the chat reflecting the selection
-                                        try await chatModel.didTap(
-                                            placeChatResult: placeChat,
-                                            filters: searchSavedViewModel.filters,
-                                            modelController: modelController
-                                        )
-                                        
-                                        
-
-
-                                        // Lightweight analytics breadcrumbs for debugging selection clearing
-                                        await MainActor.run {
-                                            modelController.analyticsManager.track(event: "ContentView.didTap.placeChatResult.setSelected", properties: ["placeID": String(describing: placeChat.id)])
-                                        }
+                                        try await handlePlaceCategoryChatResult(placeChat)
                                     } catch {
                                         modelController.analyticsManager.trackError(error: error, additionalInfo: ["phase": "placeSelectionTap"])
                                     }
@@ -142,13 +125,22 @@ struct ContentView: View {
                                 } else {
                                     // No direct place chat found; fall back to a search using the category caption
                                     do {
-                                        try await chatModel.didSearch(
-                                            caption: placeResult.parentCategory,
-                                            selectedDestinationChatResult: modelController.selectedDestinationLocationChatResult,
-                                            intent: .Search,
-                                            filters: [:],
-                                            modelController: modelController
+                                        let caption = placeResult.parentCategory
+                                        let selectedDestination = modelController.selectedDestinationLocationChatResult
+                                        let intentKind = AssistiveChatHostService.Intent.Search
+                                        let queryParameters = try await modelController.assistiveHostDelegate.defaultParameters(for: caption, filters: [:])
+                                        let newIntent = AssistiveChatHostIntent(
+                                            caption: caption,
+                                            intent: intentKind,
+                                            selectedPlaceSearchResponse: nil,
+                                            selectedPlaceSearchDetails: nil,
+                                            placeSearchResponses: [],
+                                            selectedDestinationLocation: selectedDestination,
+                                            placeDetailsResponses: nil,
+                                            queryParameters: queryParameters
                                         )
+                                        await modelController.assistiveHostDelegate.appendIntentParameters(intent: newIntent, modelController: modelController)
+                                        try await modelController.searchIntent(intent: newIntent)
                                     } catch {
                                         modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
                                     }
@@ -158,21 +150,25 @@ struct ContentView: View {
                             // Finally, fall back to a generic chat result
                             if let chatResult = modelController.cachedChatResult(for: id) {
                                 do {
-                                    try await handleDefaultCategoryChatResult(chatResult)
+                                    let caption = chatResult.title
+                                    let selectedDestination = modelController.selectedDestinationLocationChatResult
+                                    let intentKind = AssistiveChatHostService.Intent.Search
+                                    let queryParameters = try await modelController.assistiveHostDelegate.defaultParameters(for: caption, filters: [:])
+                                    let newIntent = AssistiveChatHostIntent(
+                                        caption: caption,
+                                        intent: intentKind,
+                                        selectedPlaceSearchResponse: nil,
+                                        selectedPlaceSearchDetails: nil,
+                                        placeSearchResponses: [],
+                                        selectedDestinationLocation: selectedDestination,
+                                        placeDetailsResponses: nil,
+                                        queryParameters: queryParameters
+                                    )
+                                    await modelController.assistiveHostDelegate.appendIntentParameters(intent: newIntent, modelController: modelController)
+                                    try await modelController.searchIntent(intent: newIntent)
                                 } catch {
                                     modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
                                 }
-                            }
-                        }
-                    }
-                }
-                .onChange(of: modelController.selectedPlaceChatResult) { _, newValue in
-                    if let newValue, let placeChatResult = modelController.placeChatResult(for: newValue) {
-                        Task {
-                            do {
-                                try await chatModel.didTap(placeChatResult: placeChatResult, filters: searchSavedViewModel.filters, modelController: modelController)
-                            } catch {
-                                modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
                             }
                         }
                     }
@@ -244,12 +240,20 @@ struct ContentView: View {
                         do {
                             try? Task.checkCancellation()
                             
-                            try await chatModel.didSearch(
+                            let intentKind = AssistiveChatHostService.Intent.Search
+                            let queryParameters = try await modelController.assistiveHostDelegate.defaultParameters(for: caption, filters: [:])
+                            let newIntent = AssistiveChatHostIntent(
                                 caption: caption,
-                                selectedDestinationChatResult: selectedDestination,
-                                filters: searchSavedViewModel.filters,
-                                modelController: modelController
+                                intent: intentKind,
+                                selectedPlaceSearchResponse: nil,
+                                selectedPlaceSearchDetails: nil,
+                                placeSearchResponses: [],
+                                selectedDestinationLocation: selectedDestination,
+                                placeDetailsResponses: nil,
+                                queryParameters: queryParameters
                             )
+                            await modelController.assistiveHostDelegate.appendIntentParameters(intent: newIntent, modelController: modelController)
+                            try await modelController.searchIntent(intent: newIntent)
                         } catch is CancellationError {
                             // Swallow cancellations silently
                         } catch {
@@ -392,7 +396,7 @@ struct ContentView: View {
                         }
                 }
             } detail: {
-                if let selectedResult = modelController.selectedPlaceChatResult, let placeChatResult = modelController.placeChatResult(for: selectedResult) {
+                if let selectedResult = modelController.selectedPlaceChatResultFsqId, let placeChatResult = modelController.placeChatResult(with: selectedResult) {
                     PlaceView(
                         searchSavedViewModel: $searchSavedViewModel,
                         chatModel: $chatModel,
@@ -401,27 +405,17 @@ struct ContentView: View {
                         placeDirectionsViewModel: placeDirectionsChatViewModel,
                         selectedResult: placeChatResult
                     )
+                    .navigationBarTitleDisplayMode(.automatic)
+                    .navigationTitle(placeChatResult.title)
                 } else {
                     PlacesList(
                         searchSavedViewModel: $searchSavedViewModel,
                         chatModel: $chatModel,
                         cacheManager: $cacheManager,
-                        modelController: $modelController, selectedPlace: $selectedPlaceChatResult
+                        modelController: $modelController
                     )
-                    .onChange(of: selectedPlaceChatResult) { _, newValue in
-                        if let newValue {
-                            Task {
-                                try? await handlePlaceCategoryChatResult(newValue)
-                            }
-                        } else {
-                            modelController.selectedPlaceChatResult = nil
-                        }
-                    }
-                    .onChange(of: modelController.selectedPlaceChatResult) { _, newValue in
-                        if let newValue, let placeChatResult = modelController.placeChatResult(for: newValue) {
-                            selectedPlaceChatResult = placeChatResult
-                        }
-                    }
+                    .navigationBarTitleDisplayMode(.automatic)
+                    .navigationTitle("Browse")
                 }
             }
         }
@@ -434,11 +428,10 @@ extension ContentView {
     private func handlePlaceCategoryChatResult(_ result:ChatResult) async throws {
         Task {
             do {
-                if result.placeDetailsResponse == nil {
-                    try await modelController.fetchPlaceDetailsIfNeeded(for: result)
+                if let selectedPlaceSearchResponse = result.placeResponse {
+                    let intent = AssistiveChatHostIntent(caption: result.title, intent: .Place, selectedPlaceSearchResponse: result.placeResponse, selectedPlaceSearchDetails: result.placeDetailsResponse, placeSearchResponses:[], selectedDestinationLocation:modelController.selectedDestinationLocationChatResult, placeDetailsResponses:nil, queryParameters: nil)
+                    try await modelController.searchIntent(intent: intent)
                 }
-                try await chatModel.didTap(placeChatResult: result, filters: searchSavedViewModel.filters, modelController: modelController)
-
             } catch {
                 modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
             }
@@ -458,13 +451,22 @@ extension ContentView {
     }
     
     private func handleListCategoryChatResult(_ result:ChatResult) async throws {
-        try await chatModel.didSearch(
-            caption: result.title,
-            selectedDestinationChatResult: modelController.selectedDestinationLocationChatResult,
-            intent: .Search,
-            filters: [:],
-            modelController: modelController
+        let caption = result.title
+        let selectedDestination = modelController.selectedDestinationLocationChatResult
+        let intentKind = AssistiveChatHostService.Intent.Search
+        let queryParameters = try await modelController.assistiveHostDelegate.defaultParameters(for: caption, filters: [:])
+        let newIntent = AssistiveChatHostIntent(
+            caption: caption,
+            intent: intentKind,
+            selectedPlaceSearchResponse: nil,
+            selectedPlaceSearchDetails: nil,
+            placeSearchResponses: [],
+            selectedDestinationLocation: selectedDestination,
+            placeDetailsResponses: nil,
+            queryParameters: queryParameters
         )
+        await modelController.assistiveHostDelegate.appendIntentParameters(intent: newIntent, modelController: modelController)
+        try await modelController.searchIntent(intent: newIntent)
     }
 }
 

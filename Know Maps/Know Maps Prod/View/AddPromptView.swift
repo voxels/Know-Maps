@@ -30,7 +30,7 @@ struct AddPromptToolbarView: View {
     @Binding public var searchMode:SearchMode
     
     var body: some View {
-        if searchMode == .places, let selectedPlaceChatResult = modelController.selectedPlaceChatResult,let placeChatResult = modelController.placeChatResult(for: selectedPlaceChatResult), !cacheManager.cachedPlaces(contains:placeChatResult.title){
+        if searchMode == .places, let selectedPlaceChatResult = modelController.selectedPlaceChatResultFsqId,let placeChatResult = modelController.placeChatResult(with: selectedPlaceChatResult), !cacheManager.cachedPlaces(contains:placeChatResult.title){
             Button(action: {
                 Task(priority:.userInitiated) {
                     await viewModel.addPlace(parent: selectedPlaceChatResult, rating: 3, cacheManager: cacheManager, modelController: modelController)
@@ -38,7 +38,7 @@ struct AddPromptToolbarView: View {
             }) {
                 Label("Save", systemImage: "plus.circle")
             }
-            .disabled(modelController.selectedPlaceChatResult == nil)
+            .disabled(modelController.selectedPlaceChatResultFsqId == nil)
             .labelStyle(.titleAndIcon)
         }
         else if searchMode == .industries {

@@ -25,11 +25,13 @@ struct NavigationLocationView: View {
     @State public var cameraPosition:MapCameraPosition = .automatic
     @State public var selectedMapItem: String? = nil
     @State public var distanceFilterValue: Double = 20
-    @State private var selectedLocation: LocationResult?
-    @State private var filteredLocationResults: [LocationResult] = []
     @State private var isUpdatingSelection = false
     @State private var lastCenterCoordinate: CLLocationCoordinate2D? = nil
-
+    @State private var autocompleteTask: Task<Void, Never>? = nil
+    @State private var isSearching: Bool = false
+    @State private var selectedLocation:LocationResult?
+    @State private var currentResult:LocationResult?
+    
     // MARK: - Computed Properties
     
     private func makeFiltersView() -> FiltersContainerView {
@@ -68,17 +70,6 @@ struct NavigationLocationView: View {
                         }
                             .buttonStyle(.automatic)
                     }
-                    ToolbarItem(placement: .secondaryAction) {
-                        Button(action: {
-                            addSelectedLocation()
-                        }) {
-                            Image(systemName: "plus")
-                        }
-                        .disabled(selectedLocationId == nil || isSelectedLocationAlreadySaved())
-                        .accessibilityLabel("Add Selected Location")
-                        .accessibilityHint("Adds the currently selected location to your saved locations")
-                    }
-
                     #else
                     ToolbarItem(placement: .navigationBarLeading) {
                         Button("Done", systemImage: "chevron.backward") {
@@ -86,37 +77,15 @@ struct NavigationLocationView: View {
                         }
                             .buttonStyle(.automatic)
                     }
-                    ToolbarItem(placement: .navigationBarTrailing) {
-                        Button(action: {
-                            if let selectedLocation {
-                                addLocationFromSwipe(selectedLocation)
-                            }
-                        }) {
-                            Image(systemName: "plus")
-                        }
-                        .disabled(selectedLocation == nil || isSelectedLocationAlreadySaved())
-                        .accessibilityLabel("Add Selected Location")
-                        .accessibilityHint("Adds the currently selected location to your saved locations")
-                    }
+                    
                     #endif
                 }
                 .onAppear {
-                    refreshLocationResults()
-                    initializeSelection()
-                    updateCameraToSelectedDestination()
                     // Sync initial distance filter value from filters
                     if let distance = filters["distance"] as? Double {
                         distanceFilterValue = distance
                     }
-                }
-                .onChange(of: modelController.selectedDestinationLocationChatResult) { oldValue, newValue in
-                    if !isUpdatingSelection {
-                        selectedLocation = newValue
-                        updateCamera(for: newValue)
-                    }
-                }
-                .onChange(of: cacheManager.cachedLocationResults.count) { _, _ in
-                    refreshLocationResults()
+                    autocompleteTask?.cancel()
                 }
                 .onChange(of: (filters["distance"] as? Double)) { oldValue, newValue in
                     guard let newValue else { return }
@@ -127,8 +96,11 @@ struct NavigationLocationView: View {
                 }
             }
         }
+        .task {
+            let currentLocation: CLLocation = modelController.locationService.currentLocation()
+            currentResult = LocationResult(locationName: "Current Location", location: currentLocation)
+        }
     }
-    
     
     func mapView(geometry:GeometryProxy) -> some View {
         MapReader { proxy in
@@ -180,7 +152,6 @@ struct NavigationLocationView: View {
                                             distance: distanceFilterValue * 1000
                                         )
                                     )
-                                    search(intent: .Location, query: "\(coordinate.latitude), \(coordinate.longitude)")
                             }
                         default:
                             break
@@ -190,112 +161,91 @@ struct NavigationLocationView: View {
         }
     }
     
-    
-    
-    func listView(geometry:GeometryProxy) -> some View {
-        List() {
-            // Section for Current Location (always shown as unsaved)
-            Section("Current Location") {
-                let currentLocation = modelController.locationService.currentLocation()
-                let currentResult = LocationResult(locationName: "Current Location", location: currentLocation)
-                let isSelected = selectedLocation == currentResult
-                HStack {
-                    Text(currentResult.locationName)
-                        .fontWeight(isSelected ? .semibold : .regular)
-                    Spacer()
-                    // Always show as unsaved indicator (not a checkmark)
-                    Image(systemName: isSelected ? "plus.circle" : "circle")
-                        .foregroundColor(isSelected ? .blue : .gray)
-                }
-                .contentShape(Rectangle())
-                .onTapGesture {
-                    handleLocationSelection(currentResult)
+    func listView(geometry: GeometryProxy) -> some View {
+        // Precompute frequently used values to reduce type-checker work
+        let frameHeight: CGFloat = (sizeClass == .compact) ? geometry.size.height : geometry.size.height / 2
+
+        return List(selection: $selectedLocation) {
+            if let current = currentResult {
+                Section("Current Location") {
+                    CurrentLocationRow(title: current.locationName)
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            selectedLocation = current
+                            handleLocationSelection(current)
+                        }
                 }
             }
 
-            // Section for other search results
+            // Results Section
             Section("Results") {
-                ForEach(filteredLocationResults, id: \.id) { result in
-                    let isSaved = cacheManager.cachedLocation(contains: result.locationName)
-                    let isSelected = selectedLocation == result
-
-                    HStack {
-                        Text(result.locationName)
-                            .fontWeight(isSelected ? .semibold : .regular)
-                        Spacer()
-                        if isSaved {
-                            Image(systemName: "checkmark.circle.fill")
-                                .foregroundColor(.green)
-                        } else if isSelected {
-                            Image(systemName: "plus.circle")
-                                .foregroundColor(.blue)
-                        } else {
-                            Image(systemName: "circle")
-                                .foregroundColor(.gray)
-                        }
-                    }
-                    .contentShape(Rectangle())
+                ForEach(modelController.filteredLocationResults()) { result in
+                    LocationResultRow(
+                        result: result,
+                        isSaved: cacheManager.cachedLocation(contains: result.locationName),
+                        isSelected: modelController.selectedDestinationLocationChatResult.id == result.id,
+                        addAction: { addLocationFromSwipe(result) },
+                        removeAction: { removeLocation(result) }
+                    )
                     .onTapGesture {
+                        selectedLocation = result
                         handleLocationSelection(result)
                     }
-                    .swipeActions {
-                        if isSaved {
-                            Button(action: {
-                                removeLocation(result)
-                            }, label: {
-                                Label("Remove", systemImage: "minus.circle")
-                            })
-                            .tint(.red)
-                        } else {
-                            Button(action: {
-                                addLocationFromSwipe(result)
-                            }, label: {
-                                Label("Add", systemImage: "plus.circle")
-                            })
-                            .tint(.blue)
-                        }
-                    }
                 }
             }
         }
-        .frame(idealWidth: .infinity, idealHeight: sizeClass == .compact ? geometry.size.height : geometry.size.height / 2)
-        #if os(macOS)
+        .onChange(of:selectedLocation) { _, newValue in
+            guard let newValue else { return }
+            modelController.setSelectedLocation(newValue)
+        }
+        .frame(idealWidth: .infinity, idealHeight: frameHeight)
+    #if os(macOS)
         .searchable(text: $searchText, prompt: "Point of Interest")
-        #else
+    #else
         .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Point of Interest")
-        #endif
-        // Only search when user submits (presses Return) instead of on every change
+    #endif
         .onSubmit(of: .search) {
             let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
-            if !query.isEmpty {
-                search(intent: .Location, query: query)
-            }
+            guard !query.isEmpty else { return }
+            requestAutocomplete(for: query)
         }
     }
-    
-    func search(intent:AssistiveChatHostService.Intent, query: String? = nil) {
-        guard let query, !query.isEmpty else { return }
         
-        Task(priority:.userInitiated) {
-            do {
-                try await chatModel.didSearch(caption:query, selectedDestinationChatResult:modelController.selectedDestinationLocationChatResult, intent:intent, filters: searchSavedViewModel.filters, modelController: modelController)
-            } catch {
-                modelController.analyticsManager.trackError(error:error, additionalInfo: nil)
-            }
-            
-            if intent == .Location {
-                // Refresh results and validate selection after location search
-                await MainActor.run {
-                    refreshLocationResults()
-                    // Update selection if it changed in the model controller
-                    if modelController.selectedDestinationLocationChatResult != selectedLocation {
-                        selectedLocation = modelController.selectedDestinationLocationChatResult
-                    }
+    /// Debounced autocomplete request that cancels any in-flight autocomplete task
+    private func requestAutocomplete(for query: String) {
+        // Cancel previous autocomplete task
+        autocompleteTask?.cancel()
+
+        // If the query is empty, do nothing and allow UI to clear suggestions elsewhere
+        let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+
+        // Schedule a debounced task
+        autocompleteTask = Task { @MainActor in
+            // Debounce ~350ms to avoid flooding the network
+            try? await Task.sleep(nanoseconds: 350_000_000)
+            guard !Task.isCancelled else { return }
+
+            // Guard against concurrent committed searches
+            guard !isSearching else { return }
+
+            // Fire a lightweight autocomplete via model controller
+            let intent = locationIntent(for: trimmed)
+            Task(priority: .userInitiated) {
+                do {
+                    try await modelController.searchIntent(intent: intent)
+                } catch {
+                    modelController.analyticsManager.trackError(error: error, additionalInfo: ["source": "NavigationLocationView.autocomplete"]) 
                 }
             }
         }
     }
     
+    func locationIntent(for query:String)->AssistiveChatHostIntent {
+        AssistiveChatHostIntent(caption: query, intent: .Location, selectedPlaceSearchResponse: nil, selectedPlaceSearchDetails: nil, placeSearchResponses: [], selectedDestinationLocation: selectedLocation ?? LocationResult(locationName: "Current Location", location: modelController.locationService.currentLocation()), placeDetailsResponses: nil, queryParameters: nil)
+    }
+    
+    // Note: Camera updates only; do not trigger network fetches from here to avoid duplicate requests.
     private func updateCamera(for locationResult: LocationResult) {
         print("📹 updateCamera called for \(locationResult.id)")
            print("📹 Found location: \(locationResult.locationName) at \(locationResult.location.coordinate)")
@@ -310,7 +260,8 @@ struct NavigationLocationView: View {
         }
     }
     
-    /// Update camera distance while keeping the same center coordinate
+    /// Update camera distance while keeping the same center coordinate.
+    /// This must not trigger any network requests; guarded by design.
     private func updateCameraDistance() {
 //        print("📹 updateCameraDistance called with distance: \(distanceFilterValue)")
 
@@ -333,49 +284,19 @@ struct NavigationLocationView: View {
                 )
     }
     
-    private func updateCameraToSelectedDestination() {
-        if selectedLocation == nil {
-            modelController.setSelectedLocation(nil)
-        }
-        syncSelectionToModel()
-    }
-    
     // MARK: - State Management Functions
     
-    /// Refresh the cached filtered location results
-    private func refreshLocationResults() {
-        filteredLocationResults = modelController.filteredLocationResults()
-        
-        // Update local selection if model controller's selection changed
-        if selectedLocation != modelController.selectedDestinationLocationChatResult {
-            selectedLocation = modelController.selectedDestinationLocationChatResult
-        }
-    }
-    
-    /// Initialize selection state from model controller
-    private func initializeSelection() {
-        selectedLocation = modelController.selectedDestinationLocationChatResult
-        syncSelectionToModel()
-        
-        print("🎯 initializeSelection: selectedLocationId = \(selectedLocation?.id ?? "nil")")
-    }
-    
     /// Sync local selection state to model controller
-    private func syncSelectionToModel() {
-        guard !isUpdatingSelection else { return }
-        isUpdatingSelection = true
-        
-        Task { @MainActor in
-            if let selectedLocation = selectedLocation {
-                handleLocationSelection(selectedLocation)
-            }
-            isUpdatingSelection = false
-        }
+    private func syncSelectionToModel(_ selectedLocation:LocationResult) {
+        handleLocationSelection(selectedLocation)
     }
     
     /// Handle location selection from list tap
     private func handleLocationSelection(_ locationResult: LocationResult) {
         print("🎯 handleLocationSelection called with \(locationResult.id)")
+        
+        // Cancel pending autocomplete when user explicitly selects a location
+        autocompleteTask?.cancel()
         
         // Don't sync back to avoid loops - the selection binding already updated selectedLocationId
         // Just update camera and model controller
@@ -400,10 +321,6 @@ struct NavigationLocationView: View {
                 cacheManager: cacheManager,
                 modelController: modelController
             )
-            
-            await MainActor.run {
-                refreshLocationResults()
-            }
         }
     }
     
@@ -419,13 +336,7 @@ struct NavigationLocationView: View {
                     cacheManager: cacheManager,
                     modelController: modelController
                 )
-                
-                await MainActor.run {
-                    refreshLocationResults()
-                    selectedLocation = result
-                    syncSelectionToModel()
-                }
-                
+                syncSelectionToModel(result)
             } catch {
                 modelController.analyticsManager.trackError(
                     error: error,
@@ -433,13 +344,6 @@ struct NavigationLocationView: View {
                 )
             }
         }
-    }
-    
-    /// Check if the currently selected location is already saved
-    private func isSelectedLocationAlreadySaved() -> Bool {
-        
-        guard let selected = selectedLocation, let filteredLocation = filteredLocationResults.first(where: { $0.id == selected.id }) else { return false }
-        return cacheManager.cachedLocation(contains: filteredLocation.locationName)
     }
 }
 
@@ -460,6 +364,69 @@ private struct FiltersContainerView: View {
             filters: $filters,
             distanceFilterValue: $distanceFilterValue
         )
+    }
+}
+
+private struct CurrentLocationRow: View {
+    let title: String
+
+    var body: some View {
+        HStack {
+            Text(title)
+            Spacer()
+            Image(systemName:"circle")
+                .foregroundColor(.blue)
+        }
+    }
+}
+
+private struct ResultRow: View {
+    let title: String
+    let isSaved: Bool
+    let isSelected: Bool
+
+    var body: some View {
+        HStack {
+            Text(title)
+                .fontWeight(isSelected ? .semibold : .regular)
+            Spacer()
+            if isSaved {
+                Image(systemName: "checkmark.circle.fill")
+                    .foregroundColor(.green)
+            } else if isSelected {
+                Image(systemName: "plus.circle")
+                    .foregroundColor(.blue)
+            } else {
+                Image(systemName: "circle")
+                    .foregroundColor(.gray)
+            }
+        }
+    }
+}
+
+private struct LocationResultRow: View {
+    let result: LocationResult
+    let isSaved: Bool
+    let isSelected: Bool
+    let addAction: () -> Void
+    let removeAction: () -> Void
+
+    var body: some View {
+        ResultRow(title: result.locationName, isSaved: isSaved, isSelected: isSelected)
+            .contentShape(Rectangle())
+            .swipeActions {
+                if isSaved {
+                    Button(action: removeAction) {
+                        Label("Remove", systemImage: "minus.circle")
+                    }
+                    .tint(.red)
+                } else {
+                    Button(action: addAction) {
+                        Label("Add", systemImage: "plus.circle")
+                    }
+                    .tint(.blue)
+                }
+            }
     }
 }
 

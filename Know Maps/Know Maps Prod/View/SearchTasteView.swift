@@ -60,9 +60,24 @@ struct SearchTasteView: View {
             Task(priority:.userInitiated) { @MainActor in
                 modelController.tasteResults.removeAll()
                 do {
-                    try await chatModel.didSearch(caption:tasteSearchText, selectedDestinationChatResult:modelController.selectedDestinationLocationChatResult, intent:.AutocompleteTastes, filters: [:], modelController: modelController)
+                    let caption = tasteSearchText
+                    let selectedDestination = modelController.selectedDestinationLocationChatResult
+                    let intentKind = AssistiveChatHostService.Intent.AutocompleteTastes
+                    let queryParameters = try await modelController.assistiveHostDelegate.defaultParameters(for: caption, filters: [:])
+                    let newIntent = AssistiveChatHostIntent(
+                        caption: caption,
+                        intent: intentKind,
+                        selectedPlaceSearchResponse: nil,
+                        selectedPlaceSearchDetails: nil,
+                        placeSearchResponses: [],
+                        selectedDestinationLocation: selectedDestination,
+                        placeDetailsResponses: nil,
+                        queryParameters: queryParameters
+                    )
+                    await modelController.assistiveHostDelegate.appendIntentParameters(intent: newIntent, modelController: modelController)
+                    try await modelController.searchIntent(intent: newIntent)
                 } catch {
-                    modelController.analyticsManager.trackError(error:error, additionalInfo: nil)
+                     modelController.analyticsManager.trackError(error:error, additionalInfo: nil)
                 }
             }
         })

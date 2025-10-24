@@ -45,7 +45,6 @@ struct FiltersView: View {
                         // When editing finishes: persist to filters and apply
                         filters["distance"] = clampedValue
                         kilometers = Float(clampedValue)
-                        applyFilters()
                     }
                 }
                 Text(" (\(FiltersView.formatter.string(from:NSNumber(value:distanceFilterValue)) ?? "1") kilometers)")
@@ -59,7 +58,6 @@ struct FiltersView: View {
         .onChange(of:openNowFilterValue) { _, newValue in
             if newValue {
                 filters["open_now"] = newValue
-                applyFilters()
             }
         }
         .task {
@@ -81,24 +79,6 @@ struct FiltersView: View {
                 openNowFilterValue = openNow
             } else {
                 openNowFilterValue = false
-            }
-        }
-    }
-    
-    func applyFilters() {
-        if let lastIntent = modelController.queryParametersHistory.last?.queryIntents.last {
-            let selectedDestination = modelController.selectedDestinationLocationChatResult
-            modelController.isRefreshingPlaces = true
-            Task(priority:.userInitiated) {
-                do {
-                    try await modelController.resetPlaceModel()
-                } catch {
-                    modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
-                }
-                await searchSavedViewModel.search(caption: lastIntent.caption, selectedDestinationChatResult: selectedDestination, intent: .Search, filters: searchSavedViewModel.filters, chatModel: chatModel, cacheManager: cacheManager, modelController: modelController)
-                await MainActor.run {
-                    modelController.isRefreshingPlaces = false
-                }
             }
         }
     }

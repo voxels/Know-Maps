@@ -78,13 +78,22 @@ struct PlaceAboutView: View {
                                 Task { @MainActor in
                                     do {
                                         try await modelController.resetPlaceModel()
-                                        try await chatModel.didSearch(
-                                            caption: relatedPlace.title,
-                                            selectedDestinationChatResult: modelController.selectedDestinationLocationChatResult,
-                                            filters: searchSavedViewModel.filters,
-                                            
-                                            modelController: modelController
+                                        let caption = relatedPlace.title
+                                        let selectedDestination = modelController.selectedDestinationLocationChatResult
+                                        let intentKind = AssistiveChatHostService.Intent.Search
+                                        let queryParameters = try await modelController.assistiveHostDelegate.defaultParameters(for: caption, filters: searchSavedViewModel.filters)
+                                        let newIntent = AssistiveChatHostIntent(
+                                            caption: caption,
+                                            intent: intentKind,
+                                            selectedPlaceSearchResponse: nil,
+                                            selectedPlaceSearchDetails: nil,
+                                            placeSearchResponses: [],
+                                            selectedDestinationLocation: selectedDestination,
+                                            placeDetailsResponses: nil,
+                                            queryParameters: queryParameters
                                         )
+                                        await modelController.assistiveHostDelegate.appendIntentParameters(intent: newIntent, modelController: modelController)
+                                        try await modelController.searchIntent(intent: newIntent)
                                         await MainActor.run {
                                             modelController.isRefreshingPlaces = false
                                         }

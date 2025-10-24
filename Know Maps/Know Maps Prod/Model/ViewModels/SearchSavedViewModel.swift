@@ -47,15 +47,6 @@ public final class SearchSavedViewModel : Sendable {
         return [:]
     }
     
-    // Search functionality
-    func search(caption: String, selectedDestinationChatResult: LocationResult, intent:AssistiveChatHostService.Intent, filters:[String:Any], chatModel:ChatResultViewModel, cacheManager:CacheManager, modelController:ModelController) async {
-        do {
-            try await chatModel.didSearch(caption: caption, selectedDestinationChatResult: selectedDestinationChatResult , intent:intent, filters: filters, modelController:modelController)
-        } catch {
-            await modelController.analyticsManager.trackError(error:error, additionalInfo: nil)
-        }
-    }
-    
     // MARK: - Helper Functions
     
     func updateRating(for result: CategoryResult, rating: Double,  cacheManager:CacheManager, modelController:ModelController) {
@@ -344,3 +335,4 @@ public final class SearchSavedViewModel : Sendable {
 
     }
 }
+

@@ -22,11 +22,8 @@ public protocol AssistiveChatHost:AnyObject, Sendable{
     func updateLastIntentParameters(intent:AssistiveChatHostIntent, modelController:ModelController) async
     func appendIntentParameters(intent:AssistiveChatHostIntent, modelController:ModelController) async
     func resetIntentParameters()
-    func receiveMessage(caption:String, isLocalParticipant:Bool, filters:[String:Any], modelController:ModelController ) async throws
+    func receiveMessage(caption:String, isLocalParticipant:Bool, filters:[String:Any], modelController:ModelController, overrideIntent: AssistiveChatHostService.Intent?, selectedDestinationLocation: LocationResult?) async throws
     func defaultParameters(for query:String, filters:[String:Any]) async throws -> [String:Any]?
-    func lastLocationIntent()->AssistiveChatHostIntent?
-    func nearLocation(for rawQuery:String, tags:AssistiveChatHostTaggedWord?) async throws -> String?
-    func nearLocationCoordinate(for rawQuery:String, tags:AssistiveChatHostTaggedWord?) async throws -> [CLPlacemark]?
     func tags(for rawQuery:String) throws ->AssistiveChatHostTaggedWord?
     func section(for title:String)->PersonalizedSearchSection
 }

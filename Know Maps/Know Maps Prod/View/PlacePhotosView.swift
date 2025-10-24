@@ -9,7 +9,7 @@ struct PlacePhotosView: View {
 
     var body: some View {
         GeometryReader { geo in
-            if let resultId = modelController.selectedPlaceChatResult, let placeChatResult = modelController.placeChatResult(for: resultId), let placeDetailsResponse = placeChatResult.placeDetailsResponse, let photoResponses = placeDetailsResponse.photoResponses {
+            if let resultId = modelController.selectedPlaceChatResultFsqId, let placeChatResult = modelController.placeChatResult(with: resultId), let placeDetailsResponse = placeChatResult.placeDetailsResponse, let photoResponses = placeDetailsResponse.photoResponses {
                 if photoResponses.count > 0 {
                     ScrollView(.vertical) {
                         let columns = Array(repeating: GridItem(.adaptive(minimum: geo.size.width - 32)),  count:sizeClass == .compact ? 1 : 2)

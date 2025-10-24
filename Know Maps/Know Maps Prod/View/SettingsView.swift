@@ -88,9 +88,6 @@ struct SettingsView: View {
                 Task {
                     try await modelController.resetPlaceModel()
                     model.signOut()
-                    await MainActor.run {
-                        showOnboarding = true
-                    }
                 }
             } label: {
                 Label("Sign Out of your Apple ID", systemImage: "person.crop.circle.badge.minus")
@@ -102,9 +99,6 @@ struct SettingsView: View {
                         try await modelController.resetPlaceModel()
                         try await cacheManager.cloudCacheService.deleteAllUserCachedGroups()
                         try await cacheManager.refreshCache()
-                        await MainActor.run {
-                            showOnboarding = true
-                        }
                     } catch {
                         modelController.analyticsManager.trackError(error:error, additionalInfo:nil)
                     }
@@ -120,9 +114,6 @@ struct SettingsView: View {
                         try await cacheManager.cloudCacheService.deleteAllUserCachedGroups()
                         try await cacheManager.refreshCache()
                         model.signOut()
-                        await MainActor.run {
-                            showOnboarding = true
-                        }
                     } catch {
                         modelController.analyticsManager.trackError(error:error, additionalInfo:nil)
                     }

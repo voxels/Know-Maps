@@ -89,7 +89,7 @@ open class LanguageGeneratorSession : NSObject, ObservableObject {
     }
     
     internal func fetchBytes(urlRequest:URLRequest, apiKey:String, session:URLSession, languageGeneratorRequest:LanguageGeneratorRequest, delegate:AssistiveChatHostStreamResponseDelegate) async throws -> NSDictionary? {
-        print("Requesting URL: \(String(describing: urlRequest.url))")
+        print("Requesting Bytes: \(String(describing: urlRequest.url))")
         let (bytes, response) = try await session.bytes(for: urlRequest)
 
         guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {

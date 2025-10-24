@@ -49,8 +49,8 @@ struct Know_MapsApp: App {
     }()
     
     @StateObject public var authenticationModel:AppleAuthenticationService = AppleAuthenticationService.shared
-    @State public var chatModel:ChatResultViewModel = ChatResultViewModel.shared
-    @State public var searchSavedViewModel:SearchSavedViewModel = SearchSavedViewModel.shared
+    @State public var chatModel:ChatResultViewModel
+    @State public var searchSavedViewModel:SearchSavedViewModel
     @State public var cacheManager:CloudCacheManager
     @State public var modelController:DefaultModelController
     
@@ -65,23 +65,27 @@ struct Know_MapsApp: App {
     @State private var showNavigationLocationView:Bool = false
 
     init() {
-        let authModel = AppleAuthenticationService.shared
-        let searchSavedViewModel = SearchSavedViewModel()
-        let chatModel = ChatResultViewModel.shared
+        // Create required services locally first to avoid capturing self
         let cloudCacheService = CloudCacheService(analyticsManager: SegmentAnalyticsService.shared, modelContext: Know_MapsApp.sharedModelContainer.mainContext)
         let cacheManager = CloudCacheManager(cloudCacheService: cloudCacheService)
-        let modelController = DefaultModelController( messagesDelegate: chatModel, cacheManager:cacheManager)
-        
-        _cacheManager = State(wrappedValue: cacheManager)
-        _authenticationModel = StateObject(wrappedValue: authModel)
-        _modelController = State(wrappedValue: modelController)
-        _searchSavedViewModel = State(wrappedValue: searchSavedViewModel)
-        _chatModel = State(wrappedValue: chatModel)
-        
-        AppDependencyManager.shared.add(dependency: cacheManager)
-        AppDependencyManager.shared.add(dependency: modelController)
-        AppDependencyManager.shared.add(dependency: chatModel)
-        
+        let modelController = DefaultModelController(cacheManager: cacheManager)
+        let chatModel = ChatResultViewModel.shared
+        let searchSavedViewModel = SearchSavedViewModel.shared
+
+        // Assign to stored properties
+        self._authenticationModel = StateObject(wrappedValue: AppleAuthenticationService.shared)
+        self._chatModel = State(initialValue: chatModel)
+        self._searchSavedViewModel = State(initialValue: searchSavedViewModel)
+        self._cacheManager = State(initialValue: cacheManager)
+        self._modelController = State(initialValue: modelController)
+
+        // After self is fully initialized, schedule dependency registration on the main actor
+        Task { @MainActor in
+            AppDependencyManager.shared.add(dependency: cacheManager)
+            AppDependencyManager.shared.add(dependency: modelController)
+            AppDependencyManager.shared.add(dependency: chatModel)
+        }
+
         /**
          Call `updateAppShortcutParameters` on `AppShortcutsProvider` so that the system updates the App Shortcut phrases with any changes to
          the app's intent parameters. The app needs to call this function during its launch, in addition to any time the parameter values for
@@ -377,7 +381,7 @@ struct Know_MapsApp: App {
             .interactiveDismissDisabled(false)
 #else
         filterView()
-            .presentationDetents([.large, .medium])
+            .presentationDetents([.large])
             .presentationDragIndicator(.visible)
             .interactiveDismissDisabled(false)
             .presentationCompactAdaptation(.sheet)
