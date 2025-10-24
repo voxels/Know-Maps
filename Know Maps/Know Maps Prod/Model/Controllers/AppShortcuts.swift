@@ -14,7 +14,7 @@ struct KnowMapsShortcutsProvider: AppShortcutsProvider {
             AppShortcut(
                 intent: ShowMoodResultsIntent(),
                 phrases: [
-                    "I'm in the mood for food from \(.applicationName).",
+                    "I'm in the mood for \(.applicationName).",
                     "Ask \(.applicationName) to find a place for \(\.$mood).",
                     "Tell \(.applicationName), \"I'm' in the mood for \(\.$mood).\"",
                 ],
@@ -43,11 +43,58 @@ struct ShowMoodResultsIntent: AppIntent {
     @Dependency var chatModel: ChatResultViewModel
 
     @MainActor
-    func perform() async throws -> some IntentResult{
+    func perform() async throws -> some IntentResult {
+        // 1. Jump UI focus to the main places/results surface.
+        // Assumption: modelController.section == 0 is the "browse/search results" pane.
         withAnimation {
             modelController.section = 0
         }
-        // Provide feedback to the user
+
+        // 2. Derive the text we want to search for from the chosen mood.
+        // PersonalizedSearchSection is a RawRepresentable (String), so we can use rawValue.
+        // Example: "Date night", "Brunch", "Live music", etc.
+        let moodQueryText = mood.rawValue.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        // 3. Build the same style of AssistiveChatHostIntent we use in SearchPlacesView.onSubmit,
+        // but feed it the mood instead of manual search text.
+        // We also pass through the user's currently selected destination so recs get biased
+        // around that anchor location.
+        let chatIntent = AssistiveChatHostIntent(
+            caption: moodQueryText,
+            intent: .Search,
+            selectedPlaceSearchResponse: nil,
+            selectedPlaceSearchDetails: nil,
+            placeSearchResponses: [],
+            selectedDestinationLocation: modelController.selectedDestinationLocationChatResult,
+            placeDetailsResponses: nil,
+            // queryParameters lets downstream know this was a mood-driven / personalized search.
+            queryParameters: [
+                "source": "AppShortcut.mood",
+                "section": mood.rawValue
+            ]
+        )
+
+        // 4. Actually trigger the pipeline. This will:
+        // - call into modelController.searchIntent(...)
+        // - which will run PersonalizedSearchSession.fetchRecommendedVenues(...)
+        // - which will eventually fill modelController.recommendedPlaceResults /
+        //   modelController.placeResults and update fetchMessage.
+        do {
+            try await modelController.searchIntent(intent: chatIntent)
+        } catch {
+            // We don't want to fail the Siri intent just because search failed,
+            // but we DO want telemetry on that failure.
+            modelController.analyticsManager.trackError(
+                error: error,
+                additionalInfo: [
+                    "phase": "ShowMoodResultsIntent.perform",
+                    "mood": mood.rawValue
+                ]
+            )
+        }
+
+        // 5. Tell App Shortcuts/Siri we're done. The app should now already be
+        // showing the mood-personalized results list.
         return .result()
     }
 }
