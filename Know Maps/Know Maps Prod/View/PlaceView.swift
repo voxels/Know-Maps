@@ -81,7 +81,6 @@ struct PlaceView: View {
                     EmptyView()
                 }
             }
-            .navigationBarTitleDisplayMode(.inline)
             .navigationTitle(placeChatResult.title)
             .id(placeChatResult.id)
     }

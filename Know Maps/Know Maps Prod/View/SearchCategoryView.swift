@@ -21,7 +21,7 @@ struct SearchCategoryView: View {
     var body: some View {
         List(selection: $multiSelection) {
             // Use filtered results here
-            ForEach(modelController.industryResults, id: \.id) { parent in
+            ForEach(modelController.filteredResults, id: \.id) { parent in
                 Section {
                     DisclosureGroup(
                         isExpanded: Binding(
@@ -64,6 +64,9 @@ struct SearchCategoryView: View {
         .onSubmit(of: .search) {
             expandParentsBasedOnSearch()
         }
+        .task {
+            await modelController.ensureIndustryResultsPopulated()
+        }
         .refreshable {
             Task(priority: .userInitiated) {
                 do {
@@ -73,7 +76,7 @@ struct SearchCategoryView: View {
                 }
             }
         }
-        .onChange(of: searchText) { _ in
+        .onChange(of: searchText) { _, _ in
             expandParentsBasedOnSearch()
         }
     }

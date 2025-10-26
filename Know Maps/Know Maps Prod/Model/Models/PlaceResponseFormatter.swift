@@ -17,25 +17,34 @@ open class PlaceResponseFormatter {
     
     public class func autocompleteTastesResponses(with response:[String:Any]) throws ->[TasteAutocompleteResponse] {
         var retval = [TasteAutocompleteResponse]()
-        
-            if let results = response["tastes"] as? [NSDictionary] {
-                for result in results {
-                    var id:String = ""
-                    var text:String = ""
-                    
-                    if let rawId = result["id"] as? String {
-                        id = rawId
-                    }
-                    
-                    if let rawText = result["text"] as? String {
-                        text = rawText
-                    }
-                    
-                    let taste = TasteAutocompleteResponse(id:id, text:text)
+
+        // v2 endpoints typically nest payload under "response"
+        let payload: [String: Any]
+        if let nested = response["response"] as? [String: Any] {
+            payload = nested
+        } else {
+            payload = response
+        }
+
+        if let results = payload["tastes"] as? [Any] {
+            for any in results {
+                guard let result = any as? [String: Any] else { continue }
+                // id can be String or Int from some v2 responses; coerce to String
+                var id: String = ""
+                if let rawId = result["id"] as? String {
+                    id = rawId
+                } else if let rawIdInt = result["id"] as? Int {
+                    id = String(rawIdInt)
+                }
+                let text = (result["text"] as? String) ?? ""
+                // Only append if we have at least some identifying text
+                if !id.isEmpty || !text.isEmpty {
+                    let taste = TasteAutocompleteResponse(id: id, text: text)
                     retval.append(taste)
                 }
+            }
         }
-        
+
         return retval
     }
     

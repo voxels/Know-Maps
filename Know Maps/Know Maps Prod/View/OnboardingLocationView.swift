@@ -31,6 +31,9 @@ struct OnboardingLocationView: View {
                 Task {
                     modelController.locationService.locationProvider.authorize()
                     modelController.setSelectedLocation(nil)
+                    if modelController.locationService.locationProvider.isAuthorized() {
+                        showOnboarding = false
+                    }
                 }
             }
             .popover(isPresented: $alertPopverIsPresented) {

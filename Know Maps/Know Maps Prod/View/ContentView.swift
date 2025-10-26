@@ -83,7 +83,25 @@ struct ContentView: View {
         GeometryReader { geometry in
             browseView()
                 .popover(isPresented: $showSettings, content: {
-                    SettingsView(model: settingsModel, chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, showOnboarding: $showOnboarding)
+                    ZStack(alignment: .center) {
+                        Color.clear
+                            .ignoresSafeArea()
+                        VStack {
+                            HStack{
+                                Button("Done") {
+                                    showSettings.toggle()
+                                }
+                                .padding()
+                                .glassEffect()
+                                Spacer()
+                            }
+                            .padding()
+                            Spacer()
+                            SettingsView(model: settingsModel, chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, showOnboarding: $showOnboarding)
+                        }
+                        .padding()
+                    }
+                    .frame(width: geometry.size.width.scaled(by: sizeClass == .compact ? 1.0 : 0.8), height: geometry.size.height.scaled(by: 0.8))
                 })
                 .onChange(of:modelController.selectedCategoryChatResult) {_, newValue in
                     if let id = newValue {
@@ -305,6 +323,11 @@ struct ContentView: View {
                 Label("Filter", systemImage: "line.3.horizontal.decrease")
             }
             .disabled(showNavigationLocationView)
+            Button {
+                showSettings.toggle()
+            } label: {
+                Label("Settings", systemImage: "person.crop.circle")
+            }
         }
 #else
         ToolbarItemGroup(placement: .topBarLeading) {
@@ -372,7 +395,6 @@ struct ContentView: View {
                 switch searchMode {
                 case .favorites:
                     SearchView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, searchSavedViewModel: $searchSavedViewModel, searchMode:$searchMode)
-                        .navigationBarTitleDisplayMode(.large)
                         .toolbar {
                             unifiedBrowseToolbar()
                         }
@@ -402,7 +424,6 @@ struct ContentView: View {
                         placeDirectionsViewModel: placeDirectionsChatViewModel,
                         selectedResult: placeChatResult
                     )
-                    .navigationBarTitleDisplayMode(.inline)
                     .navigationTitle(placeChatResult.title)
                 } else {
                     PlacesList(
@@ -411,8 +432,6 @@ struct ContentView: View {
                         cacheManager: $cacheManager,
                         modelController: $modelController
                     )
-                    .navigationBarTitleDisplayMode(.inline)
-                    .navigationTitle("Browse")
                 }
             }
         }
@@ -429,7 +448,7 @@ extension ContentView {
                     
                     let queryParameters = try await modelController.assistiveHostDelegate.defaultParameters(for: result.title, filters: searchSavedViewModel.filters)
                     
-                    let intent = AssistiveChatHostIntent(caption: result.title, intent: .Place, selectedPlaceSearchResponse: result.placeResponse, selectedPlaceSearchDetails: result.placeDetailsResponse, placeSearchResponses:[], selectedDestinationLocation:modelController.selectedDestinationLocationChatResult, placeDetailsResponses:nil, queryParameters: queryParameters)
+                    let intent = AssistiveChatHostIntent(caption: result.title, intent: .Place, selectedPlaceSearchResponse: selectedPlaceSearchResponse, selectedPlaceSearchDetails: result.placeDetailsResponse, placeSearchResponses:[selectedPlaceSearchResponse], selectedDestinationLocation:modelController.selectedDestinationLocationChatResult, placeDetailsResponses:nil, queryParameters: queryParameters)
                     try await modelController.searchIntent(intent: intent)
                 }
             } catch {

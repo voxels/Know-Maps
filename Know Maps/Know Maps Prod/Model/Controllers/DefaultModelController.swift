@@ -204,9 +204,13 @@ public final class DefaultModelController : ModelController {
         appendLocations: Bool = false,
         selectedPlaceFsqId: String? = nil,
         selectedLocation: LocationResult? = nil,
+        clearSelection:Bool = true,
         clearAll: Bool = false
     ) {
         coalesceOnNextFrame {
+            if clearSelection {
+                self.setSelectedPlaceChatResult(nil)
+            }
                 if clearAll {
                     self.tasteResults.removeAll()
                     self.placeResults.removeAll()
@@ -215,6 +219,9 @@ public final class DefaultModelController : ModelController {
                     self.relatedPlaceResults.removeAll()
                     self.locationResults.removeAll()
                     self.selectedPlaceChatResultFsqId = nil
+                    self.selectedCategoryChatResult = nil
+                    self.selectedPersonalizedSearchSection
+                    = nil
                     self.industryResults = self.filteredResults
                 }
                 

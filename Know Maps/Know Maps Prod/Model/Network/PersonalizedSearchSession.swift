@@ -337,33 +337,55 @@ public actor PersonalizedSearchSession {
             throw PersonalizedSearchSessionError.UnsupportedRequest
         }
         
-        let components = URLComponents(string:"\(PersonalizedSearchSession.serverUrl)\(PersonalizedSearchSession.tasteSuggestionsAPIUrl)")
-        guard let url = components?.url else {
+        guard let components = URLComponents(string:"\(PersonalizedSearchSession.serverUrl)\(PersonalizedSearchSession.tasteSuggestionsAPIUrl)") else {
             throw PersonalizedSearchSessionError.UnsupportedRequest
         }
         
         let intentQueryItem = URLQueryItem(name: "intent", value: "onboarding")
         let limitQueryItem = URLQueryItem(name: "limit", value: "50")
         let offsetQueryItem = URLQueryItem(name: "offset", value:"\(page)")
-        let response = try await fetch(url: url, apiKey: apiKey, urlQueryItems: [intentQueryItem, limitQueryItem, offsetQueryItem])
         
-        guard let response = response as? [String:Any] else {
-            throw PersonalizedSearchSessionError.NoTasteFound
+        let responseAny = try await fetch(url: components.url!, apiKey: apiKey, urlQueryItems: [intentQueryItem, limitQueryItem, offsetQueryItem])
+        
+        guard let responseDict = responseAny as? [String:Any], let nestedResponse = responseDict["response"] as? [String:Any] else {
+            return []
         }
-                        
-        var retval = [String]()
-        if let responseDict = response["response"] as? NSDictionary {
-            if let tastesArray = responseDict["tastes"] as? [NSDictionary] {
-                for taste in tastesArray {
-                    if let text = taste["text"] as? String {
-                        retval.append(text)
-                    }
-                }
-            }
+        
+        guard let tastesArray = nestedResponse["tastes"] as? [[String:Any]] else {
+            return []
         }
-
-        return retval
+        
+        let texts = tastesArray.compactMap { $0["text"] as? String }
+        
+        return texts
     }
+
+    public func fetchTastesResponse(page:Int, cacheManager:CacheManager) async throws -> [String:Any] {
+        let apiKey = try await requireAccessToken(cacheManager: cacheManager) {
+            _ = await self.cloudCacheService.refreshFsqToken()
+        }
+        
+        guard !apiKey.isEmpty else {
+            throw PersonalizedSearchSessionError.UnsupportedRequest
+        }
+        
+        guard let components = URLComponents(string:"\(PersonalizedSearchSession.serverUrl)\(PersonalizedSearchSession.tasteSuggestionsAPIUrl)") else {
+            throw PersonalizedSearchSessionError.UnsupportedRequest
+        }
+        
+        let intentQueryItem = URLQueryItem(name: "intent", value: "onboarding")
+        let limitQueryItem = URLQueryItem(name: "limit", value: "50")
+        let offsetQueryItem = URLQueryItem(name: "offset", value:"\(page)")
+        
+        let responseAny = try await fetch(url: components.url!, apiKey: apiKey, urlQueryItems: [intentQueryItem, limitQueryItem, offsetQueryItem])
+        
+        if let responseDict = responseAny as? [String:Any], let nestedResponse = responseDict["response"] as? [String:Any] {
+            return nestedResponse
+        }
+        
+        return [:]
+    }
+
     
     public func fetchRelatedVenues(for fsqID:String, cacheManager:CacheManager) async throws -> [String:Any] {
         let apiKey = try await requireAccessToken(cacheManager: cacheManager) {

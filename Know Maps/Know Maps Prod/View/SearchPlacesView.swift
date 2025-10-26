@@ -38,7 +38,6 @@ struct SearchPlacesView: View {
     @State private var showPlaceList = true
     
     var body: some View {
-        if horizontalSizeClass == .compact {
             // Compact mode:
             // - Always show the list so user can select a place.
             // - If it's empty, still show the "fetchMessage" placeholder text.
@@ -51,65 +50,12 @@ struct SearchPlacesView: View {
                     // You can optionally put a spacer or nothing here.
                 }
 #if os(macOS)
-        .searchable(text: $searchText, prompt: "Search by place name")
-#else
-        .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search by place name") // Add searchable
-#endif
-        .onSubmit(of: .search, {
-            if !searchText.isEmpty {
-
-                Task {
-                    let queryParameters = try await modelController.assistiveHostDelegate.defaultParameters(for: searchText, filters: searchSavedViewModel.filters)
-                    
-                    let intent = AssistiveChatHostIntent(caption: searchText, intent: .Search, selectedPlaceSearchResponse: nil, selectedPlaceSearchDetails: nil, placeSearchResponses: [], selectedDestinationLocation: modelController.selectedDestinationLocationChatResult, placeDetailsResponses: nil, queryParameters:queryParameters)
-                    do {
-                        try await modelController.searchIntent(intent: intent)
-                    } catch {
-                        modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
-                    }
-                }
-            }
-        })
-            } else {
-                searchPlaceList()
-            }
-        }
-        else {
-            searchPlaceList()
-        }
-    }
-    
-    @ViewBuilder
-    func searchPlaceList() -> some View {
-        Group {
-            if let selectedResult = modelController.selectedPlaceChatResultFsqId, let placeChatResult = modelController.placeChatResult(with: selectedResult) {
-                PlaceView(
-                    searchSavedViewModel: $searchSavedViewModel,
-                    chatModel: $chatModel,
-                    cacheManager: $cacheManager,
-                    modelController: $modelController,
-                    placeDirectionsViewModel: placeDirectionsChatViewModel,
-                    selectedResult: placeChatResult
-                )
-                .navigationBarTitleDisplayMode(.inline)
-                .navigationTitle(placeChatResult.title)
-            } else {
-                PlacesList(
-                    searchSavedViewModel: $searchSavedViewModel,
-                    chatModel: $chatModel,
-                    cacheManager: $cacheManager,
-                    modelController: $modelController
-                )
-                .navigationBarTitleDisplayMode(.inline)
-                .navigationTitle("Browse")
-        #if os(macOS)
                 .searchable(text: $searchText, prompt: "Search by place name")
-        #else
+#else
                 .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search by place name") // Add searchable
-        #endif
+#endif
                 .onSubmit(of: .search, {
                     if !searchText.isEmpty {
-
                         Task {
                             let queryParameters = try await modelController.assistiveHostDelegate.defaultParameters(for: searchText, filters: searchSavedViewModel.filters)
                             
@@ -122,7 +68,55 @@ struct SearchPlacesView: View {
                         }
                     }
                 })
+            } else {
+                searchPlaceList()
             }
+    }
+    
+    @ViewBuilder
+    func searchPlaceView() -> some View {
+        if let selectedResult = modelController.selectedPlaceChatResultFsqId, let placeChatResult = modelController.placeChatResult(with: selectedResult) {
+            PlaceView(
+                searchSavedViewModel: $searchSavedViewModel,
+                chatModel: $chatModel,
+                cacheManager: $cacheManager,
+                modelController: $modelController,
+                placeDirectionsViewModel: placeDirectionsChatViewModel,
+                selectedResult: placeChatResult
+            )
+            .navigationTitle(placeChatResult.title)
+        }
+    }
+    
+    @ViewBuilder
+    func searchPlaceList() -> some View {
+        Group {
+            PlacesList(
+                searchSavedViewModel: $searchSavedViewModel,
+                chatModel: $chatModel,
+                cacheManager: $cacheManager,
+                modelController: $modelController
+            )
+#if os(macOS)
+            .searchable(text: $searchText, prompt: "Search by place name")
+#else
+            .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search by place name") // Add searchable
+#endif
+            .onSubmit(of: .search, {
+                if !searchText.isEmpty {
+                    
+                    Task {
+                        let queryParameters = try await modelController.assistiveHostDelegate.defaultParameters(for: searchText, filters: searchSavedViewModel.filters)
+                        
+                        let intent = AssistiveChatHostIntent(caption: searchText, intent: .Search, selectedPlaceSearchResponse: nil, selectedPlaceSearchDetails: nil, placeSearchResponses: [], selectedDestinationLocation: modelController.selectedDestinationLocationChatResult, placeDetailsResponses: nil, queryParameters:queryParameters)
+                        do {
+                            try await modelController.searchIntent(intent: intent)
+                        } catch {
+                            modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
+                        }
+                    }
+                }
+            })
         }
     }
 }

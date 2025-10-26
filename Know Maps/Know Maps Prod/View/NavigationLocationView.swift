@@ -31,6 +31,10 @@ struct NavigationLocationView: View {
     @State private var isSearching: Bool = false
     @State private var selectedLocation:LocationResult?
     @State private var currentResult:LocationResult?
+    @FocusState private var searchFocused: Bool
+    
+    @State private var displayedResults: [LocationResult] = []
+    @State private var applyResultsTask: Task<Void, Never>? = nil
     
     // MARK: - Computed Properties
     
@@ -70,12 +74,30 @@ struct NavigationLocationView: View {
                         }
                             .buttonStyle(.automatic)
                     }
+                    ToolbarItem(placement: .primaryAction) {
+                        Button {
+                            searchFocused = true
+                            print("🔍 Toolbar Search pressed (macOS). text='\(searchText)'")
+                            commitSearch()
+                        } label: {
+                            Label("Search", systemImage: "magnifyingglass")
+                        }
+                    }
                     #else
                     ToolbarItem(placement: .navigationBarLeading) {
                         Button("Done", systemImage: "chevron.backward") {
                             dismiss()
                         }
                             .buttonStyle(.automatic)
+                    }
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button {
+                            searchFocused = true
+                            print("🔍 Toolbar Search pressed (iOS). text='\(searchText)'")
+                            commitSearch()
+                        } label: {
+                            Label("Search", systemImage: "magnifyingglass")
+                        }
                     }
                     
                     #endif
@@ -99,6 +121,8 @@ struct NavigationLocationView: View {
         .task {
             let currentLocation: CLLocation = modelController.locationService.currentLocation()
             currentResult = LocationResult(locationName: "Current Location", location: currentLocation)
+            // Initialize displayed results to current filtered results
+            displayedResults = modelController.filteredLocationResults()
         }
     }
     
@@ -120,7 +144,10 @@ struct NavigationLocationView: View {
                 // Keep the last center coordinate in sync with user pan/zoom
                 lastCenterCoordinate = context.region.center
             }
-            .frame(idealWidth: .infinity, idealHeight:sizeClass == .compact ? geometry.size.width / 2 : geometry.size.width / 4)
+            .frame(
+                idealWidth: .infinity,
+                idealHeight: max(120, sizeClass == .compact ? geometry.size.width / 2 : geometry.size.width / 4)
+            )
             .mapStyle(.hybrid)
             .cornerRadius(32)
             .padding(16)
@@ -165,71 +192,159 @@ struct NavigationLocationView: View {
         // Precompute frequently used values to reduce type-checker work
         let frameHeight: CGFloat = (sizeClass == .compact) ? geometry.size.height : geometry.size.height / 2
 
-        return List(selection: $selectedLocation) {
-            if let current = currentResult {
-                Section("Current Location") {
-                    CurrentLocationRow(title: current.locationName)
-                        .contentShape(Rectangle())
-                        .onTapGesture {
-                            selectedLocation = current
-                            handleLocationSelection(current)
-                        }
+        return VStack(spacing: 0) {
+        #if os(macOS)
+            HStack(spacing: 8) {
+                TextField("Point of Interest", text: $searchText)
+                    .textFieldStyle(.roundedBorder)
+                    .focused($searchFocused)
+                    .onSubmit { commitSearch() }
+                Button {
+                    searchFocused = true
+                    print("🔍 Inline Search pressed (macOS). text='\(searchText)'")
+                    commitSearch()
+                } label: {
+                    Label("Search", systemImage: "magnifyingglass")
                 }
             }
+            .padding(.horizontal)
+            .padding(.top, 8)
+        #endif
+            List(selection: $selectedLocation) {
+                if let current = currentResult {
+                    Section("Current Location") {
+                        CurrentLocationRow(title: current.locationName)
+                            .onTapGesture {
+                                selectedLocation = current
+                                handleLocationSelection(current)
+                            }
+                    }
+                }
 
-            // Results Section
-            Section("Results") {
-                ForEach(modelController.filteredLocationResults()) { result in
-                    LocationResultRow(
-                        result: result,
-                        isSaved: cacheManager.cachedLocation(contains: result.locationName),
-                        isSelected: modelController.selectedDestinationLocationChatResult.id == result.id,
-                        addAction: { addLocationFromSwipe(result) },
-                        removeAction: { removeLocation(result) }
-                    )
-                    .onTapGesture {
-                        selectedLocation = result
-                        handleLocationSelection(result)
+                // Results Section
+                Section("Results") {
+                    ForEach(displayedResults) { result in
+                        LocationResultRow(
+                            result: result,
+                            isSaved: cacheManager.cachedLocation(contains: result.locationName),
+                            isSelected: modelController.selectedDestinationLocationChatResult.id == result.id,
+                            addAction: { addLocationFromSwipe(result) },
+                            removeAction: { removeLocation(result) }
+                        )
+                        .onTapGesture {
+                            selectedLocation = result
+                            handleLocationSelection(result)
+                        }
                     }
                 }
             }
+            .onChange(of:selectedLocation) { _, newValue in
+                guard let newValue else { return }
+                modelController.setSelectedLocation(newValue)
+            }
+            .frame(idealWidth: .infinity, idealHeight: frameHeight)
         }
-        .onChange(of:selectedLocation) { _, newValue in
-            guard let newValue else { return }
-            modelController.setSelectedLocation(newValue)
-        }
-        .frame(idealWidth: .infinity, idealHeight: frameHeight)
+        .focused($searchFocused)
     #if os(macOS)
         .searchable(text: $searchText, prompt: "Point of Interest")
+        .onSubmit(of: .search) {
+            print("🔹 onSubmit(.search) fired. searchFocused=\(searchFocused) text='\(searchText)'")
+            if searchFocused { commitSearch() }
+        }
+        .onSubmit {
+            print("🔸 onSubmit (generic) fired. searchFocused=\(searchFocused) text='\(searchText)'")
+            if searchFocused { commitSearch() }
+        }
+        .onAppear {
+            // Ensure the search field can receive focus on macOS
+            #if os(macOS)
+            DispatchQueue.main.async {
+                self.searchFocused = true
+                print("🧭 macOS onAppear: searchFocused set to true")
+            }
+            #endif
+        }
+        .onChange(of: searchText) { _, newValue in
+            let trimmed = newValue.trimmingCharacters(in: .whitespacesAndNewlines)
+            #if os(macOS)
+            if !trimmed.isEmpty { searchFocused = true }
+            #endif
+            if trimmed.count > 1 {
+                #if os(macOS)
+                searchFocused = true
+                #endif
+                requestAutocomplete(for: trimmed)
+            } else {
+                // Cancel any pending autocomplete if below threshold
+                autocompleteTask?.cancel()
+                print("✋ Autocomplete canceled: below threshold (<3)")
+            }
+            // Batch apply results to reduce layout churn
+            applyResultsTask?.cancel()
+            applyResultsTask = Task { @MainActor in
+                try? await Task.sleep(nanoseconds: 200_000_000) // 200ms idle
+                displayedResults = modelController.filteredLocationResults()
+            }
+        }
     #else
         .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Point of Interest")
-    #endif
         .onSubmit(of: .search) {
-            let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
-            guard !query.isEmpty else { return }
-            requestAutocomplete(for: query)
+            print("🔹 onSubmit(.search) fired. searchFocused=\(searchFocused) text='\(searchText)'")
+            if searchFocused { commitSearch() }
         }
+        .onSubmit {
+            print("🔸 onSubmit (generic) fired. searchFocused=\(searchFocused) text='\(searchText)'")
+            if searchFocused { commitSearch() }
+        }
+        .onChange(of: searchText) { _, newValue in
+            let trimmed = newValue.trimmingCharacters(in: .whitespacesAndNewlines)
+            if trimmed.count >= 3 {
+                requestAutocomplete(for: trimmed)
+            } else {
+                // Cancel any pending autocomplete if below threshold
+                autocompleteTask?.cancel()
+                print("✋ Autocomplete canceled: below threshold (<3)")
+            }
+            // Batch apply results to reduce layout churn
+            applyResultsTask?.cancel()
+            applyResultsTask = Task { @MainActor in
+                try? await Task.sleep(nanoseconds: 200_000_000) // 200ms idle
+                displayedResults = modelController.filteredLocationResults()
+            }
+        }
+    #endif
     }
         
     /// Debounced autocomplete request that cancels any in-flight autocomplete task
     private func requestAutocomplete(for query: String) {
+        print("🧠 requestAutocomplete(for: '\(query)') scheduling...")
         // Cancel previous autocomplete task
         autocompleteTask?.cancel()
 
         // If the query is empty, do nothing and allow UI to clear suggestions elsewhere
         let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { return }
+        guard trimmed.count >= 3 else {
+            print("⛔️ autocomplete aborted: query below threshold (<3)")
+            return
+        }
+        #if os(macOS)
+        // Keep focus while we await debounce
+        searchFocused = true
+        #endif
 
         // Schedule a debounced task
         autocompleteTask = Task { @MainActor in
             // Debounce ~350ms to avoid flooding the network
             try? await Task.sleep(nanoseconds: 350_000_000)
-            guard !Task.isCancelled else { return }
-
-            // Guard against concurrent committed searches
-            guard !isSearching else { return }
+            guard !Task.isCancelled else { print("⛔️ autocomplete canceled before fire"); return }
+            guard !isSearching else { print("⛔️ autocomplete aborted: isSearching true"); return }
+            #if os(macOS)
+            // Re-assert focus just before firing to avoid losing it due to layout updates
+            searchFocused = true
+            #endif
 
             // Fire a lightweight autocomplete via model controller
+            print("🚀 autocomplete firing with '\(trimmed)'")
             let intent = locationIntent(for: trimmed)
             Task(priority: .userInitiated) {
                 do {
@@ -238,6 +353,22 @@ struct NavigationLocationView: View {
                     modelController.analyticsManager.trackError(error: error, additionalInfo: ["source": "NavigationLocationView.autocomplete"]) 
                 }
             }
+        }
+    }
+
+    private func commitSearch() {
+        let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        print("🔍 commitSearch() called with query='\(query)' | focused=\(searchFocused)")
+        guard !query.isEmpty else {
+            print("⛔️ commitSearch aborted: empty query")
+            return
+        }
+        requestAutocomplete(for: query)
+        // Schedule a batched update to displayed results after commit
+        applyResultsTask?.cancel()
+        applyResultsTask = Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 200_000_000)
+            displayedResults = modelController.filteredLocationResults()
         }
     }
     

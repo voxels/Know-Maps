@@ -130,8 +130,6 @@ struct SettingsView: View {
 #endif
             
         }
-        .navigationBarTitleDisplayMode(.inline)
-        .navigationTitle("Account")
     }
 }
 
