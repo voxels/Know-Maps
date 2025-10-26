@@ -63,13 +63,23 @@ struct OnboardingView: View {
             }
             .ignoresSafeArea(edges: .bottom)
             .background(
-                LinearGradient(
-                    colors: [Color(.systemBackground), Color(.secondarySystemBackground)],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .opacity(0.9)
+                {
+                    #if !os(macOS)
+                    LinearGradient(
+                        colors: [Color(.systemBackground), Color(.secondarySystemBackground)],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                    #else
+                    LinearGradient(
+                        colors: [Color(.systemGray), Color(.black)],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                    #endif
+                }()
             )
+            .opacity(0.9)
         }
     }
 }

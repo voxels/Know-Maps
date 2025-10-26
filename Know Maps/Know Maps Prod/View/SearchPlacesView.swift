@@ -47,7 +47,6 @@ struct SearchPlacesView: View {
                     Text(modelController.fetchMessage)
                         .foregroundStyle(.secondary)
                         .padding(.bottom)
-                    // You can optionally put a spacer or nothing here.
                 }
 #if os(macOS)
                 .searchable(text: $searchText, prompt: "Search by place name")

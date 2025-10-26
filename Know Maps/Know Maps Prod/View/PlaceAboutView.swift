@@ -75,32 +75,7 @@ struct PlaceAboutView: View {
                             .padding(.horizontal, 16)
 
                             RelatedPlacesSection(relatedPlaceResults: modelController.relatedPlaceResults) { relatedPlace in
-                                Task { @MainActor in
-                                    do {
-                                        try await modelController.resetPlaceModel()
-                                        let caption = relatedPlace.title
-                                        let selectedDestination = modelController.selectedDestinationLocationChatResult
-                                        let intentKind = AssistiveChatHostService.Intent.Search
-                                        let queryParameters = try await modelController.assistiveHostDelegate.defaultParameters(for: caption, filters: searchSavedViewModel.filters)
-                                        let newIntent = AssistiveChatHostIntent(
-                                            caption: caption,
-                                            intent: intentKind,
-                                            selectedPlaceSearchResponse: nil,
-                                            selectedPlaceSearchDetails: nil,
-                                            placeSearchResponses: [],
-                                            selectedDestinationLocation: selectedDestination,
-                                            placeDetailsResponses: nil,
-                                            queryParameters: queryParameters
-                                        )
-                                        await modelController.assistiveHostDelegate.appendIntentParameters(intent: newIntent, modelController: modelController)
-                                        try await modelController.searchIntent(intent: newIntent)
-                                        await MainActor.run {
-                                            modelController.isRefreshingPlaces = false
-                                        }
-                                    } catch {
-                                        modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
-                                    }
-                                }
+                                handlePlaceTap(relatedPlace)
                             }
                             .padding(.horizontal,16)
 
@@ -140,6 +115,23 @@ struct PlaceAboutView: View {
                         }
                     }
                 }
+            }
+        }
+    }
+    
+    private func handlePlaceTap(_ result: ChatResult) {
+        // Kick off the place search intent using the DefaultModelController
+        Task { @MainActor in
+            do {
+                
+                let queryParameters = try await modelController.assistiveHostDelegate.defaultParameters(for: result.title, filters: searchSavedViewModel.filters)
+                
+                // create a new AssistiveChatHostIntent from the chatresult
+                let intent = AssistiveChatHostIntent(caption: result.title, intent: .Place, selectedPlaceSearchResponse: result.placeResponse, selectedPlaceSearchDetails: nil, placeSearchResponses:[result.placeResponse!], selectedDestinationLocation: modelController.selectedDestinationLocationChatResult, placeDetailsResponses: nil, queryParameters: queryParameters)
+                
+                try await modelController.searchIntent(intent: intent)
+            } catch {
+                modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
             }
         }
     }

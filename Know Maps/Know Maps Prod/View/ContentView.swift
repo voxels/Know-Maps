@@ -98,7 +98,7 @@ struct ContentView: View {
                         }
                     }
                     .padding()
-                    .presentationDetents([.medium])
+                    .presentationDetents([.large])
                 })
                 .onChange(of:modelController.selectedCategoryChatResult) {_, newValue in
                     if let id = newValue {
@@ -495,24 +495,28 @@ struct ContentView: View {
                         }
                 }
             } detail: {
-                if let selectedResult = modelController.selectedPlaceChatResultFsqId, let placeChatResult = modelController.placeChatResult(with: selectedResult) {
-                    PlaceView(
-                        searchSavedViewModel: $searchSavedViewModel,
-                        chatModel: $chatModel,
-                        cacheManager: $cacheManager,
-                        modelController: $modelController,
-                        placeDirectionsViewModel: placeDirectionsChatViewModel,
-                        selectedResult: placeChatResult
-                    )
-                    .navigationTitle(placeChatResult.title)
-                } else {
-                    PlacesList(
-                        searchSavedViewModel: $searchSavedViewModel,
-                        chatModel: $chatModel,
-                        cacheManager: $cacheManager,
-                        modelController: $modelController
-                    )
+                Group {
+                    if let selectedFsqId = modelController.selectedPlaceChatResultFsqId,
+                       let placeChatResult = modelController.placeChatResult(with: selectedFsqId) {
+                        PlaceView(
+                            searchSavedViewModel: $searchSavedViewModel,
+                            chatModel: $chatModel,
+                            cacheManager: $cacheManager,
+                            modelController: $modelController,
+                            placeDirectionsViewModel: placeDirectionsChatViewModel,
+                            selectedResult: placeChatResult
+                        )
+                        .navigationTitle(placeChatResult.title)
+                    } else {
+                        PlacesList(
+                            searchSavedViewModel: $searchSavedViewModel,
+                            chatModel: $chatModel,
+                            cacheManager: $cacheManager,
+                            modelController: $modelController
+                        )
+                    }
                 }
+                .id(modelController.selectedPlaceChatResultFsqId ?? "places-list")
             }
         }
         .task {

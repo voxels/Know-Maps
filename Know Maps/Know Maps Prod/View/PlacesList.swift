@@ -21,6 +21,10 @@ struct PlacesList: View {
     @State private var lastTapPlaceID: ChatResult.ID? = nil
     @State private var lastTapTime: Date = .distantPast
     
+    private func savePlace(_ result: ChatResult) async {
+        await searchSavedViewModel.addPlace(parent: result.id, rating: 2, cacheManager: cacheManager, modelController: modelController)
+    }
+    
     static var formatter:NumberFormatter {
         let retval = NumberFormatter()
         retval.maximumFractionDigits = 1
@@ -96,6 +100,25 @@ struct PlacesList: View {
                         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                         .padding(16)
 #endif
+
+                    }
+                    .overlay(alignment: .bottomTrailing) {
+                        Button {
+                            Task {
+                                await savePlace(result)
+                            }
+                        } label: {
+                            Image(systemName: "star.fill")
+                                .padding()
+                        }
+#if !os(visionOS)
+                        .glassEffect()
+#else
+                        .background(.ultraThinMaterial)
+                        .clipShape(Circle())
+#endif
+                        .buttonStyle(.plain)
+                        .padding(12)
                     }
                     .clipShape(RoundedRectangle(cornerRadius: 32, style: .continuous))
                     .contentShape(RoundedRectangle(cornerRadius: 32, style: .continuous))
@@ -141,6 +164,30 @@ struct PlacesList: View {
                         .background(.ultraThinMaterial)
                         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
 #endif
+                        
+                        VStack { Spacer() }
+                            .frame(width: 0, height: 0)
+                            .overlay(alignment: .bottomTrailing) {
+                                Button {
+                                    Task {
+                                        await savePlace(result)
+                                    }
+                                } label: {
+                                    Image(systemName: "bookmark.badge.plus")
+                                        .symbolRenderingMode(.hierarchical)
+                                        .font(.title3)
+                                        .padding(10)
+                                }
+#if !os(visionOS)
+                                .background(.thinMaterial)
+                                .clipShape(Circle())
+#else
+                                .background(.ultraThinMaterial)
+                                .clipShape(Circle())
+#endif
+                                .buttonStyle(.plain)
+                                .padding(12)
+                            }
                     }
                     .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                     .contentShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
@@ -217,3 +264,4 @@ struct PlacesList: View {
         }
     }
 }
+

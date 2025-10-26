@@ -1051,7 +1051,8 @@ public final class DefaultModelController : ModelController {
         
         updateAllResults(
             places: chatResults,
-            selectedPlaceFsqId: intent.selectedPlaceSearchResponse?.fsqID
+            selectedPlaceFsqId:intent.selectedPlaceSearchResponse?.fsqID,
+            clearSelection: false
         )
         
         return chatResults
@@ -1601,7 +1602,7 @@ public final class DefaultModelController : ModelController {
                 // Use the service to fetch and format tastes using tasteCategoryResults
                 let formattedTastes = try await placeSearchService.autocompleteTastes(
                     lastIntent: intent,
-                    currentTasteResults: self.tasteResults,
+                    currentTasteResults: [],
                     cacheManager: cacheManager
                 )
                 
@@ -1704,7 +1705,7 @@ public final class DefaultModelController : ModelController {
                 // Use the service to fetch and format tastes using tasteCategoryResults
                 let formattedTastes = try await placeSearchService.autocompleteTastes(
                     lastIntent: intent,
-                    currentTasteResults: self.tasteResults,
+                    currentTasteResults: [],
                     cacheManager: cacheManager
                 )
                 
