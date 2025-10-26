@@ -15,8 +15,8 @@ public enum PlaceResponseFormatterError : Error {
 
 open class PlaceResponseFormatter {
     
-    public class func autocompleteTastesResponses(with response:[String:Any]) throws ->[TasteAutocompleteResponse] {
-        var retval = [TasteAutocompleteResponse]()
+    public class func autocompleteTastesResponses(with response:[String:Any]) throws ->[String] {
+        var retval = [String]()
 
         // v2 endpoints typically nest payload under "response"
         let payload: [String: Any]
@@ -39,7 +39,7 @@ open class PlaceResponseFormatter {
                 let text = (result["text"] as? String) ?? ""
                 // Only append if we have at least some identifying text
                 if !id.isEmpty || !text.isEmpty {
-                    let taste = TasteAutocompleteResponse(id: id, text: text)
+                    let taste = text
                     retval.append(taste)
                 }
             }

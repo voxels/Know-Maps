@@ -64,9 +64,6 @@ struct SearchCategoryView: View {
         .onSubmit(of: .search) {
             expandParentsBasedOnSearch()
         }
-        .task {
-            await modelController.ensureIndustryResultsPopulated()
-        }
         .refreshable {
             Task(priority: .userInitiated) {
                 do {

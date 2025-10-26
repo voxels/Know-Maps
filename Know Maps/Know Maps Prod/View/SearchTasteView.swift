@@ -10,37 +10,61 @@ struct SearchTasteView: View {
     @State private var isPresented:Bool = true
     @State private var isLoadingNextPage = false
     @State private var tasteSearchText:String = ""
+    @State private var autocompleteTask: Task<Void, Never>? = nil
     var body: some View {
-        List(modelController.tasteResults, id:\.id, selection: $multiSelection) { parent in
-            HStack {
-                Text("\(parent.parentCategory)")
-                Spacer()
-                ratingButton(for: parent)
-            }
-            .onAppear {
-                if let last = modelController.tasteResults.last, parent == last {
-                    isLoadingNextPage = true
-                    Task { @MainActor in
-                        do {
-                            modelController.tasteResults = try await modelController.placeSearchService.refreshTastes(page: modelController.placeSearchService.lastFetchedTastePage + 1, currentTasteResults: modelController.tasteResults, cacheManager: cacheManager)
-                        } catch {
-                            modelController.analyticsManager.trackError(error:error, additionalInfo: ["page": modelController.placeSearchService.lastFetchedTastePage + 1])
+        List(selection: $multiSelection) {
+            // Default paged tastes list
+            ForEach(modelController.tasteResults, id: \.id) { parent in
+                HStack {
+                    Text("\(parent.parentCategory)")
+                    Spacer()
+                    ratingButton(for: parent)
+                }
+                .task {
+                    if let last = modelController.tasteResults.last, parent == last {
+                        isLoadingNextPage = true
+                        Task { @MainActor in
+                            do {
+                                modelController.tasteResults = try await modelController.placeSearchService.refreshTastes(page: modelController.placeSearchService.lastFetchedTastePage + 1, currentTasteResults: modelController.tasteResults, cacheManager: cacheManager)
+                            } catch {
+                                modelController.analyticsManager.trackError(error:error, additionalInfo: ["page": modelController.placeSearchService.lastFetchedTastePage + 1])
+                            }
+                            isLoadingNextPage = false
                         }
-                        isLoadingNextPage = false
                     }
                 }
             }
         }
-        .task{
-            Task { @MainActor in
-                do {
-                    modelController.tasteResults = try await modelController.placeSearchService.refreshTastes(page: modelController.placeSearchService.lastFetchedTastePage + 1, currentTasteResults: modelController.tasteResults, cacheManager: cacheManager)
-                } catch {
-                    modelController.analyticsManager.trackError(error:error, additionalInfo: ["page": modelController.placeSearchService.lastFetchedTastePage + 1])
+        .onChange(of:tasteSearchText, { oldValue, newValue in
+            autocompleteTask?.cancel()
+            if !newValue.isEmpty, newValue != oldValue {
+                autocompleteTask = Task(priority:.userInitiated) { @MainActor in
+                    do {
+                        let caption = tasteSearchText
+                        let selectedDestination = modelController.selectedDestinationLocationChatResult
+                        let intentKind = AssistiveChatHostService.Intent.AutocompleteTastes
+                        let queryParameters = try await modelController.assistiveHostDelegate.defaultParameters(for: caption, filters: [:])
+                        let newIntent = AssistiveChatHostIntent(
+                            caption: caption,
+                            intent: intentKind,
+                            selectedPlaceSearchResponse: nil,
+                            selectedPlaceSearchDetails: nil,
+                            placeSearchResponses: [],
+                            selectedDestinationLocation: selectedDestination,
+                            placeDetailsResponses: nil,
+                            queryParameters: queryParameters
+                        )
+                        if let autocompleteTask, autocompleteTask.isCancelled {
+                            return
+                        }
+                        await modelController.assistiveHostDelegate.appendIntentParameters(intent: newIntent, modelController: modelController)
+                        try await modelController.searchIntent(intent: newIntent)
+                    } catch {
+                         modelController.analyticsManager.trackError(error:error, additionalInfo: nil)
+                    }
                 }
-                isLoadingNextPage = false
             }
-        }
+        })
         .refreshable {
             Task { @MainActor in
                 do {
@@ -58,7 +82,6 @@ struct SearchTasteView: View {
         #endif
         .onSubmit(of: .search, {
             Task(priority:.userInitiated) { @MainActor in
-                modelController.tasteResults.removeAll()
                 do {
                     let caption = tasteSearchText
                     let selectedDestination = modelController.selectedDestinationLocationChatResult
@@ -153,3 +176,4 @@ struct SearchTasteView: View {
     }
     
 }
+

@@ -54,8 +54,7 @@ struct Know_MapsApp: App {
     @State public var cacheManager:CloudCacheManager
     @State public var modelController:DefaultModelController
     
-    @State private var showReload:Bool = false
-    @State private var showOnboarding:Bool = false
+    @State private var showOnboarding:Bool = true
     @State private var showSplashScreen:Bool = true
     @State private var isStoryrabbitEnabled:Bool = false
     @State private var isStartingApp = false
@@ -165,20 +164,6 @@ struct Know_MapsApp: App {
                 }
             }
         }.windowResizability(.contentSize)
-        
-        WindowGroup(id:"SettingsView"){
-            SettingsView(model:authenticationModel, chatModel:$chatModel, cacheManager: $cacheManager, modelController: $modelController, showOnboarding: $showOnboarding)
-                .tag("Settings")
-                .onChange(of: authenticationModel.appleUserId, { oldValue, newValue in
-                    
-#if os(visionOS) || os(iOS)
-                    if !newValue.isEmpty, let vendorId = UIDevice().identifierForVendor {
-                        modelController.analyticsManager.identify(userID: vendorId.uuidString)
-                    }
-#endif
-                })
-        }
-        .modelContainer(Know_MapsApp.sharedModelContainer)
         
 #if os(visionOS)
         ImmersiveSpace(id: "ImmersiveSpace") {
@@ -309,7 +294,6 @@ struct Know_MapsApp: App {
             }
         } catch {
             cacheRefreshTask.cancel()
-            showReload.toggle()
             modelController.analyticsManager.trackError(error: error, additionalInfo:nil)
         }
     }

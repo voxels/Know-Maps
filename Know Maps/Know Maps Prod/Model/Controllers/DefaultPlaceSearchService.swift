@@ -118,7 +118,7 @@ public final class DefaultPlaceSearchService: PlaceSearchService {
         let query = lastIntent.caption
         let rawResponse = try await personalizedSearchSession.autocompleteTastes(caption: query, parameters: lastIntent.queryParameters, cacheManager: cacheManager)
         let tastes = try PlaceResponseFormatter.autocompleteTastesResponses(with: rawResponse)
-        let results = tasteCategoryResults(with: tastes.map(\.text), page: 0, currentTasteResults: currentTasteResults)
+        let results = tasteCategoryResults(with: tastes, page: 0, currentTasteResults: currentTasteResults)
         
         return results
     }
@@ -133,8 +133,7 @@ public final class DefaultPlaceSearchService: PlaceSearchService {
     private func tasteCategoryResults(with tastes: [String], page: Int, currentTasteResults: [CategoryResult]) -> [CategoryResult] {
         var results = currentTasteResults
         
-        for index in 0..<tastes.count {
-            let taste = tastes[index]
+        for (index, taste) in tastes.enumerated() {
             let chatResult = ChatResult(index: index, identity: taste, title: taste, list:"Taste", icon: "", rating: 1, section:assistiveHostDelegate.section(for:taste), placeResponse: nil, recommendedPlaceResponse: nil)
             let categoryResult = CategoryResult(identity:taste, parentCategory: taste, list:"Taste", icon: chatResult.icon, rating: 1, section:chatResult.section, categoricalChatResults: [chatResult])
             results.append(categoryResult)

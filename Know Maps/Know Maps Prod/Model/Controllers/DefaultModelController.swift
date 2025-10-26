@@ -226,7 +226,9 @@ public final class DefaultModelController : ModelController {
                 }
                 
                 if let industry = industry { self.industryResults = industry }
-                if let taste = taste { self.tasteResults = taste }
+            if let taste = taste {
+                self.tasteResults = taste
+            }
                 if let places = places {
                     self.previousPlaceResults = self.placeResults
                     self.placeResults = places
@@ -421,7 +423,7 @@ public final class DefaultModelController : ModelController {
     private func selectedDestinationLocationName() -> String {
         selectedDestinationLocationChatResult.locationName
     }
-    
+        
     /// Generate a stable in-flight search key for duplicate suppression
     private func makeSearchKey(for intent: AssistiveChatHostIntent) -> String {
         let caption = intent.caption
@@ -1595,12 +1597,23 @@ public final class DefaultModelController : ModelController {
             analyticsManager.track(event:"modelSearchQueryBuilt", properties: nil)
             analyticsManager.track(event: "searchIntentWithSearch", properties: nil)
         case .AutocompleteTastes:
-            setProgressMessage(phase: "Fetching autocomplete tastes", caption: caption, locationName: destinationName)
-            trackProgress(phase: "autocomplete.tastes.begin", caption: caption, locationName: destinationName)
-            let results = try await placeSearchService.autocompleteTastes(lastIntent: intent, currentTasteResults: tasteResults, cacheManager: cacheManager)
-            updateAllResults(taste: results)
-            trackProgress(phase: "autocomplete.tastes.end", caption: caption, locationName: destinationName)
-            analyticsManager.track(event: "modelAutocompletePlaceModelBuilt", properties: nil)
+            do {
+                // Use the service to fetch and format tastes using tasteCategoryResults
+                let formattedTastes = try await placeSearchService.autocompleteTastes(
+                    lastIntent: intent,
+                    currentTasteResults: self.tasteResults,
+                    cacheManager: cacheManager
+                )
+                
+                updateAllResults(taste: formattedTastes)
+                
+                setProgressMessage(phase: "Showing autocomplete tastes", caption: caption, locationName: destinationName)
+                trackProgress(phase: "autocomplete.tastes.end", caption: caption, locationName: destinationName)
+                analyticsManager.track(event: "searchIntentWithPersonalizedAutocompleteTastes", properties: ["count": formattedTastes.count])
+            } catch {
+                analyticsManager.trackError(error: error, additionalInfo: ["phase": "searchIntent.autocompleteTastes"]) 
+                throw error
+            }
         }
         
         return placeResults
@@ -1687,13 +1700,23 @@ public final class DefaultModelController : ModelController {
         case .Search:
             try await performSearch(for: intent)
         case .AutocompleteTastes:
-            setProgressMessage(phase: "Fetching autocomplete tastes", caption: caption, locationName: destinationName)
-            trackProgress(phase: "autocomplete.tastes.begin", caption: caption, locationName: destinationName)
-            let autocompleteResponse = try await placeSearchService.personalizedSearchSession.autocompleteTastes(caption: intent.caption, parameters: intent.queryParameters, cacheManager: cacheManager)
-            let tastes = try PlaceResponseFormatter.autocompleteTastesResponses(with: autocompleteResponse)
-            intent.tasteAutocompleteResponese = tastes
-            trackProgress(phase: "autocomplete.tastes.end", caption: caption, locationName: destinationName)
-            analyticsManager.track(event: "searchIntentWithPersonalizedAutocompleteTastes", properties: nil)
+            do {
+                // Use the service to fetch and format tastes using tasteCategoryResults
+                let formattedTastes = try await placeSearchService.autocompleteTastes(
+                    lastIntent: intent,
+                    currentTasteResults: self.tasteResults,
+                    cacheManager: cacheManager
+                )
+                
+                updateAllResults(taste: formattedTastes)
+                
+                setProgressMessage(phase: "Showing autocomplete tastes", caption: caption, locationName: destinationName)
+                trackProgress(phase: "autocomplete.tastes.end", caption: caption, locationName: destinationName)
+                analyticsManager.track(event: "searchIntentWithPersonalizedAutocompleteTastes", properties: ["count": formattedTastes.count])
+            } catch {
+                analyticsManager.trackError(error: error, additionalInfo: ["phase": "searchIntent.autocompleteTastes"]) 
+                throw error
+            }
         }
     }
 }

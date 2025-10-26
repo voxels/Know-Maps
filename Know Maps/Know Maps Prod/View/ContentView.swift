@@ -82,26 +82,23 @@ struct ContentView: View {
     var body: some View {
         GeometryReader { geometry in
             browseView()
-                .popover(isPresented: $showSettings, content: {
-                    ZStack(alignment: .center) {
-                        Color.clear
-                            .ignoresSafeArea()
-                        VStack {
-                            HStack{
-                                Button("Done") {
-                                    showSettings.toggle()
-                                }
-                                .padding()
-                                .glassEffect()
-                                Spacer()
+                .sheet(isPresented: $showSettings, content: {
+                    VStack(alignment: .leading) {
+                        SettingsView(model: settingsModel, chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, showOnboarding: $showOnboarding)
+                            .padding()
+                        HStack{
+                            Spacer()
+                            Button("Done") {
+                                showSettings.toggle()
                             }
                             .padding()
-                            Spacer()
-                            SettingsView(model: settingsModel, chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, showOnboarding: $showOnboarding)
+                            #if !os(visionOS)
+                            .glassEffect()
+                            #endif
                         }
-                        .padding()
                     }
-                    .frame(width: geometry.size.width.scaled(by: sizeClass == .compact ? 1.0 : 0.8), height: geometry.size.height.scaled(by: 0.8))
+                    .padding()
+                    .presentationDetents([.medium])
                 })
                 .onChange(of:modelController.selectedCategoryChatResult) {_, newValue in
                     if let id = newValue {
@@ -191,9 +188,6 @@ struct ContentView: View {
                         }
                     }
                 }
-#if !os(visionOS) && !os(macOS)
-                .containerBackground(Color(.clear), for: .navigation)
-#endif
                 .tabViewStyle(.tabBarOnly)
                 .sheet(item: $searchSavedViewModel.editingRecommendationWeightResult) { selectedResult in
                     recommendationWeightSheet(for: selectedResult)
@@ -288,62 +282,148 @@ struct ContentView: View {
     @ToolbarContentBuilder
     func unifiedBrowseToolbar() -> some ToolbarContent {
 #if os(macOS)
-        ToolbarItem(placement: .secondaryAction) {
-            Picker("Search Mode", selection: $searchMode) {
-                Text("❤️").accessibilityLabel("Favorites").tag(SearchMode.favorites)
-                Text("🏭").accessibilityLabel("Industries").tag(SearchMode.industries)
-                Text("✨").accessibilityLabel("Features").tag(SearchMode.features)
-                Text("📍").accessibilityLabel("Places").tag(SearchMode.places)
-            }
-            .labelsHidden()
-            .pickerStyle(.segmented)
-            .tint(.accentColor)
-        }
-#else
-        ToolbarItem(placement: .automatic) {
-            Picker("Search Mode", selection: $searchMode) {
-                Text("❤️").accessibilityLabel("Favorites").tag(SearchMode.favorites)
-                Text("🏭").accessibilityLabel("Industries").tag(SearchMode.industries)
-                Text("✨").accessibilityLabel("Features").tag(SearchMode.features)
-                Text("📍").accessibilityLabel("Places").tag(SearchMode.places)
-            }
-            .labelsHidden()
-            .pickerStyle(.segmented)
-            .tint(.accentColor)
-        }
-#endif
-        
-#if os(macOS)
-        ToolbarItemGroup(placement: .primaryAction) {
-            Button {
-                if !showNavigationLocationView {
-                    showNavigationLocationView = true
-                }
-            } label: {
-                Label("Filter", systemImage: "line.3.horizontal.decrease")
-            }
-            .disabled(showNavigationLocationView)
+        // macOS: Leading = Settings; Center (principal) = Picker; Trailing = Filter
+        ToolbarItem(placement: .navigation) {
             Button {
                 showSettings.toggle()
             } label: {
                 Label("Settings", systemImage: "person.crop.circle")
             }
         }
-#else
-        ToolbarItemGroup(placement: .topBarLeading) {
+        ToolbarItem(placement: .principal) {
+            Picker("Search Mode", selection: $searchMode) {
+                Text("❤️").accessibilityLabel("Favorites").tag(SearchMode.favorites)
+                Text("🏭").accessibilityLabel("Industries").tag(SearchMode.industries)
+                Text("✨").accessibilityLabel("Features").tag(SearchMode.features)
+                Text("📍").accessibilityLabel("Places").tag(SearchMode.places)
+            }
+            .labelsHidden()
+            .pickerStyle(.segmented)
+            .tint(.accentColor)
+        }
+        ToolbarItem(placement: .status) {
             Button {
-                if !showNavigationLocationView {
-                    showNavigationLocationView = true
-                }
+                if !showNavigationLocationView { showNavigationLocationView = true }
             } label: {
                 Label("Filter", systemImage: "line.3.horizontal.decrease")
             }
             .disabled(showNavigationLocationView)
-            Button("Settings", systemImage: "person.crop.circle") {
+        }
+#elseif os(iOS)
+        // iOS/iPadOS: Leading = Settings; Bottom bar = Picker; Trailing = Filter
+        ToolbarItem(placement: .topBarLeading) {
+            Button {
                 showSettings.toggle()
+            } label: {
+                Label("Settings", systemImage: "person.crop.circle")
             }
             .labelStyle(.iconOnly)
-
+        }
+        ToolbarItem(placement: .bottomBar) {
+            Picker("Search Mode", selection: $searchMode) {
+                Text("❤️").accessibilityLabel("Favorites").tag(SearchMode.favorites)
+                Text("🏭").accessibilityLabel("Industries").tag(SearchMode.industries)
+                Text("✨").accessibilityLabel("Features").tag(SearchMode.features)
+                Text("📍").accessibilityLabel("Places").tag(SearchMode.places)
+            }
+            .labelsHidden()
+            .pickerStyle(.segmented)
+            .tint(.accentColor)
+        }
+        ToolbarItem(placement: .topBarTrailing) {
+            Button {
+                if !showNavigationLocationView { showNavigationLocationView = true }
+            } label: {
+                Label("Filter", systemImage: "line.3.horizontal.decrease")
+            }
+            .disabled(showNavigationLocationView)
+        }
+#elseif os(tvOS)
+        // tvOS: Use bottom bar if available; otherwise fall back to principal
+        ToolbarItem(placement: .topBarLeading) {
+            Button {
+                showSettings.toggle()
+            } label: {
+                Label("Settings", systemImage: "person.crop.circle")
+            }
+            .labelStyle(.iconOnly)
+        }
+        ToolbarItem(placement: .bottomBar) {
+            Picker("Search Mode", selection: $searchMode) {
+                Text("❤️").accessibilityLabel("Favorites").tag(SearchMode.favorites)
+                Text("🏭").accessibilityLabel("Industries").tag(SearchMode.industries)
+                Text("✨").accessibilityLabel("Features").tag(SearchMode.features)
+                Text("📍").accessibilityLabel("Places").tag(SearchMode.places)
+            }
+            .labelsHidden()
+            .pickerStyle(.segmented)
+            .tint(.accentColor)
+        }
+        ToolbarItem(placement: .topBarTrailing) {
+            Button {
+                if !showNavigationLocationView { showNavigationLocationView = true }
+            } label: {
+                Label("Filter", systemImage: "line.3.horizontal.decrease")
+            }
+            .disabled(showNavigationLocationView)
+        }
+#elseif os(visionOS)
+        // visionOS: Use principal (center) for the picker
+        ToolbarItem(placement: .topBarLeading) {
+            Button {
+                showSettings.toggle()
+            } label: {
+                Label("Settings", systemImage: "person.crop.circle")
+            }
+            .labelStyle(.iconOnly)
+        }
+        ToolbarItem(placement: .bottomOrnament) {
+            Picker("Search Mode", selection: $searchMode) {
+                Text("❤️").accessibilityLabel("Favorites").tag(SearchMode.favorites)
+                Text("🏭").accessibilityLabel("Industries").tag(SearchMode.industries)
+                Text("✨").accessibilityLabel("Features").tag(SearchMode.features)
+                Text("📍").accessibilityLabel("Places").tag(SearchMode.places)
+            }
+            .labelsHidden()
+            .pickerStyle(.segmented)
+            .tint(.accentColor)
+        }
+        ToolbarItem(placement: .topBarTrailing) {
+            Button {
+                if !showNavigationLocationView { showNavigationLocationView = true }
+            } label: {
+                Label("Filter", systemImage: "line.3.horizontal.decrease")
+            }
+            .disabled(showNavigationLocationView)
+        }
+#else
+        // Fallback: principal for picker, settings leading, filter trailing
+        ToolbarItem(placement: .topBarLeading) {
+            Button {
+                showSettings.toggle()
+            } label: {
+                Label("Settings", systemImage: "person.crop.circle")
+            }
+            .labelStyle(.iconOnly)
+        }
+        ToolbarItem(placement: .principal) {
+            Picker("Search Mode", selection: $searchMode) {
+                Text("❤️").accessibilityLabel("Favorites").tag(SearchMode.favorites)
+                Text("🏭").accessibilityLabel("Industries").tag(SearchMode.industries)
+                Text("✨").accessibilityLabel("Features").tag(SearchMode.features)
+                Text("📍").accessibilityLabel("Places").tag(SearchMode.places)
+            }
+            .labelsHidden()
+            .pickerStyle(.segmented)
+            .tint(.accentColor)
+        }
+        ToolbarItem(placement: .topBarTrailing) {
+            Button {
+                if !showNavigationLocationView { showNavigationLocationView = true }
+            } label: {
+                Label("Filter", systemImage: "line.3.horizontal.decrease")
+            }
+            .disabled(showNavigationLocationView)
         }
 #endif
     }
@@ -434,6 +514,9 @@ struct ContentView: View {
                     )
                 }
             }
+        }
+        .task {
+            await modelController.ensureIndustryResultsPopulated()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }

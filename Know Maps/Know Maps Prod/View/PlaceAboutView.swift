@@ -261,9 +261,7 @@ private struct ActionButtonsRow: View {
             .clipShape(RoundedRectangle(cornerRadius: PlaceAboutView.cornerRadius, style: .continuous))
             .contentShape(RoundedRectangle(cornerRadius: PlaceAboutView.cornerRadius, style: .continuous))
             .padding(PlaceAboutView.defaultPadding)
-#if os(visionOS)
-.background(.ultraThinMaterial)
-#else
+#if !os(visionOS)
 .buttonStyle(.glass)
 #endif
 
@@ -291,11 +289,10 @@ private struct ActionButtonsRow: View {
                 .clipShape(RoundedRectangle(cornerRadius: PlaceAboutView.cornerRadius, style: .continuous))
                 .contentShape(RoundedRectangle(cornerRadius: PlaceAboutView.cornerRadius, style: .continuous))
                 .padding(PlaceAboutView.defaultPadding)
-#if os(visionOS)
-.background(.ultraThinMaterial)
-#else
+#if !os(visionOS)
 .buttonStyle(.glass)
 #endif
+                
 #if os(visionOS)
                 .hoverEffect(.lift)
 #endif
@@ -318,9 +315,7 @@ private struct ActionButtonsRow: View {
                 .clipShape(RoundedRectangle(cornerRadius: PlaceAboutView.cornerRadius, style: .continuous))
                 .contentShape(RoundedRectangle(cornerRadius: PlaceAboutView.cornerRadius, style: .continuous))
                 .padding(PlaceAboutView.defaultPadding)
-#if os(visionOS)
-.background(.ultraThinMaterial)
-#else
+#if !os(visionOS)
 .buttonStyle(.glass)
 #endif
 #if os(visionOS)
@@ -365,9 +360,7 @@ private struct RatingsPriceShareRow<ShareSheetContent: View>: View {
                 .clipShape(RoundedRectangle(cornerRadius: PlaceAboutView.cornerRadius, style: .continuous))
                 .contentShape(RoundedRectangle(cornerRadius: PlaceAboutView.cornerRadius, style: .continuous))
                 .padding(PlaceAboutView.defaultPadding)
-#if os(visionOS)
-.background(.ultraThinMaterial)
-#else
+#if !os(visionOS)
 .buttonStyle(.glass)
 #endif
 #if os(visionOS)
@@ -391,9 +384,7 @@ private struct RatingsPriceShareRow<ShareSheetContent: View>: View {
             .clipShape(RoundedRectangle(cornerRadius: PlaceAboutView.cornerRadius, style: .continuous))
             .contentShape(RoundedRectangle(cornerRadius: PlaceAboutView.cornerRadius, style: .continuous))
             .padding(PlaceAboutView.defaultPadding)
-#if os(visionOS)
-.background(.ultraThinMaterial)
-#else
+#if !os(visionOS)
 .buttonStyle(.glass)
 #endif
 #if os(visionOS)
@@ -430,8 +421,6 @@ private struct RelatedPlacesSection: View {
                         .padding(PlaceAboutView.defaultPadding)
 #if !os(visionOS)
                         .glassEffect(.regular, in: .rect(cornerRadius: PlaceAboutView.cornerRadius))
-#else
-                        .background(.ultraThinMaterial)
 #endif
                         .clipShape(RoundedRectangle(cornerRadius: PlaceAboutView.cornerRadius, style: .continuous))
 #if os(visionOS)
@@ -485,8 +474,6 @@ private struct TastesSection: View {
 #if !os(visionOS)
                             Color.clear
                                 .glassEffect(.regular, in: .rect(cornerRadius: PlaceAboutView.cornerRadius))
-#else
-                            Color.clear.background(.ultraThinMaterial)
 #endif
                         }
                     )

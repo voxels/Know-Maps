@@ -19,51 +19,101 @@ struct OnboardingSignInView: View {
     @State private var signInErrorMessage: String = ""
     
     var body: some View {
-        VStack {
-            Spacer()
-            Text("Welcome to Know Maps")
-                .bold()
-                .padding()
-            
+        VStack(alignment: .center, spacing: 16) {
+            // App identity
             Image("logo_macOS_512")
                 .resizable()
                 .scaledToFit()
-                .frame(width: 100, height: 100)
-            
-            Text("1. Sign in with your Apple ID to create saved lists. Know Maps keeps your data safe inside Apple's private iCloud storage.")
-                .multilineTextAlignment(.leading)
-                .padding()
-            
-            if !authService.appleUserId.isEmpty {
-                Label("Signed in with Apple ID", systemImage: "person.crop.circle.badge.checkmark")
-                    .foregroundStyle(.accent)
-            } else {
-                SignInWithAppleButton(.signIn, onRequest: { request in
+                .frame(width: 80, height: 80)
+                .accessibilityHidden(true)
+
+            VStack(spacing: 6) {
+                Text("Sign in to continue")
+                    .font(.title2).bold()
+                    .multilineTextAlignment(.center)
+                Text("Use your Apple ID to create saved lists. Your data stays private in iCloud.")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+            }
+            .padding(.horizontal)
+
+            // Status row
+            Group {
+                if !authService.appleUserId.isEmpty {
+                    Label {
+                        Text("Signed in with Apple ID")
+                    } icon: {
+                        Image(systemName: "person.crop.circle.badge.checkmark")
+                    }
+                    .foregroundStyle(.green)
+                    .accessibilityLabel("Signed in with Apple ID")
+                } else {
+                    Label {
+                        Text("Not signed in")
+                    } icon: {
+                        Image(systemName: "person.crop.circle")
+                    }
+                    .foregroundStyle(.secondary)
+                    .accessibilityLabel("Not signed in")
+                }
+            }
+            .padding(.top, 4)
+
+            // Action area
+            if authService.appleUserId.isEmpty {
+                SignInWithAppleButton(.signIn, onRequest: { _ in
                     authService.signIn()
                 }, onCompletion: { result in
                     switch result {
                     case .success(let authResults):
                         if let provider = authResults.provider as? ASAuthorizationAppleIDProvider {
-                            authService.authorizationController(controller: ASAuthorizationController(authorizationRequests: [provider.createRequest()]), didCompleteWithAuthorization: authResults)
+                            authService.authorizationController(
+                                controller: ASAuthorizationController(authorizationRequests: [provider.createRequest()]),
+                                didCompleteWithAuthorization: authResults
+                            )
                         }
                     case .failure(let error):
-                        // Update error message and present popover
                         signInErrorMessage = error.localizedDescription
-                        popoverPresented.toggle()
+                        popoverPresented = true
                     }
                 })
-                .frame(maxWidth:220, maxHeight: 44)
+                .frame(maxWidth: 280, maxHeight: 48)
                 .signInWithAppleButtonStyle(.whiteOutline)
-                .popover(isPresented: $popoverPresented, content: {
-                    Text(signInErrorMessage)
-                        .padding()
-                        .presentationCompactAdaptation(.popover)
-                })
-                .padding()
-                
-                Spacer()
+                .accessibilityLabel("Sign in with Apple")
+                .popover(isPresented: $popoverPresented) {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Label("Sign-in failed", systemImage: "exclamationmark.triangle")
+                            .foregroundStyle(.orange)
+                        Text(signInErrorMessage)
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                        Button("Open Settings") {
+                            openSettingsPreferences()
+                        }
+                    }
+                    .padding()
+                    .presentationCompactAdaptation(.popover)
+                }
+            } else {
+                Button {
+                    openSettingsPreferences()
+                } label: {
+                    Label("Manage Apple ID settings", systemImage: "gearshape")
+                }
+                .buttonStyle(.bordered)
             }
         }
+        .padding(20)
+        .frame(maxWidth: 480)
+        .background(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(.thinMaterial)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .strokeBorder(.quaternary, lineWidth: 0.5)
+        )
     }
     
 #if os(macOS)

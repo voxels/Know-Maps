@@ -64,7 +64,6 @@
 		1E2D2ABE2E8A583800EA69DC /* RecommendationData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E3FE00F2CB69FFC0020B3CB /* RecommendationData.swift */; };
 		1E2D2ABF2E8A583800EA69DC /* RecommendedPlaceSearchRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E71213C2B6160A500758259 /* RecommendedPlaceSearchRequest.swift */; };
 		1E2D2AC02E8A583800EA69DC /* RecommendedPlaceSearchResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E7121402B616C6400758259 /* RecommendedPlaceSearchResponse.swift */; };
-		1E2D2AC12E8A583800EA69DC /* TasteAutocompleteResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E6570D52C9B516400FEE9F8 /* TasteAutocompleteResponse.swift */; };
 		1E2D2AC22E8A583800EA69DC /* UserCachedRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EEC48182B45A4B300248D69 /* UserCachedRecord.swift */; };
 		1E2D2AC32E8A583800EA69DC /* RecommenderService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E3FE0112CB6C52C0020B3CB /* RecommenderService.swift */; };
 		1E2D2AC42E8A583800EA69DC /* Authentication.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E96EE992CB527490070BCDD /* Authentication.swift */; };
@@ -123,7 +122,6 @@
 		1E3FE0552CB852070020B3CB /* AppShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E3FE0542CB852000020B3CB /* AppShortcuts.swift */; };
 		1E3FE0572CB855020020B3CB /* PersonalizedSearchSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E3FE0562CB854FD0020B3CB /* PersonalizedSearchSection.swift */; };
 		1E601F5D2CB0512900E320D7 /* GoogleBannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E601F5C2CB0512900E320D7 /* GoogleBannerView.swift */; };
-		1E6570D62C9B516400FEE9F8 /* TasteAutocompleteResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E6570D52C9B516400FEE9F8 /* TasteAutocompleteResponse.swift */; };
 		1E69444C2CB993C70017A81F /* FiltersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E69444B2CB993C70017A81F /* FiltersView.swift */; };
 		1E6944502CBA73060017A81F /* AddPromptView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E69444F2CBA73060017A81F /* AddPromptView.swift */; };
 		1E6944542CBA780A0017A81F /* AddCategoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E6944532CBA780A0017A81F /* AddCategoryView.swift */; };
@@ -290,7 +288,6 @@
 		1E60F44F2CAC149F00891250 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.0.sdk/System/Library/Frameworks/StoreKit.framework; sourceTree = DEVELOPER_DIR; };
 		1E630C832B1636E400A57CCB /* ActivityViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityViewController.swift; sourceTree = "<group>"; };
 		1E630C852B16440100A57CCB /* CloudCacheService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudCacheService.swift; sourceTree = "<group>"; };
-		1E6570D52C9B516400FEE9F8 /* TasteAutocompleteResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TasteAutocompleteResponse.swift; sourceTree = "<group>"; };
 		1E69444B2CB993C70017A81F /* FiltersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FiltersView.swift; sourceTree = "<group>"; };
 		1E69444F2CBA73060017A81F /* AddPromptView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddPromptView.swift; sourceTree = "<group>"; };
 		1E6944532CBA780A0017A81F /* AddCategoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddCategoryView.swift; sourceTree = "<group>"; };
@@ -515,7 +512,6 @@
 				1E3FE00F2CB69FFC0020B3CB /* RecommendationData.swift */,
 				1E71213C2B6160A500758259 /* RecommendedPlaceSearchRequest.swift */,
 				1E7121402B616C6400758259 /* RecommendedPlaceSearchResponse.swift */,
-				1E6570D52C9B516400FEE9F8 /* TasteAutocompleteResponse.swift */,
 				1EEC48182B45A4B300248D69 /* UserCachedRecord.swift */,
 				1EC83C8D2EA7E67700212057 /* ConfiguredSearchSession.swift */,
 			);
@@ -993,7 +989,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				1EDF93D02CB53DC100FDCFDF /* LanguageGeneratorService.swift in Sources */,
-				1E6570D62C9B516400FEE9F8 /* TasteAutocompleteResponse.swift in Sources */,
 				1EF3791E2C986F96001C5E39 /* LocalMapsQueryClassifier.mlmodel in Sources */,
 				1EDF93CF2CB52F1900FDCFDF /* DefaultModelController.swift in Sources */,
 				1EF3791F2C986F96001C5E39 /* LocalMapsQueryTagger.mlmodel in Sources */,
@@ -1144,7 +1139,6 @@
 				1E2D2ABE2E8A583800EA69DC /* RecommendationData.swift in Sources */,
 				1E2D2ABF2E8A583800EA69DC /* RecommendedPlaceSearchRequest.swift in Sources */,
 				1E2D2AC02E8A583800EA69DC /* RecommendedPlaceSearchResponse.swift in Sources */,
-				1E2D2AC12E8A583800EA69DC /* TasteAutocompleteResponse.swift in Sources */,
 				1E2D2AC22E8A583800EA69DC /* UserCachedRecord.swift in Sources */,
 				1E2D2AC32E8A583800EA69DC /* RecommenderService.swift in Sources */,
 				1E2D2AC42E8A583800EA69DC /* Authentication.swift in Sources */,

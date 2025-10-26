@@ -90,7 +90,6 @@ struct SavedListView: View {
                                     ratingButton(for: parent, searchMode: .industries)
                                 }
                                 .frame(maxWidth: .infinity)
-                                .contentShape(Rectangle())
                             }
                             .onDelete { indexSet in
                                 let idsToDelete = indexSet.map { cacheManager.cachedIndustryResults[$0].id }
@@ -123,7 +122,6 @@ struct SavedListView: View {
                                     ratingButton(for: parent, searchMode: .features)
                                 }
                                 .frame(maxWidth: .infinity)
-                                .contentShape(Rectangle())
                             }
                             .onDelete { indexSet in
                                 let idsToDelete = indexSet.map { cacheManager.cachedTasteResults[$0].id }
@@ -152,7 +150,6 @@ struct SavedListView: View {
                                 }
                             }), id: \.id) { parent in
                                 Text(parent.parentCategory)
-                                    .contentShape(Rectangle())
                             }
                             .onDelete { indexSet in
                                 let idsToDelete = indexSet.map { cacheManager.cachedPlaceResults[$0].id }
