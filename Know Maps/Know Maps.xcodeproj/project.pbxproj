@@ -274,9 +274,9 @@
 		1E1F5E542B72694A008B6BAD /* OnboardingSubscriptionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingSubscriptionView.swift; sourceTree = "<group>"; };
 		1E24EE632CAC78250087F724 /* FoursquareSectionClassifier.mlmodel */ = {isa = PBXFileReference; lastKnownFileType = file.mlmodel; path = FoursquareSectionClassifier.mlmodel; sourceTree = "<group>"; };
 		1E26C7B32B2C79150050EC6A /* NavigationLocationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationLocationView.swift; sourceTree = "<group>"; };
-		1E2D2A432E8A536C00EA69DC /* hopit.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = hopit.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		1E2D2A532E8A536D00EA69DC /* hopitTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = hopitTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		1E2D2A5D2E8A536D00EA69DC /* hopitUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = hopitUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		1E2D2A432E8A536C00EA69DC /* hopit.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; name = hopit.app; path = "/Users/voxels/Documents/dev/Know Maps/Know-Maps/Know Maps/build/Debug/hopit.app"; sourceTree = "<absolute>"; };
+		1E2D2A532E8A536D00EA69DC /* hopitTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; name = hopitTests.xctest; path = "/Users/voxels/Documents/dev/Know Maps/Know-Maps/Know Maps/build/Debug/hopit.app/Contents/PlugIns/hopitTests.xctest"; sourceTree = "<absolute>"; };
+		1E2D2A5D2E8A536D00EA69DC /* hopitUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; name = hopitUITests.xctest; path = "/Users/voxels/Documents/dev/Know Maps/Know-Maps/Know Maps/build/Debug/hopitUITests-Runner.app/Contents/PlugIns/hopitUITests.xctest"; sourceTree = "<absolute>"; };
 		1E3FE00F2CB69FFC0020B3CB /* RecommendationData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecommendationData.swift; sourceTree = "<group>"; };
 		1E3FE0112CB6C52C0020B3CB /* RecommenderService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecommenderService.swift; sourceTree = "<group>"; };
 		1E3FE0132CB6C6B60020B3CB /* DefaultRecommenderService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DefaultRecommenderService.swift; sourceTree = "<group>"; };
@@ -370,20 +370,7 @@
 		1EFFBB2A2E83EA510088882B /* SupabaseService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseService.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		1E2D2A6B2E8A536D00EA69DC /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Info.plist,
-			);
-			target = 1E2D2A422E8A536C00EA69DC /* hopit */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
-
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		1E2D2A442E8A536C00EA69DC /* hopit */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (1E2D2A6B2E8A536D00EA69DC /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = hopit; sourceTree = "<group>"; };
-		1E2D2A562E8A536D00EA69DC /* hopitTests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = hopitTests; sourceTree = "<group>"; };
-		1E2D2A602E8A536D00EA69DC /* hopitUITests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = hopitUITests; sourceTree = "<group>"; };
 		1EE599B42CA4A6DE00C211A6 /* Know MapsTests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = "Know MapsTests"; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
@@ -579,9 +566,6 @@
 				1E1E31102CC19E1B00A23434 /* Know-Maps-Info.plist */,
 				1E095AF92B778AEF00147119 /* Know Maps Prod */,
 				1EE599B42CA4A6DE00C211A6 /* Know MapsTests */,
-				1E2D2A442E8A536C00EA69DC /* hopit */,
-				1E2D2A562E8A536D00EA69DC /* hopitTests */,
-				1E2D2A602E8A536D00EA69DC /* hopitUITests */,
 				1EA7F7462B03FA70002AE371 /* Products */,
 				1E6F4AFE2B20F538001E701B /* Frameworks */,
 			);
@@ -594,9 +578,6 @@
 				1E095B082B778AF000147119 /* Know Maps ProdTests.xctest */,
 				1E095B122B778AF000147119 /* Know Maps ProdUITests.xctest */,
 				1EE599B32CA4A6DE00C211A6 /* Know MapsTests.xctest */,
-				1E2D2A432E8A536C00EA69DC /* hopit.app */,
-				1E2D2A532E8A536D00EA69DC /* hopitTests.xctest */,
-				1E2D2A5D2E8A536D00EA69DC /* hopitUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -754,9 +735,6 @@
 			);
 			dependencies = (
 			);
-			fileSystemSynchronizedGroups = (
-				1E2D2A442E8A536C00EA69DC /* hopit */,
-			);
 			name = hopit;
 			packageProductDependencies = (
 				1E2D2A6F2E8A54BF00EA69DC /* Auth */,
@@ -786,9 +764,6 @@
 			dependencies = (
 				1E2D2A552E8A536D00EA69DC /* PBXTargetDependency */,
 			);
-			fileSystemSynchronizedGroups = (
-				1E2D2A562E8A536D00EA69DC /* hopitTests */,
-			);
 			name = hopitTests;
 			packageProductDependencies = (
 			);
@@ -808,9 +783,6 @@
 			);
 			dependencies = (
 				1E2D2A5F2E8A536D00EA69DC /* PBXTargetDependency */,
-			);
-			fileSystemSynchronizedGroups = (
-				1E2D2A602E8A536D00EA69DC /* hopitUITests */,
 			);
 			name = hopitUITests;
 			packageProductDependencies = (
