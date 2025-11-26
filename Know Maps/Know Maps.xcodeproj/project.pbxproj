@@ -216,6 +216,13 @@
 		1EFFBB342E83EAA90088882B /* Realtime in Frameworks */ = {isa = PBXBuildFile; productRef = 1EFFBB332E83EAA90088882B /* Realtime */; };
 		1EFFBB362E83EAA90088882B /* Storage in Frameworks */ = {isa = PBXBuildFile; productRef = 1EFFBB352E83EAA90088882B /* Storage */; };
 		1EFFBB382E83EAA90088882B /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 1EFFBB372E83EAA90088882B /* Supabase */; };
+		28AC6B7B20316C039B1559FF /* MockInputValidationServiceV2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 163A205250927D184A1F3101 /* MockInputValidationServiceV2.swift */; };
+		34694C09C8D91684A6F41CF9 /* DefaultInputValidationServiceV2.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3043F08BB87B3FE6C3EA522 /* DefaultInputValidationServiceV2.swift */; };
+		5EC21F174908F8D1F3FBE125 /* UnifiedSearchIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B5D651379E45F9C2E93462C /* UnifiedSearchIntent.swift */; };
+		6426161E645A26E731807829 /* VectorEmbeddingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = E04AE2AD91549C0586795F86 /* VectorEmbeddingService.swift */; };
+		B7661109D2F571EA2F324B60 /* InputValidationServiceV2.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8C23358484759EA14AE8AB3 /* InputValidationServiceV2.swift */; };
+		ED94C5A541050B57CE79340F /* InputValidationServiceV2Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C663478711D4B256D1641D0 /* InputValidationServiceV2Tests.swift */; };
+		F6164203607D764043EB8C87 /* FoundationModelsIntentClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEAEBEC95225AD7177B77E18 /* FoundationModelsIntentClassifier.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -257,6 +264,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		163A205250927D184A1F3101 /* MockInputValidationServiceV2.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MockInputValidationServiceV2.swift; path = "Know MapsTests/Mocks/MockInputValidationServiceV2.swift"; sourceTree = "<group>"; };
 		1E007ACB2CB4089400A8DC5A /* CloudCacheManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudCacheManager.swift; sourceTree = "<group>"; };
 		1E007ACD2CB40B1900A8DC5A /* SegmentAnalyticsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SegmentAnalyticsService.swift; sourceTree = "<group>"; };
 		1E095AF82B778AEF00147119 /* Know Maps.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Know Maps.app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -368,10 +376,26 @@
 		1EFFBAA22E8278020088882B /* PLAY_fixed.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = PLAY_fixed.wav; sourceTree = "<group>"; };
 		1EFFBAA32E8278020088882B /* THINKING.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = THINKING.wav; sourceTree = "<group>"; };
 		1EFFBB2A2E83EA510088882B /* SupabaseService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseService.swift; sourceTree = "<group>"; };
+		2B5D651379E45F9C2E93462C /* UnifiedSearchIntent.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = UnifiedSearchIntent.swift; path = "Know Maps Prod/Model/Models/UnifiedSearchIntent.swift"; sourceTree = "<group>"; };
+		7C663478711D4B256D1641D0 /* InputValidationServiceV2Tests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = InputValidationServiceV2Tests.swift; path = "Know MapsTests/InputValidationServiceV2Tests.swift"; sourceTree = "<group>"; };
+		B8C23358484759EA14AE8AB3 /* InputValidationServiceV2.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = InputValidationServiceV2.swift; path = "Know Maps Prod/Model/Protocols/InputValidationServiceV2.swift"; sourceTree = "<group>"; };
+		D3043F08BB87B3FE6C3EA522 /* DefaultInputValidationServiceV2.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = DefaultInputValidationServiceV2.swift; path = "Know Maps Prod/Model/Controllers/DefaultInputValidationServiceV2.swift"; sourceTree = "<group>"; };
+		DEAEBEC95225AD7177B77E18 /* FoundationModelsIntentClassifier.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = FoundationModelsIntentClassifier.swift; path = "Know Maps Prod/Model/ML/FoundationModelsIntentClassifier.swift"; sourceTree = "<group>"; };
+		E04AE2AD91549C0586795F86 /* VectorEmbeddingService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = VectorEmbeddingService.swift; path = "Know Maps Prod/Model/Models/VectorEmbeddingService.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		1EE599B42CA4A6DE00C211A6 /* Know MapsTests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = "Know MapsTests"; sourceTree = "<group>"; };
+		1EE599B42CA4A6DE00C211A6 /* Know MapsTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+			);
+			explicitFileTypes = {
+			};
+			explicitFolders = (
+			);
+			path = "Know MapsTests";
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -445,6 +469,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		1C14715A01560189F6F3361E /* Mocks */ = {
+			isa = PBXGroup;
+			children = (
+				163A205250927D184A1F3101 /* MockInputValidationServiceV2.swift */,
+			);
+			name = Mocks;
+			sourceTree = "<group>";
+		};
 		1E095AF92B778AEF00147119 /* Know Maps Prod */ = {
 			isa = PBXGroup;
 			children = (
@@ -501,6 +533,8 @@
 				1E7121402B616C6400758259 /* RecommendedPlaceSearchResponse.swift */,
 				1EEC48182B45A4B300248D69 /* UserCachedRecord.swift */,
 				1EC83C8D2EA7E67700212057 /* ConfiguredSearchSession.swift */,
+				2B5D651379E45F9C2E93462C /* UnifiedSearchIntent.swift */,
+				E04AE2AD91549C0586795F86 /* VectorEmbeddingService.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -536,6 +570,7 @@
 				1E3FE0132CB6C6B60020B3CB /* DefaultRecommenderService.swift */,
 				1E007ACD2CB40B1900A8DC5A /* SegmentAnalyticsService.swift */,
 				1EFFBB2A2E83EA510088882B /* SupabaseService.swift */,
+				D3043F08BB87B3FE6C3EA522 /* DefaultInputValidationServiceV2.swift */,
 			);
 			path = Controllers;
 			sourceTree = "<group>";
@@ -556,6 +591,7 @@
 				1EDF93C52CB52CC200FDCFDF /* LocationService.swift */,
 				1E7D435C2CB5258E00DC17FA /* ModelController.swift */,
 				1EDF93CB2CB52E5900FDCFDF /* PlaceSearchService.swift */,
+				B8C23358484759EA14AE8AB3 /* InputValidationServiceV2.swift */,
 			);
 			path = Protocols;
 			sourceTree = "<group>";
@@ -568,6 +604,7 @@
 				1EE599B42CA4A6DE00C211A6 /* Know MapsTests */,
 				1EA7F7462B03FA70002AE371 /* Products */,
 				1E6F4AFE2B20F538001E701B /* Frameworks */,
+				1EC133E0C83E127B36B26617 /* Know MapsTests */,
 			);
 			sourceTree = "<group>";
 		};
@@ -627,8 +664,18 @@
 				1E98C7D92B18E11200283E92 /* ViewModels */,
 				1E98C7D82B18E0A100283E92 /* Models */,
 				1EA588CD2B065D5F006B1F8F /* Protocols */,
+				A513DA3C9390CF09595D23C3 /* ML */,
 			);
 			path = Model;
+			sourceTree = "<group>";
+		};
+		1EC133E0C83E127B36B26617 /* Know MapsTests */ = {
+			isa = PBXGroup;
+			children = (
+				1C14715A01560189F6F3361E /* Mocks */,
+				7C663478711D4B256D1641D0 /* InputValidationServiceV2Tests.swift */,
+			);
+			name = "Know MapsTests";
 			sourceTree = "<group>";
 		};
 		1EDF93CD2CB52E9800FDCFDF /* Network */ = {
@@ -654,6 +701,14 @@
 				1EFFBAA32E8278020088882B /* THINKING.wav */,
 			);
 			path = Audio;
+			sourceTree = "<group>";
+		};
+		A513DA3C9390CF09595D23C3 /* ML */ = {
+			isa = PBXGroup;
+			children = (
+				DEAEBEC95225AD7177B77E18 /* FoundationModelsIntentClassifier.swift */,
+			);
+			name = ML;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -765,8 +820,6 @@
 				1E2D2A552E8A536D00EA69DC /* PBXTargetDependency */,
 			);
 			name = hopitTests;
-			packageProductDependencies = (
-			);
 			productName = hopitTests;
 			productReference = 1E2D2A532E8A536D00EA69DC /* hopitTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
@@ -785,8 +838,6 @@
 				1E2D2A5F2E8A536D00EA69DC /* PBXTargetDependency */,
 			);
 			name = hopitUITests;
-			packageProductDependencies = (
-			);
 			productName = hopitUITests;
 			productReference = 1E2D2A5D2E8A536D00EA69DC /* hopitUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
@@ -808,8 +859,6 @@
 				1EE599B42CA4A6DE00C211A6 /* Know MapsTests */,
 			);
 			name = "Know MapsTests";
-			packageProductDependencies = (
-			);
 			productName = "Know MapsTests";
 			productReference = 1EE599B32CA4A6DE00C211A6 /* Know MapsTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
@@ -1047,6 +1096,11 @@
 				1EF3791A2C986EE7001C5E39 /* PlacePhotosView.swift in Sources */,
 				1EF3791B2C986EE7001C5E39 /* PlaceTipsView.swift in Sources */,
 				1E96EE9A2CB5274D0070BCDD /* Authentication.swift in Sources */,
+				B7661109D2F571EA2F324B60 /* InputValidationServiceV2.swift in Sources */,
+				34694C09C8D91684A6F41CF9 /* DefaultInputValidationServiceV2.swift in Sources */,
+				5EC21F174908F8D1F3FBE125 /* UnifiedSearchIntent.swift in Sources */,
+				6426161E645A26E731807829 /* VectorEmbeddingService.swift in Sources */,
+				F6164203607D764043EB8C87 /* FoundationModelsIntentClassifier.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1175,6 +1229,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				28AC6B7B20316C039B1559FF /* MockInputValidationServiceV2.swift in Sources */,
+				ED94C5A541050B57CE79340F /* InputValidationServiceV2Tests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

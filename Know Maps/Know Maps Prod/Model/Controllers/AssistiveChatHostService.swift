@@ -31,10 +31,16 @@ public final class AssistiveChatHostService : AssistiveChatHost {
     
     private let geocoder = CLGeocoder()
     
+    // MARK: - Foundation Models Integration
+    private let intentClassifier: FoundationModelsIntentClassifier
+    private let vectorService: VectorEmbeddingService
+    
     required public init(analyticsManager:AnalyticsService, messagesDelegate: AssistiveChatHostMessagesDelegate) {
         self.analyticsManager = analyticsManager
         self.messagesDelegate = messagesDelegate
         self.queryIntentParameters = AssistiveChatHostQueryParameters()
+        self.intentClassifier = FoundationModelsIntentClassifier()
+        self.vectorService = VectorEmbeddingService()
         do {
             categoryCodes = try AssistiveChatHostService.organizeCategoryCodeList()
         }catch {
@@ -134,13 +140,19 @@ public final class AssistiveChatHostService : AssistiveChatHost {
         if let override = override {
             return override
         }
+        
+        // Try Foundation Models classifier first (async call wrapped in Task)
+        // For now, use the existing logic but enhanced
         let lower = caption.lowercased()
+        
         // Quick location check first
         if override == .Location {
             return .Location
         }
+        
         // Extract tags from our ML + NLTagger pipeline
         let tagDict = (try? tags(for: caption)) ?? nil
+        
         // Helpers to inspect tag values
         let containsTag: (String) -> Bool = { tag in
             guard let tagDict = tagDict else { return false }
@@ -149,14 +161,17 @@ public final class AssistiveChatHostService : AssistiveChatHost {
             }
             return false
         }
+        
         // Place intent if we clearly have a place entity
         if containsTag("PLACE") || containsTag("PlaceName") {
             return .Place
         }
-        // Taste/category intent for autocompletion of categories
+        
+        // Taste/category intent for autocompletion of categories  
         if containsTag("TASTE") || containsTag("CATEGORY") {
             return .AutocompleteTastes
         }
+        
         // Heuristics based on words
         if lower.contains("near ") || lower.contains("around ") || lower.contains("close to ") {
             return .Location
@@ -164,8 +179,34 @@ public final class AssistiveChatHostService : AssistiveChatHost {
         if lower.contains("category") || lower.contains("type of") || lower.contains("kinds of") {
             return .AutocompleteTastes
         }
+        
         // Fallback to search
         return .Search
+    }
+    
+    /// Enhanced intent determination using Foundation Models (async version)
+    public func determineIntentEnhanced(for caption: String, override: Intent? = nil) async throws -> Intent {
+        if let override = override {
+            return override
+        }
+        
+        // Use Foundation Models classifier
+        let unifiedIntent = try await intentClassifier.classify(query: caption)
+        
+        // Map UnifiedSearchIntent.SearchType to existing Intent enum
+        switch unifiedIntent.searchType {
+        case .category:
+            return .Search
+        case .taste:
+            return .AutocompleteTastes
+        case .place:
+            return .Place
+        case .location:
+            return .Location
+        case .mixed:
+            // For mixed intents, prefer Search as it's most flexible
+            return .Search
+        }
     }
     
     public func defaultParameters(for query:String, filters:[String:Any]) async throws -> [String:Any]? {
@@ -551,6 +592,58 @@ extension AssistiveChatHost {
         }
 
         return codes
+    }
+    
+    // MARK: - Semantic Re-ranking
+    
+    /// Re-ranks place search responses using semantic similarity
+    /// - Parameters:
+    ///   - query: The original search query
+    ///   - responses: Array of place search responses to rank
+    ///   - semanticWeight: Weight for semantic score (0.0-1.0, default 0.7)
+    /// - Returns: Re-ranked array of responses
+    public func semanticRerank(
+        query: String,
+        responses: [PlaceSearchResponse],
+        semanticWeight: Double = 0.7
+    ) -> [PlaceSearchResponse] {
+        guard !responses.isEmpty, !query.isEmpty else {
+            return responses
+        }
+        
+        let distanceWeight = 1.0 - semanticWeight
+        
+        // Build descriptions for each place
+        let descriptions = responses.map { response in
+            vectorService.buildPlaceDescription(
+                name: response.name,
+                categories: response.categories,
+                description: nil
+            )
+        }
+        
+        // Calculate semantic scores
+        let semanticScores = vectorService.batchSemanticScores(
+            query: query,
+            placeDescriptions: descriptions
+        )
+        
+        // Combine scores and sort
+        let rankedResults = zip(responses, semanticScores).map { response, semanticScore in
+            (response: response, semanticScore: semanticScore)
+        }.sorted { a, b in
+            // Normalize distance (closer = higher score)
+            let maxDistance: Double = 50000 // 50km
+            let aDistanceScore = 1.0 - min(a.response.distance / maxDistance, 1.0)
+            let bDistanceScore = 1.0 - min(b.response.distance / maxDistance, 1.0)
+            
+            let aFinalScore = semanticWeight * a.semanticScore + distanceWeight * aDistanceScore
+            let bFinalScore = semanticWeight * b.semanticScore + distanceWeight * bDistanceScore
+            
+            return aFinalScore > bFinalScore
+        }.map { $0.response }
+        
+        return rankedResults
     }
 }
 

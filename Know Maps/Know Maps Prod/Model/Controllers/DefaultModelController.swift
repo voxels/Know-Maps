@@ -37,6 +37,7 @@ public final class DefaultModelController : ModelController {
     public let analyticsManager: AnalyticsService
     public let recommenderService:RecommenderService
     public let cacheManager:CacheManager
+    public let inputValidator: InputValidationServiceV2
     
     // MARK: - Published Properties
     
@@ -175,7 +176,8 @@ public final class DefaultModelController : ModelController {
     // MARK: - Initializer
     
     public init(
-        cacheManager:CacheManager
+        cacheManager:CacheManager,
+        inputValidator: InputValidationServiceV2? = nil
     ) {
         self.cacheManager = cacheManager
         self.analyticsManager = cacheManager.cloudCacheService.analyticsManager
@@ -183,6 +185,7 @@ public final class DefaultModelController : ModelController {
         self.placeSearchService = DefaultPlaceSearchService(assistiveHostDelegate: assistiveHostDelegate, placeSearchSession: PlaceSearchSession(), personalizedSearchSession: PersonalizedSearchSession(cloudCacheService: cacheManager.cloudCacheService), analyticsManager: analyticsManager)
         self.locationService = DefaultLocationService(locationProvider: LocationProvider.shared)
         self.recommenderService = DefaultRecommenderService()
+        self.inputValidator = inputValidator ?? DefaultInputValidationServiceV2()
         self.selectedDestinationLocationChatResult = LocationResult(locationName: "Current Location", location: locationService.currentLocation())
     }
     
@@ -372,14 +375,18 @@ public final class DefaultModelController : ModelController {
     
     // MARK: - Input Sanitization
     /// Join a list of search terms into a single comma-separated string with no whitespace
+    /// - Deprecated: Use InputValidationServiceV2.join(searchTerms:) instead
+    @available(*, deprecated, message: "Use inputValidator.join(searchTerms:) instead")
     private func joinSearchTerms(_ terms: [String]) -> String {
         return terms
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
             .filter { !$0.isEmpty }
             .joined(separator: ",")
     }
-    
+
     /// Sanitize user-provided captions/queries to keep state consistent and safe
+    /// - Deprecated: Use InputValidationServiceV2.sanitize(query:) instead
+    @available(*, deprecated, message: "Use inputValidator.sanitize(query:) instead")
     private func sanitizeCaption(_ caption: String) -> String {
         // 1) Normalize newlines/tabs to spaces
         var sanitized = caption.replacingOccurrences(of: "\n", with: " ")
@@ -715,13 +722,13 @@ public final class DefaultModelController : ModelController {
         if let lastIntent = queryIntents?.last {
             return try await model(intent: lastIntent)
         } else {
-            let safeQuery = sanitizeCaption(query)
+            let safeQuery = inputValidator.sanitize(query: query)
             // Normalize to a comma-separated token list with no whitespace
             let tokens = safeQuery
                 .split(separator: ",")
                 .map { String($0).trimmingCharacters(in: .whitespacesAndNewlines) }
                 .filter { !$0.isEmpty }
-            let normalizedCaption = joinSearchTerms(tokens)
+            let normalizedCaption = inputValidator.join(searchTerms: tokens)
             let intent = assistiveHostDelegate.determineIntent(for: normalizedCaption, override: nil)
             let queryParameters = try await assistiveHostDelegate.defaultParameters(for: normalizedCaption, filters: filters)
             
@@ -1513,8 +1520,8 @@ public final class DefaultModelController : ModelController {
     }
     
     public func addReceivedMessage(caption: String, parameters: AssistiveChatHostQueryParameters, isLocalParticipant: Bool, filters: [String : Any], overrideIntent: AssistiveChatHostService.Intent? = nil, selectedDestinationLocation: LocationResult? = nil) async throws {
-        
-        let safeCaption = sanitizeCaption(caption)
+
+        let safeCaption = inputValidator.sanitize(query: caption)
         
         if let lastIntent = queryParametersHistory.last?.queryIntents.last {
             try await searchIntent(intent: lastIntent)
@@ -1540,7 +1547,7 @@ public final class DefaultModelController : ModelController {
     
     @discardableResult
     public func didUpdateQuery(with query: String, parameters: AssistiveChatHostQueryParameters, filters: [String : Any]) async throws -> [ChatResult] {
-        let safeQuery = sanitizeCaption(query)
+        let safeQuery = inputValidator.sanitize(query: query)
         return try await refreshModel(query: safeQuery, queryIntents: parameters.queryIntents, filters: filters)
     }
     
