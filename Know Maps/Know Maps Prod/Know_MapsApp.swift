@@ -222,10 +222,14 @@ struct Know_MapsApp: App {
     
     // Await a valid access token before proceeding with network-dependent startup work
     private func ensureValidAccessToken() async {
-        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
-            authenticationModel.getValidAccessToken { _ in
-                continuation.resume(returning: ())
-            }
+        let token = await authenticationModel.getValidAccessTokenAsync()
+        if token == nil {
+            // Log error when token refresh fails
+            print("⚠️ Failed to get valid access token during startup")
+            modelController.analyticsManager.trackError(
+                error: NSError(domain: "com.knowmaps.auth", code: -1, userInfo: [NSLocalizedDescriptionKey: "Token refresh failed during startup"]),
+                additionalInfo: nil
+            )
         }
     }
     
@@ -283,11 +287,24 @@ struct Know_MapsApp: App {
                 if cacheManager.allCachedResults.isEmpty {
                     try await cacheManager.restoreCache()
                 }
+
+                // Update result indexer with fresh cached data after cache refresh
+                modelController.resultIndexer.updateIndex(
+                    placeResults: modelController.placeResults,
+                    recommendedPlaceResults: modelController.recommendedPlaceResults,
+                    relatedPlaceResults: modelController.relatedPlaceResults,
+                    industryResults: modelController.industryResults,
+                    tasteResults: modelController.tasteResults,
+                    cachedIndustryResults: cacheManager.cachedIndustryResults,
+                    cachedPlaceResults: cacheManager.cachedPlaceResults,
+                    cachedTasteResults: cacheManager.cachedTasteResults,
+                    cachedRecommendationData: cacheManager.cachedRecommendationData
+                )
             } catch {
                 modelController.analyticsManager.trackError(error: error, additionalInfo:nil)
             }
         }
-        
+
         do {
             try await withTimeout(seconds: 10) {
                 await cacheRefreshTask.value

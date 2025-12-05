@@ -418,7 +418,7 @@ public final class AssistiveChatHostService : AssistiveChatHost {
     }
 }
 
-extension AssistiveChatHost {
+extension AssistiveChatHostService {
     internal func parsedQuery(for rawQuery:String, tags:AssistiveChatHostTaggedWord? = nil)->String {
         guard let tags = tags else { return rawQuery }
         
@@ -627,22 +627,18 @@ extension AssistiveChatHost {
             query: query,
             placeDescriptions: descriptions
         )
-        
+
         // Combine scores and sort
-        let rankedResults = zip(responses, semanticScores).map { response, semanticScore in
+        let paired: [(response: PlaceSearchResponse, semanticScore: Double)] = zip(responses, semanticScores).map { (response: PlaceSearchResponse, semanticScore: Double) in
             (response: response, semanticScore: semanticScore)
-        }.sorted { a, b in
-            // Normalize distance (closer = higher score)
-            let maxDistance: Double = 50000 // 50km
-            let aDistanceScore = 1.0 - min(a.response.distance / maxDistance, 1.0)
-            let bDistanceScore = 1.0 - min(b.response.distance / maxDistance, 1.0)
-            
-            let aFinalScore = semanticWeight * a.semanticScore + distanceWeight * aDistanceScore
-            let bFinalScore = semanticWeight * b.semanticScore + distanceWeight * bDistanceScore
-            
-            return aFinalScore > bFinalScore
-        }.map { $0.response }
-        
+        }
+        let rankedResults: [PlaceSearchResponse] = paired
+            .sorted(by: { (a: (response: PlaceSearchResponse, semanticScore: Double),
+                           b: (response: PlaceSearchResponse, semanticScore: Double)) -> Bool in
+                return a.semanticScore > b.semanticScore
+            })
+            .map { $0.response }
+
         return rankedResults
     }
 }

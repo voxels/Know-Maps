@@ -102,35 +102,52 @@ struct ContentView: View {
                 })
                 .onChange(of:modelController.selectedCategoryChatResult) {_, newValue in
                     if let id = newValue {
+                        print("🔍 ContentView.onChange: selectedCategoryChatResult = \(id)")
                         Task {
                             // Try to resolve an industry category result first (live, then cached)
-                            if let industryCategory = modelController.industryCategoryResult(for: id) ??
-                                                       modelController.cachedIndustryResult(for: id),
-                               let chatResult = modelController.cachedChatResult(for: industryCategory.id) {
-                                do {
-                                    try await handleIndustryCategoryChatResult(chatResult)
-                                } catch {
-                                    modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
+                            let industryCategory = modelController.industryCategoryResult(for: id) ?? modelController.cachedIndustryResult(for: id)
+                            print("🔍 ContentView.onChange: industryCategory = \(String(describing: industryCategory?.parentCategory))")
+
+                            if let industryCategory = industryCategory {
+                                let chatResult = modelController.cachedChatResult(for: industryCategory.id)
+                                print("🔍 ContentView.onChange: industry chatResult = \(String(describing: chatResult?.title))")
+
+                                if let chatResult = chatResult {
+                                    do {
+                                        try await handleIndustryCategoryChatResult(chatResult)
+                                    } catch {
+                                        modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
+                                    }
+                                    return
                                 }
-                                return
                             }
 
                             // Then try a taste category result (live, then cached)
-                            if let tasteCategory = modelController.tasteCategoryResult(for: id) ??
-                                                   modelController.cachedTasteResult(for: id),
-                               let chatResult = modelController.cachedChatResult(for: tasteCategory.id) {
-                                do {
-                                    try await handleTasteCategoryChatResult(chatResult)
-                                } catch {
-                                    modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
+                            let tasteCategory = modelController.tasteCategoryResult(for: id) ?? modelController.cachedTasteResult(for: id)
+                            print("🔍 ContentView.onChange: tasteCategory = \(String(describing: tasteCategory?.parentCategory))")
+
+                            if let tasteCategory = tasteCategory {
+                                let chatResult = modelController.cachedChatResult(for: tasteCategory.id)
+                                print("🔍 ContentView.onChange: taste chatResult = \(String(describing: chatResult?.title))")
+
+                                if let chatResult = chatResult {
+                                    do {
+                                        try await handleTasteCategoryChatResult(chatResult)
+                                    } catch {
+                                        modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
+                                    }
+                                    return
                                 }
-                                return
                             }
 
                             // Then try a place result from cache
-                            if let placeResult = modelController.cachedPlaceResult(for: id) {
+                            let placeResult = modelController.cachedPlaceResult(for: id)
+                            print("🔍 ContentView.onChange: placeResult = \(String(describing: placeResult?.parentCategory))")
+
+                            if let placeResult = placeResult {
                                 // If we can resolve a corresponding place chat result, treat this category as a place
                                 if let placeChat = placeResult.categoricalChatResults.first {
+                                    print("🔍 ContentView.onChange: placeChat found = \(placeChat.title)")
                                     do {
                                         try await handlePlaceCategoryChatResult(placeChat)
                                     } catch {
@@ -139,6 +156,7 @@ struct ContentView: View {
                                     return
                                 } else {
                                     // No direct place chat found; fall back to a search using the category caption
+                                    print("🔍 ContentView.onChange: No placeChat, searching for \(placeResult.parentCategory)")
                                     do {
                                         let caption = placeResult.parentCategory
                                         let selectedDestination = modelController.selectedDestinationLocationChatResult
@@ -159,11 +177,15 @@ struct ContentView: View {
                                     } catch {
                                         modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
                                     }
+                                    return
                                 }
                             }
 
                             // Finally, fall back to a generic chat result
-                            if let chatResult = modelController.cachedChatResult(for: id) {
+                            let chatResult = modelController.cachedChatResult(for: id)
+                            print("🔍 ContentView.onChange: generic chatResult = \(String(describing: chatResult?.title))")
+
+                            if let chatResult = chatResult {
                                 do {
                                     let caption = chatResult.title
                                     let selectedDestination = modelController.selectedDestinationLocationChatResult
@@ -184,6 +206,8 @@ struct ContentView: View {
                                 } catch {
                                     modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
                                 }
+                            } else {
+                                print("⚠️ ContentView.onChange: No chatResult found for id \(id)")
                             }
                         }
                     }

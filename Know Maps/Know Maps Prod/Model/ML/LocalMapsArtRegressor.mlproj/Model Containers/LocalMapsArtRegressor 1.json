@@ -1,0 +1,250 @@
+{
+  "activityEntities" : [
+    "trainingDataAdded",
+    [
+      {
+        "createdDate" : "2025-12-04T12:23:29Z",
+        "event" : "trainingDataAdded",
+        "id" : "DB791967-1ECD-47EB-9753-E067562076C9",
+        "subtitle" : "output.csv",
+        "title" : "Training Data Added"
+      }
+    ],
+    "experimentCreated",
+    [
+      {
+        "createdDate" : "2025-12-04T12:15:07Z",
+        "event" : "experimentCreated",
+        "id" : "B583806F-B7E4-4B71-B8D3-57D642EC73A6",
+        "subtitle" : "LocalMapsArtRegressor 1",
+        "title" : "Model Source Created"
+      }
+    ]
+  ],
+  "contentDataResult" : {
+    "createdDate" : "2025-12-04T12:23:29Z"
+  },
+  "createdDate" : "2025-12-04T12:15:07Z",
+  "evaluationContainerEntity" : {
+    "createdDate" : "2025-12-04T12:23:30Z",
+    "evaluationEntities" : [
+
+    ],
+    "id" : "6d098c65-2f4c-43e8-9659-77843b3b121c",
+    "modifiedDate" : "2025-12-04T12:23:30Z",
+    "previewType" : "tabularRegressor",
+    "testingEvaluationEntity" : {
+      "analysedDataType" : "none",
+      "createdDate" : "2025-12-04T12:15:07Z",
+      "dataResult" : {
+        "createdDate" : "2025-12-04T12:23:29Z"
+      },
+      "id" : "6248c214-7b94-48b9-a31e-ea7e352597f9"
+    },
+    "trainingEvaluationEntity" : {
+      "analysedDataType" : "none",
+      "createdDate" : "2025-12-04T12:15:07Z",
+      "dataResult" : {
+        "createdDate" : "2025-12-04T12:23:29Z"
+      },
+      "id" : "2d4a0a78-1b66-4376-b6e8-67297f309c0d"
+    },
+    "validationEvaluationEntity" : {
+      "analysedDataType" : "auto",
+      "createdDate" : "2025-12-04T12:15:07Z",
+      "dataResult" : {
+        "createdDate" : "2025-12-04T12:23:29Z"
+      },
+      "id" : "4a697845-a3d9-4c37-9c62-9c5ce026ed54"
+    }
+  },
+  "evaluationEntity" : {
+    "analysedDataType" : "none",
+    "dataResult" : {
+
+    },
+    "id" : "2b5c6a84-90e7-4bcb-a652-0d632659b07e"
+  },
+  "evaluationState" : "uninitialized",
+  "id" : "75A16CD0-1F04-43DE-BEB6-60D43D2CBF9B",
+  "modelEntity" : {
+    "createdDate" : "2025-12-04T12:15:07Z",
+    "experimentID" : "75A16CD0-1F04-43DE-BEB6-60D43D2CBF9B",
+    "id" : "4E7BE56D-6A89-47CF-B53A-7F074B73B23A",
+    "modifiedDate" : "2025-12-04T12:15:07Z",
+    "title" : "",
+    "version" : "1.0"
+  },
+  "modifiedDate" : "2025-12-04T12:23:30Z",
+  "preferredFilename" : "LocalMapsArtRegressor 1",
+  "settingEntity" : {
+    "algorithmType" : "maxEnt",
+    "augmentations" : [
+
+    ],
+    "featureNames" : [
+
+    ],
+    "generalRegressorType" : {
+      "auto" : {
+
+      }
+    },
+    "handActionClassifierAugmentations" : [
+
+    ],
+    "handPoseClassifierAugmentations" : [
+
+    ],
+    "harVideoAugmentations" : 0,
+    "seedType" : "default",
+    "styleTransferAlgorithmType" : "image",
+    "suggestedColumnTypes" : [
+      "String",
+      "String",
+      "Double",
+      "String",
+      "String",
+      "String",
+      "String",
+      "String",
+      "String",
+      "String"
+    ],
+    "suggestedColumnValues" : [
+      "photographer Martyn Goddard, photographer Martyn Goddard, photographer Martyn Goddard, photographer Martyn Goddard, photographer Martyn Goddard, Presented by Creative Collaboration Co-curated by Matt Skully and Susanna Davies-Crook , Presented by Creative Collaboration Co-curated by Matt Skully and Susanna Davies-Crook , Presented by Creative Collaboration Co-curated by Matt Skully and Susanna Davies-Crook , Presented by Creative Collaboration Co-curated by Matt Skully and Susanna Davies-Crook , Presented by Creative Collaboration Co-curated by Matt Skully and Susanna Davies-Crook , Features: Acne Studios, Miguel Adrover, Ahluwalia, JW Anderson, Balenciaga, Matty Bovan, BUZIGAHILL, Paolo Carzana, Hussein Chalayan, Piero D’Angelo, Giles Deacon, DI PETSA, Diesel, Christian Dior, Phoebe English, Hodakova, IAMISIGO, JORDANLUCA, Comme des Garçons, Dilara Findikoglu, Shelley Fox, Jean Paul Gaultier, Ivan Hunga Garcia, Andrew Groves, Nina Hollein, Ayumi Kajiwara, Ma Ke, Ronald van der Kemp, Manon Kündig, Helmut Lang, Maison Margiela, Malcolm McLaren, Alexander McQueen, Issey Miyake, Hamish Morrow, Moschino, Yuima Nakazato, Louis Gabriel Nouchi, Rick Owens, Carol Christian Poell, Alice Potts, Paco Rabanne, Zandra Rhodes, Marine Serre, Michaela Stark, Solitude Studios, SR Studio L.A. C.A. by Sterling Ruby, Olivier Theyskens, TRASHY Clothing, Tom Van der Borght, Elena Velez, Viktor&Rolf, VIN + OMI, Junya Watanabe, Vivienne Westwood, Yodea-Marquel Williams, Robert Wun, XULY.Bët, Yohji Yamamoto, Yaz XL, Features: Acne Studios, Miguel Adrover, Ahluwalia, JW Anderson, Balenciaga, Matty Bovan, BUZIGAHILL, Paolo Carzana, Hussein Chalayan, Piero D’Angelo, Giles Deacon, DI PETSA, Diesel, Christian Dior, Phoebe English, Hodakova, IAMISIGO, JORDANLUCA, Comme des Garçons, Dilara Findikoglu, Shelley Fox, Jean Paul Gaultier, Ivan Hunga Garcia, Andrew Groves, Nina Hollein, Ayumi Kajiwara, Ma Ke, Ronald van der Kemp, Manon Kündig, Helmut Lang, Maison Margiela, Malcolm McLaren, Alexander McQueen, Issey Miyake, Hamish Morrow, Moschino, Yuima Nakazato, Louis Gabriel Nouchi, Rick Owens, Carol Christian Poell, Alice Potts, Paco Rabanne, Zandra Rhodes, Marine Serre, Michaela Stark, Solitude Studios, SR Studio L.A. C.A. by Sterling Ruby, Olivier Theyskens, TRASHY Clothing, Tom Van der Borght, Elena Velez, Viktor&Rolf, VIN + OMI, Junya Watanabe, Vivienne Westwood, Yodea-Marquel Williams, Robert Wun, XULY.Bët, Yohji Yamamoto, Yaz XL, Features: Acne Studios, Miguel Adrover, Ahluwalia, JW Anderson, Balenciaga, Matty Bovan, BUZIGAHILL, Paolo Carzana, Hussein Chalayan, Piero D’Angelo, Giles Deacon, DI PETSA, Diesel, Christian Dior, Phoebe English, Hodakova, IAMISIGO, JORDANLUCA, Comme des Garçons, Dilara Findikoglu, Shelley Fox, Jean Paul Gaultier, Ivan Hunga Garcia, Andrew Groves, Nina Hollein, Ayumi Kajiwara, Ma Ke, Ronald van der Kemp, Manon Kündig, Helmut Lang, Maison Margiela, Malcolm McLaren, Alexander McQueen, Issey Miyake, Hamish Morrow, Moschino, Yuima Nakazato, Louis Gabriel Nouchi, Rick Owens, Carol Christian Poell, Alice Potts, Paco Rabanne, Zandra Rhodes, Marine Serre, Michaela Stark, Solitude Studios, SR Studio L.A. C.A. by Sterling Ruby, Olivier Theyskens, TRASHY Clothing, Tom Van der Borght, Elena Velez, Viktor&Rolf, VIN + OMI, Junya Watanabe, Vivienne Westwood, Yodea-Marquel Williams, Robert Wun, XULY.Bët, Yohji Yamamoto, Yaz XL, Features: Acne Studios, Miguel Adrover, Ahluwalia, JW Anderson, Balenciaga, Matty Bovan, BUZIGAHILL, Paolo Carzana, Hussein Chalayan, Piero D’Angelo, Giles Deacon, DI PETSA, Diesel, Christian Dior, Phoebe English, Hodakova, IAMISIGO, JORDANLUCA, Comme des Garçons, Dilara Findikoglu, Shelley Fox, Jean Paul Gaultier, Ivan Hunga Garcia, Andrew Groves, Nina Hollein, Ayumi Kajiwara, Ma Ke, Ronald van der Kemp, Manon Kündig, Helmut Lang, Maison Margiela, Malcolm McLaren, Alexander McQueen, Issey Miyake, Hamish Morrow, Moschino, Yuima Nakazato, Louis Gabriel Nouchi, Rick Owens, Carol Christian Poell, Alice Potts, Paco Rabanne, Zandra Rhodes, Marine Serre, Michaela Stark, Solitude Studios, SR Studio L.A. C.A. by Sterling Ruby, Olivier Theyskens, TRASHY Clothing, Tom Van der Borght, Elena Velez, Viktor&Rolf, VIN + OMI, Junya Watanabe, Vivienne Westwood, Yodea-Marquel Williams, Robert Wun, XULY.Bët, Yohji Yamamoto, Yaz XL, Features: Acne Studios, Miguel Adrover, Ahluwalia, JW Anderson, Balenciaga, Matty Bovan, BUZIGAHILL, Paolo Carzana, Hussein Chalayan, Piero D’Angelo, Giles Deacon, DI PETSA, Diesel, Christian Dior, Phoebe English, Hodakova, IAMISIGO, JORDANLUCA, Comme des Garçons, Dilara Findikoglu, Shelley Fox, Jean Paul Gaultier, Ivan Hunga Garcia, Andrew Groves, Nina Hollein, Ayumi Kajiwara, Ma Ke, Ronald van der Kemp, Manon Kündig, Helmut Lang, Maison Margiela, Malcolm McLaren, Alexander McQueen, Issey Miyake, Hamish Morrow, Moschino, Yuima Nakazato, Louis Gabriel Nouchi, Rick Owens, Carol Christian Poell, Alice Potts, Paco Rabanne, Zandra Rhodes, Marine Serre, Michaela Stark, Solitude Studios, SR Studio L.A. C.A. by Sterling Ruby, Olivier Theyskens, TRASHY Clothing, Tom Van der Borght, Elena Velez, Viktor&Rolf, VIN + OMI, Junya Watanabe, Vivienne Westwood, Yodea-Marquel Williams, Robert Wun, XULY.Bët, Yohji Yamamoto, Yaz XL, Sofi Ishikawa, Sofi Ishikawa, Sofi Ishikawa, Sofi Ishikawa, Sofi Ishikawa, Lucy Raven, Lucy Raven, Lucy Raven, Lucy Raven, Lucy Raven, Mona Hatoum and Alberto Giacometti, Mona Hatoum and Alberto Giacometti, Mona Hatoum and Alberto Giacometti, Mona Hatoum and Alberto Giacometti, Mona Hatoum and Alberto Giacometti",
+      "Strong conceptual grounding and refined technique define the works shown. Featuring emerging and established artists, the exhibition highlights pivotal approaches in current practice. , Data-saturated atmospheres distort physical memory. Neon fissures pulse beneath metallic surfaces. , A curated selection of interdisciplinary works explores contemporary methodologies. The exhibition offers a comprehensive survey of evolving themes. , The project situates itself within a lineage of conceptual inquiry and critical materialism. Drawing on discourses of phenomenology and archival studies, the works articulate structural tensions within embodied experience. , Data-saturated atmospheres distort physical memory. Neon fissures pulse beneath metallic surfaces. , Material experimentation and research-driven practice inform the works presented. The exhibition examines shifting conditions of contemporary culture, foregrounding processes of transformation. Each installation articulates new frameworks for interpreting identity, place, and perception. , The exhibition offers a comprehensive survey of evolving themes. A curated selection of interdisciplinary works explores contemporary methodologies. , The exhibition examines shifting conditions of contemporary culture, foregrounding processes of transformation. Each installation articulates new frameworks for interpreting identity, place, and perception. Material experimentation and research-driven practice inform the works presented. , Material experimentation and research-driven practice inform the works presented. Each installation articulates new frameworks for interpreting identity, place, and perception. The exhibition examines shifting conditions of contemporary culture, foregrounding processes of transformation. , The works feel like fragments of a world just beyond waking. Shadows expand into impossible geometries. , The project situates itself within a lineage of conceptual inquiry and critical materialism. Drawing on discourses of phenomenology and archival studies, the works articulate structural tensions within embodied experience. , The exhibition offers a comprehensive survey of evolving themes. A curated selection of interdisciplinary works explores contemporary methodologies. , Ordinary forms reveal impossible qualities. The installation blurs the threshold between myth and the familiar. , The project situates itself within a lineage of conceptual inquiry and critical materialism. Drawing on discourses of phenomenology and archival studies, the works articulate structural tensions within embodied experience. , The exhibition offers a comprehensive survey of evolving themes. A curated selection of interdisciplinary works explores contemporary methodologies. , Materials evoke sustainable cycles and interspecies collaboration. The exhibition imagines regenerative futures shaped by cooperative ecologies. , The project situates itself within a lineage of conceptual inquiry and critical materialism. Drawing on discourses of phenomenology and archival studies, the works articulate structural tensions within embodied experience. , Featuring emerging and established artists, the exhibition highlights pivotal approaches in current practice. Strong conceptual grounding and refined technique define the works shown. , The exhibition offers a comprehensive survey of evolving themes. A curated selection of interdisciplinary works explores contemporary methodologies. , Each installation articulates new frameworks for interpreting identity, place, and perception. Material experimentation and research-driven practice inform the works presented. The exhibition examines shifting conditions of contemporary culture, foregrounding processes of transformation. , The exhibition excavates narratives hidden within layered memory. Historical fragments surface through reconstructed documents and material rem\"ts. , Material experimentation and research-driven practice inform the works presented. The exhibition examines shifting conditions of contemporary culture, foregrounding processes of transformation. , A curated selection of interdisciplinary works explores contemporary methodologies. The exhibition offers a comprehensive survey of evolving themes. , The works feel like fragments of a world just beyond waking. Shadows expand into impossible geometries. , Each installation articulates new frameworks for interpreting identity, place, and perception. Material experimentation and research-driven practice inform the works presented. The exhibition examines shifting conditions of contemporary culture, foregrounding processes of transformation. , The exhibition offers a comprehensive survey of evolving themes. A curated selection of interdisciplinary works explores contemporary methodologies. , Reduction reveals clarity and form. Stillness defines the installation. , Neon fissures pulse beneath metallic surfaces. Data-saturated atmospheres distort physical memory. , The exhibition offers a comprehensive survey of evolving themes. A curated selection of interdisciplinary works explores contemporary methodologies. , The project situates itself within a lineage of conceptual inquiry and critical materialism. Drawing on discourses of phenomenology and archival studies, the works articulate structural tensions within embodied experience. ",
+      "0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 21.50, 21.50, 21.50, 21.50, 21.50, 19.50, 19.50, 19.50, 19.50, 19.50, 0.00, 0.00, 0.00, 0.00, 0.00, 9.50, 9.50, 9.50, 9.50, 9.50",
+      "2026-10-04, 2026-03-03, 2026-08-02, 2026-05-14, 2026-01-05, 2027-01-15, 2026-06-14, 2026-11-13, 2026-08-25, 2026-04-18, 2026-11-15, 2026-04-14, 2026-09-13, 2026-06-25, 2026-02-16, 2026-12-28, 2026-05-27, 2026-10-26, 2026-08-07, 2026-03-31, 2026-11-29, 2026-04-28, 2026-09-27, 2026-07-09, 2026-03-02, 2026-10-24, 2026-03-23, 2026-08-22, 2026-06-03, 2026-01-25",
+      "Barbican, Barbican, Barbican, Barbican, Barbican, Barbican, Barbican, Barbican, Barbican, Barbican, Barbican, Barbican, Barbican, Barbican, Barbican, Barbican, Barbican, Barbican, Barbican, Barbican, Barbican, Barbican, Barbican, Barbican, Barbican, Barbican, Barbican, Barbican, Barbican, Barbican",
+      "London, England, London, England, London, England, London, England, London, England, London, England, London, England, London, England, London, England, London, England, London, England, London, England, London, England, London, England, London, England, London, England, London, England, London, England, London, England, London, England, London, England, London, England, London, England, London, England, London, England, London, England, London, England, London, England, London, England, London, England",
+      "press_release, cyberpunk, museum, academic, cyberpunk, curatorial, museum, curatorial, curatorial, dreamlike, academic, museum, magical_realism, academic, museum, solarpunk, academic, press_release, museum, curatorial, archival, curatorial, museum, dreamlike, curatorial, museum, minimalist, cyberpunk, museum, academic",
+      "2026-05-18, 2026-01-05, 2026-04-13, 2026-02-22, 2025-10-20, 2026-08-29, 2026-04-18, 2026-07-25, 2026-06-05, 2026-01-31, 2026-06-29, 2026-02-16, 2026-05-25, 2026-04-05, 2025-12-01, 2026-08-11, 2026-03-31, 2026-07-07, 2026-05-18, 2026-01-13, 2026-07-13, 2026-03-02, 2026-06-08, 2026-04-19, 2025-12-15, 2026-06-07, 2026-01-25, 2026-05-03, 2026-03-14, 2025-11-09",
+      "Temporal Debris: and the Machine, Future Ruins: After the Fire, Breathing Architecture: Across Thresholds, Archive and Ritual: of Tomorrow, Systems and the Machine, Temporal Debris: and the Machine, Future Ruins: After the Fire, Breathing Architecture: Across Thresholds, Archive and Ritual: of Tomorrow, Systems and the Machine, Temporal Debris: and the Machine, Future Ruins: After the Fire, Breathing Architecture: Across Thresholds, Archive and Ritual: of Tomorrow, Systems and the Machine, Temporal Debris: and the Machine, Future Ruins: After the Fire, Breathing Architecture: Across Thresholds, Archive and Ritual: of Tomorrow, Systems and the Machine, Temporal Debris: and the Machine, Future Ruins: After the Fire, Breathing Architecture: Across Thresholds, Archive and Ritual: of Tomorrow, Systems and the Machine, Temporal Debris: and the Machine, Future Ruins: After the Fire, Breathing Architecture: Across Thresholds, Archive and Ritual: of Tomorrow, Systems and the Machine",
+      "https://www.barbican.org.uk/whats-on/2025/event/blondie-in-camera-1978, https://www.barbican.org.uk/whats-on/2025/event/blondie-in-camera-1978, https://www.barbican.org.uk/whats-on/2025/event/blondie-in-camera-1978, https://www.barbican.org.uk/whats-on/2025/event/blondie-in-camera-1978, https://www.barbican.org.uk/whats-on/2025/event/blondie-in-camera-1978, https://www.barbican.org.uk/whats-on/2025/event/dirty-weekend-club-to-couture-installation, https://www.barbican.org.uk/whats-on/2025/event/dirty-weekend-club-to-couture-installation, https://www.barbican.org.uk/whats-on/2025/event/dirty-weekend-club-to-couture-installation, https://www.barbican.org.uk/whats-on/2025/event/dirty-weekend-club-to-couture-installation, https://www.barbican.org.uk/whats-on/2025/event/dirty-weekend-club-to-couture-installation, https://www.barbican.org.uk/whats-on/2025/event/dirty-looks, https://www.barbican.org.uk/whats-on/2025/event/dirty-looks, https://www.barbican.org.uk/whats-on/2025/event/dirty-looks, https://www.barbican.org.uk/whats-on/2025/event/dirty-looks, https://www.barbican.org.uk/whats-on/2025/event/dirty-looks, https://www.barbican.org.uk/whats-on/2025/event/architecture-tours, https://www.barbican.org.uk/whats-on/2025/event/architecture-tours, https://www.barbican.org.uk/whats-on/2025/event/architecture-tours, https://www.barbican.org.uk/whats-on/2025/event/architecture-tours, https://www.barbican.org.uk/whats-on/2025/event/architecture-tours, https://www.barbican.org.uk/whats-on/2025/event/lucy-raven-rounds, https://www.barbican.org.uk/whats-on/2025/event/lucy-raven-rounds, https://www.barbican.org.uk/whats-on/2025/event/lucy-raven-rounds, https://www.barbican.org.uk/whats-on/2025/event/lucy-raven-rounds, https://www.barbican.org.uk/whats-on/2025/event/lucy-raven-rounds, https://www.barbican.org.uk/whats-on/2025/event/encounters-giacometti-x-mona-hatoum, https://www.barbican.org.uk/whats-on/2025/event/encounters-giacometti-x-mona-hatoum, https://www.barbican.org.uk/whats-on/2025/event/encounters-giacometti-x-mona-hatoum, https://www.barbican.org.uk/whats-on/2025/event/encounters-giacometti-x-mona-hatoum, https://www.barbican.org.uk/whats-on/2025/event/encounters-giacometti-x-mona-hatoum"
+    ],
+    "suggestedColumns" : [
+      "Artist/s",
+      "About",
+      "Price",
+      "End Date",
+      "Name ",
+      "Location",
+      "Style",
+      "Start Date",
+      "Upcoming Exhibitions and Events",
+      "Link"
+    ],
+    "taskType" : "generalRegresor",
+    "transferLearningEmbeddingType" : "dynamic"
+  },
+  "snapshotRole" : {
+    "withoutSnapshots" : 0
+  },
+  "state" : "uninitialized",
+  "title" : "LocalMapsArtRegressor 1",
+  "trainingEntity" : {
+    "analysedDataType" : "datasource",
+    "checkpointMetrics" : {
+
+    },
+    "dataResult" : {
+      "columnTypes" : [
+        "String",
+        "String",
+        "Double",
+        "String",
+        "String",
+        "String",
+        "String",
+        "String",
+        "String",
+        "String"
+      ],
+      "columnValues" : [
+        "photographer Martyn Goddard, photographer Martyn Goddard, photographer Martyn Goddard, photographer Martyn Goddard, photographer Martyn Goddard, Presented by Creative Collaboration Co-curated by Matt Skully and Susanna Davies-Crook , Presented by Creative Collaboration Co-curated by Matt Skully and Susanna Davies-Crook , Presented by Creative Collaboration Co-curated by Matt Skully and Susanna Davies-Crook , Presented by Creative Collaboration Co-curated by Matt Skully and Susanna Davies-Crook , Presented by Creative Collaboration Co-curated by Matt Skully and Susanna Davies-Crook , Features: Acne Studios, Miguel Adrover, Ahluwalia, JW Anderson, Balenciaga, Matty Bovan, BUZIGAHILL, Paolo Carzana, Hussein Chalayan, Piero D’Angelo, Giles Deacon, DI PETSA, Diesel, Christian Dior, Phoebe English, Hodakova, IAMISIGO, JORDANLUCA, Comme des Garçons, Dilara Findikoglu, Shelley Fox, Jean Paul Gaultier, Ivan Hunga Garcia, Andrew Groves, Nina Hollein, Ayumi Kajiwara, Ma Ke, Ronald van der Kemp, Manon Kündig, Helmut Lang, Maison Margiela, Malcolm McLaren, Alexander McQueen, Issey Miyake, Hamish Morrow, Moschino, Yuima Nakazato, Louis Gabriel Nouchi, Rick Owens, Carol Christian Poell, Alice Potts, Paco Rabanne, Zandra Rhodes, Marine Serre, Michaela Stark, Solitude Studios, SR Studio L.A. C.A. by Sterling Ruby, Olivier Theyskens, TRASHY Clothing, Tom Van der Borght, Elena Velez, Viktor&Rolf, VIN + OMI, Junya Watanabe, Vivienne Westwood, Yodea-Marquel Williams, Robert Wun, XULY.Bët, Yohji Yamamoto, Yaz XL, Features: Acne Studios, Miguel Adrover, Ahluwalia, JW Anderson, Balenciaga, Matty Bovan, BUZIGAHILL, Paolo Carzana, Hussein Chalayan, Piero D’Angelo, Giles Deacon, DI PETSA, Diesel, Christian Dior, Phoebe English, Hodakova, IAMISIGO, JORDANLUCA, Comme des Garçons, Dilara Findikoglu, Shelley Fox, Jean Paul Gaultier, Ivan Hunga Garcia, Andrew Groves, Nina Hollein, Ayumi Kajiwara, Ma Ke, Ronald van der Kemp, Manon Kündig, Helmut Lang, Maison Margiela, Malcolm McLaren, Alexander McQueen, Issey Miyake, Hamish Morrow, Moschino, Yuima Nakazato, Louis Gabriel Nouchi, Rick Owens, Carol Christian Poell, Alice Potts, Paco Rabanne, Zandra Rhodes, Marine Serre, Michaela Stark, Solitude Studios, SR Studio L.A. C.A. by Sterling Ruby, Olivier Theyskens, TRASHY Clothing, Tom Van der Borght, Elena Velez, Viktor&Rolf, VIN + OMI, Junya Watanabe, Vivienne Westwood, Yodea-Marquel Williams, Robert Wun, XULY.Bët, Yohji Yamamoto, Yaz XL, Features: Acne Studios, Miguel Adrover, Ahluwalia, JW Anderson, Balenciaga, Matty Bovan, BUZIGAHILL, Paolo Carzana, Hussein Chalayan, Piero D’Angelo, Giles Deacon, DI PETSA, Diesel, Christian Dior, Phoebe English, Hodakova, IAMISIGO, JORDANLUCA, Comme des Garçons, Dilara Findikoglu, Shelley Fox, Jean Paul Gaultier, Ivan Hunga Garcia, Andrew Groves, Nina Hollein, Ayumi Kajiwara, Ma Ke, Ronald van der Kemp, Manon Kündig, Helmut Lang, Maison Margiela, Malcolm McLaren, Alexander McQueen, Issey Miyake, Hamish Morrow, Moschino, Yuima Nakazato, Louis Gabriel Nouchi, Rick Owens, Carol Christian Poell, Alice Potts, Paco Rabanne, Zandra Rhodes, Marine Serre, Michaela Stark, Solitude Studios, SR Studio L.A. C.A. by Sterling Ruby, Olivier Theyskens, TRASHY Clothing, Tom Van der Borght, Elena Velez, Viktor&Rolf, VIN + OMI, Junya Watanabe, Vivienne Westwood, Yodea-Marquel Williams, Robert Wun, XULY.Bët, Yohji Yamamoto, Yaz XL, Features: Acne Studios, Miguel Adrover, Ahluwalia, JW Anderson, Balenciaga, Matty Bovan, BUZIGAHILL, Paolo Carzana, Hussein Chalayan, Piero D’Angelo, Giles Deacon, DI PETSA, Diesel, Christian Dior, Phoebe English, Hodakova, IAMISIGO, JORDANLUCA, Comme des Garçons, Dilara Findikoglu, Shelley Fox, Jean Paul Gaultier, Ivan Hunga Garcia, Andrew Groves, Nina Hollein, Ayumi Kajiwara, Ma Ke, Ronald van der Kemp, Manon Kündig, Helmut Lang, Maison Margiela, Malcolm McLaren, Alexander McQueen, Issey Miyake, Hamish Morrow, Moschino, Yuima Nakazato, Louis Gabriel Nouchi, Rick Owens, Carol Christian Poell, Alice Potts, Paco Rabanne, Zandra Rhodes, Marine Serre, Michaela Stark, Solitude Studios, SR Studio L.A. C.A. by Sterling Ruby, Olivier Theyskens, TRASHY Clothing, Tom Van der Borght, Elena Velez, Viktor&Rolf, VIN + OMI, Junya Watanabe, Vivienne Westwood, Yodea-Marquel Williams, Robert Wun, XULY.Bët, Yohji Yamamoto, Yaz XL, Features: Acne Studios, Miguel Adrover, Ahluwalia, JW Anderson, Balenciaga, Matty Bovan, BUZIGAHILL, Paolo Carzana, Hussein Chalayan, Piero D’Angelo, Giles Deacon, DI PETSA, Diesel, Christian Dior, Phoebe English, Hodakova, IAMISIGO, JORDANLUCA, Comme des Garçons, Dilara Findikoglu, Shelley Fox, Jean Paul Gaultier, Ivan Hunga Garcia, Andrew Groves, Nina Hollein, Ayumi Kajiwara, Ma Ke, Ronald van der Kemp, Manon Kündig, Helmut Lang, Maison Margiela, Malcolm McLaren, Alexander McQueen, Issey Miyake, Hamish Morrow, Moschino, Yuima Nakazato, Louis Gabriel Nouchi, Rick Owens, Carol Christian Poell, Alice Potts, Paco Rabanne, Zandra Rhodes, Marine Serre, Michaela Stark, Solitude Studios, SR Studio L.A. C.A. by Sterling Ruby, Olivier Theyskens, TRASHY Clothing, Tom Van der Borght, Elena Velez, Viktor&Rolf, VIN + OMI, Junya Watanabe, Vivienne Westwood, Yodea-Marquel Williams, Robert Wun, XULY.Bët, Yohji Yamamoto, Yaz XL, Sofi Ishikawa, Sofi Ishikawa, Sofi Ishikawa, Sofi Ishikawa, Sofi Ishikawa, Lucy Raven, Lucy Raven, Lucy Raven, Lucy Raven, Lucy Raven, Mona Hatoum and Alberto Giacometti, Mona Hatoum and Alberto Giacometti, Mona Hatoum and Alberto Giacometti, Mona Hatoum and Alberto Giacometti, Mona Hatoum and Alberto Giacometti",
+        "Strong conceptual grounding and refined technique define the works shown. Featuring emerging and established artists, the exhibition highlights pivotal approaches in current practice. , Data-saturated atmospheres distort physical memory. Neon fissures pulse beneath metallic surfaces. , A curated selection of interdisciplinary works explores contemporary methodologies. The exhibition offers a comprehensive survey of evolving themes. , The project situates itself within a lineage of conceptual inquiry and critical materialism. Drawing on discourses of phenomenology and archival studies, the works articulate structural tensions within embodied experience. , Data-saturated atmospheres distort physical memory. Neon fissures pulse beneath metallic surfaces. , Material experimentation and research-driven practice inform the works presented. The exhibition examines shifting conditions of contemporary culture, foregrounding processes of transformation. Each installation articulates new frameworks for interpreting identity, place, and perception. , The exhibition offers a comprehensive survey of evolving themes. A curated selection of interdisciplinary works explores contemporary methodologies. , The exhibition examines shifting conditions of contemporary culture, foregrounding processes of transformation. Each installation articulates new frameworks for interpreting identity, place, and perception. Material experimentation and research-driven practice inform the works presented. , Material experimentation and research-driven practice inform the works presented. Each installation articulates new frameworks for interpreting identity, place, and perception. The exhibition examines shifting conditions of contemporary culture, foregrounding processes of transformation. , The works feel like fragments of a world just beyond waking. Shadows expand into impossible geometries. , The project situates itself within a lineage of conceptual inquiry and critical materialism. Drawing on discourses of phenomenology and archival studies, the works articulate structural tensions within embodied experience. , The exhibition offers a comprehensive survey of evolving themes. A curated selection of interdisciplinary works explores contemporary methodologies. , Ordinary forms reveal impossible qualities. The installation blurs the threshold between myth and the familiar. , The project situates itself within a lineage of conceptual inquiry and critical materialism. Drawing on discourses of phenomenology and archival studies, the works articulate structural tensions within embodied experience. , The exhibition offers a comprehensive survey of evolving themes. A curated selection of interdisciplinary works explores contemporary methodologies. , Materials evoke sustainable cycles and interspecies collaboration. The exhibition imagines regenerative futures shaped by cooperative ecologies. , The project situates itself within a lineage of conceptual inquiry and critical materialism. Drawing on discourses of phenomenology and archival studies, the works articulate structural tensions within embodied experience. , Featuring emerging and established artists, the exhibition highlights pivotal approaches in current practice. Strong conceptual grounding and refined technique define the works shown. , The exhibition offers a comprehensive survey of evolving themes. A curated selection of interdisciplinary works explores contemporary methodologies. , Each installation articulates new frameworks for interpreting identity, place, and perception. Material experimentation and research-driven practice inform the works presented. The exhibition examines shifting conditions of contemporary culture, foregrounding processes of transformation. , The exhibition excavates narratives hidden within layered memory. Historical fragments surface through reconstructed documents and material rem\"ts. , Material experimentation and research-driven practice inform the works presented. The exhibition examines shifting conditions of contemporary culture, foregrounding processes of transformation. , A curated selection of interdisciplinary works explores contemporary methodologies. The exhibition offers a comprehensive survey of evolving themes. , The works feel like fragments of a world just beyond waking. Shadows expand into impossible geometries. , Each installation articulates new frameworks for interpreting identity, place, and perception. Material experimentation and research-driven practice inform the works presented. The exhibition examines shifting conditions of contemporary culture, foregrounding processes of transformation. , The exhibition offers a comprehensive survey of evolving themes. A curated selection of interdisciplinary works explores contemporary methodologies. , Reduction reveals clarity and form. Stillness defines the installation. , Neon fissures pulse beneath metallic surfaces. Data-saturated atmospheres distort physical memory. , The exhibition offers a comprehensive survey of evolving themes. A curated selection of interdisciplinary works explores contemporary methodologies. , The project situates itself within a lineage of conceptual inquiry and critical materialism. Drawing on discourses of phenomenology and archival studies, the works articulate structural tensions within embodied experience. ",
+        "0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 21.50, 21.50, 21.50, 21.50, 21.50, 19.50, 19.50, 19.50, 19.50, 19.50, 0.00, 0.00, 0.00, 0.00, 0.00, 9.50, 9.50, 9.50, 9.50, 9.50",
+        "2026-10-04, 2026-03-03, 2026-08-02, 2026-05-14, 2026-01-05, 2027-01-15, 2026-06-14, 2026-11-13, 2026-08-25, 2026-04-18, 2026-11-15, 2026-04-14, 2026-09-13, 2026-06-25, 2026-02-16, 2026-12-28, 2026-05-27, 2026-10-26, 2026-08-07, 2026-03-31, 2026-11-29, 2026-04-28, 2026-09-27, 2026-07-09, 2026-03-02, 2026-10-24, 2026-03-23, 2026-08-22, 2026-06-03, 2026-01-25",
+        "Barbican, Barbican, Barbican, Barbican, Barbican, Barbican, Barbican, Barbican, Barbican, Barbican, Barbican, Barbican, Barbican, Barbican, Barbican, Barbican, Barbican, Barbican, Barbican, Barbican, Barbican, Barbican, Barbican, Barbican, Barbican, Barbican, Barbican, Barbican, Barbican, Barbican",
+        "London, England, London, England, London, England, London, England, London, England, London, England, London, England, London, England, London, England, London, England, London, England, London, England, London, England, London, England, London, England, London, England, London, England, London, England, London, England, London, England, London, England, London, England, London, England, London, England, London, England, London, England, London, England, London, England, London, England, London, England",
+        "press_release, cyberpunk, museum, academic, cyberpunk, curatorial, museum, curatorial, curatorial, dreamlike, academic, museum, magical_realism, academic, museum, solarpunk, academic, press_release, museum, curatorial, archival, curatorial, museum, dreamlike, curatorial, museum, minimalist, cyberpunk, museum, academic",
+        "2026-05-18, 2026-01-05, 2026-04-13, 2026-02-22, 2025-10-20, 2026-08-29, 2026-04-18, 2026-07-25, 2026-06-05, 2026-01-31, 2026-06-29, 2026-02-16, 2026-05-25, 2026-04-05, 2025-12-01, 2026-08-11, 2026-03-31, 2026-07-07, 2026-05-18, 2026-01-13, 2026-07-13, 2026-03-02, 2026-06-08, 2026-04-19, 2025-12-15, 2026-06-07, 2026-01-25, 2026-05-03, 2026-03-14, 2025-11-09",
+        "Temporal Debris: and the Machine, Future Ruins: After the Fire, Breathing Architecture: Across Thresholds, Archive and Ritual: of Tomorrow, Systems and the Machine, Temporal Debris: and the Machine, Future Ruins: After the Fire, Breathing Architecture: Across Thresholds, Archive and Ritual: of Tomorrow, Systems and the Machine, Temporal Debris: and the Machine, Future Ruins: After the Fire, Breathing Architecture: Across Thresholds, Archive and Ritual: of Tomorrow, Systems and the Machine, Temporal Debris: and the Machine, Future Ruins: After the Fire, Breathing Architecture: Across Thresholds, Archive and Ritual: of Tomorrow, Systems and the Machine, Temporal Debris: and the Machine, Future Ruins: After the Fire, Breathing Architecture: Across Thresholds, Archive and Ritual: of Tomorrow, Systems and the Machine, Temporal Debris: and the Machine, Future Ruins: After the Fire, Breathing Architecture: Across Thresholds, Archive and Ritual: of Tomorrow, Systems and the Machine",
+        "https://www.barbican.org.uk/whats-on/2025/event/blondie-in-camera-1978, https://www.barbican.org.uk/whats-on/2025/event/blondie-in-camera-1978, https://www.barbican.org.uk/whats-on/2025/event/blondie-in-camera-1978, https://www.barbican.org.uk/whats-on/2025/event/blondie-in-camera-1978, https://www.barbican.org.uk/whats-on/2025/event/blondie-in-camera-1978, https://www.barbican.org.uk/whats-on/2025/event/dirty-weekend-club-to-couture-installation, https://www.barbican.org.uk/whats-on/2025/event/dirty-weekend-club-to-couture-installation, https://www.barbican.org.uk/whats-on/2025/event/dirty-weekend-club-to-couture-installation, https://www.barbican.org.uk/whats-on/2025/event/dirty-weekend-club-to-couture-installation, https://www.barbican.org.uk/whats-on/2025/event/dirty-weekend-club-to-couture-installation, https://www.barbican.org.uk/whats-on/2025/event/dirty-looks, https://www.barbican.org.uk/whats-on/2025/event/dirty-looks, https://www.barbican.org.uk/whats-on/2025/event/dirty-looks, https://www.barbican.org.uk/whats-on/2025/event/dirty-looks, https://www.barbican.org.uk/whats-on/2025/event/dirty-looks, https://www.barbican.org.uk/whats-on/2025/event/architecture-tours, https://www.barbican.org.uk/whats-on/2025/event/architecture-tours, https://www.barbican.org.uk/whats-on/2025/event/architecture-tours, https://www.barbican.org.uk/whats-on/2025/event/architecture-tours, https://www.barbican.org.uk/whats-on/2025/event/architecture-tours, https://www.barbican.org.uk/whats-on/2025/event/lucy-raven-rounds, https://www.barbican.org.uk/whats-on/2025/event/lucy-raven-rounds, https://www.barbican.org.uk/whats-on/2025/event/lucy-raven-rounds, https://www.barbican.org.uk/whats-on/2025/event/lucy-raven-rounds, https://www.barbican.org.uk/whats-on/2025/event/lucy-raven-rounds, https://www.barbican.org.uk/whats-on/2025/event/encounters-giacometti-x-mona-hatoum, https://www.barbican.org.uk/whats-on/2025/event/encounters-giacometti-x-mona-hatoum, https://www.barbican.org.uk/whats-on/2025/event/encounters-giacometti-x-mona-hatoum, https://www.barbican.org.uk/whats-on/2025/event/encounters-giacometti-x-mona-hatoum, https://www.barbican.org.uk/whats-on/2025/event/encounters-giacometti-x-mona-hatoum"
+      ],
+      "columns" : [
+        "Artist/s",
+        "About",
+        "Price",
+        "End Date",
+        "Name ",
+        "Location",
+        "Style",
+        "Start Date",
+        "Upcoming Exhibitions and Events",
+        "Link"
+      ],
+      "createdDate" : "2025-12-04T12:23:29Z",
+      "dataAnalysis" : {
+        "classifierAnalysis" : {
+
+        },
+        "issues" : [
+          {
+            "description" : "No target selected",
+            "severity" : "notReady"
+          },
+          {
+            "description" : "Data has 145029 rows",
+            "severity" : "info"
+          },
+          {
+            "description" : "No features selected",
+            "severity" : "notReady"
+          }
+        ],
+        "objectDetectorAnalysis" : {
+          "details" : {
+
+          }
+        },
+        "summary" : {
+          "canUseValidation" : 1,
+          "sampleCount" : 145029
+        }
+      },
+      "dataSourceID" : "3985705B-975B-4DEB-9E9D-709B6E1BB296",
+      "dataURL" : "file:///Users/voxels/Downloads/output.csv",
+      "error" : {
+        "code" : 1000,
+        "domain" : "composer.error.domain",
+        "errorType" : "notReady",
+        "reason" : "No target selected"
+      },
+      "itemsCount" : 145029
+    },
+    "dataSourceID" : "3985705B-975B-4DEB-9E9D-709B6E1BB296",
+    "featureExtractionCheckpointMayBeAvailable" : false,
+    "progress" : [
+
+    ],
+    "snapshottableCheckpoints" : {
+
+    }
+  },
+  "validationEntity" : {
+    "analysedDataType" : "auto",
+    "dataResult" : {
+      "createdDate" : "2025-12-04T12:23:29Z"
+    },
+    "splitOptions" : {
+      "strategy" : {
+        "automatic" : {
+
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

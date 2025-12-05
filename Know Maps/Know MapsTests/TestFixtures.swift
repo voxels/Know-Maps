@@ -191,6 +191,22 @@ struct TestFixtures {
         return mock
     }
 
+    static func makeResultIndexService() -> DefaultResultIndexServiceV2 {
+        return DefaultResultIndexServiceV2()
+    }
+
+    static func makeMockResultIndexService(
+        mockFilteredPlaceResults: [ChatResult] = [],
+        mockPlaceChatResultForID: ChatResult? = nil,
+        mockPlaceChatResultWithFsqID: ChatResult? = nil
+    ) -> MockResultIndexServiceV2 {
+        let mock = MockResultIndexServiceV2()
+        mock.mockFilteredPlaceResults = mockFilteredPlaceResults
+        mock.mockPlaceChatResultForID = mockPlaceChatResultForID
+        mock.mockPlaceChatResultWithFsqID = mockPlaceChatResultWithFsqID
+        return mock
+    }
+
     // MARK: - Mock Setup Helpers
 
     static func makeModelController(

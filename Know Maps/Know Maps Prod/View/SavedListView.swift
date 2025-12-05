@@ -70,6 +70,7 @@ struct SavedListView: View {
                                 }
                             }), id: \.id) { parent in
                                 Text(parent.parentCategory)
+                                    .tag(parent.id)
                             }
                         }
                     } else {
@@ -90,6 +91,7 @@ struct SavedListView: View {
                                     ratingButton(for: parent, searchMode: .industries)
                                 }
                                 .frame(maxWidth: .infinity)
+                                .tag(parent.id)
                             }
                             .onDelete { indexSet in
                                 let idsToDelete = indexSet.map { cacheManager.cachedIndustryResults[$0].id }
@@ -122,6 +124,7 @@ struct SavedListView: View {
                                     ratingButton(for: parent, searchMode: .features)
                                 }
                                 .frame(maxWidth: .infinity)
+                                .tag(parent.id)
                             }
                             .onDelete { indexSet in
                                 let idsToDelete = indexSet.map { cacheManager.cachedTasteResults[$0].id }
@@ -150,6 +153,7 @@ struct SavedListView: View {
                                 }
                             }), id: \.id) { parent in
                                 Text(parent.parentCategory)
+                                    .tag(parent.id)
                             }
                             .onDelete { indexSet in
                                 let idsToDelete = indexSet.map { cacheManager.cachedPlaceResults[$0].id }
@@ -176,6 +180,20 @@ struct SavedListView: View {
                     Task(priority: .userInitiated) {
                         do {
                             try await cacheManager.refreshCache()
+                            // Update result indexer after cache refresh
+                            await MainActor.run {
+                                modelController.resultIndexer.updateIndex(
+                                    placeResults: modelController.placeResults,
+                                    recommendedPlaceResults: modelController.recommendedPlaceResults,
+                                    relatedPlaceResults: modelController.relatedPlaceResults,
+                                    industryResults: modelController.industryResults,
+                                    tasteResults: modelController.tasteResults,
+                                    cachedIndustryResults: cacheManager.cachedIndustryResults,
+                                    cachedPlaceResults: cacheManager.cachedPlaceResults,
+                                    cachedTasteResults: cacheManager.cachedTasteResults,
+                                    cachedRecommendationData: cacheManager.cachedRecommendationData
+                                )
+                            }
                         } catch {
                             modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
                         }
@@ -190,6 +208,20 @@ struct SavedListView: View {
                     Task(priority: .high) {
                         do {
                             try await cacheManager.refreshCache()
+                            // Update result indexer after cache refresh
+                            await MainActor.run {
+                                modelController.resultIndexer.updateIndex(
+                                    placeResults: modelController.placeResults,
+                                    recommendedPlaceResults: modelController.recommendedPlaceResults,
+                                    relatedPlaceResults: modelController.relatedPlaceResults,
+                                    industryResults: modelController.industryResults,
+                                    tasteResults: modelController.tasteResults,
+                                    cachedIndustryResults: cacheManager.cachedIndustryResults,
+                                    cachedPlaceResults: cacheManager.cachedPlaceResults,
+                                    cachedTasteResults: cacheManager.cachedTasteResults,
+                                    cachedRecommendationData: cacheManager.cachedRecommendationData
+                                )
+                            }
                         } catch {
                             modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
                         }

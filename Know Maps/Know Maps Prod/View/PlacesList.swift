@@ -216,16 +216,16 @@ struct PlacesList: View {
         lastTapPlaceID = result.id
         lastTapTime = now
 
-        // Kick off the place search intent using the DefaultModelController
+        // Fetch place details FIRST, then navigate
         Task { @MainActor in
             do {
-                
-                let queryParameters = try await modelController.assistiveHostDelegate.defaultParameters(for: result.title, filters: searchSavedViewModel.filters)
-                
-                // create a new AssistiveChatHostIntent from the chatresult
-                let intent = AssistiveChatHostIntent(caption: result.title, intent: .Place, selectedPlaceSearchResponse: result.placeResponse, selectedPlaceSearchDetails: nil, placeSearchResponses:[result.placeResponse!], selectedDestinationLocation: modelController.selectedDestinationLocationChatResult, placeDetailsResponses: nil, queryParameters: queryParameters)
-                
-                try await modelController.searchIntent(intent: intent)
+                // 1. Fetch full place details (photos, tips, etc.)
+                try await modelController.fetchPlaceDetails(for: result)
+
+                // 2. THEN trigger navigation by setting the selected place
+                if let fsqID = result.placeResponse?.fsqID {
+                    modelController.selectedPlaceChatResultFsqId = fsqID
+                }
             } catch {
                 modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
             }
