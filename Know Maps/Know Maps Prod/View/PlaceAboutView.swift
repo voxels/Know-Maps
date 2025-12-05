@@ -10,10 +10,10 @@ import UIKit
 struct PlaceAboutView: View {
     @Environment(\.openURL) private var openURL
     @Environment(\.horizontalSizeClass) var sizeClass
-    @Binding public var searchSavedViewModel:SearchSavedViewModel
-    @Binding public var chatModel:ChatResultViewModel
-    @Binding public var cacheManager:CloudCacheManager
-    @Binding public var modelController:DefaultModelController
+    var searchSavedViewModel:SearchSavedViewModel
+    var chatModel:ChatResultViewModel
+    var cacheManager:CloudCacheManager
+    var modelController:DefaultModelController
     @Binding  var tabItem: Int
     @State var mutableTastes: [String] = []
     @State private var presentingPopover: Bool = false
@@ -22,8 +22,7 @@ struct PlaceAboutView: View {
     static let mapFrameConstraint: Double = 50000
     static let cornerRadius: CGFloat = 16
     public let selectedResult:ChatResult
-    
-    var viewModel: PlaceAboutViewModel = .init()
+    @State private var viewModel: PlaceAboutViewModel = .init()
     
     @Namespace var topID
     
@@ -498,4 +497,3 @@ private struct MapSection: View {
         }
     }
 }
-

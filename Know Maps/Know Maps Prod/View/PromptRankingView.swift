@@ -94,7 +94,6 @@ struct PromptRankingView: View {
                                     var userRecord = UserCachedRecord(recordId: "", group: "Taste", identity:draggedCategoryResult.parentCategory, title:draggedCategoryResult.parentCategory, icons: "", list:draggedCategoryResult.list, section:draggedCategoryResult.section.rawValue)
                                     let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, list:userRecord.list, section: userRecord.section)
                                     userRecord.setRecordId(to: record)
-                                    try await Task.sleep(nanoseconds: 1_000_000_000)
                                     try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
                                 }
                                 catch {

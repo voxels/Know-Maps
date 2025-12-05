@@ -28,10 +28,10 @@ struct NavigationLocationMenuIconTip: Tip {
 
 struct SearchPlacesView: View {
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
-    @Binding public var searchSavedViewModel:SearchSavedViewModel
-    @Binding public var chatModel:ChatResultViewModel
-    @Binding public var cacheManager:CloudCacheManager
-    @Binding public var modelController:DefaultModelController
+    var searchSavedViewModel:SearchSavedViewModel
+    var chatModel:ChatResultViewModel
+    var cacheManager:CloudCacheManager
+    var modelController:DefaultModelController
     @Binding public var multiSelection: Set<String>
     @ObservedObject public var placeDirectionsChatViewModel:PlaceDirectionsViewModel
     @State private var searchText: String = "" // State for search text
@@ -76,10 +76,10 @@ struct SearchPlacesView: View {
     func searchPlaceView() -> some View {
         if let selectedResult = modelController.selectedPlaceChatResultFsqId, let placeChatResult = modelController.placeChatResult(with: selectedResult) {
             PlaceView(
-                searchSavedViewModel: $searchSavedViewModel,
-                chatModel: $chatModel,
-                cacheManager: $cacheManager,
-                modelController: $modelController,
+                searchSavedViewModel: searchSavedViewModel,
+                chatModel: chatModel,
+                cacheManager: cacheManager,
+                modelController: modelController,
                 placeDirectionsViewModel: placeDirectionsChatViewModel,
                 selectedResult: placeChatResult
             )
@@ -91,10 +91,10 @@ struct SearchPlacesView: View {
     func searchPlaceList() -> some View {
         Group {
             PlacesList(
-                searchSavedViewModel: $searchSavedViewModel,
-                chatModel: $chatModel,
-                cacheManager: $cacheManager,
-                modelController: $modelController
+                searchSavedViewModel: searchSavedViewModel,
+                chatModel: chatModel,
+                cacheManager: cacheManager,
+                modelController: modelController
             )
 #if os(macOS)
             .searchable(text: $searchText, prompt: "Search by place name")
@@ -119,4 +119,3 @@ struct SearchPlacesView: View {
         }
     }
 }
-

@@ -47,13 +47,13 @@
 		1E94786E2EE1BFFE002F10E3 /* ItemMetadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E94786D2EE1BFFB002F10E3 /* ItemMetadata.swift */; };
 		1E9478702EE1C032002F10E3 /* UserItemInteraction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E94786F2EE1C02D002F10E3 /* UserItemInteraction.swift */; };
 		1E9478722EE1C064002F10E3 /* AdvancedRecommenderService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E9478712EE1C05E002F10E3 /* AdvancedRecommenderService.swift */; };
-		1E9478742EE1C881002F10E3 /* MiniLM-L12-Embedding.mlpackage in Sources */ = {isa = PBXBuildFile; fileRef = 1E9478732EE1C881002F10E3 /* MiniLM-L12-Embedding.mlpackage */; };
 		1E9478762EE1C93E002F10E3 /* TextEmbeddingClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E9478752EE1C937002F10E3 /* TextEmbeddingClient.swift */; };
 		1E9478782EE1CA3B002F10E3 /* MiniLMTokenizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E9478772EE1CA35002F10E3 /* MiniLMTokenizer.swift */; };
 		1E94787C2EE1CCEB002F10E3 /* vocab.txt in Resources */ = {isa = PBXBuildFile; fileRef = 1E94787B2EE1CCEB002F10E3 /* vocab.txt */; };
 		1E94787E2EE1D12E002F10E3 /* HybridRecommenderModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E94787D2EE1D124002F10E3 /* HybridRecommenderModel.swift */; };
 		1E9478802EE1DEB9002F10E3 /* MiniLMEmbeddingClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E94787F2EE1DEB5002F10E3 /* MiniLMEmbeddingClient.swift */; };
 		1E9478822EE1EF9E002F10E3 /* EmbeddingCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E9478812EE1EF94002F10E3 /* EmbeddingCache.swift */; };
+		1E9478832EE2B3E7002F10E3 /* MiniLM-L12-Embedding.mlpackage in Resources */ = {isa = PBXBuildFile; fileRef = 1E9478732EE1C881002F10E3 /* MiniLM-L12-Embedding.mlpackage */; };
 		1E96EE9A2CB5274D0070BCDD /* Authentication.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E96EE992CB527490070BCDD /* Authentication.swift */; };
 		1E96EE9C2CB5283D0070BCDD /* CloudCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E96EE9B2CB528380070BCDD /* CloudCache.swift */; };
 		1E96EE9E2CB528910070BCDD /* LanguageGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E96EE9D2CB5288B0070BCDD /* LanguageGenerator.swift */; };
@@ -792,6 +792,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1E9478832EE2B3E7002F10E3 /* MiniLM-L12-Embedding.mlpackage in Resources */,
 				1E8E6DDA2C99BA230048DBAC /* Assets.xcassets in Resources */,
 				1E94787C2EE1CCEB002F10E3 /* vocab.txt in Resources */,
 				1EF3791D2C986F0F001C5E39 /* Preview Assets.xcassets in Resources */,
@@ -841,12 +842,11 @@
 				1E9478472EDB79D7002F10E3 /* DefaultResultIndexServiceV2.swift in Sources */,
 				1EF378E22C986EE7001C5E39 /* Know_MapsApp.swift in Sources */,
 				1EF378E32C986EE7001C5E39 /* AssistiveChatHostService.swift in Sources */,
-				1E9478742EE1C881002F10E3 /* MiniLM-L12-Embedding.mlpackage in Sources */,
 				1EF378E42C986EE7001C5E39 /* CloudCacheService.swift in Sources */,
 				1EF378E62C986EE7001C5E39 /* LanguageGeneratorSession.swift in Sources */,
 				1E3FE0102CB6A0000020B3CB /* RecommendationData.swift in Sources */,
-				1EF378E72C986EE7001C5E39 /* LocationProvider.swift in Sources */,
 				1EF378E82C986EE7001C5E39 /* FeatureFlagsService.swift in Sources */,
+				1EF378E72C986EE7001C5E39 /* LocationProvider.swift in Sources */,
 				1EF378E92C986EE7001C5E39 /* ChatResultViewModel.swift in Sources */,
 				1E94783F2EDB7917002F10E3 /* UnifiedSearchIntent.swift in Sources */,
 				1E9478782EE1CA3B002F10E3 /* MiniLMTokenizer.swift in Sources */,

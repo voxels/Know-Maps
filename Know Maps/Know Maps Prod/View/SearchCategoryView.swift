@@ -8,10 +8,10 @@
 import SwiftUI
 
 struct SearchCategoryView: View {
-    @Binding public var chatModel: ChatResultViewModel
-    @Binding public var cacheManager: CloudCacheManager
-    @Binding public var modelController: DefaultModelController
-    @Binding public var searchSavedViewModel:SearchSavedViewModel
+    var chatModel: ChatResultViewModel
+    var cacheManager: CloudCacheManager
+    var modelController: DefaultModelController
+    var searchSavedViewModel:SearchSavedViewModel
     @Binding public var multiSelection: Set<String>
     @Binding public var section: Int
     
@@ -39,7 +39,11 @@ struct SearchCategoryView: View {
                             HStack {
                                 Text(child.parentCategory)
                                 Spacer()
-                                ratingButton(for: child)
+                                // Correctly check if the item is saved and get its rating
+                                let savedItem = cacheManager.cachedIndustryResults.first(where: { $0.parentCategory == child.parentCategory })
+                                RatingButton(result: child, rating: savedItem?.rating) {
+                                    searchSavedViewModel.editingRecommendationWeightResult = child
+                                }
                             }
                         }
                     } label: {
@@ -99,60 +103,4 @@ struct SearchCategoryView: View {
             }
         }
     }
-    
-    
-    @ViewBuilder
-    func ratingButton(for parent: CategoryResult) -> some View {
-        
-        let isSaved = cacheManager.cachedPlaceResults.contains(where: { $0.parentCategory == parent.parentCategory })
-        
-        if isSaved, let rating = cacheManager.cachedPlaceResults.first(where: { $0.parentCategory == parent.parentCategory })?.rating {
-            switch rating {
-            case ..<1:
-                Button(action: {
-                    searchSavedViewModel.editingRecommendationWeightResult = parent
-                }) {
-                    Label("Never", systemImage: "star.slash")
-                        .foregroundColor(.red)
-                }
-                .frame(width: 44, height:44)
-                .buttonStyle(BorderlessButtonStyle())
-                .labelStyle(.iconOnly)
-            case 1..<3:
-                Button(action: {
-                    searchSavedViewModel.editingRecommendationWeightResult = parent
-                }) {
-                    Label("Occasionally", systemImage: "star.leadinghalf.filled")
-                        .foregroundColor(.accentColor)
-                }
-                .frame(width: 44, height:44)
-                .buttonStyle(BorderlessButtonStyle())
-                .labelStyle(.iconOnly)
-            case 3...:
-                Button(action: {
-                    searchSavedViewModel.editingRecommendationWeightResult = parent
-                }) {
-                    Label("Often", systemImage: "star.fill")
-                        .foregroundColor(.green)
-                }
-                .frame(width: 44, height:44)
-                .buttonStyle(BorderlessButtonStyle())
-                .labelStyle(.iconOnly)
-            default:
-                EmptyView()
-            }
-        } else {
-            Button(action: {
-                searchSavedViewModel.editingRecommendationWeightResult = parent
-            }) {
-                Label("Occasionally", systemImage: "star.leadinghalf.filled")
-                    .foregroundColor(.accentColor)
-            }
-            .frame(width: 44, height:44)
-            .buttonStyle(BorderlessButtonStyle())
-            .labelStyle(.iconOnly)
-        }
-    }
-    
-    
 }

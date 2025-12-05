@@ -13,10 +13,10 @@ import NukeUI
 
 struct PlacesList: View {
     @Environment(\.horizontalSizeClass) var sizeClass
-    @Binding public var searchSavedViewModel:SearchSavedViewModel
-    @Binding public var chatModel:ChatResultViewModel
-    @Binding var cacheManager:CloudCacheManager
-    @Binding var modelController: DefaultModelController
+    var searchSavedViewModel:SearchSavedViewModel
+    var chatModel:ChatResultViewModel
+    var cacheManager:CloudCacheManager
+    var modelController: DefaultModelController
     
     @State private var lastTapPlaceID: ChatResult.ID? = nil
     @State private var lastTapTime: Date = .distantPast
@@ -264,4 +264,3 @@ struct PlacesList: View {
         }
     }
 }
-

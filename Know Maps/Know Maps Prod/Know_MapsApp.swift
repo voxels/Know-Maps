@@ -298,6 +298,7 @@ struct Know_MapsApp: App {
                     cachedIndustryResults: cacheManager.cachedIndustryResults,
                     cachedPlaceResults: cacheManager.cachedPlaceResults,
                     cachedTasteResults: cacheManager.cachedTasteResults,
+                    cachedDefaultResults: cacheManager.cachedDefaultResults,
                     cachedRecommendationData: cacheManager.cachedRecommendationData
                 )
             } catch {
@@ -389,4 +390,3 @@ struct Know_MapsApp: App {
 #endif
     }
 }
-

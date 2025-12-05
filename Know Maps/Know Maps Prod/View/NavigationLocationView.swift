@@ -15,17 +15,16 @@ public typealias FiltersDictionary = [String: Any]
 struct NavigationLocationView: View {
     @Environment(\.dismiss) var dismiss
     @Environment(\.horizontalSizeClass) var sizeClass
-    @Binding public var searchSavedViewModel:SearchSavedViewModel
-    @Binding public var chatModel:ChatResultViewModel
-    @Binding public var cacheManager:CloudCacheManager
-    @Binding public var modelController:DefaultModelController
+    var searchSavedViewModel:SearchSavedViewModel
+    var chatModel:ChatResultViewModel
+    var cacheManager:CloudCacheManager
+    var modelController:DefaultModelController
     @Binding public var filters: FiltersDictionary
     @State private var searchIsPresented = false
     @State private var searchText:String = ""
     @State public var cameraPosition:MapCameraPosition = .automatic
     @State public var selectedMapItem: String? = nil
     @State public var distanceFilterValue: Double = 20
-    @State private var isUpdatingSelection = false
     @State private var lastCenterCoordinate: CLLocationCoordinate2D? = nil
     @State private var autocompleteTask: Task<Void, Never>? = nil
     @State private var isSearching: Bool = false
@@ -40,10 +39,10 @@ struct NavigationLocationView: View {
     
     private func makeFiltersView() -> FiltersContainerView {
         // Break up complex binding expression to help the type-checker
-        let chatModelBinding = $chatModel
-        let cacheManagerBinding = $cacheManager
-        let modelControllerBinding = $modelController
-        let searchSavedViewModelBinding = $searchSavedViewModel
+        let chatModelBinding = chatModel
+        let cacheManagerBinding = cacheManager
+        let modelControllerBinding = modelController
+        let searchSavedViewModelBinding = searchSavedViewModel
         let filtersBinding = $filters
         let distanceBinding = $distanceFilterValue
 
@@ -55,6 +54,33 @@ struct NavigationLocationView: View {
             filters: filtersBinding,
             distanceFilterValue: distanceBinding
         )
+    }
+
+    func filterView() -> some View {
+        NavigationLocationView(
+            searchSavedViewModel: searchSavedViewModel,
+            chatModel: chatModel,
+            cacheManager: cacheManager,
+            modelController: modelController,
+            filters:$searchSavedViewModel.filters
+        )
+    }
+    
+    @ViewBuilder
+    func filterSheet() -> some View {
+#if os(macOS)
+        filterView()
+            .frame(minWidth: 600, minHeight: 500)
+            .presentationSizing(.fitted)
+            .presentationDragIndicator(.visible)
+            .interactiveDismissDisabled(false)
+#else
+        filterView()
+            .presentationDetents([.large])
+            .presentationDragIndicator(.visible)
+            .interactiveDismissDisabled(false)
+            .presentationCompactAdaptation(.sheet)
+#endif
     }
 
     var body: some View {
@@ -432,13 +458,10 @@ struct NavigationLocationView: View {
         // Don't sync back to avoid loops - the selection binding already updated selectedLocationId
         // Just update camera and model controller
         updateCamera(for: locationResult)
-        
-        // Sync to model controller without triggering local state updates
-        isUpdatingSelection = true
+
         Task { @MainActor in
             print("📍 Setting model controller selection to \(locationResult.id)")
             modelController.setSelectedLocation(locationResult)
-            isUpdatingSelection = false
         }
     }
     
@@ -479,19 +502,19 @@ struct NavigationLocationView: View {
 }
 
 private struct FiltersContainerView: View {
-    @Binding var chatModel: ChatResultViewModel
-    @Binding var cacheManager: CloudCacheManager
-    @Binding var modelController: DefaultModelController
-    @Binding var searchSavedViewModel: SearchSavedViewModel
+    var chatModel: ChatResultViewModel
+    var cacheManager: CloudCacheManager
+    var modelController: DefaultModelController
+    var searchSavedViewModel: SearchSavedViewModel
     @Binding var filters: FiltersDictionary
     @Binding var distanceFilterValue: Double
 
     var body: some View {
         FiltersView(
-            chatModel: $chatModel,
-            cacheManager: $cacheManager,
-            modelController: $modelController,
-            searchSavedViewModel: $searchSavedViewModel,
+            chatModel: chatModel,
+            cacheManager: cacheManager,
+            modelController: modelController,
+            searchSavedViewModel: searchSavedViewModel,
             filters: $filters,
             distanceFilterValue: $distanceFilterValue
         )
@@ -560,4 +583,3 @@ private struct LocationResultRow: View {
             }
     }
 }
-

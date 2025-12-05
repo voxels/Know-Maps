@@ -23,6 +23,7 @@ public protocol ResultIndexServiceV2 {
         cachedIndustryResults: [CategoryResult],
         cachedPlaceResults: [CategoryResult],
         cachedTasteResults: [CategoryResult],
+        cachedDefaultResults: [CategoryResult],
         cachedRecommendationData: [RecommendationData]
     )
 

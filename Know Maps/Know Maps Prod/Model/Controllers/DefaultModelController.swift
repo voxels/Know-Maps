@@ -50,11 +50,7 @@ public final class DefaultModelController: ModelController {
     public var selectedPersonalizedSearchSection: PersonalizedSearchSection?
     public var selectedPlaceChatResultFsqId: String?
     public var selectedCategoryChatResult: CategoryResult.ID?
-    public var selectedDestinationLocationChatResult: LocationResult {
-        didSet {
-            print("🗺️ selectedDestinationLocationChatResult changed to \(selectedDestinationLocationChatResult.locationName)")
-        }
-    }
+    public var selectedDestinationLocationChatResult: LocationResult
     
     // Fetching States
     public var isFetchingPlaceDescription: Bool = false
@@ -303,6 +299,7 @@ public final class DefaultModelController: ModelController {
                 cachedIndustryResults: self.cacheManager.cachedIndustryResults,
                 cachedPlaceResults: self.cacheManager.cachedPlaceResults,
                 cachedTasteResults: self.cacheManager.cachedTasteResults,
+                cachedDefaultResults: self.cacheManager.cachedDefaultResults,
                 cachedRecommendationData: self.cacheManager.cachedRecommendationData
             )
             
@@ -327,19 +324,15 @@ public final class DefaultModelController: ModelController {
             return
         }
         
-        print("🗺️ ModelController setSelectedLocation called with: \(result.id)")
         let previous = selectedDestinationLocationChatResult
-        print("🗺️ Previous selectedDestinationLocationChatResult: \(previous)")
-        
+
         // Re-entrancy guard
         if isUpdatingSelectedLocation {
-            print("🗺️ setSelectedLocation re-entrancy guard active; ignoring call")
             return
         }
-        
+
         // No-op if unchanged
         if previous == result {
-            print("🗺️ setSelectedLocation no-op: same ID \(String(describing: previous))")
             return
         } else {
             isUpdatingSelectedLocation = true
@@ -366,36 +359,34 @@ public final class DefaultModelController: ModelController {
                             }
                         }
                     } catch {
-                        analyticsManager.trackError(error: error, additionalInfo: nil)
+                        analyticsManager.trackError(
+                            error: error,
+                            additionalInfo: [
+                                "context": "setSelectedLocation",
+                                "phase": "lookUpLocation"
+                            ]
+                        )
                     }
                 }
             }
-            
-            print("🗺️ New selectedDestinationLocationChatResult: \(result.id) (current location)")
         }
     }
-    
+
     /// Safely update selected place chat result state (supports reselection)
     public func setSelectedPlaceChatResult(_ fsqId: String?) {
-        print("📍 ModelController setSelectedPlaceChatResult called with: \(String(describing: fsqId))")
-        print("📍 Previous selectedPlaceChatResult: \(String(describing: selectedPlaceChatResultFsqId))")
-        
         // Re-entrancy guard
         if isUpdatingSelectedPlace {
-            print("📍 setSelectedPlaceChatResult re-entrancy guard active; ignoring call")
             return
         }
-        
+
         // Handle same-ID assignments
         if let id = fsqId, id == selectedPlaceChatResultFsqId {
-            print("📍 setSelectedPlaceChatResult no-op: same ID \(id)")
             return
         }
-        
+
         isUpdatingSelectedPlace = true
         self.selectedPlaceChatResultFsqId = fsqId
         isUpdatingSelectedPlace = false
-        print("📍 New selectedPlaceChatResult: \(String(describing: selectedPlaceChatResultFsqId))")
     }
     
     /// Fetch place details for a ChatResult without triggering navigation
@@ -442,6 +433,7 @@ public final class DefaultModelController: ModelController {
             cachedIndustryResults: cacheManager.cachedIndustryResults,
             cachedPlaceResults: cacheManager.cachedPlaceResults,
             cachedTasteResults: cacheManager.cachedTasteResults,
+            cachedDefaultResults: cacheManager.cachedDefaultResults,
             cachedRecommendationData: cacheManager.cachedRecommendationData
         )
         
@@ -450,14 +442,11 @@ public final class DefaultModelController: ModelController {
     
     /// Get the CLLocation for the currently selected destination
     public func getSelectedDestinationLocation() -> CLLocation {
-        print("🗺️ getSelectedDestinationLocation called")
-        print("🗺️ Current selectedDestinationLocationChatResult: \(selectedDestinationLocationChatResult.locationName)")
         return selectedDestinationLocationChatResult.location
     }
-    
+
     /// Set the selected location and return the CLLocation synchronously to avoid race conditions
     public func setSelectedLocationAndGetLocation(_ locationResult: LocationResult) -> CLLocation {
-        print("🗺️ setSelectedLocationAndGetLocation called with: \(locationResult.id)")
         setSelectedLocation(locationResult)
         return getSelectedDestinationLocation()
     }
@@ -606,7 +595,38 @@ public final class DefaultModelController: ModelController {
             await categoricalSearchModel()
         }
     }
-    
+
+    /// Ensures taste results are populated if they're empty
+    @MainActor
+    public func ensureTasteResultsPopulated() async {
+        guard tasteResults.isEmpty else { return }
+
+        do {
+            // Load initial taste results (first page)
+            tasteResults = try await placeSearchService.refreshTastes(
+                page: 1,
+                currentTasteResults: [],
+                cacheManager: cacheManager
+            )
+
+            // Update result indexer after loading tastes
+            resultIndexer.updateIndex(
+                placeResults: placeResults,
+                recommendedPlaceResults: recommendedPlaceResults,
+                relatedPlaceResults: relatedPlaceResults,
+                industryResults: industryResults,
+                tasteResults: tasteResults,
+                cachedIndustryResults: cacheManager.cachedIndustryResults,
+                cachedPlaceResults: cacheManager.cachedPlaceResults,
+                cachedTasteResults: cacheManager.cachedTasteResults,
+                cachedDefaultResults: cacheManager.cachedDefaultResults,
+                cachedRecommendationData: cacheManager.cachedRecommendationData
+            )
+        } catch {
+            analyticsManager.trackError(error: error, additionalInfo: ["context": "ensureTasteResultsPopulated"])
+        }
+    }
+
     public func categoricalResults() -> [CategoryResult] {
         var retval = [CategoryResult]()
         var categoryMap = [String: Int]()
@@ -723,168 +743,65 @@ public final class DefaultModelController: ModelController {
     public func placeChatResult(for id: ChatResult.ID) -> ChatResult? {
         return resultIndexer.placeChatResult(for: id)
     }
-    
-    @available(*, deprecated, message: "Use resultIndexer.placeChatResult(for:) instead")
-    private func placeChatResultOld(for id: ChatResult.ID) -> ChatResult? {
-        if !recommendedPlaceResults.isEmpty {
-            if let recommendedResult = recommendedPlaceResults.first(where: { $0.id == id }) {
-                return recommendedResult
-            }
-        }
-        
-        if !placeResults.isEmpty {
-            if let placeResult = placeResults.first(where: { $0.id == id }) {
-                return placeResult
-            }
-        }
-        
-        if !relatedPlaceResults.isEmpty {
-            if let recommendedResult = relatedPlaceResults.first(where: { $0.id == id }) {
-                return recommendedResult
-            }
-        }
-        
-        return nil
-    }
-    
+
     public func placeChatResult(with fsqID: String) -> ChatResult? {
         return resultIndexer.placeChatResult(with: fsqID)
     }
-    
-    @available(*, deprecated, message: "Use resultIndexer.placeChatResult(with:) instead")
-    private func placeChatResultOld(with fsqID: String) -> ChatResult? {
-        return (
-            placeResults.first { $0.placeResponse?.fsqID == fsqID }
-            ?? recommendedPlaceResults.first {
-                $0.recommendedPlaceResponse?.fsqID == fsqID || $0.placeResponse?.fsqID == fsqID
-            }
-        )
-    }
-    
+
     // MARK: Chat Result Methods
-    
+
     public func chatResult(title: String) -> ChatResult? {
         return resultIndexer.chatResult(title: title)
     }
-    
-    @available(*, deprecated, message: "Use resultIndexer.chatResult(title:) instead")
-    private func chatResultOld(title: String) -> ChatResult? {
-        return industryResults.compactMap { $0.result(title: title) }.first
-    }
-    
+
     public func industryChatResult(for id: ChatResult.ID) -> ChatResult? {
         return resultIndexer.industryChatResult(for: id)
     }
-    
-    @available(*, deprecated, message: "Use resultIndexer.industryChatResult(for:) instead")
-    private func industryChatResultOld(for id: ChatResult.ID) -> ChatResult? {
-        let allResults = industryResults.compactMap { $0.categoricalChatResults }
-        for results in allResults {
-            if let result = results.first(where: { $0.id == id || $0.parentId == id }) {
-                return result
-            }
-        }
-        return nil
-    }
-    
+
     public func tasteChatResult(for id: CategoryResult.ID) -> ChatResult? {
         return resultIndexer.tasteChatResult(for: id)
     }
-    
-    @available(*, deprecated, message: "Use resultIndexer.tasteChatResult(for:) instead")
-    private func tasteChatResultOld(for id: CategoryResult.ID) -> ChatResult? {
-        return tasteResults.first(where: { $0.id == id })?.categoricalChatResults.first
-    }
-    
+
     // MARK: Category Result Methods
-    
+
     public func industryCategoryResult(for id: CategoryResult.ID) -> CategoryResult? {
         return resultIndexer.industryCategoryResult(for: id)
     }
-    
-    @available(*, deprecated, message: "Use resultIndexer.industryCategoryResult(for:) instead")
-    private func industryCategoryResultOld(for id: CategoryResult.ID) -> CategoryResult? {
-        return industryResults.flatMap { [$0] + $0.children }.first { $0.id == id }
-    }
-    
+
     public func tasteCategoryResult(for id: CategoryResult.ID) -> CategoryResult? {
         return resultIndexer.tasteCategoryResult(for: id)
     }
-    
-    @available(*, deprecated, message: "Use resultIndexer.tasteCategoryResult(for:) instead")
-    private func tasteCategoryResultOld(for id: CategoryResult.ID) -> CategoryResult? {
-        return tasteResults.first { $0.id == id }
-    }
-    
+
     public func cachedIndustryResult(for id: CategoryResult.ID) -> CategoryResult? {
         return resultIndexer.cachedIndustryResult(for: id)
     }
-    
-    @available(*, deprecated, message: "Use resultIndexer.cachedIndustryResult(for:) instead")
-    private func cachedIndustryResultOld(for id: CategoryResult.ID) -> CategoryResult? {
-        return cacheManager.cachedIndustryResults.first { $0.id == id }
-    }
-    
+
     public func cachedPlaceResult(for id: CategoryResult.ID) -> CategoryResult? {
         return resultIndexer.cachedPlaceResult(for: id)
     }
-    
-    @available(*, deprecated, message: "Use resultIndexer.cachedPlaceResult(for:) instead")
-    private func cachedPlaceResultOld(for id: CategoryResult.ID) -> CategoryResult? {
-        return cacheManager.cachedPlaceResults.first { $0.id == id }
-    }
-    
+
     public func cachedChatResult(for id: CategoryResult.ID) -> ChatResult? {
         return resultIndexer.cachedChatResult(for: id)
     }
-    
-    @available(*, deprecated, message: "Use resultIndexer.cachedChatResult(for:) instead")
-    private func cachedChatResultOld(for id: CategoryResult.ID) -> ChatResult? {
-        if let parentCategory = cacheManager.allCachedResults.first(where: { $0.id == id }) {
-            return parentCategory.categoricalChatResults.first
-        }
-        
-        return nil
-    }
-    
+
     public func cachedTasteResult(for id: CategoryResult.ID) -> CategoryResult? {
         return resultIndexer.cachedTasteResult(for: id)
     }
-    
-    @available(*, deprecated, message: "Use resultIndexer.cachedTasteResult(for:) instead")
-    private func cachedTasteResultOld(for id: CategoryResult.ID) -> CategoryResult? {
-        return cacheManager.cachedTasteResults.first { $0.id == id }
-    }
-    
+
     public func cachedTasteResultTitle(_ title: String) -> CategoryResult? {
         return resultIndexer.cachedTasteResultTitle(title)
     }
-    
-    @available(*, deprecated, message: "Use resultIndexer.cachedTasteResultTitle(_:) instead")
-    private func cachedTasteResultTitleOld(_ title: String) -> CategoryResult? {
-        return cacheManager.cachedTasteResults.first { $0.parentCategory == title }
-    }
-    
+
     public func cachedRecommendationData(for identity: String) -> RecommendationData? {
         return resultIndexer.cachedRecommendationData(for: identity)
     }
-    
-    @available(*, deprecated, message: "Use resultIndexer.cachedRecommendationData(for:) instead")
-    private func cachedRecommendationDataOld(for identity: String) -> RecommendationData? {
-        return cacheManager.cachedRecommendationData.first { $0.identity == identity }
-    }
-    
+
     // MARK: - Location Handling
-    
+
     public func locationChatResult(for id: LocationResult.ID, in locationResults: [LocationResult]) -> LocationResult? {
         return resultIndexer.locationChatResult(for: id, in: locationResults)
     }
-    
-    @available(*, deprecated, message: "Use resultIndexer.locationChatResult(for:in:) instead")
-    private func locationChatResultOld(for id: LocationResult.ID, in locationResults: [LocationResult]) -> LocationResult? {
-        return locationResults.first { $0.id == id }
-    }
-    
+
     public func locationChatResult(with title: String, in locationResults: [LocationResult]) async -> LocationResult? {
         return await resultIndexer.locationChatResult(
             with: title,
@@ -892,27 +809,6 @@ public final class DefaultModelController: ModelController {
             locationService: locationService,
             analyticsManager: analyticsManager
         )
-    }
-    
-    @available(*, deprecated, message: "Use resultIndexer.locationChatResult(with:in:locationService:analyticsManager:) instead")
-    private func locationChatResultOld(with title: String, in locationResults: [LocationResult]) async -> LocationResult? {
-        if let existingResult = locationResults.first(where: { $0.locationName == title }) {
-            return existingResult
-        }
-        
-        do {
-            let placemarks = try await locationService.lookUpLocationName(name: title)
-            if let firstPlacemark = placemarks.first, let location = firstPlacemark.location {
-                let result = LocationResult(locationName: title, location: location)
-                return result
-            }
-        } catch {
-            Task { @MainActor in
-                analyticsManager.trackError(error: error, additionalInfo: ["title": title])
-            }
-        }
-        
-        return nil
     }
     
     @discardableResult
@@ -1040,7 +936,6 @@ public final class DefaultModelController: ModelController {
     private func performSearch(for intent: AssistiveChatHostIntent) async throws {
         let destinationName = selectedDestinationLocationName()
         let caption = intent.caption
-        print("🔎 performSearch: caption = '\(caption)', destination = '\(destinationName)'")
         setProgressMessage(phase: "Fetching recommendations", caption: caption, locationName: destinationName)
         trackProgress(
             phase: "search.fetchRecommendations.begin",
@@ -1168,12 +1063,9 @@ public final class DefaultModelController: ModelController {
         if !recs.isEmpty {
             intent.recommendedPlaceSearchResponses = recs
             let recAsPlaces = PlaceResponseFormatter.placeSearchResponses(from: recs)
-            
+
             if !recAsPlaces.isEmpty {
                 finalPlaceResponses = recAsPlaces
-                print("✅ Using \(recAsPlaces.count) recommended places as finalPlaceResponses")
-            } else {
-                print("⚠️ Parsed \(recs.count) recs but produced 0 PlaceSearchResponse rows. Falling back to \(places.count) /v3 places.")
             }
         }
         
@@ -1237,9 +1129,15 @@ public final class DefaultModelController: ModelController {
                 }
             }
         } catch {
-            print("⚠️ Advanced recommender failed: \(error)")
+            analyticsManager.trackError(
+                error: error,
+                additionalInfo: [
+                    "context": "performSearch",
+                    "phase": "advancedRecommender"
+                ]
+            )
         }
-        
+
         updateFoundResultsMessage()
     }
     
@@ -1248,7 +1146,6 @@ public final class DefaultModelController: ModelController {
         // Component-level in-flight guard to prevent duplicate place queries for the same intent key
         let _placeComponentKey = makeSearchKey(for: intent) + "::place"
         if inFlightComponentKeys.contains(_placeComponentKey) {
-            print("🔁 Suppressing duplicate placeQueryModel for key: \(_placeComponentKey)")
             analyticsManager.track(
                 event: "placeQueryModel.duplicateSuppressed",
                 properties: ["key": _placeComponentKey]
@@ -1363,7 +1260,6 @@ public final class DefaultModelController: ModelController {
         // Component-level in-flight guard to prevent duplicate recommendations queries for the same intent key
         let _recsComponentKey = makeSearchKey(for: intent) + "::recs"
         if inFlightComponentKeys.contains(_recsComponentKey) {
-            print("🔁 Suppressing duplicate recommendedPlaceQueryModel for key: \(_recsComponentKey)")
             analyticsManager.track(
                 event: "recommendedPlaceQueryModel.duplicateSuppressed",
                 properties: ["key": _recsComponentKey]
@@ -2001,7 +1897,6 @@ public final class DefaultModelController: ModelController {
         if intentKind == .Search || intentKind == .Location {
             let key = makeSearchKey(for: intent)
             if inFlightSearchKey == key {
-                print("🔁 Suppressing duplicate model search for key: \(key)")
                 analyticsManager.track(
                     event: "model.duplicateSearchSuppressed",
                     properties: ["key": key]
@@ -2110,7 +2005,6 @@ public final class DefaultModelController: ModelController {
         let destinationName = intent.selectedDestinationLocation.locationName
         let caption = intent.caption
         
-        print("🔎 searchIntent called: caption = '\(caption)', intent = \(intent.intent)")
         
         setProgressMessage(
             phase: "Starting search",
@@ -2125,7 +2019,6 @@ public final class DefaultModelController: ModelController {
         if intentKind == .Search || intentKind == .Location {
             let key = makeSearchKey(for: intent)
             if inFlightSearchKey == key {
-                print("🔁 Suppressing duplicate searchIntent for key: \(key)")
                 analyticsManager.track(
                     event: "searchIntent.duplicateSearchSuppressed",
                     properties: ["key": key]
@@ -2142,7 +2035,6 @@ public final class DefaultModelController: ModelController {
         
         switch intentKind {
         case .Place:
-            print("🔎 searchIntent: Executing .Place intent")
             if intent.selectedPlaceSearchResponse != nil {
                 setProgressMessage(
                     phase: "Fetching place details",
@@ -2237,7 +2129,6 @@ public final class DefaultModelController: ModelController {
             }
             
         case .Location:
-            print("🔎 searchIntent: Executing .Location intent")
             setProgressMessage(
                 phase: "Searching locations",
                 caption: caption,
@@ -2273,11 +2164,9 @@ public final class DefaultModelController: ModelController {
             }
             
         case .Search:
-            print("🔎 searchIntent: Executing .Search intent")
             try await performSearch(for: intent)
             
         case .AutocompleteTastes:
-            print("🔎 searchIntent: Executing .AutocompleteTastes intent")
             do {
                 let formattedTastes = try await placeSearchService.autocompleteTastes(
                     lastIntent: intent,

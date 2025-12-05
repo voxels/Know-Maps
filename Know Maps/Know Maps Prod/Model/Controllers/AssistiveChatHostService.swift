@@ -235,7 +235,6 @@ public final class AssistiveChatHostService : AssistiveChatHost {
                 """
         
         guard let data = emptyParameters.data(using: .utf8) else {
-            print("Empty parameters could not be encoded into json: \(emptyParameters)")
             return nil
         }
         
@@ -277,11 +276,8 @@ public final class AssistiveChatHostService : AssistiveChatHost {
                 encodedParameters["query"] = parsedQuery(for: query, tags: tags)
                 
                 encodedParameters["parameters"] = rawParameters
-                print("Parsed Default Parameters:")
-                print(encodedParameters)
                 return encodedParameters
             } else {
-                print("Found non-dictionary object when attemting to refresh parameters:\(json)")
                 return nil
             }
         } catch {
@@ -339,7 +335,6 @@ public final class AssistiveChatHostService : AssistiveChatHost {
                 } else {
                     retval[key] = [tag.rawValue]
                 }
-                print("\(rawQuery[tokenRange]): \(tag.rawValue)")
             }
             return true
         }
@@ -362,7 +357,6 @@ public final class AssistiveChatHostService : AssistiveChatHost {
                 } else {
                     retval[key] = [tag.rawValue]
                 }
-                print("\(rawQuery[tokenRange]): \(tag.rawValue)")
             }
             
             return true
@@ -444,30 +438,20 @@ extension AssistiveChatHostService {
                 
                 if taggedValues.contains("PLACE"), !taggedValues.contains("PlaceName"), !includedWords.contains(taggedWord) {
                     includedWords.insert(taggedWord)
-                    print(taggedWord)
-                    print(taggedValues)
-                    print(taggedValues.count)
                     revisedQuery.append(taggedWord)
                 }
                 
                 if taggedValues.contains("Noun"), !includedWords.contains(taggedWord) {
                     includedWords.insert(taggedWord)
-                    print(taggedWord)
-                    print(taggedValues)
-                    print(taggedValues.count)
                     revisedQuery.append(taggedWord)
                 }
                 
                 if taggedValues.contains("Adjective"), !includedWords.contains(taggedWord) {
                     includedWords.insert(taggedWord)
-                    print(taggedWord)
-                    print(taggedValues)
-                    print(taggedValues.count)
                     revisedQuery.append(taggedWord)
                 }
             }
         }
-        print("Revised query")
         
         var parsedQuery = ""
         let rawQueryComponents = rawQuery.components(separatedBy: .whitespacesAndNewlines)
@@ -493,7 +477,6 @@ extension AssistiveChatHostService {
         
         let locationComponents = parsedQuery.components(separatedBy: "near")
         
-        print(locationComponents.first ?? "")
         return locationComponents.first ?? parsedQuery
     }
         
@@ -575,7 +558,6 @@ extension AssistiveChatHostService {
                             if let subcategoryName = subcategory["category"]?.lowercased() {
                                 let subcategorySimilarity = query.lowercased() == subcategoryName.lowercased()
                                 if subcategorySimilarity, let code = subcategory["code"] {
-                                    print("Adding subcategory:\(subcategoryName)\t\(subcategorySimilarity)")
                                     localCodes.append(code)
                                 }
                             }

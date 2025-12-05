@@ -28,9 +28,9 @@ struct AddItemTip: Tip {
 struct SavedListView: View {
     @Environment(\.dismiss) var dismiss
 
-    @Binding public var searchSavedViewModel: SearchSavedViewModel
-    @Binding public var cacheManager: CloudCacheManager
-    @Binding public var modelController: DefaultModelController
+    var searchSavedViewModel: SearchSavedViewModel
+    var cacheManager: CloudCacheManager
+    var modelController: DefaultModelController
     @Binding public var section: Int
     @Binding public var searchMode:SearchMode
 
@@ -44,6 +44,29 @@ struct SavedListView: View {
     
     @State private var lastTapCategoryID: CategoryResult.ID? = nil
     @State private var lastTapAt: Date = .distantPast
+    
+    // MARK: - Computed Properties for Filtering
+    
+    private var filteredMoods: [CategoryResult] {
+        guard !searchText.isEmpty else { return cacheManager.cachedDefaultResults }
+        return cacheManager.cachedDefaultResults.filter {
+            $0.parentCategory.localizedCaseInsensitiveContains(searchText)
+        }
+    }
+    
+    private var filteredIndustries: [CategoryResult] {
+        guard !searchText.isEmpty else { return cacheManager.cachedIndustryResults }
+        return cacheManager.cachedIndustryResults.filter {
+            $0.parentCategory.localizedCaseInsensitiveContains(searchText)
+        }
+    }
+    
+    private var filteredTastes: [CategoryResult] {
+        guard !searchText.isEmpty else { return cacheManager.cachedTasteResults }
+        return cacheManager.cachedTasteResults.filter {
+            $0.parentCategory.localizedCaseInsensitiveContains(searchText)
+        }
+    }
     
     var body: some View {
         NavigationStack {
@@ -63,12 +86,7 @@ struct SavedListView: View {
 #endif // !os(macOS)
                         
                         DisclosureGroup("Moods", isExpanded: $isMoodsExpanded) {
-                            ForEach(cacheManager.cachedDefaultResults.filter({ result in
-                                if searchText.isEmpty { return true }
-                                else {
-                                    return result.parentCategory.lowercased().contains(searchText.lowercased())
-                                }
-                            }), id: \.id) { parent in
+                            ForEach(filteredMoods, id: \.id) { parent in
                                 Text(parent.parentCategory)
                                     .tag(parent.id)
                             }
@@ -79,16 +97,13 @@ struct SavedListView: View {
                     
                     DisclosureGroup("Favorite Industries", isExpanded: $isTypesExpanded) {
                         if !cacheManager.cachedIndustryResults.isEmpty {
-                            ForEach(cacheManager.cachedIndustryResults.filter({ result in
-                                if searchText.isEmpty { return true }
-                                else {
-                                    return result.parentCategory.lowercased().contains(searchText.lowercased())
-                                }
-                            }), id: \.id) { parent in
+                            ForEach(filteredIndustries, id: \.id) { parent in
                                 HStack {
                                     Text(parent.parentCategory)
                                     Spacer()
-                                    ratingButton(for: parent, searchMode: .industries)
+                                    RatingButton(result: parent, rating: parent.rating) {
+                                        searchSavedViewModel.editingRecommendationWeightResult = parent
+                                    }
                                 }
                                 .frame(maxWidth: .infinity)
                                 .tag(parent.id)
@@ -112,16 +127,13 @@ struct SavedListView: View {
                     
                     DisclosureGroup("Favorite Features", isExpanded: $isItemsExpanded) {
                         if !cacheManager.cachedTasteResults.isEmpty {
-                            ForEach(cacheManager.cachedTasteResults.filter({ result in
-                                if searchText.isEmpty { return true }
-                                else {
-                                    return result.parentCategory.lowercased().contains(searchText.lowercased())
-                                }
-                            }), id: \.id) { parent in
+                            ForEach(filteredTastes, id: \.id) { parent in
                                 HStack {
                                     Text(parent.parentCategory)
                                     Spacer()
-                                    ratingButton(for: parent, searchMode: .features)
+                                    RatingButton(result: parent, rating: parent.rating) {
+                                        searchSavedViewModel.editingRecommendationWeightResult = parent
+                                    }
                                 }
                                 .frame(maxWidth: .infinity)
                                 .tag(parent.id)
@@ -191,6 +203,7 @@ struct SavedListView: View {
                                     cachedIndustryResults: cacheManager.cachedIndustryResults,
                                     cachedPlaceResults: cacheManager.cachedPlaceResults,
                                     cachedTasteResults: cacheManager.cachedTasteResults,
+                                    cachedDefaultResults: cacheManager.cachedDefaultResults,
                                     cachedRecommendationData: cacheManager.cachedRecommendationData
                                 )
                             }
@@ -219,6 +232,7 @@ struct SavedListView: View {
                                     cachedIndustryResults: cacheManager.cachedIndustryResults,
                                     cachedPlaceResults: cacheManager.cachedPlaceResults,
                                     cachedTasteResults: cacheManager.cachedTasteResults,
+                                    cachedDefaultResults: cacheManager.cachedDefaultResults,
                                     cachedRecommendationData: cacheManager.cachedRecommendationData
                                 )
                             }
@@ -241,151 +255,6 @@ struct SavedListView: View {
             return false
         }
         return true
-    }
-    
-    @ViewBuilder
-    func ratingButton(for parent: CategoryResult, searchMode:SearchMode) -> some View {
-        
-        switch searchMode {
-        case .industries:
-            let isSaved = cacheManager.cachedIndustryResults.contains(where: { $0.parentCategory == parent.parentCategory })
-            if isSaved, let rating = cacheManager.cachedIndustryResults.first(where: { $0.parentCategory == parent.parentCategory })?.rating {
-                switch rating {
-                case ..<1:
-                    Button(action: {
-                        searchSavedViewModel.editingRecommendationWeightResult = parent
-                    }) {
-                        Label("Never", systemImage: "star.slash")
-                            .foregroundColor(.red)
-                    }
-                    .frame(width: 44, height:44)
-                    .buttonStyle(BorderlessButtonStyle())
-                    .labelStyle(.iconOnly)
-                case 1..<3:
-                    Button(action: {
-                        searchSavedViewModel.editingRecommendationWeightResult = parent
-                    }) {
-                        Label("Occasionally", systemImage: "star.leadinghalf.filled")
-                            .foregroundColor(.accentColor)
-                    }
-                    .frame(width: 44, height:44)
-                    .buttonStyle(BorderlessButtonStyle())
-                    .labelStyle(.iconOnly)
-                case 3...:
-                    Button(action: {
-                        searchSavedViewModel.editingRecommendationWeightResult = parent
-                    }) {
-                        Label("Often", systemImage: "star.fill")
-                            .foregroundColor(.green)
-                    }
-                    .frame(width: 44, height:44)
-                    .buttonStyle(BorderlessButtonStyle())
-                    .labelStyle(.iconOnly)
-                default:
-                    EmptyView()
-                }
-            }
-
-        case .features:
-            let isSaved = cacheManager.cachedTasteResults.contains(where: { $0.parentCategory == parent.parentCategory })
-            if isSaved, let rating = cacheManager.cachedTasteResults.first(where: { $0.parentCategory == parent.parentCategory })?.rating {
-                switch rating {
-                case ..<1:
-                    Button(action: {
-                        searchSavedViewModel.editingRecommendationWeightResult = parent
-                    }) {
-                        Label("Never", systemImage: "star.slash")
-                            .foregroundColor(.red)
-                    }
-                    .frame(width: 44, height:44)
-                    .buttonStyle(BorderlessButtonStyle())
-                    .labelStyle(.iconOnly)
-                case 1..<3:
-                    Button(action: {
-                        searchSavedViewModel.editingRecommendationWeightResult = parent
-                    }) {
-                        Label("Occasionally", systemImage: "star.leadinghalf.filled")
-                            .foregroundColor(.accentColor)
-                    }
-                    .frame(width: 44, height:44)
-                    .buttonStyle(BorderlessButtonStyle())
-                    .labelStyle(.iconOnly)
-                case 3...:
-                    Button(action: {
-                        searchSavedViewModel.editingRecommendationWeightResult = parent
-                    }) {
-                        Label("Often", systemImage: "star.fill")
-                            .foregroundColor(.green)
-                    }
-                    .frame(width: 44, height:44)
-                    .buttonStyle(BorderlessButtonStyle())
-                    .labelStyle(.iconOnly)
-                default:
-                    EmptyView()
-                }
-            } else {
-                Button(action: {
-                    searchSavedViewModel.editingRecommendationWeightResult = parent
-                }) {
-                    Label("Occasionally", systemImage: "star.leadinghalf.filled")
-                        .foregroundColor(.accentColor)
-                }
-                .frame(width: 44, height:44)
-                .buttonStyle(BorderlessButtonStyle())
-                .labelStyle(.iconOnly)
-            }
-        case .places:
-            let isSaved = cacheManager.cachedPlaceResults.contains(where: { $0.parentCategory == parent.parentCategory })
-            
-            if isSaved, let rating = cacheManager.cachedPlaceResults.first(where: { $0.parentCategory == parent.parentCategory })?.rating {
-                switch rating {
-                case ..<1:
-                    Button(action: {
-                        searchSavedViewModel.editingRecommendationWeightResult = parent
-                    }) {
-                        Label("Never", systemImage: "star.slash")
-                            .foregroundColor(.red)
-                    }
-                    .frame(width: 44, height:44)
-                    .buttonStyle(BorderlessButtonStyle())
-                    .labelStyle(.iconOnly)
-                case 1..<3:
-                    Button(action: {
-                        searchSavedViewModel.editingRecommendationWeightResult = parent
-                    }) {
-                        Label("Occasionally", systemImage: "star.leadinghalf.filled")
-                            .foregroundColor(.accentColor)
-                    }
-                    .frame(width: 44, height:44)
-                    .buttonStyle(BorderlessButtonStyle())
-                    .labelStyle(.iconOnly)
-                case 3...:
-                    Button(action: {
-                        searchSavedViewModel.editingRecommendationWeightResult = parent
-                    }) {
-                        Label("Often", systemImage: "star.fill")
-                            .foregroundColor(.green)
-                    }
-                    .frame(width: 44, height:44)
-                    .buttonStyle(BorderlessButtonStyle())
-                    .labelStyle(.iconOnly)
-                default:
-                    EmptyView()
-                }
-            } else {
-                Button(action: {
-                    searchSavedViewModel.editingRecommendationWeightResult = parent
-                }) {
-                    Label("Occasionally", systemImage: "star.leadinghalf.filled")
-                        .foregroundColor(.accentColor)
-                }
-                .frame(width: 44, height:44)
-                .buttonStyle(BorderlessButtonStyle())
-                .labelStyle(.iconOnly)
-            }
-        default:
-            EmptyView()
-        }
     }
     
     func deleteTasteItem(at idsToDelete: [String]) {
@@ -420,4 +289,3 @@ struct SavedListView: View {
         }
     }
 }
-

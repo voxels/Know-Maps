@@ -21,6 +21,7 @@ public final class DefaultResultIndexServiceV2: ResultIndexServiceV2 {
     private var cachedIndustryResults: [CategoryResult] = []
     private var cachedPlaceResults: [CategoryResult] = []
     private var cachedTasteResults: [CategoryResult] = []
+    private var cachedDefaultResults: [CategoryResult] = []
     private var cachedRecommendationData: [RecommendationData] = []
 
     // MARK: - O(1) Lookup Indices
@@ -52,6 +53,7 @@ public final class DefaultResultIndexServiceV2: ResultIndexServiceV2 {
         cachedIndustryResults: [CategoryResult],
         cachedPlaceResults: [CategoryResult],
         cachedTasteResults: [CategoryResult],
+        cachedDefaultResults: [CategoryResult],
         cachedRecommendationData: [RecommendationData]
     ) {
         // Store arrays
@@ -63,6 +65,7 @@ public final class DefaultResultIndexServiceV2: ResultIndexServiceV2 {
         self.cachedIndustryResults = cachedIndustryResults
         self.cachedPlaceResults = cachedPlaceResults
         self.cachedTasteResults = cachedTasteResults
+        self.cachedDefaultResults = cachedDefaultResults
         self.cachedRecommendationData = cachedRecommendationData
 
         // Build indices
@@ -123,20 +126,16 @@ public final class DefaultResultIndexServiceV2: ResultIndexServiceV2 {
         cachedTasteResultsByTitle = Dictionary(uniqueKeysWithValues: cachedTasteResults.map { ($0.parentCategory, $0) })
         cachedRecommendationDataByIdentity = Dictionary(uniqueKeysWithValues: cachedRecommendationData.map { ($0.id.uuidString, $0) })
 
-        print("🗂️ buildCachedResultsIndex: industry count = \(cachedIndustryResults.count), taste count = \(cachedTasteResults.count), place count = \(cachedPlaceResults.count)")
 
         // Build cached chat results index
         cachedChatResultsByID = [:]
-        let allCachedCategories = cachedIndustryResults + cachedPlaceResults + cachedTasteResults
-        print("🗂️ buildCachedResultsIndex: allCachedCategories count = \(allCachedCategories.count)")
+        let allCachedCategories = cachedIndustryResults + cachedPlaceResults + cachedTasteResults + cachedDefaultResults
         for category in allCachedCategories {
             // Try to use existing chat result first
             if let firstResult = category.categoricalChatResults.first {
-                print("🗂️   Using existing chatResult for category.id = \(category.id) (\(category.parentCategory))")
                 cachedChatResultsByID[category.id] = firstResult
             } else {
                 // If categoricalChatResults is empty (e.g., loaded from cache), create a ChatResult from the category itself
-                print("🗂️   Creating synthetic chatResult for category.id = \(category.id) (\(category.parentCategory))")
                 let syntheticChatResult = ChatResult(
                     parentId: category.id,
                     index: 0,
@@ -153,8 +152,6 @@ public final class DefaultResultIndexServiceV2: ResultIndexServiceV2 {
                 cachedChatResultsByID[category.id] = syntheticChatResult
             }
         }
-        print("🗂️ buildCachedResultsIndex: cachedChatResultsByID final count = \(cachedChatResultsByID.count)")
-        print("🗂️ buildCachedResultsIndex: cachedChatResultsByID keys = \(Array(cachedChatResultsByID.keys))")
     }
 
     // MARK: - Place Result Lookups

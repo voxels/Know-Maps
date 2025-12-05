@@ -53,10 +53,10 @@ struct ContentView: View {
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     
     @ObservedObject var settingsModel:AppleAuthenticationService
-    @Binding var chatModel:ChatResultViewModel
-    @Binding var cacheManager:CloudCacheManager
-    @Binding var modelController:DefaultModelController
-    @Binding var searchSavedViewModel:SearchSavedViewModel
+    var chatModel:ChatResultViewModel
+    var cacheManager:CloudCacheManager
+    var modelController:DefaultModelController
+    var searchSavedViewModel:SearchSavedViewModel
     @Binding var showOnboarding:Bool
     @Binding var showNavigationLocationView:Bool
     @Binding var searchMode: SearchMode
@@ -102,15 +102,12 @@ struct ContentView: View {
                 })
                 .onChange(of:modelController.selectedCategoryChatResult) {_, newValue in
                     if let id = newValue {
-                        print("🔍 ContentView.onChange: selectedCategoryChatResult = \(id)")
                         Task {
                             // Try to resolve an industry category result first (live, then cached)
                             let industryCategory = modelController.industryCategoryResult(for: id) ?? modelController.cachedIndustryResult(for: id)
-                            print("🔍 ContentView.onChange: industryCategory = \(String(describing: industryCategory?.parentCategory))")
 
                             if let industryCategory = industryCategory {
                                 let chatResult = modelController.cachedChatResult(for: industryCategory.id)
-                                print("🔍 ContentView.onChange: industry chatResult = \(String(describing: chatResult?.title))")
 
                                 if let chatResult = chatResult {
                                     do {
@@ -124,11 +121,9 @@ struct ContentView: View {
 
                             // Then try a taste category result (live, then cached)
                             let tasteCategory = modelController.tasteCategoryResult(for: id) ?? modelController.cachedTasteResult(for: id)
-                            print("🔍 ContentView.onChange: tasteCategory = \(String(describing: tasteCategory?.parentCategory))")
 
                             if let tasteCategory = tasteCategory {
                                 let chatResult = modelController.cachedChatResult(for: tasteCategory.id)
-                                print("🔍 ContentView.onChange: taste chatResult = \(String(describing: chatResult?.title))")
 
                                 if let chatResult = chatResult {
                                     do {
@@ -142,12 +137,10 @@ struct ContentView: View {
 
                             // Then try a place result from cache
                             let placeResult = modelController.cachedPlaceResult(for: id)
-                            print("🔍 ContentView.onChange: placeResult = \(String(describing: placeResult?.parentCategory))")
 
                             if let placeResult = placeResult {
                                 // If we can resolve a corresponding place chat result, treat this category as a place
                                 if let placeChat = placeResult.categoricalChatResults.first {
-                                    print("🔍 ContentView.onChange: placeChat found = \(placeChat.title)")
                                     do {
                                         try await handlePlaceCategoryChatResult(placeChat)
                                     } catch {
@@ -156,7 +149,6 @@ struct ContentView: View {
                                     return
                                 } else {
                                     // No direct place chat found; fall back to a search using the category caption
-                                    print("🔍 ContentView.onChange: No placeChat, searching for \(placeResult.parentCategory)")
                                     do {
                                         let caption = placeResult.parentCategory
                                         let selectedDestination = modelController.selectedDestinationLocationChatResult
@@ -183,7 +175,6 @@ struct ContentView: View {
 
                             // Finally, fall back to a generic chat result
                             let chatResult = modelController.cachedChatResult(for: id)
-                            print("🔍 ContentView.onChange: generic chatResult = \(String(describing: chatResult?.title))")
 
                             if let chatResult = chatResult {
                                 do {
@@ -206,8 +197,6 @@ struct ContentView: View {
                                 } catch {
                                     modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
                                 }
-                            } else {
-                                print("⚠️ ContentView.onChange: No chatResult found for id \(id)")
                             }
                         }
                     }
@@ -513,7 +502,7 @@ struct ContentView: View {
                             unifiedBrowseToolbar()
                         }
                 case .places:
-                    SearchPlacesView(searchSavedViewModel: $searchSavedViewModel, chatModel: $chatModel, cacheManager: $cacheManager, modelController:   $modelController, multiSelection: $multiSelection, placeDirectionsChatViewModel: placeDirectionsChatViewModel)
+                    SearchPlacesView(searchSavedViewModel: searchSavedViewModel, chatModel: chatModel, cacheManager: cacheManager, modelController: modelController, multiSelection: $multiSelection, placeDirectionsChatViewModel: placeDirectionsChatViewModel)
                         .toolbar {
                             unifiedBrowseToolbar()
                         }
@@ -523,20 +512,20 @@ struct ContentView: View {
                     if let selectedFsqId = modelController.selectedPlaceChatResultFsqId,
                        let placeChatResult = modelController.placeChatResult(with: selectedFsqId) {
                         PlaceView(
-                            searchSavedViewModel: $searchSavedViewModel,
-                            chatModel: $chatModel,
-                            cacheManager: $cacheManager,
-                            modelController: $modelController,
+                            searchSavedViewModel: searchSavedViewModel,
+                            chatModel: chatModel,
+                            cacheManager: cacheManager,
+                            modelController: modelController,
                             placeDirectionsViewModel: placeDirectionsChatViewModel,
                             selectedResult: placeChatResult
                         )
                         .navigationTitle(placeChatResult.title)
                     } else {
                         PlacesList(
-                            searchSavedViewModel: $searchSavedViewModel,
-                            chatModel: $chatModel,
-                            cacheManager: $cacheManager,
-                            modelController: $modelController
+                            searchSavedViewModel: searchSavedViewModel,
+                            chatModel: chatModel,
+                            cacheManager: cacheManager,
+                            modelController: modelController
                         )
                     }
                 }
@@ -545,6 +534,7 @@ struct ContentView: View {
         }
         .task {
             await modelController.ensureIndustryResultsPopulated()
+            await modelController.ensureTasteResultsPopulated()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -599,4 +589,3 @@ extension ContentView {
         try await modelController.searchIntent(intent: newIntent)
     }
 }
-

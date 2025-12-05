@@ -12,10 +12,18 @@ final class MiniLMEmbeddingClient {
     private init() {
         tokenizer = MiniLMTokenizer()
 
-        // Load the ML package
-        guard let url = Bundle.main.url(forResource: "MiniLM-L12-Embedding",
-                                        withExtension: "mlpackage") else {
-            fatalError("Missing MiniLM-L12-Embedding.mlpackage in bundle")
+        print("Bundle path:", Bundle.main.bundlePath)
+        print("mlpackage URLs:", Bundle.main.urls(forResourcesWithExtension: "mlpackage", subdirectory: nil) ?? [])
+        print("mlmodelc URLs:", Bundle.main.urls(forResourcesWithExtension: "mlmodelc", subdirectory: nil) ?? [])
+
+        // Load the ML model (support both .mlpackage and compiled .mlmodelc)
+        let modelURL = Bundle.main.url(forResource: "MiniLM-L12-Embedding", withExtension: "mlpackage") ??
+                       Bundle.main.url(forResource: "MiniLM-L12-Embedding", withExtension: "mlmodelc")
+
+        guard let url = modelURL else {
+            let foundMLPackages = Bundle.main.urls(forResourcesWithExtension: "mlpackage", subdirectory: nil) ?? []
+            let foundMLModelc   = Bundle.main.urls(forResourcesWithExtension: "mlmodelc", subdirectory: nil) ?? []
+            fatalError("Could not locate MiniLM model in bundle. Looked for MiniLM-L12-Embedding.mlpackage and .mlmodelc. Found mlpackage: \(foundMLPackages), mlmodelc: \(foundMLModelc)")
         }
 
         do {
@@ -114,4 +122,3 @@ final class MiniLMEmbeddingClient {
         return result
     }
 }
-
