@@ -8,14 +8,13 @@
 import SwiftUI
 
 struct SearchView: View {
-    @Binding public var chatModel:ChatResultViewModel
-    @Binding public var cacheManager:CloudCacheManager
-    @Binding public var modelController:DefaultModelController
-    @Binding public var searchSavedViewModel:SearchSavedViewModel
+    var chatModel:ChatResultViewModel
+    var cacheManager:CloudCacheManager
+    var modelController:DefaultModelController
+    var searchSavedViewModel:SearchSavedViewModel
     @Binding public var searchMode:SearchMode
     
     var body: some View {
         SavedListView(searchSavedViewModel: $searchSavedViewModel, cacheManager: $cacheManager, modelController: $modelController, section:$modelController.section, searchMode: $searchMode)
     }
 }
-

@@ -277,9 +277,7 @@ struct Know_MapsApp: App {
     }
     
     private func loadData() async {
-        Task {
-            await modelController.categoricalSearchModel()
-        }
+        await modelController.categoricalSearchModel()
         
         let cacheRefreshTask = Task { @MainActor in
             do {

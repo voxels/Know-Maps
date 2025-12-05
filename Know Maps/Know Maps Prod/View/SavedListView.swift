@@ -44,6 +44,7 @@ struct SavedListView: View {
     
     @State private var lastTapCategoryID: CategoryResult.ID? = nil
     @State private var lastTapAt: Date = .distantPast
+    @State private var refreshError: Error?
     
     // MARK: - Computed Properties for Filtering
     
@@ -188,6 +189,11 @@ struct SavedListView: View {
                 .listStyle(InsetGroupedListStyle())
                 .listRowBackground(Color(.systemGroupedBackground))
 #endif
+                .alert("Refresh Failed", isPresented: .constant(refreshError != nil), actions: {
+                    Button("OK") { refreshError = nil }
+                }, message: {
+                    Text(refreshError?.localizedDescription ?? "An unknown error occurred. Please check your network connection and try again.")
+                })
                 .refreshable {
                     Task(priority: .userInitiated) {
                         do {
@@ -208,7 +214,7 @@ struct SavedListView: View {
                                 )
                             }
                         } catch {
-                            modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
+                            refreshError = error
                         }
                     }
                 }
