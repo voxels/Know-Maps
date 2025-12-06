@@ -3,8 +3,7 @@ import NukeUI
 
 struct PlacePhotosView: View {
     @Environment(\.horizontalSizeClass) var sizeClass
-    @Binding public var chatModel: ChatResultViewModel
-    @Binding var modelController:DefaultModelController
+    var modelController:DefaultModelController
     @State private var position: Int?
 
     var body: some View {

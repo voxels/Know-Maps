@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct SearchSectionView: View {
-    @Binding public var chatModel: ChatResultViewModel
+    public var chatModel: ChatResultViewModel
     @Binding var modelController:DefaultModelController
 
     var body: some View {

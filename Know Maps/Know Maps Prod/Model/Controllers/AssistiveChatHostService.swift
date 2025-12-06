@@ -31,10 +31,16 @@ public final class AssistiveChatHostService : AssistiveChatHost {
     
     private let geocoder = CLGeocoder()
     
+    // MARK: - Foundation Models Integration
+    private let intentClassifier: FoundationModelsIntentClassifier
+    private let vectorService: VectorEmbeddingService
+    
     required public init(analyticsManager:AnalyticsService, messagesDelegate: AssistiveChatHostMessagesDelegate) {
         self.analyticsManager = analyticsManager
         self.messagesDelegate = messagesDelegate
         self.queryIntentParameters = AssistiveChatHostQueryParameters()
+        self.intentClassifier = FoundationModelsIntentClassifier()
+        self.vectorService = VectorEmbeddingService()
         do {
             categoryCodes = try AssistiveChatHostService.organizeCategoryCodeList()
         }catch {
@@ -129,43 +135,29 @@ public final class AssistiveChatHostService : AssistiveChatHost {
         return Array(retval)
     }
     
-    public func determineIntent(for caption:String, override:Intent? = nil) -> Intent
-    {
+    /// Enhanced intent determination using Foundation Models (async version)
+    public func determineIntentEnhanced(for caption: String, override: AssistiveChatHostService.Intent? = nil) async throws -> AssistiveChatHostService.Intent {
         if let override = override {
             return override
         }
-        let lower = caption.lowercased()
-        // Quick location check first
-        if override == .Location {
-            return .Location
-        }
-        // Extract tags from our ML + NLTagger pipeline
-        let tagDict = (try? tags(for: caption)) ?? nil
-        // Helpers to inspect tag values
-        let containsTag: (String) -> Bool = { tag in
-            guard let tagDict = tagDict else { return false }
-            for values in tagDict.values {
-                if values.contains(tag) { return true }
-            }
-            return false
-        }
-        // Place intent if we clearly have a place entity
-        if containsTag("PLACE") || containsTag("PlaceName") {
+        
+        // Use Foundation Models classifier
+        let unifiedIntent = try await intentClassifier.classify(query: caption)
+        
+        // Map UnifiedSearchIntent.SearchType to existing Intent enum
+        switch unifiedIntent.searchType {
+        case .category:
+            return .Search
+        case .taste:
+            return .AutocompleteTastes
+        case .place:
             return .Place
-        }
-        // Taste/category intent for autocompletion of categories
-        if containsTag("TASTE") || containsTag("CATEGORY") {
-            return .AutocompleteTastes
-        }
-        // Heuristics based on words
-        if lower.contains("near ") || lower.contains("around ") || lower.contains("close to ") {
+        case .location:
             return .Location
+        case .mixed:
+            // For mixed intents, prefer Search as it's most flexible
+            return .Search
         }
-        if lower.contains("category") || lower.contains("type of") || lower.contains("kinds of") {
-            return .AutocompleteTastes
-        }
-        // Fallback to search
-        return .Search
     }
     
     public func defaultParameters(for query:String, filters:[String:Any]) async throws -> [String:Any]? {
@@ -194,7 +186,6 @@ public final class AssistiveChatHostService : AssistiveChatHost {
                 """
         
         guard let data = emptyParameters.data(using: .utf8) else {
-            print("Empty parameters could not be encoded into json: \(emptyParameters)")
             return nil
         }
         
@@ -236,11 +227,8 @@ public final class AssistiveChatHostService : AssistiveChatHost {
                 encodedParameters["query"] = parsedQuery(for: query, tags: tags)
                 
                 encodedParameters["parameters"] = rawParameters
-                print("Parsed Default Parameters:")
-                print(encodedParameters)
                 return encodedParameters
             } else {
-                print("Found non-dictionary object when attemting to refresh parameters:\(json)")
                 return nil
             }
         } catch {
@@ -252,7 +240,7 @@ public final class AssistiveChatHostService : AssistiveChatHost {
     public func updateLastIntent(caption:String, selectedDestinationLocation:LocationResult, filters:[String:Any], modelController:ModelController) async throws {
         if  let lastIntent = queryIntentParameters.queryIntents.last {
             let queryParameters = try await defaultParameters(for: caption, filters:filters)
-            let intent = determineIntent(for: caption)
+            let intent = try await determineIntentEnhanced(for: caption)
             let newIntent = AssistiveChatHostIntent(caption: caption, intent:intent, selectedPlaceSearchResponse: lastIntent.selectedPlaceSearchResponse, selectedPlaceSearchDetails: lastIntent.selectedPlaceSearchDetails, placeSearchResponses: lastIntent.placeSearchResponses, selectedDestinationLocation: selectedDestinationLocation, placeDetailsResponses: lastIntent.placeDetailsResponses, recommendedPlaceSearchResponses: lastIntent.recommendedPlaceSearchResponses, relatedPlaceSearchResponses: lastIntent.relatedPlaceSearchResponses, queryParameters: queryParameters)
             await updateLastIntentParameters(intent: newIntent, modelController: modelController)
         }
@@ -298,7 +286,6 @@ public final class AssistiveChatHostService : AssistiveChatHost {
                 } else {
                     retval[key] = [tag.rawValue]
                 }
-                print("\(rawQuery[tokenRange]): \(tag.rawValue)")
             }
             return true
         }
@@ -321,7 +308,6 @@ public final class AssistiveChatHostService : AssistiveChatHost {
                 } else {
                     retval[key] = [tag.rawValue]
                 }
-                print("\(rawQuery[tokenRange]): \(tag.rawValue)")
             }
             
             return true
@@ -377,7 +363,7 @@ public final class AssistiveChatHostService : AssistiveChatHost {
     }
 }
 
-extension AssistiveChatHost {
+extension AssistiveChatHostService {
     internal func parsedQuery(for rawQuery:String, tags:AssistiveChatHostTaggedWord? = nil)->String {
         guard let tags = tags else { return rawQuery }
         
@@ -403,30 +389,20 @@ extension AssistiveChatHost {
                 
                 if taggedValues.contains("PLACE"), !taggedValues.contains("PlaceName"), !includedWords.contains(taggedWord) {
                     includedWords.insert(taggedWord)
-                    print(taggedWord)
-                    print(taggedValues)
-                    print(taggedValues.count)
                     revisedQuery.append(taggedWord)
                 }
                 
                 if taggedValues.contains("Noun"), !includedWords.contains(taggedWord) {
                     includedWords.insert(taggedWord)
-                    print(taggedWord)
-                    print(taggedValues)
-                    print(taggedValues.count)
                     revisedQuery.append(taggedWord)
                 }
                 
                 if taggedValues.contains("Adjective"), !includedWords.contains(taggedWord) {
                     includedWords.insert(taggedWord)
-                    print(taggedWord)
-                    print(taggedValues)
-                    print(taggedValues.count)
                     revisedQuery.append(taggedWord)
                 }
             }
         }
-        print("Revised query")
         
         var parsedQuery = ""
         let rawQueryComponents = rawQuery.components(separatedBy: .whitespacesAndNewlines)
@@ -452,7 +428,6 @@ extension AssistiveChatHost {
         
         let locationComponents = parsedQuery.components(separatedBy: "near")
         
-        print(locationComponents.first ?? "")
         return locationComponents.first ?? parsedQuery
     }
         
@@ -534,7 +509,6 @@ extension AssistiveChatHost {
                             if let subcategoryName = subcategory["category"]?.lowercased() {
                                 let subcategorySimilarity = query.lowercased() == subcategoryName.lowercased()
                                 if subcategorySimilarity, let code = subcategory["code"] {
-                                    print("Adding subcategory:\(subcategoryName)\t\(subcategorySimilarity)")
                                     localCodes.append(code)
                                 }
                             }
@@ -552,5 +526,86 @@ extension AssistiveChatHost {
 
         return codes
     }
-}
+    
+    // MARK: - Semantic Re-ranking
+    
+    /// Re-ranks place search responses using semantic similarity
+    /// - Parameters:
+    ///   - query: The original search query
+    ///   - responses: Array of place search responses to rank
+    ///   - semanticWeight: Weight for semantic score (0.0-1.0, default 0.7)
+    /// - Returns: Re-ranked array of responses
+    public func semanticRerank(
+        query: String,
+        responses: [PlaceSearchResponse],
+        semanticWeight: Double = 0.7
+    ) -> [PlaceSearchResponse] {
+        guard !responses.isEmpty, !query.isEmpty else {
+            return responses
+        }
+        
+        let distanceWeight = 1.0 - semanticWeight
+        
+        // Build descriptions for each place
+        let descriptions = responses.map { response in
+            vectorService.buildPlaceDescription(
+                name: response.name,
+                categories: response.categories,
+                description: nil
+            )
+        }
+        
+        // Calculate semantic scores
+        let semanticScores = vectorService.batchSemanticScores(
+            query: query,
+            placeDescriptions: descriptions
+        )
 
+        // Combine scores and sort
+        let paired: [(response: PlaceSearchResponse, semanticScore: Double)] = zip(responses, semanticScores).map { (response: PlaceSearchResponse, semanticScore: Double) in
+            (response: response, semanticScore: semanticScore)
+        }
+        let rankedResults: [PlaceSearchResponse] = paired
+            .sorted(by: { (a: (response: PlaceSearchResponse, semanticScore: Double),
+                           b: (response: PlaceSearchResponse, semanticScore: Double)) -> Bool in
+                return a.semanticScore > b.semanticScore
+            })
+            .map { $0.response }
+
+        return rankedResults
+    }
+    
+    /// Creates a new search intent from a generic ChatResult.
+    /// This centralizes the logic for handling taps on different kinds of items.
+    /// - Parameters:
+    ///   - result: The `ChatResult` that was selected.
+    ///   - filters: Any active search filters.
+    ///   - selectedDestination: The current location to search near.
+    /// - Returns: A fully configured `AssistiveChatHostIntent`.
+    public func createIntent(
+        for result: ChatResult,
+        filters: [String: Any],
+        selectedDestination: LocationResult
+    ) async throws -> AssistiveChatHostIntent {
+        
+        let caption = result.title
+        let queryParameters = try await defaultParameters(for: caption, filters: filters)
+        
+        // If the result is a specific place, create a .Place intent.
+        if let placeResponse = result.placeResponse {
+            return AssistiveChatHostIntent(
+                caption: caption,
+                intent: .Place,
+                selectedPlaceSearchResponse: placeResponse,
+                selectedPlaceSearchDetails: result.placeDetailsResponse,
+                placeSearchResponses: [placeResponse],
+                selectedDestinationLocation: selectedDestination,
+                placeDetailsResponses: result.placeDetailsResponse != nil ? [result.placeDetailsResponse!] : nil,
+                queryParameters: queryParameters
+            )
+        }
+        
+        // Otherwise, create a generic .Search intent.
+        return AssistiveChatHostIntent(caption: caption, intent: .Search, selectedPlaceSearchResponse: nil, selectedPlaceSearchDetails: nil, placeSearchResponses: [], selectedDestinationLocation: selectedDestination, placeDetailsResponses: nil, queryParameters: queryParameters)
+    }
+}

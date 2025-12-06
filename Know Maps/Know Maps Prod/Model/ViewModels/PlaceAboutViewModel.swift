@@ -131,17 +131,6 @@ class PlaceAboutViewModel {
                         reviews: recommendation.reviews
                     )
                     
-                    // Save the user record with recommendation data
-                    let _ = try await cacheManager.cloudCacheService.storeUserCachedRecord(recordId:UUID().uuidString,
-                        group: userRecord.group,
-                        identity: userRecord.identity,
-                        title: userRecord.title,
-                        icons: userRecord.icons,
-                        list: userRecord.list,
-                        section: userRecord.section,
-                        rating: userRecord.rating
-                    )
-                } else {
                     // Save the user record without recommendation data
                     let _ = try await cacheManager.cloudCacheService.storeUserCachedRecord(recordId:UUID().uuidString,
                         group: userRecord.group,
@@ -161,11 +150,11 @@ class PlaceAboutViewModel {
         await cacheManager.refreshCachedPlaces()
     }
     
-    func getCallURL(tel: String) -> URL? {
+    static func getCallURL(tel: String) -> URL? {
         return URL(string: "tel://\(tel)")
     }
     
-    func getWebsiteURL(website: String) -> URL? {
+    static func getWebsiteURL(website: String) -> URL? {
         return URL(string: website)
     }
 }

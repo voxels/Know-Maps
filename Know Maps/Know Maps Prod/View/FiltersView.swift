@@ -9,10 +9,10 @@ import SwiftUI
 
 struct FiltersView: View {
     @Environment(\.dismiss) var dismiss
-    @Binding public var chatModel:ChatResultViewModel
-    @Binding public var cacheManager:CloudCacheManager
-    @Binding public var modelController:DefaultModelController
-    @Binding public var searchSavedViewModel:SearchSavedViewModel
+    public var chatModel:ChatResultViewModel
+    public var cacheManager:CloudCacheManager
+    public var modelController:DefaultModelController
+    public var searchSavedViewModel:SearchSavedViewModel
     @Binding public var filters:[String:Any]
     @Binding public var distanceFilterValue:Double
 
@@ -38,14 +38,9 @@ struct FiltersView: View {
                     Text("50")
                 } onEditingChanged: { changed in
                     let clampedValue = max(distanceFilterValue, 0.5)
-                    if changed {
-                        // While dragging: update local display only
-                        kilometers = Float(clampedValue)
-                    } else {
-                        // When editing finishes: persist to filters and apply
-                        filters["distance"] = clampedValue
-                        kilometers = Float(clampedValue)
-                    }
+                    // Update filters continuously while dragging
+                    filters["distance"] = clampedValue
+                    kilometers = Float(clampedValue)
                 }
                 Text(" (\(FiltersView.formatter.string(from:NSNumber(value:distanceFilterValue)) ?? "1") kilometers)")
             }
@@ -83,4 +78,3 @@ struct FiltersView: View {
         }
     }
 }
-

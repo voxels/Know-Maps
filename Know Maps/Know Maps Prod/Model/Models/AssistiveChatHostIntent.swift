@@ -21,7 +21,12 @@ public final class AssistiveChatHostIntent : Equatable, Sendable {
     public var relatedPlaceSearchResponses:[RecommendedPlaceSearchResponse]?
     public let queryParameters:[String:Any]?
     
-    public init(caption: String, intent: AssistiveChatHostService.Intent, selectedPlaceSearchResponse: PlaceSearchResponse?, selectedPlaceSearchDetails: PlaceDetailsResponse?, placeSearchResponses: [PlaceSearchResponse], selectedDestinationLocation:LocationResult, placeDetailsResponses:[PlaceDetailsResponse]?, recommendedPlaceSearchResponses:[RecommendedPlaceSearchResponse]? = nil, relatedPlaceSearchResponses:[RecommendedPlaceSearchResponse]? = nil, queryParameters: [String : Any]?) {
+    // MARK: - Foundation Models Enhancement
+    /// Optional enriched intent from Foundation Models classifier
+    /// Contains extracted categories, tastes, price range, etc.
+    public var enrichedIntent: UnifiedSearchIntent?
+    
+    public init(caption: String, intent: AssistiveChatHostService.Intent, selectedPlaceSearchResponse: PlaceSearchResponse?, selectedPlaceSearchDetails: PlaceDetailsResponse?, placeSearchResponses: [PlaceSearchResponse], selectedDestinationLocation:LocationResult, placeDetailsResponses:[PlaceDetailsResponse]?, recommendedPlaceSearchResponses:[RecommendedPlaceSearchResponse]? = nil, relatedPlaceSearchResponses:[RecommendedPlaceSearchResponse]? = nil, queryParameters: [String : Any]?, enrichedIntent: UnifiedSearchIntent? = nil) {
         self.caption = caption
         self.intent = intent
         self.selectedPlaceSearchResponse = selectedPlaceSearchResponse
@@ -32,6 +37,7 @@ public final class AssistiveChatHostIntent : Equatable, Sendable {
         self.recommendedPlaceSearchResponses = recommendedPlaceSearchResponses
         self.relatedPlaceSearchResponses = relatedPlaceSearchResponses
         self.queryParameters = queryParameters
+        self.enrichedIntent = enrichedIntent
     }
     
     public static func == (lhs: AssistiveChatHostIntent, rhs: AssistiveChatHostIntent) -> Bool {

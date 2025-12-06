@@ -18,7 +18,7 @@ public class PlaceDirectionsViewModel : ObservableObject {
     @Published public var polyline:MKPolyline?
     @Published public var transportType:MKDirectionsTransportType = .automobile
     @Published public var rawTransportType:RawTransportType = .Automobile
-    @Published public var rawLocationIdent:String!
+    // @Published public var rawLocationIdent:String! // Not used
     @Published public var chatRouteResults:[ChatRouteResult]?
 
     private var lookAroundSceneRequest:MKLookAroundSceneRequest?
@@ -37,7 +37,6 @@ public class PlaceDirectionsViewModel : ObservableObject {
         self.polyline = polyline
         self.transportType = transportType
         self.chatRouteResults = chatRouteResults
-        self.rawLocationIdent = rawLocationIdent
     }
     
     public func appleMapsLaunchOptions()->[String:Any] {

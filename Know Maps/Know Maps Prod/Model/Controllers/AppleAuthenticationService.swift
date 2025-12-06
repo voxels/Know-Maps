@@ -299,7 +299,24 @@ class AppleAuthenticationService: NSObject, ObservableObject {
             }
         }
     }
-    
+
+    // FIX: Async version that properly awaits token refresh
+    @MainActor
+    func getValidAccessTokenAsync() async -> String? {
+        if isAccessTokenValid(), let token = retrieveAccessToken() {
+            return token
+        }
+
+        // Properly await the refresh
+        let success = await withCheckedContinuation { continuation in
+            refreshAccessToken { success in
+                continuation.resume(returning: success)
+            }
+        }
+
+        return success ? retrieveAccessToken() : nil
+    }
+
     private func saveToKeychain(key: String, value: String) {
         guard let data = value.data(using: .utf8) else { return }
         

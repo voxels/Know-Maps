@@ -12,6 +12,10 @@ import CreateML
 
 public protocol RecommenderService : Sendable {
     func recommendationData(tasteCategoryResults: [CategoryResult], industryCategoryResults: [CategoryResult], placeRecommendationData:[RecommendationData]) -> [RecommendationData]
+    func recommendationData(
+        categoryGroups: [[any RecommendationCategoryConvertible]],
+        placeRecommendationData: [RecommendationData]
+    ) -> [RecommendationData]
     func testingData(with responses:[RecommendedPlaceSearchResponse])->[RecommendationData]
 
 #if canImport(CreateML)

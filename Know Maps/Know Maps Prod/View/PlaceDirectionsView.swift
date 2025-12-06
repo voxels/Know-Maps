@@ -11,9 +11,9 @@ import MapKit
 import Segment
 
 struct PlaceDirectionsView: View {
-    @Binding public var chatModel:ChatResultViewModel
-    @Binding public var cacheManager:CloudCacheManager
-    @Binding var modelController:DefaultModelController
+    public var chatModel:ChatResultViewModel
+    public var cacheManager:CloudCacheManager
+    var modelController:DefaultModelController
     @ObservedObject public var model:PlaceDirectionsViewModel
     
     static let mapFrameConstraint:Double = 200000
@@ -91,52 +91,24 @@ struct PlaceDirectionsView: View {
                     }
                 }
             }
-            .onChange(of: model.rawLocationIdent, { oldValue, newValue in
-                if let newValue  {
-                    let ident = newValue
-                    guard let sourceLocation = modelController.locationChatResult(for: ident, in:modelController.locationResults)?.location, let result = modelController.placeChatResult(for: resultId), let placeResponse = result.placeResponse else {
-                        return
-                    }
-                    
-                    Task{
-                        do {
-                            try await model.refreshDirections(with: sourceLocation, destination:CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude))
-                        } catch {
-                            modelController.analyticsManager.trackError(error:error, additionalInfo:nil)
-                        }
-                    }
-                }
-            })
             .task {
-                guard let result = modelController.placeChatResult(for: resultId), let placeResponse = result.placeResponse, let latitude = result.placeResponse?.latitude, let longitude = result.placeResponse?.longitude else {
+                // **FIX**: Simplify initial directions fetch. Use the model's currently selected
+                // location as the source, rather than manually calculating the closest one.
+                guard let destinationResult = modelController.placeChatResult(for: resultId),
+                      let destinationResponse = destinationResult.placeResponse else {
                     return
                 }
                 
-                let destination = CLLocation(latitude:latitude, longitude: longitude)
-                var minDistance = Double.greatestFiniteMagnitude
-                var minLocation = ""
-                let allLocationResults = modelController.filteredLocationResults()
-                for locationResult in allLocationResults {
-                    let location = locationResult.location 
-                    if location.distance(from:destination) < minDistance {
-                        minLocation = locationResult.id
-                        minDistance = location.distance(from:destination)
-                    }
-                }
-                
-                model.rawLocationIdent = minLocation
-                
-                guard let sourceLocation = allLocationResults.first(where: { $0.id == minLocation})?.location else {
-                    return
-                }
+                let sourceLocation = modelController.selectedDestinationLocationChatResult.location
+                let destinationLocation = CLLocation(latitude: destinationResponse.latitude, longitude: destinationResponse.longitude)
                 
                 do {
-                    try await model.refreshDirections(with: sourceLocation, destination:CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude))
+                    try await model.refreshDirections(with: sourceLocation, destination: destinationLocation)
                 } catch {
                     modelController.analyticsManager.trackError(error:error, additionalInfo:nil)
                 }
             }
-            .onChange(of: model.rawTransportType) { oldValue, newValue in
+            .onChange(of: model.rawTransportType) { newValue in
                 switch newValue {
                 case .Walking:
                     model.transportType = .walking
@@ -146,7 +118,7 @@ struct PlaceDirectionsView: View {
                     model.transportType = .automobile
                 }
             }
-            .onChange(of: model.transportType) { oldValue, newValue in
+            .onChange(of: model.transportType) { newValue in
                 guard let sourceLocation = model.source?.placemark.location, let result = modelController.placeChatResult(for: resultId), let placeResponse = result.placeResponse else {
                     return
                 }
@@ -166,3 +138,4 @@ struct PlaceDirectionsView: View {
         }
     }
 }
+

@@ -9,10 +9,10 @@ import SwiftUI
 import MapKit
 
 struct PlaceView: View {
-    @Binding public var searchSavedViewModel:SearchSavedViewModel
-    @Binding public var chatModel:ChatResultViewModel
-    @Binding public var cacheManager:CloudCacheManager
-    @Binding public var modelController:DefaultModelController
+    public var searchSavedViewModel:SearchSavedViewModel
+    public var chatModel:ChatResultViewModel
+    public var cacheManager:CloudCacheManager
+    public var modelController:DefaultModelController
     @ObservedObject public var placeDirectionsViewModel:PlaceDirectionsViewModel
     public let selectedResult:ChatResult
     @State private var tabItem = 0
@@ -34,7 +34,7 @@ struct PlaceView: View {
                 .labelsHidden()
                 switch tabItem {
                 case 0:
-                    PlaceAboutView(searchSavedViewModel:$searchSavedViewModel, chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, tabItem: $tabItem, selectedResult: placeChatResult)
+                    PlaceAboutView(searchSavedViewModel:searchSavedViewModel, chatModel: chatModel, cacheManager: cacheManager, modelController: modelController, tabItem: $tabItem, selectedResult: placeChatResult)
                         .tabItem {
                             Label("About", systemImage: "target")
                         }
@@ -43,7 +43,7 @@ struct PlaceView: View {
                             modelController.analyticsManager.track(event:"PlaceAboutView", properties: nil)
                         })
                 case 1:
-                    PlaceDirectionsView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, model: placeDirectionsViewModel)
+                    PlaceDirectionsView(chatModel: chatModel, cacheManager: cacheManager, modelController: modelController, model: placeDirectionsViewModel)
                         .tabItem {
                             Label("Directions", systemImage: "map")
                         }
@@ -54,7 +54,7 @@ struct PlaceView: View {
                 case 2:
                     if let detailsResponses = placeChatResult.placeDetailsResponse {
                         if let photoResponses = detailsResponses.photoResponses, photoResponses.count > 0 {
-                            PlacePhotosView(chatModel: $chatModel, modelController: $modelController)
+                            PlacePhotosView(modelController: modelController)
                                 .tabItem {
                                     Label("Photos", systemImage: "photo.stack")
                                 }
@@ -67,7 +67,7 @@ struct PlaceView: View {
                 case 3:
                     if let detailsResponses = placeChatResult.placeDetailsResponse {
                         if let tipsResponses = detailsResponses.tipsResponses, tipsResponses.count > 0 {
-                            PlaceTipsView(chatModel: $chatModel, modelController: $modelController)
+                            PlaceTipsView(chatModel: chatModel, modelController: modelController)
                                 .tabItem {
                                     Label("Tips", systemImage: "quote.bubble")
                                 }

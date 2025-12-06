@@ -13,9 +13,9 @@ struct SettingsView: View {
 
     @Environment(\.openWindow) private var openWindow
     @ObservedObject public var model:AppleAuthenticationService
-    @Binding public var chatModel:ChatResultViewModel
-    @Binding public var cacheManager:CloudCacheManager
-    @Binding public var modelController:DefaultModelController
+    public var chatModel:ChatResultViewModel
+    public var cacheManager:CloudCacheManager
+    public var modelController:DefaultModelController
     @Binding public var showOnboarding:Bool
     @State private var popoverPresented:Bool = false
     @State private var signInErrorMessage:String = "Error"
@@ -132,4 +132,3 @@ struct SettingsView: View {
         }
     }
 }
-

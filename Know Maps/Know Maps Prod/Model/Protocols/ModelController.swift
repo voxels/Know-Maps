@@ -25,6 +25,7 @@ public protocol ModelController : Sendable {
     // Selection States
     var selectedPersonalizedSearchSection:PersonalizedSearchSection? { get set }
     var selectedPlaceChatResultFsqId:String? { get set }
+    var selectedCategoryChatResult: CategoryResult.ID? { get set } // Add this line
     var selectedDestinationLocationChatResult: LocationResult { get set }
     
     // Fetching States

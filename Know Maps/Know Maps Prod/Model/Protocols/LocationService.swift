@@ -10,7 +10,7 @@ import CoreLocation
 
 // MARK: - Location Service Protocol
 public protocol LocationService : Sendable {
-    var locationProvider:LocationProvider { get }
+    var locationProvider:LocationProvider { get } // Add this line
     func currentLocationName() async throws -> String
     func currentLocation() -> CLLocation
     func lookUpLocation(_ location: CLLocation) async throws -> [CLPlacemark]

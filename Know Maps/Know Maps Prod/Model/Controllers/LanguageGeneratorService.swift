@@ -9,6 +9,12 @@ import Foundation
 
 // TODO: Replace with Apple Foundation Frameworks
 open class LanguageGeneratorService : LanguageGenerator {
+    public let analyticsManager: AnalyticsService
+    
+    public init(analyticsManager: AnalyticsService) {
+        self.analyticsManager = analyticsManager
+    }
+    
     private var session:LanguageGeneratorSession = LanguageGeneratorSession()
     
     public func placeDescription(with description:String, chatResult:ChatResult, delegate:AssistiveChatHostStreamResponseDelegate) async {

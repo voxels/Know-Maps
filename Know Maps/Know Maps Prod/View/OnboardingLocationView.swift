@@ -13,8 +13,7 @@ import AppKit
 
 struct OnboardingLocationView: View {
     @ObservedObject public var settingsModel:AppleAuthenticationService
-    @Binding public var chatModel:ChatResultViewModel
-    @Binding var modelController:DefaultModelController
+    var modelController:DefaultModelController
     @Binding public var showOnboarding:Bool
     @Binding public var locationIsAuthorized:Bool
     @State private var alertPopverIsPresented:Bool = false
@@ -77,20 +76,18 @@ struct OnboardingLocationView: View {
         }
     }
     
-#if os(macOS)
-    public func openLocationPreferences() {
+    // Opens the system location settings for the current platform
+    private func openLocationPreferences() {
+        #if os(macOS)
+        // Attempt to open Location Services in System Settings on macOS
         if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_LocationServices") {
             NSWorkspace.shared.open(url)
         }
-    }
-#else
-    func openLocationPreferences() {
-        if let url = URL(string: UIApplication.openSettingsURLString) {
-            if UIApplication.shared.canOpenURL(url) {
-                UIApplication.shared.open(url, options: [:], completionHandler: nil)
-            }
+        #else
+        // On iOS/iPadOS, navigate to the app's settings page
+        if let url = URL(string: UIApplication.openSettingsURLString), UIApplication.shared.canOpenURL(url) {
+            UIApplication.shared.open(url, options: [:], completionHandler: nil)
         }
+        #endif
     }
-#endif
 }
-

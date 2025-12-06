@@ -8,8 +8,8 @@
 import SwiftUI
 
 struct PlaceTipsView: View {
-    @Binding public var chatModel:ChatResultViewModel
-    @Binding var modelController:DefaultModelController
+    public var chatModel:ChatResultViewModel
+    var modelController:DefaultModelController // This is fine
     @State private var isPresentingShareSheet:Bool = false
     
     var body: some View {

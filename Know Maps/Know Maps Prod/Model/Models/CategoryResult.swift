@@ -72,3 +72,26 @@ public final class CategoryResult : Identifiable, Equatable, Hashable, Sendable 
         }.first
     }
 }
+
+// Assuming CategoryResult looks something like this:
+// struct CategoryResult {
+//     let parentCategory: String
+//     let rating: Double
+//     // ...
+// }
+
+extension CategoryResult: RecommendationCategoryConvertible {
+    public var recommenderIdentity: String {
+        // Same behavior as your existing code: identity == parentCategory
+        parentCategory
+    }
+
+    public var recommenderAttribute: String {
+        // Also the same: attribute == parentCategory
+        parentCategory
+    }
+
+    public var recommenderRating: Double {
+        rating
+    }
+}

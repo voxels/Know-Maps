@@ -10,10 +10,10 @@ import UIKit
 struct PlaceAboutView: View {
     @Environment(\.openURL) private var openURL
     @Environment(\.horizontalSizeClass) var sizeClass
-    @Binding public var searchSavedViewModel:SearchSavedViewModel
-    @Binding public var chatModel:ChatResultViewModel
-    @Binding public var cacheManager:CloudCacheManager
-    @Binding public var modelController:DefaultModelController
+    var searchSavedViewModel:SearchSavedViewModel
+    var chatModel:ChatResultViewModel
+    var cacheManager:CloudCacheManager
+    var modelController:DefaultModelController
     @Binding  var tabItem: Int
     @State var mutableTastes: [String] = []
     @State private var presentingPopover: Bool = false
@@ -22,8 +22,7 @@ struct PlaceAboutView: View {
     static let mapFrameConstraint: Double = 50000
     static let cornerRadius: CGFloat = 16
     public let selectedResult:ChatResult
-    
-    var viewModel: PlaceAboutViewModel = .init()
+    @State private var viewModel = PlaceAboutViewModel()
     
     @Namespace var topID
     
@@ -92,11 +91,11 @@ struct PlaceAboutView: View {
                                     await viewModel.removeTaste(parent: parent, cacheManager: cacheManager, modelController: modelController)
                                 })
                                 .padding(.horizontal,16)
-                                .task {
-                                    if let tastes = placeDetailsResponse.tastes {
-                                        mutableTastes = tastes
-                                    }
+                                .onChange(of: placeDetailsResponse.tastes) { _, newTastes in
+                                    // Keep local state in sync with the model data.
+                                    mutableTastes = newTastes ?? []
                                 }
+                                .onAppear { mutableTastes = placeDetailsResponse.tastes ?? [] }
                                 Divider()
                                     .padding(.vertical, 12)
                                 MapSection(title: title, coordinate: placeCoordinate.coordinate, minHeight: geo.size.height / 2.0)
@@ -230,7 +229,7 @@ private struct InfoSection: View {
 
 private struct ActionButtonsRow: View {
     let cacheManager:CloudCacheManager
-    let sizeClass: UserInterfaceSizeClass?
+    let sizeClass: UserInterfaceSizeClass? // This is fine
     let title: String
     let resultId: String
     let placeDetailsResponse: PlaceDetailsResponse
@@ -239,7 +238,7 @@ private struct ActionButtonsRow: View {
 
     var body: some View {
         HStack {
-            Spacer()
+            Spacer() // This is fine
             Button {
                 Task(priority: .userInitiated) { await onSave() }
             } label: {
@@ -263,7 +262,7 @@ private struct ActionButtonsRow: View {
 
             if let tel = placeDetailsResponse.tel {
                 Button {
-                    if let url = getCallURL(tel: tel) { openURL(url) }
+                    if let url = PlaceAboutViewModel.getCallURL(tel: tel) { openURL(url) }
                 } label: {
                     Group {
                         if sizeClass == .compact {
@@ -290,7 +289,7 @@ private struct ActionButtonsRow: View {
 #endif
             }
 
-            if let website = placeDetailsResponse.website, let url = getWebsiteURL(website: website) {
+            if let website = placeDetailsResponse.website, let url = PlaceAboutViewModel.getWebsiteURL(website: website) {
                 Button { openURL(url) } label: {
                     Group {
                         if sizeClass == .compact {
@@ -317,9 +316,6 @@ private struct ActionButtonsRow: View {
             Spacer()
         }
     }
-
-    private func getCallURL(tel: String) -> URL? { PlaceAboutViewModel().getCallURL(tel: tel) }
-    private func getWebsiteURL(website: String) -> URL? { PlaceAboutViewModel().getWebsiteURL(website: website) }
 }
 
 private struct RatingsPriceShareRow<ShareSheetContent: View>: View {
@@ -498,4 +494,3 @@ private struct MapSection: View {
         }
     }
 }
-

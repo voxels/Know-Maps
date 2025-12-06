@@ -26,7 +26,7 @@ public final class DefaultPlaceSearchService: PlaceSearchService {
         self.assistiveHostDelegate = assistiveHostDelegate
         self.placeSearchSession = placeSearchSession
         self.personalizedSearchSession = personalizedSearchSession
-        self.analyticsManager = analyticsManager
+        self.analyticsManager = analyticsManager // This is fine
     }
     
     public func retrieveFsqUser(cacheManager:CacheManager) async throws {

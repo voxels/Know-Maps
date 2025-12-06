@@ -8,39 +8,52 @@
 import SwiftUI
 
 struct SearchCategoryView: View {
-    @Binding public var chatModel: ChatResultViewModel
-    @Binding public var cacheManager: CloudCacheManager
-    @Binding public var modelController: DefaultModelController
-    @Binding public var searchSavedViewModel:SearchSavedViewModel
+    var chatModel: ChatResultViewModel
+    var cacheManager: CloudCacheManager
+    var modelController: DefaultModelController
+    var searchSavedViewModel:SearchSavedViewModel
     @Binding public var multiSelection: Set<String>
     @Binding public var section: Int
     
     @State private var expandedParents: Set<String> = []
     @State private var searchText: String = "" // State for search text
     
+    private func bindingForParentExpansion(id: String) -> Binding<Bool> {
+        Binding<Bool>(
+            get: { expandedParents.contains(id) },
+            set: { isExpanded in
+                if isExpanded {
+                    expandedParents.insert(id)
+                } else {
+                    expandedParents.remove(id)
+                }
+            }
+        )
+    }
+    
+    @ViewBuilder
+    private func childRow(for child: CategoryResult) -> some View {
+        HStack {
+            Text(child.parentCategory)
+            Spacer()
+            let savedItem = cacheManager.cachedIndustryResults.first(where: { $0.parentCategory == child.parentCategory })
+            let savedRatingInt: Int? = savedItem.map { Int($0.rating) }
+            RatingButton(result: child, rating: savedRatingInt) {
+                searchSavedViewModel.editingRecommendationWeightResult = child
+            }
+        }
+    }
+    
     var body: some View {
         List(selection: $multiSelection) {
-            // Use filtered results here
-            ForEach(modelController.filteredResults, id: \.id) { parent in
+            let parents = modelController.filteredResults
+            ForEach(parents, id: \.id) { parent in
                 Section {
                     DisclosureGroup(
-                        isExpanded: Binding(
-                            get: { expandedParents.contains(parent.id) },
-                            set: { isExpanded in
-                                if isExpanded {
-                                    expandedParents.insert(parent.id)
-                                } else {
-                                    expandedParents.remove(parent.id)
-                                }
-                            }
-                        )
+                        isExpanded: bindingForParentExpansion(id: parent.id)
                     ) {
                         ForEach(filteredChildren(for: parent), id: \.id) { child in
-                            HStack {
-                                Text(child.parentCategory)
-                                Spacer()
-                                ratingButton(for: child)
-                            }
+                            childRow(for: child)
                         }
                     } label: {
                         HStack {
@@ -99,60 +112,5 @@ struct SearchCategoryView: View {
             }
         }
     }
-    
-    
-    @ViewBuilder
-    func ratingButton(for parent: CategoryResult) -> some View {
-        
-        let isSaved = cacheManager.cachedPlaceResults.contains(where: { $0.parentCategory == parent.parentCategory })
-        
-        if isSaved, let rating = cacheManager.cachedPlaceResults.first(where: { $0.parentCategory == parent.parentCategory })?.rating {
-            switch rating {
-            case ..<1:
-                Button(action: {
-                    searchSavedViewModel.editingRecommendationWeightResult = parent
-                }) {
-                    Label("Never", systemImage: "star.slash")
-                        .foregroundColor(.red)
-                }
-                .frame(width: 44, height:44)
-                .buttonStyle(BorderlessButtonStyle())
-                .labelStyle(.iconOnly)
-            case 1..<3:
-                Button(action: {
-                    searchSavedViewModel.editingRecommendationWeightResult = parent
-                }) {
-                    Label("Occasionally", systemImage: "star.leadinghalf.filled")
-                        .foregroundColor(.accentColor)
-                }
-                .frame(width: 44, height:44)
-                .buttonStyle(BorderlessButtonStyle())
-                .labelStyle(.iconOnly)
-            case 3...:
-                Button(action: {
-                    searchSavedViewModel.editingRecommendationWeightResult = parent
-                }) {
-                    Label("Often", systemImage: "star.fill")
-                        .foregroundColor(.green)
-                }
-                .frame(width: 44, height:44)
-                .buttonStyle(BorderlessButtonStyle())
-                .labelStyle(.iconOnly)
-            default:
-                EmptyView()
-            }
-        } else {
-            Button(action: {
-                searchSavedViewModel.editingRecommendationWeightResult = parent
-            }) {
-                Label("Occasionally", systemImage: "star.leadinghalf.filled")
-                    .foregroundColor(.accentColor)
-            }
-            .frame(width: 44, height:44)
-            .buttonStyle(BorderlessButtonStyle())
-            .labelStyle(.iconOnly)
-        }
-    }
-    
-    
 }
+

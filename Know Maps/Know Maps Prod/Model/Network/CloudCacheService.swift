@@ -27,7 +27,7 @@ public enum CloudCacheServiceKey: String {
 }
 
 public final class CloudCacheService: NSObject, CloudCache {
-    
+
     public let analyticsManager: AnalyticsService
     
     @MainActor public var hasFsqAccess: Bool {
@@ -751,6 +751,26 @@ public final class CloudCacheService: NSObject, CloudCache {
         return true
     }
     
+    
+    public func deleteRecommendationData(for fsqIDs: [String]) async throws {
+        await MainActor.run {
+            guard !fsqIDs.isEmpty else { return }
+            do {
+                let idSet = Set(fsqIDs)
+                let fetchDescriptor = FetchDescriptor<RecommendationData>(
+                    predicate: #Predicate { idSet.contains($0.identity) }
+                )
+                let records = try modelContext.fetch(fetchDescriptor)
+                for record in records {
+                    modelContext.delete(record)
+                }
+                try modelContext.save()
+            } catch {
+                analyticsManager.trackError(error: error, additionalInfo: ["operation": "deleteRecommendationData(batched)"])
+            }
+        }
+    }
+
     
     public func deleteRecommendationData(for identity: String) async throws {
         await MainActor.run {

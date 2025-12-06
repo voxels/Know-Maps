@@ -24,6 +24,7 @@ public protocol CloudCache: AnyObject, Sendable {
     func storeRecommendationData(for identity:String, attributes:[String], reviews:[String]) async throws -> Bool
     func fetchRecommendationData() async throws -> [RecommendationData]
     func deleteRecommendationData(for identity: String) async throws
+    func deleteRecommendationData(for fsqIDs: [String]) async throws // Add this line
     
     // CloudKit Identity and OAuth Management
     func fetchFsqIdentity() async throws -> String

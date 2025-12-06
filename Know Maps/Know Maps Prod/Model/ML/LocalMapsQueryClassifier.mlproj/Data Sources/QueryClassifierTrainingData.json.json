@@ -1,1 +1,92 @@
-{"dataURL":"file:\/\/\/Users\/voxels\/Documents\/Documents%20-%20Michael%E2%80%99s%20MacBook%20Pro\/dev\/No%20Maps\/ML\/QueryClassifierTrainingData.json","id":"9C43F0E2-4C5E-4ACF-A95F-489EA2D14F92","createdDate":"2023-06-13T08:58:55Z","title":"QueryClassifierTrainingData.json","modifiedDate":"2023-06-13T09:01:13Z","preferredFilename":"QueryClassifierTrainingData.json","version":"1.0","dataResult":{"dataURL":"file:\/\/\/Users\/voxels\/Documents\/Documents%20-%20Michael%E2%80%99s%20MacBook%20Pro\/dev\/No%20Maps\/ML\/QueryClassifierTrainingData.json","createdDate":"2023-06-13T08:58:55Z","dataSourceID":"9C43F0E2-4C5E-4ACF-A95F-489EA2D14F92"},"activityEntities":["dataSourceMetrics",[{"id":"8A331867-D321-48AF-8CC2-D52A8FC2A074","title":"Data Summary","createdDate":"2023-06-13T09:01:13Z","event":"dataSourceMetrics","subtitle":"4 Classes, 1,260 Items"}],"dataSourceTrainingStarted",[{"id":"D839DEF1-3637-4CD1-9410-2520DFECBDDA","title":"Used By","createdDate":"2023-06-13T09:01:13Z","event":"dataSourceTrainingStarted","subtitle":"LocalMapsQueryClassifier 1"}],"dataSourceCreated",[{"id":"B2B7B517-3673-4292-9835-ACAB224FA401","title":"Data Source Created","createdDate":"2023-06-13T08:58:55Z","event":"dataSourceCreated","subtitle":"QueryClassifierTrainingData.json"}]],"pathType":0,"experimentIDs":["F877C305-8CFE-47EB-A57B-84ACA730CD5F"]}
+{
+  "activityEntities" : [
+    "dataSourceTrainingStarted",
+    [
+      {
+        "createdDate" : "2025-12-06T07:53:30Z",
+        "event" : "dataSourceTrainingStarted",
+        "id" : "EA7CE602-32A0-401E-B0F2-141709809074",
+        "subtitle" : "LocalMapsQueryClassifier 1",
+        "title" : "Used By"
+      }
+    ],
+    "dataSourceCreated",
+    [
+      {
+        "createdDate" : "2025-12-06T07:50:25Z",
+        "event" : "dataSourceCreated",
+        "id" : "AB5FD44F-CECA-478F-8BD0-B44B358E0A5B",
+        "subtitle" : "QueryClassifierTrainingData.json",
+        "title" : "Data Source Created"
+      }
+    ],
+    "dataSourceMetrics",
+    [
+      {
+        "createdDate" : "2025-12-06T07:53:30Z",
+        "event" : "dataSourceMetrics",
+        "id" : "AAC7F65A-2ACC-42D2-94B7-732CF9DA2DD0",
+        "subtitle" : "5 Classes, 1,318 Items",
+        "title" : "Data Summary"
+      }
+    ]
+  ],
+  "createdDate" : "2025-12-06T07:50:25Z",
+  "dataPathRelativeToProjectURL" : "../QueryClassifierTrainingData.json/",
+  "dataResult" : {
+    "classesCount" : 5,
+    "createdDate" : "2025-12-06T07:50:25Z",
+    "dataAnalysis" : {
+      "classifierAnalysis" : {
+        "labelStats" : {
+          "DataValue(Missing)" : 1,
+          "SearchQuery" : 1065,
+          "ShareResult" : 74,
+          "TellPlace" : 120,
+          "Unsupported" : 58
+        }
+      },
+      "issues" : [
+        {
+          "description" : "5 classes found, including SearchQuery, TellPlace, ShareResult",
+          "severity" : "debug"
+        },
+        {
+          "description" : "1318 texts found, automatically creating validation set",
+          "severity" : "good"
+        },
+        {
+          "description" : "Smallest class is \"DataValue(Missing)\" with 1 texts",
+          "severity" : "debug"
+        },
+        {
+          "description" : "Largest class is \"SearchQuery\" with 1065 text",
+          "severity" : "debug"
+        }
+      ],
+      "objectDetectorAnalysis" : {
+        "details" : {
+
+        }
+      },
+      "summary" : {
+        "canUseValidation" : 1,
+        "classCount" : 5,
+        "sampleCount" : 1318
+      }
+    },
+    "dataSourceID" : "5E755028-A975-434A-BE88-1706BFE6F851",
+    "dataURL" : "file:///Users/voxels/Documents/dev/Know%20Maps/Know-Maps/Know%20Maps/Know%20Maps%20Prod/Model/ML/QueryClassifierTrainingData.json",
+    "itemsCount" : 1318
+  },
+  "dataURL" : "file:///Users/voxels/Documents/dev/Know%20Maps/Know-Maps/Know%20Maps/Know%20Maps%20Prod/Model/ML/QueryClassifierTrainingData.json",
+  "experimentIDs" : [
+    "A1C7D58F-55B2-4A7C-83FA-87A382E6B3A9"
+  ],
+  "id" : "5E755028-A975-434A-BE88-1706BFE6F851",
+  "modifiedDate" : "2025-12-06T07:53:30Z",
+  "pathType" : 0,
+  "preferredFilename" : "QueryClassifierTrainingData.json",
+  "title" : "QueryClassifierTrainingData.json",
+  "version" : "1.0"
+}

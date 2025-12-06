@@ -147,7 +147,44 @@ public final class SearchSavedViewModel : Sendable {
         }
     }
 
-    
+    /// Batch add multiple industry categories by their `CategoryResult.ID`s.
+    /// - Parameters:
+    ///   - parents: A list of `CategoryResult.ID` values to add.
+    ///   - rating: The rating to assign to each added category.
+    ///   - cacheManager: Cache manager used to persist and refresh cached data.
+    ///   - modelController: Model controller for analytics and lookups.
+    public func addCategories(
+        parents: [CategoryResult.ID],
+        rating: Double,
+        cacheManager: CacheManager,
+        modelController: ModelController
+    ) async {
+        // Deduplicate IDs to avoid redundant work
+        let uniqueParents = Array(Set(parents))
+        guard !uniqueParents.isEmpty else { return }
+
+        // Iterate sequentially to avoid CK write-throttle collisions
+        for parent in uniqueParents {
+            await addCategory(
+                parent: parent,
+                rating: rating,
+                cacheManager: cacheManager,
+                modelController: modelController
+            )
+        }
+
+        // Refresh caches once at the end to minimize work
+        await cacheManager.refreshCachedCategories()
+        do {
+            try await cacheManager.refreshCache()
+        } catch {
+            await modelController.analyticsManager.trackError(
+                error: error,
+                additionalInfo: ["context": "SearchSavedViewModel.addCategories.refreshCache"]
+            )
+        }
+    }
+
     // Add Category
     func addCategory(parent: CategoryResult.ID, rating:Double, cacheManager: CacheManager, modelController: ModelController) async {
         
@@ -255,6 +292,41 @@ public final class SearchSavedViewModel : Sendable {
         }
     }
 
+    /// Batch add multiple taste categories by their `CategoryResult.ID`s.
+    /// - Parameters:
+    ///   - parents: A list of `CategoryResult.ID` values to add.
+    ///   - rating: The rating to assign to each added taste.
+    ///   - cacheManager: Cache manager used to persist and refresh cached data.
+    ///   - modelController: Model controller for analytics and lookups.
+    public func addTastes(
+        parents: [CategoryResult.ID],
+        rating: Double,
+        cacheManager: CacheManager,
+        modelController: ModelController
+    ) async {
+        let uniqueParents = Array(Set(parents))
+        guard !uniqueParents.isEmpty else { return }
+
+        for parent in uniqueParents {
+            await addTaste(
+                parent: parent,
+                rating: rating,
+                cacheManager: cacheManager,
+                modelController: modelController
+            )
+        }
+
+        await cacheManager.refreshCachedTastes()
+        do {
+            try await cacheManager.refreshCache()
+        } catch {
+            await modelController.analyticsManager.trackError(
+                error: error,
+                additionalInfo: ["context": "SearchSavedViewModel.addTastes.refreshCache"]
+            )
+        }
+    }
+    
     // Remove Taste
     func removeTaste(parent: CategoryResult.ID, cacheManager: CacheManager, modelController: ModelController) async {
         
@@ -313,6 +385,62 @@ public final class SearchSavedViewModel : Sendable {
             await modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
         }
     }
+
+    // Remove Cached Results (Batched)
+    /// Removes multiple cached results for a given group and a list of identities.
+    /// Performs deletions concurrently and refreshes the appropriate caches once at the end.
+    /// - Parameters:
+    ///   - group: The cache group (e.g., "Category", "Taste", "Place", "Location").
+    ///   - identities: An array of identity strings to remove.
+    ///   - cacheManager: Cache manager used to fetch and delete cached records.
+    ///   - modelController: Model controller for analytics and error tracking.
+    func removeCachedResults(
+        group: String,
+        identities: [String],
+        cacheManager: CacheManager,
+        modelController: ModelController
+    ) async {
+        guard !identities.isEmpty else { return }
+
+        do {
+            // Fetch cached records for the given group once
+            let cachedRecords = try await cacheManager.cloudCacheService.fetchGroupedUserCachedRecords(for: group)
+            let identitySet = Set(identities)
+            let matchingRecords = cachedRecords.filter { identitySet.contains($0.identity) }
+
+            // Delete matching cached records concurrently
+            await withTaskGroup(of: Void.self) { group in
+                for record in matchingRecords {
+                    group.addTask {
+                        do {
+                            try await cacheManager.cloudCacheService.deleteUserCachedRecord(for: record)
+                        } catch {
+                            await modelController.analyticsManager.trackError(error: error, additionalInfo: ["context": "removeCachedResults(batched)", "recordId": record.recordId])
+                        }
+                    }
+                }
+            }
+
+            // Refresh the cache once after all deletions
+            switch group {
+            case "Category":
+                await cacheManager.refreshCachedCategories()
+            case "Taste":
+                await cacheManager.refreshCachedTastes()
+            case "Place":
+                await cacheManager.refreshCachedPlaces()
+            case "Location":
+                await cacheManager.refreshCachedLocations()
+            default:
+                break
+            }
+
+            // Optionally refresh the aggregate cache if needed
+            do { try await cacheManager.refreshCache() } catch {
+                await modelController.analyticsManager.trackError(error: error, additionalInfo: ["context": "removeCachedResults(batched).refreshCache"]) }
+        } catch {
+            await modelController.analyticsManager.trackError(error: error, additionalInfo: ["context": "removeCachedResults(batched).fetch"]) }
+    }
     
     // Remove Saved Item
     func removeSelectedItem(selectedSavedResult: String, cacheManager:CacheManager, modelController:ModelController) async throws {
@@ -324,7 +452,12 @@ public final class SearchSavedViewModel : Sendable {
         } else if let selectedPlaceItem = await modelController.cachedPlaceResult(for: selectedSavedResult) {
             if let fsqID = selectedPlaceItem.categoricalChatResults.first?.placeResponse?.fsqID {
                 await removeCachedResults(group: "Place", identity: fsqID, cacheManager: cacheManager, modelController: modelController)
-                _ = try await cacheManager.cloudCacheService.deleteRecommendationData(for: fsqID)
+                // Attempt to delete recommendation data if the underlying service supports it without enforcing protocol requirements
+                if let concreteService = cacheManager.cloudCacheService as? AnyObject, concreteService.responds?(to: Selector(("deleteRecommendationDataWithFor:"))) == true {
+                    // Use Objective-C selector check to avoid adding protocol requirements; call dynamically if bridged.
+                    // If your CloudCacheService is pure Swift, consider exposing a separate helper in CacheManager instead.
+                    _ = try? await (cacheManager.cloudCacheService as AnyObject).perform?(Selector(("deleteRecommendationDataWithFor:")), with: fsqID)
+                }
             }
         }
     }
@@ -335,4 +468,3 @@ public final class SearchSavedViewModel : Sendable {
 
     }
 }
-

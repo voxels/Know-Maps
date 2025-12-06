@@ -26,3 +26,34 @@ public struct RecommendedPlaceSearchResponse: Equatable, Hashable, Sendable {
     let photos:[String]
     let tastes:[String]
 }
+
+extension RecommendedPlaceSearchResponse {
+
+    /// Converts a FSQ place search result into ItemMetadata for the advanced recommender.
+    func toItemMetadata() -> ItemMetadata {
+
+        // High-quality description block
+        let description = """
+        \(name) located at \(formattedAddress).
+        Neighborhood: \(neighborhood). \
+        Categories: \(categories.joined(separator: ", ")). \
+        Tastes: \(tastes.joined(separator: ", ")).
+        """
+
+        // Canonical combined location
+        let locationString = "\(city), \(state), \(country)"
+
+        // FSQ does not provide price here → assume nil
+        let priceTier: Double? = nil
+
+        return ItemMetadata(
+            id: fsqID,
+            title: name,
+            descriptionText: description,
+            styleTags: tastes,
+            categories: categories,
+            location: locationString,
+            price: priceTier
+        )
+    }
+}

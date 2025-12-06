@@ -1,0 +1,24 @@
+{
+    "fileFormatVersion": "1.0.0",
+    "itemInfoEntries": {
+        "00CDFCB6-CF80-43B8-B29C-4CB065252399": {
+            "author": "com.apple.CoreML",
+            "description": "CoreML Model Specification",
+            "name": "LocalMapsQueryTagger.mlmodel",
+            "path": "com.apple.CoreML/LocalMapsQueryTagger.mlmodel"
+        },
+        "0DF27C46-622E-4E46-91D1-BF3F37F0A4AA": {
+            "author": "com.apple.CoreML",
+            "description": "External Metadata Overlay",
+            "name": "Metadata.json",
+            "path": "com.apple.CoreML/Metadata.json"
+        },
+        "41C29530-90CB-47B7-B112-4DCDE006EB09": {
+            "author": "com.apple.CoreML",
+            "description": "External FeatureDescription Overlay",
+            "name": "FeatureDescriptions.json",
+            "path": "com.apple.CoreML/FeatureDescriptions.json"
+        }
+    },
+    "rootModelIdentifier": "00CDFCB6-CF80-43B8-B29C-4CB065252399"
+}

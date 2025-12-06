@@ -13,10 +13,10 @@ import NukeUI
 
 struct PlacesList: View {
     @Environment(\.horizontalSizeClass) var sizeClass
-    @Binding public var searchSavedViewModel:SearchSavedViewModel
-    @Binding public var chatModel:ChatResultViewModel
-    @Binding var cacheManager:CloudCacheManager
-    @Binding var modelController: DefaultModelController
+    var searchSavedViewModel:SearchSavedViewModel
+    var chatModel:ChatResultViewModel
+    var cacheManager:CloudCacheManager
+    var modelController: DefaultModelController
     
     @State private var lastTapPlaceID: ChatResult.ID? = nil
     @State private var lastTapTime: Date = .distantPast
@@ -125,7 +125,6 @@ struct PlacesList: View {
 #if os(visionOS)
                     .hoverEffect(.lift)
 #endif
-                    
                     .buttonStyle(.plain)
                     .animation(.snappy(duration: 0.35), value: modelController.recommendedPlaceResults)
                     .simultaneousGesture(TapGesture().onEnded {
@@ -194,7 +193,6 @@ struct PlacesList: View {
 #if os(visionOS)
                     .hoverEffect(.lift)
 #endif
-                    .animation(.snappy(duration: 0.35), value: modelController.filteredPlaceResults)
                     .listRowBackground(Color.clear)
                     .listStyle(.plain)
                     .simultaneousGesture(TapGesture().onEnded {
@@ -216,16 +214,16 @@ struct PlacesList: View {
         lastTapPlaceID = result.id
         lastTapTime = now
 
-        // Kick off the place search intent using the DefaultModelController
+        // Fetch place details FIRST, then navigate
         Task { @MainActor in
             do {
-                
-                let queryParameters = try await modelController.assistiveHostDelegate.defaultParameters(for: result.title, filters: searchSavedViewModel.filters)
-                
-                // create a new AssistiveChatHostIntent from the chatresult
-                let intent = AssistiveChatHostIntent(caption: result.title, intent: .Place, selectedPlaceSearchResponse: result.placeResponse, selectedPlaceSearchDetails: nil, placeSearchResponses:[result.placeResponse!], selectedDestinationLocation: modelController.selectedDestinationLocationChatResult, placeDetailsResponses: nil, queryParameters: queryParameters)
-                
-                try await modelController.searchIntent(intent: intent)
+                // 1. Fetch full place details (photos, tips, etc.)
+                try await modelController.fetchPlaceDetails(for: result)
+
+                // 2. THEN trigger navigation by setting the selected place
+                if let fsqID = result.placeResponse?.fsqID {
+                    modelController.selectedPlaceChatResultFsqId = fsqID
+                }
             } catch {
                 modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
             }
@@ -264,4 +262,3 @@ struct PlacesList: View {
         }
     }
 }
-

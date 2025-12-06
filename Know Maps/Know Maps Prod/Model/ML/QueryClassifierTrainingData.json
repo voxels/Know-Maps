@@ -237,7 +237,7 @@
   },
   {
     "text": "Are there any outdoor theater or Shakespeare performances happening soon?",
-    "label": "SearchQuery"
+    "label": "Unsupported"
   },
   {
     "text": "Can you recommend a restaurant that excels in seafood dishes?",
@@ -249,7 +249,7 @@
   },
   {
     "text": "Are there any outdoor theater or musical performances happening soon?",
-    "label": "SearchQuery"
+    "label": "Unsupported"
   },
   {
     "text": "Which pizza place is known for their generous portions and value for money?",
@@ -469,7 +469,7 @@
   },
   {
     "text": "What are some popular outdoor music festivals or concerts happening during my trip?",
-    "label": "SearchQuery"
+    "label": "Unsupported"
   },
   {
     "text": "Are there any standout bakery shops in this vicinity?",
@@ -1013,7 +1013,7 @@
   },
   {
     "text": "Are there any specific cultural events or festivals happening during my visit?",
-    "label": "SearchQuery"
+    "label": "Unsupported"
   },
   {
     "text": "What fast food chains are the locals fond of?",
@@ -1077,7 +1077,7 @@
   },
   {
     "text": "Can you suggest any local food festivals or culinary events happening nearby?",
-    "label": "SearchQuery"
+    "label": "Unsupported"
   },
   {
     "text": "Tell me about The Japanese American National Museum",
@@ -2581,7 +2581,7 @@
   },
   {
     "text": "Are there any outdoor theater performances or open-air concerts happening soon?",
-    "label": "SearchQuery"
+    "label": "Unsupported"
   },
   {
     "text": "What is the local theater or performing arts scene like in Chicago?",
@@ -2653,7 +2653,7 @@
   },
   {
     "text": "Can you recommend any local festivals or events happening during my road trip?",
-    "label": "SearchQuery"
+    "label": "Unsupported"
   },
   {
     "text": "What are some must-visit landmarks or attractions along this route?",
@@ -3765,7 +3765,7 @@
   },
   {
     "text": "Is Los Angeles known for any particular festivals or celebrations?",
-    "label": "SearchQuery"
+    "label": "Unsupported"
   },
   {
     "text": "I'd like to follow Eleven Madison Park on Instagram. Can you provide their account handle?",
@@ -4245,7 +4245,7 @@
   },
   {
     "text": "Are there any outdoor theater performances or open-air concerts?",
-    "label": "SearchQuery"
+    "label": "Unsupported"
   },
   {
     "text": "Can you suggest places that focus on an all-organic menu?",
@@ -4461,7 +4461,7 @@
   },
   {
     "text": "Can you recommend any artisan markets or craft fairs happening soon?",
-    "label": "SearchQuery"
+    "label": "Unsupported"
   },
   {
     "text": "Where can I find a restaurant with a patio or terrace?",
@@ -4793,7 +4793,7 @@
   },
   {
     "text": "Are there any iconic music venues or live performances happening during my trip?",
-    "label": "SearchQuery"
+    "label": "Unsupported"
   },
   {
     "text": "Are there any restaurants that combine dining with a view of the city?",
@@ -5038,5 +5038,233 @@
   {
     "text": "Are there any local markets or shopping districts worth checking out in Berlin?",
     "label": "SearchQuery"
-  }
+  },
+  {
+    "text": "Find me a quiet coffee shop with strong Wi-Fi.",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What's the history of the Eiffel Tower?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Can you book me a flight to Tokyo?",
+    "label": "Unsupported"
+  },
+  {
+    "text": "Send the address of that restaurant to my friend.",
+    "label": "ShareResult"
+  },
+  {
+    "text": "I'm looking for a pet-friendly park.",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Tell me more about the Louvre Museum.",
+    "label": "TellPlace"
+  },
+  {
+    "text": "What's the weather like tomorrow?",
+    "label": "Unsupported"
+  },
+  {
+    "text": "I need the phone number for that cafe.",
+    "label": "ShareResult"
+  },
+  {
+    "text": "Show me vegan restaurants nearby.",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Give me some details about Central Park.",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Who won the world series in 1998?",
+    "label": "Unsupported"
+  },
+  {
+    "text": "Share the location of the nearest hospital.",
+    "label": "ShareResult"
+  },
+  {
+    "text": "Where can I find a good place for brunch?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What's special about the Statue of Liberty?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Can you order me a pizza?",
+    "label": "Unsupported"
+  },
+  {
+    "text": "Text me the details of that concert venue.",
+    "label": "ShareResult"
+  },
+  {
+    "text": "Find a bookstore with a cafe inside.",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Tell me about the Golden Gate Bridge.",
+    "label": "TellPlace"
+  },
+  {
+    "text": "What is the meaning of life?",
+    "label": "Unsupported"
+  },
+  {
+    "text": "I need the Instagram handle for that boutique.",
+    "label": "ShareResult"
+  },
+  {
+    "text": "Are there any rooftop bars in this area?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What can you tell me about the British Museum?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "How do I get to the airport from here?",
+    "label": "Unsupported"
+  },
+  {
+    "text": "Email me the directions to the park.",
+    "label": "ShareResult"
+  },
+  {
+    "text": "I'm searching for a place with live jazz music.",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Describe the architecture of the Sydney Opera House.",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Can you help me with my homework?",
+    "label": "Unsupported"
+  },
+  {
+    "text": "Share the website for that art gallery.",
+    "label": "ShareResult"
+  },
+  {
+    "text": "Where's the nearest ATM?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What's the story behind the Colosseum?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "What's your favorite color?",
+    "label": "Unsupported"
+  },
+  {
+    "text": "I need to send the museum's hours to my mom.",
+    "label": "ShareResult"
+  },
+  {
+    "text": "Show me places to go hiking.",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Tell me everything about the Tower of London.",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Can you make a reservation for two at 7 PM?",
+    "label": "Unsupported"
+  },
+  {
+    "text": "Could you share the contact info for that hotel?",
+    "label": "ShareResult"
+  },
+  {
+    "text": "I need a family-friendly restaurant.",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are the highlights of the Metropolitan Museum of Art?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "What time is it in Singapore?",
+    "label": "Unsupported"
+  },
+  {
+    "text": "Send the social media links for that place.",
+    "label": "ShareResult"
+  },
+  {
+    "text": "Find a 24-hour pharmacy.",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Give me the backstory of Alcatraz Island.",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Can you translate 'hello' into Japanese?",
+    "label": "Unsupported"
+  },
+  {
+    "text": "I need to forward the address of the library.",
+    "label": "ShareResult"
+  },
+  {
+    "text": "Where can I find authentic Italian food?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What's interesting about the Acropolis of Athens?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "How much does a ticket to the movies cost?",
+    "label": "Unsupported"
+  },
+  {
+    "text": "Share the details of that steakhouse with me.",
+    "label": "ShareResult"
+  },
+  {
+    "text": "Show me nearby parks with playgrounds.",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Tell me about the significance of Machu Picchu.",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Can you call me a taxi?",
+    "label": "Unsupported"
+  },
+  {
+    "text": "I need to get the Facebook page for that bar.",
+    "label": "ShareResult"
+  },
+  {
+    "text": "I'm looking for a place to get a good steak.",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What's the deal with the Hollywood Walk of Fame?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "What is the capital of Australia?",
+    "label": "Unsupported"
+  },
+  {
+    "text": "Send me the location of the nearest gas station.",
+    "label": "ShareResult"
+  },
+  {
+    "text": "Find a place with outdoor seating.",
+    "label": "SearchQuery"
+  },
 ]

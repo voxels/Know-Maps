@@ -53,10 +53,10 @@ struct ContentView: View {
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     
     @ObservedObject var settingsModel:AppleAuthenticationService
-    @Binding var chatModel:ChatResultViewModel
-    @Binding var cacheManager:CloudCacheManager
-    @Binding var modelController:DefaultModelController
-    @Binding var searchSavedViewModel:SearchSavedViewModel
+    var chatModel:ChatResultViewModel
+    var cacheManager:CloudCacheManager
+    var modelController:DefaultModelController
+    var searchSavedViewModel:SearchSavedViewModel
     @Binding var showOnboarding:Bool
     @Binding var showNavigationLocationView:Bool
     @Binding var searchMode: SearchMode
@@ -84,7 +84,7 @@ struct ContentView: View {
             browseView()
                 .sheet(isPresented: $showSettings, content: {
                     VStack(alignment: .leading) {
-                        SettingsView(model: settingsModel, chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, showOnboarding: $showOnboarding)
+                        SettingsView(model: settingsModel, chatModel: chatModel, cacheManager: cacheManager, modelController: modelController, showOnboarding: $showOnboarding)
                             .padding()
                         HStack{
                             Spacer()
@@ -101,95 +101,17 @@ struct ContentView: View {
                     .presentationDetents([.large])
                 })
                 .onChange(of:modelController.selectedCategoryChatResult) {_, newValue in
-                    if let id = newValue {
-                        Task {
-                            // Try to resolve an industry category result first (live, then cached)
-                            if let industryCategory = modelController.industryCategoryResult(for: id) ??
-                                                       modelController.cachedIndustryResult(for: id),
-                               let chatResult = modelController.cachedChatResult(for: industryCategory.id) {
-                                do {
-                                    try await handleIndustryCategoryChatResult(chatResult)
-                                } catch {
-                                    modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
-                                }
-                                return
-                            }
-
-                            // Then try a taste category result (live, then cached)
-                            if let tasteCategory = modelController.tasteCategoryResult(for: id) ??
-                                                   modelController.cachedTasteResult(for: id),
-                               let chatResult = modelController.cachedChatResult(for: tasteCategory.id) {
-                                do {
-                                    try await handleTasteCategoryChatResult(chatResult)
-                                } catch {
-                                    modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
-                                }
-                                return
-                            }
-
-                            // Then try a place result from cache
-                            if let placeResult = modelController.cachedPlaceResult(for: id) {
-                                // If we can resolve a corresponding place chat result, treat this category as a place
-                                if let placeChat = placeResult.categoricalChatResults.first {
-                                    do {
-                                        try await handlePlaceCategoryChatResult(placeChat)
-                                    } catch {
-                                        modelController.analyticsManager.trackError(error: error, additionalInfo: ["phase": "placeSelectionTap"])
-                                    }
-                                    return
-                                } else {
-                                    // No direct place chat found; fall back to a search using the category caption
-                                    do {
-                                        let caption = placeResult.parentCategory
-                                        let selectedDestination = modelController.selectedDestinationLocationChatResult
-                                        let intentKind = AssistiveChatHostService.Intent.Search
-                                        let queryParameters = try await modelController.assistiveHostDelegate.defaultParameters(for: caption, filters: [:])
-                                        let newIntent = AssistiveChatHostIntent(
-                                            caption: caption,
-                                            intent: intentKind,
-                                            selectedPlaceSearchResponse: nil,
-                                            selectedPlaceSearchDetails: nil,
-                                            placeSearchResponses: [],
-                                            selectedDestinationLocation: selectedDestination,
-                                            placeDetailsResponses: nil,
-                                            queryParameters: queryParameters
-                                        )
-                                        await modelController.assistiveHostDelegate.appendIntentParameters(intent: newIntent, modelController: modelController)
-                                        try await modelController.searchIntent(intent: newIntent)
-                                    } catch {
-                                        modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
-                                    }
-                                }
-                            }
-
-                            // Finally, fall back to a generic chat result
-                            if let chatResult = modelController.cachedChatResult(for: id) {
-                                do {
-                                    let caption = chatResult.title
-                                    let selectedDestination = modelController.selectedDestinationLocationChatResult
-                                    let intentKind = AssistiveChatHostService.Intent.Search
-                                    let queryParameters = try await modelController.assistiveHostDelegate.defaultParameters(for: caption, filters: [:])
-                                    let newIntent = AssistiveChatHostIntent(
-                                        caption: caption,
-                                        intent: intentKind,
-                                        selectedPlaceSearchResponse: nil,
-                                        selectedPlaceSearchDetails: nil,
-                                        placeSearchResponses: [],
-                                        selectedDestinationLocation: selectedDestination,
-                                        placeDetailsResponses: nil,
-                                        queryParameters: queryParameters
-                                    )
-                                    await modelController.assistiveHostDelegate.appendIntentParameters(intent: newIntent, modelController: modelController)
-                                    try await modelController.searchIntent(intent: newIntent)
-                                } catch {
-                                    modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
-                                }
-                            }
+                    if let selectedID = newValue {
+                        Task { @MainActor in
+                            await modelController.handleCategorySelection(for: selectedID)
                         }
                     }
                 }
                 .tabViewStyle(.tabBarOnly)
-                .sheet(item: $searchSavedViewModel.editingRecommendationWeightResult) { selectedResult in
+                .sheet(item: Binding(
+                    get: { searchSavedViewModel.editingRecommendationWeightResult },
+                    set: { searchSavedViewModel.editingRecommendationWeightResult = $0 }
+                )) { selectedResult in
                     recommendationWeightSheet(for: selectedResult)
                         .presentationDetents([.medium])
                         .presentationDragIndicator(.visible)
@@ -211,7 +133,8 @@ struct ContentView: View {
                         // Early cancellation
                         try? Task.checkCancellation()
                         
-                        // Compute the caption and capture the destination ID with a single @MainActor hop
+                        // **FIX**: Compute the caption and capture the destination ID within a single @MainActor block
+                        // to prevent data races when accessing modelController properties from a background task.
                         let (caption, selectedDestination): (String, LocationResult) = await MainActor.run {
                             let tasteCaption = selections.compactMap { id in
                                 modelController.tasteCategoryResult(for: id)?.parentCategory
@@ -281,149 +204,71 @@ struct ContentView: View {
     
     @ToolbarContentBuilder
     func unifiedBrowseToolbar() -> some ToolbarContent {
+        // --- Common Toolbar Views ---
+        let settingsButton = Button {
+            showSettings.toggle()
+        } label: {
+            Label("Settings", systemImage: "person.crop.circle")
+        }
+
+        let searchModePicker = Picker("Search Mode", selection: $searchMode) {
+            Text("❤️").accessibilityLabel("Favorites").tag(SearchMode.favorites)
+            Text("🏭").accessibilityLabel("Industries").tag(SearchMode.industries)
+            Text("✨").accessibilityLabel("Features").tag(SearchMode.features)
+            Text("📍").accessibilityLabel("Places").tag(SearchMode.places)
+        }
+        .labelsHidden()
+        .pickerStyle(.segmented)
+        .tint(.accentColor)
+
+        let filterButton = Button {
+            if !showNavigationLocationView { showNavigationLocationView = true }
+        } label: {
+            Label("Filter", systemImage: "line.3.horizontal.decrease")
+        }
+        .disabled(showNavigationLocationView)
+
+        // --- Platform-Specific Placement ---
 #if os(macOS)
-        // macOS: Leading = Settings; Center (principal) = Picker; Trailing = Filter
         ToolbarItem(placement: .navigation) {
-            Button {
-                showSettings.toggle()
-            } label: {
-                Label("Settings", systemImage: "person.crop.circle")
-            }
+            settingsButton
         }
         ToolbarItem(placement: .principal) {
-            Picker("Search Mode", selection: $searchMode) {
-                Text("❤️").accessibilityLabel("Favorites").tag(SearchMode.favorites)
-                Text("🏭").accessibilityLabel("Industries").tag(SearchMode.industries)
-                Text("✨").accessibilityLabel("Features").tag(SearchMode.features)
-                Text("📍").accessibilityLabel("Places").tag(SearchMode.places)
-            }
-            .labelsHidden()
-            .pickerStyle(.segmented)
-            .tint(.accentColor)
+            searchModePicker
         }
         ToolbarItem(placement: .status) {
-            Button {
-                if !showNavigationLocationView { showNavigationLocationView = true }
-            } label: {
-                Label("Filter", systemImage: "line.3.horizontal.decrease")
-            }
-            .disabled(showNavigationLocationView)
+            filterButton
         }
-#elseif os(iOS)
-        // iOS/iPadOS: Leading = Settings; Bottom bar = Picker; Trailing = Filter
+#elseif os(iOS) || os(tvOS)
         ToolbarItem(placement: .topBarLeading) {
-            Button {
-                showSettings.toggle()
-            } label: {
-                Label("Settings", systemImage: "person.crop.circle")
-            }
-            .labelStyle(.iconOnly)
+            settingsButton.labelStyle(.iconOnly)
         }
         ToolbarItem(placement: .bottomBar) {
-            Picker("Search Mode", selection: $searchMode) {
-                Text("❤️").accessibilityLabel("Favorites").tag(SearchMode.favorites)
-                Text("🏭").accessibilityLabel("Industries").tag(SearchMode.industries)
-                Text("✨").accessibilityLabel("Features").tag(SearchMode.features)
-                Text("📍").accessibilityLabel("Places").tag(SearchMode.places)
-            }
-            .labelsHidden()
-            .pickerStyle(.segmented)
-            .tint(.accentColor)
+            searchModePicker
         }
         ToolbarItem(placement: .topBarTrailing) {
-            Button {
-                if !showNavigationLocationView { showNavigationLocationView = true }
-            } label: {
-                Label("Filter", systemImage: "line.3.horizontal.decrease")
-            }
-            .disabled(showNavigationLocationView)
-        }
-#elseif os(tvOS)
-        // tvOS: Use bottom bar if available; otherwise fall back to principal
-        ToolbarItem(placement: .topBarLeading) {
-            Button {
-                showSettings.toggle()
-            } label: {
-                Label("Settings", systemImage: "person.crop.circle")
-            }
-            .labelStyle(.iconOnly)
-        }
-        ToolbarItem(placement: .bottomBar) {
-            Picker("Search Mode", selection: $searchMode) {
-                Text("❤️").accessibilityLabel("Favorites").tag(SearchMode.favorites)
-                Text("🏭").accessibilityLabel("Industries").tag(SearchMode.industries)
-                Text("✨").accessibilityLabel("Features").tag(SearchMode.features)
-                Text("📍").accessibilityLabel("Places").tag(SearchMode.places)
-            }
-            .labelsHidden()
-            .pickerStyle(.segmented)
-            .tint(.accentColor)
-        }
-        ToolbarItem(placement: .topBarTrailing) {
-            Button {
-                if !showNavigationLocationView { showNavigationLocationView = true }
-            } label: {
-                Label("Filter", systemImage: "line.3.horizontal.decrease")
-            }
-            .disabled(showNavigationLocationView)
+            filterButton
         }
 #elseif os(visionOS)
-        // visionOS: Use principal (center) for the picker
         ToolbarItem(placement: .topBarLeading) {
-            Button {
-                showSettings.toggle()
-            } label: {
-                Label("Settings", systemImage: "person.crop.circle")
-            }
-            .labelStyle(.iconOnly)
+            settingsButton.labelStyle(.iconOnly)
         }
         ToolbarItem(placement: .bottomOrnament) {
-            Picker("Search Mode", selection: $searchMode) {
-                Text("❤️").accessibilityLabel("Favorites").tag(SearchMode.favorites)
-                Text("🏭").accessibilityLabel("Industries").tag(SearchMode.industries)
-                Text("✨").accessibilityLabel("Features").tag(SearchMode.features)
-                Text("📍").accessibilityLabel("Places").tag(SearchMode.places)
-            }
-            .labelsHidden()
-            .pickerStyle(.segmented)
-            .tint(.accentColor)
+            searchModePicker
         }
         ToolbarItem(placement: .topBarTrailing) {
-            Button {
-                if !showNavigationLocationView { showNavigationLocationView = true }
-            } label: {
-                Label("Filter", systemImage: "line.3.horizontal.decrease")
-            }
-            .disabled(showNavigationLocationView)
+            filterButton
         }
 #else
-        // Fallback: principal for picker, settings leading, filter trailing
+        // Fallback for other platforms
         ToolbarItem(placement: .topBarLeading) {
-            Button {
-                showSettings.toggle()
-            } label: {
-                Label("Settings", systemImage: "person.crop.circle")
-            }
-            .labelStyle(.iconOnly)
+            settingsButton.labelStyle(.iconOnly)
         }
         ToolbarItem(placement: .principal) {
-            Picker("Search Mode", selection: $searchMode) {
-                Text("❤️").accessibilityLabel("Favorites").tag(SearchMode.favorites)
-                Text("🏭").accessibilityLabel("Industries").tag(SearchMode.industries)
-                Text("✨").accessibilityLabel("Features").tag(SearchMode.features)
-                Text("📍").accessibilityLabel("Places").tag(SearchMode.places)
-            }
-            .labelsHidden()
-            .pickerStyle(.segmented)
-            .tint(.accentColor)
+            searchModePicker
         }
         ToolbarItem(placement: .topBarTrailing) {
-            Button {
-                if !showNavigationLocationView { showNavigationLocationView = true }
-            } label: {
-                Label("Filter", systemImage: "line.3.horizontal.decrease")
-            }
-            .disabled(showNavigationLocationView)
+            filterButton
         }
 #endif
     }
@@ -474,22 +319,22 @@ struct ContentView: View {
             NavigationSplitView(columnVisibility: $columnVisibility) {
                 switch searchMode {
                 case .favorites:
-                    SearchView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, searchSavedViewModel: $searchSavedViewModel, searchMode:$searchMode)
+                    SearchView(chatModel: chatModel, cacheManager: cacheManager, modelController: modelController, searchSavedViewModel: searchSavedViewModel, searchMode:$searchMode)
                         .toolbar {
                             unifiedBrowseToolbar()
                         }
                 case .industries:
-                    SearchCategoryView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, searchSavedViewModel: $searchSavedViewModel, multiSelection: $multiSelection, section:$modelController.section)
+                    SearchCategoryView(chatModel: chatModel, cacheManager: cacheManager, modelController: modelController, searchSavedViewModel: searchSavedViewModel, multiSelection: $multiSelection, section: Binding(get: { modelController.section }, set: { modelController.section = $0 }))
                         .toolbar {
                             unifiedBrowseToolbar()
                         }
                 case .features:
-                    SearchTasteView(chatModel: $chatModel, cacheManager: $cacheManager, modelController: $modelController, searchSavedViewModel: $searchSavedViewModel, multiSelection: $multiSelection,  section:$modelController.section)
+                    SearchTasteView(chatModel: chatModel, cacheManager: cacheManager, modelController: modelController, searchSavedViewModel: searchSavedViewModel, multiSelection: $multiSelection, section: Binding(get: { modelController.section }, set: { modelController.section = $0 }))
                         .toolbar {
                             unifiedBrowseToolbar()
                         }
                 case .places:
-                    SearchPlacesView(searchSavedViewModel: $searchSavedViewModel, chatModel: $chatModel, cacheManager: $cacheManager, modelController:   $modelController, multiSelection: $multiSelection, placeDirectionsChatViewModel: placeDirectionsChatViewModel)
+                    SearchPlacesView(searchSavedViewModel: searchSavedViewModel, chatModel: chatModel, cacheManager: cacheManager, modelController: modelController, multiSelection: $multiSelection, placeDirectionsChatViewModel: placeDirectionsChatViewModel)
                         .toolbar {
                             unifiedBrowseToolbar()
                         }
@@ -499,20 +344,20 @@ struct ContentView: View {
                     if let selectedFsqId = modelController.selectedPlaceChatResultFsqId,
                        let placeChatResult = modelController.placeChatResult(with: selectedFsqId) {
                         PlaceView(
-                            searchSavedViewModel: $searchSavedViewModel,
-                            chatModel: $chatModel,
-                            cacheManager: $cacheManager,
-                            modelController: $modelController,
+                            searchSavedViewModel: searchSavedViewModel,
+                            chatModel: chatModel,
+                            cacheManager: cacheManager,
+                            modelController: modelController,
                             placeDirectionsViewModel: placeDirectionsChatViewModel,
                             selectedResult: placeChatResult
                         )
                         .navigationTitle(placeChatResult.title)
                     } else {
                         PlacesList(
-                            searchSavedViewModel: $searchSavedViewModel,
-                            chatModel: $chatModel,
-                            cacheManager: $cacheManager,
-                            modelController: $modelController
+                            searchSavedViewModel: searchSavedViewModel,
+                            chatModel: chatModel,
+                            cacheManager: cacheManager,
+                            modelController: modelController
                         )
                     }
                 }
@@ -521,58 +366,8 @@ struct ContentView: View {
         }
         .task {
             await modelController.ensureIndustryResultsPopulated()
+            await modelController.ensureTasteResultsPopulated()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
-
-extension ContentView {
-    // MARK: - Category Handling
-    private func handlePlaceCategoryChatResult(_ result:ChatResult) async throws {
-        Task {
-            do {
-                if let selectedPlaceSearchResponse = result.placeResponse {
-                    
-                    let queryParameters = try await modelController.assistiveHostDelegate.defaultParameters(for: result.title, filters: searchSavedViewModel.filters)
-                    
-                    let intent = AssistiveChatHostIntent(caption: result.title, intent: .Place, selectedPlaceSearchResponse: selectedPlaceSearchResponse, selectedPlaceSearchDetails: result.placeDetailsResponse, placeSearchResponses:[selectedPlaceSearchResponse], selectedDestinationLocation:modelController.selectedDestinationLocationChatResult, placeDetailsResponses:nil, queryParameters: queryParameters)
-                    try await modelController.searchIntent(intent: intent)
-                }
-            } catch {
-                modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
-            }
-        }
-    }
-    
-    private func handleIndustryCategoryChatResult(_ result:ChatResult) async throws {
-        try await handleListCategoryChatResult(result)
-    }
-    
-    private func handleTasteCategoryChatResult(_ result:ChatResult) async throws {
-        try await handleListCategoryChatResult(result)
-    }
-    
-    private func handleDefaultCategoryChatResult(_ result:ChatResult) async throws {
-        try await handleListCategoryChatResult(result)
-    }
-    
-    private func handleListCategoryChatResult(_ result:ChatResult) async throws {
-        let caption = result.title
-        let selectedDestination = modelController.selectedDestinationLocationChatResult
-        let intentKind = AssistiveChatHostService.Intent.Search
-        let queryParameters = try await modelController.assistiveHostDelegate.defaultParameters(for: caption, filters: [:])
-        let newIntent = AssistiveChatHostIntent(
-            caption: caption,
-            intent: intentKind,
-            selectedPlaceSearchResponse: nil,
-            selectedPlaceSearchDetails: nil,
-            placeSearchResponses: [],
-            selectedDestinationLocation: selectedDestination,
-            placeDetailsResponses: nil,
-            queryParameters: queryParameters
-        )
-        await modelController.assistiveHostDelegate.appendIntentParameters(intent: newIntent, modelController: modelController)
-        try await modelController.searchIntent(intent: newIntent)
-    }
-}
-
