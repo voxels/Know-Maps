@@ -135,57 +135,8 @@ public final class AssistiveChatHostService : AssistiveChatHost {
         return Array(retval)
     }
     
-    public func determineIntent(for caption:String, override:Intent? = nil) -> Intent
-    {
-        if let override = override {
-            return override
-        }
-        
-        // Try Foundation Models classifier first (async call wrapped in Task)
-        // For now, use the existing logic but enhanced
-        let lower = caption.lowercased()
-        
-        // Quick location check first
-        if override == .Location {
-            return .Location
-        }
-        
-        // Extract tags from our ML + NLTagger pipeline
-        let tagDict = (try? tags(for: caption)) ?? nil
-        
-        // Helpers to inspect tag values
-        let containsTag: (String) -> Bool = { tag in
-            guard let tagDict = tagDict else { return false }
-            for values in tagDict.values {
-                if values.contains(tag) { return true }
-            }
-            return false
-        }
-        
-        // Place intent if we clearly have a place entity
-        if containsTag("PLACE") || containsTag("PlaceName") {
-            return .Place
-        }
-        
-        // Taste/category intent for autocompletion of categories  
-        if containsTag("TASTE") || containsTag("CATEGORY") {
-            return .AutocompleteTastes
-        }
-        
-        // Heuristics based on words
-        if lower.contains("near ") || lower.contains("around ") || lower.contains("close to ") {
-            return .Location
-        }
-        if lower.contains("category") || lower.contains("type of") || lower.contains("kinds of") {
-            return .AutocompleteTastes
-        }
-        
-        // Fallback to search
-        return .Search
-    }
-    
     /// Enhanced intent determination using Foundation Models (async version)
-    public func determineIntentEnhanced(for caption: String, override: Intent? = nil) async throws -> Intent {
+    public func determineIntentEnhanced(for caption: String, override: AssistiveChatHostService.Intent? = nil) async throws -> AssistiveChatHostService.Intent {
         if let override = override {
             return override
         }
@@ -289,7 +240,7 @@ public final class AssistiveChatHostService : AssistiveChatHost {
     public func updateLastIntent(caption:String, selectedDestinationLocation:LocationResult, filters:[String:Any], modelController:ModelController) async throws {
         if  let lastIntent = queryIntentParameters.queryIntents.last {
             let queryParameters = try await defaultParameters(for: caption, filters:filters)
-            let intent = determineIntent(for: caption)
+            let intent = try await determineIntentEnhanced(for: caption)
             let newIntent = AssistiveChatHostIntent(caption: caption, intent:intent, selectedPlaceSearchResponse: lastIntent.selectedPlaceSearchResponse, selectedPlaceSearchDetails: lastIntent.selectedPlaceSearchDetails, placeSearchResponses: lastIntent.placeSearchResponses, selectedDestinationLocation: selectedDestinationLocation, placeDetailsResponses: lastIntent.placeDetailsResponses, recommendedPlaceSearchResponses: lastIntent.recommendedPlaceSearchResponses, relatedPlaceSearchResponses: lastIntent.relatedPlaceSearchResponses, queryParameters: queryParameters)
             await updateLastIntentParameters(intent: newIntent, modelController: modelController)
         }
@@ -623,5 +574,38 @@ extension AssistiveChatHostService {
 
         return rankedResults
     }
+    
+    /// Creates a new search intent from a generic ChatResult.
+    /// This centralizes the logic for handling taps on different kinds of items.
+    /// - Parameters:
+    ///   - result: The `ChatResult` that was selected.
+    ///   - filters: Any active search filters.
+    ///   - selectedDestination: The current location to search near.
+    /// - Returns: A fully configured `AssistiveChatHostIntent`.
+    public func createIntent(
+        for result: ChatResult,
+        filters: [String: Any],
+        selectedDestination: LocationResult
+    ) async throws -> AssistiveChatHostIntent {
+        
+        let caption = result.title
+        let queryParameters = try await defaultParameters(for: caption, filters: filters)
+        
+        // If the result is a specific place, create a .Place intent.
+        if let placeResponse = result.placeResponse {
+            return AssistiveChatHostIntent(
+                caption: caption,
+                intent: .Place,
+                selectedPlaceSearchResponse: placeResponse,
+                selectedPlaceSearchDetails: result.placeDetailsResponse,
+                placeSearchResponses: [placeResponse],
+                selectedDestinationLocation: selectedDestination,
+                placeDetailsResponses: result.placeDetailsResponse != nil ? [result.placeDetailsResponse!] : nil,
+                queryParameters: queryParameters
+            )
+        }
+        
+        // Otherwise, create a generic .Search intent.
+        return AssistiveChatHostIntent(caption: caption, intent: .Search, selectedPlaceSearchResponse: nil, selectedPlaceSearchDetails: nil, placeSearchResponses: [], selectedDestinationLocation: selectedDestination, placeDetailsResponses: nil, queryParameters: queryParameters)
+    }
 }
-

@@ -11,7 +11,7 @@ import AuthenticationServices
 
 // Define the protocol for authentication services
 public protocol Authentication : Sendable {
-    var isAuthorized: Bool { get }
+    var isAuthorized: Bool { get } // Add this line
     var appleUserId: String { get set }
     var fullName: String? { get set }
     var authCompletion: ((Result<ASAuthorization, Error>) -> Void)? { get set }

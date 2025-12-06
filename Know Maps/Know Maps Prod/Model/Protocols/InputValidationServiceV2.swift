@@ -23,5 +23,5 @@ public protocol InputValidationServiceV2 {
     /// Validates an AssistiveChatHostIntent for completeness and correctness
     /// - Parameter intent: The intent to validate
     /// - Returns: True if the intent is valid and can be processed, false otherwise
-    func validate(intent: AssistiveChatHostIntent) -> Bool
+    func validate(intent: AssistiveChatHostIntent) -> Bool // Add this line
 }

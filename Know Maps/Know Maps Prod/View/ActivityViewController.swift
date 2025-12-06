@@ -47,7 +47,7 @@ struct ActivityViewController: NSViewControllerRepresentable {
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
     }
-
+    
     class Coordinator: NSObject {
         var parent: ActivityViewController
 
@@ -71,4 +71,3 @@ extension ActivityViewController {
 }
 
 #endif
-

@@ -56,33 +56,6 @@ struct NavigationLocationView: View {
         )
     }
 
-    func filterView() -> some View {
-        NavigationLocationView(
-            searchSavedViewModel: searchSavedViewModel,
-            chatModel: chatModel,
-            cacheManager: cacheManager,
-            modelController: modelController,
-            filters:$searchSavedViewModel.filters
-        )
-    }
-    
-    @ViewBuilder
-    func filterSheet() -> some View {
-#if os(macOS)
-        filterView()
-            .frame(minWidth: 600, minHeight: 500)
-            .presentationSizing(.fitted)
-            .presentationDragIndicator(.visible)
-            .interactiveDismissDisabled(false)
-#else
-        filterView()
-            .presentationDetents([.large])
-            .presentationDragIndicator(.visible)
-            .interactiveDismissDisabled(false)
-            .presentationCompactAdaptation(.sheet)
-#endif
-    }
-
     var body: some View {
         NavigationStack {
             GeometryReader { geometry in
@@ -178,13 +151,14 @@ struct NavigationLocationView: View {
             .cornerRadius(32)
             .padding(16)
             .task {
-                lastCenterCoordinate = modelController.selectedDestinationLocationChatResult.location.coordinate
-                    cameraPosition = MapCameraPosition.camera(
-                        MapCamera(
-                            centerCoordinate: lastCenterCoordinate!,
-                            distance: distanceFilterValue * 1000
-                        )
+                let center = modelController.selectedDestinationLocationChatResult.location.coordinate
+                lastCenterCoordinate = center
+                cameraPosition = MapCameraPosition.camera(
+                    MapCamera(
+                        centerCoordinate: center,
+                        distance: distanceFilterValue * 1000
                     )
+                )
             }
             .onChange(of: distanceFilterValue) { oldValue, newValue in
                 // Update the map camera continuously while dragging; do not mutate filters here
@@ -275,20 +249,14 @@ struct NavigationLocationView: View {
         .searchable(text: $searchText, prompt: "Point of Interest")
         .onSubmit(of: .search) {
             print("🔹 onSubmit(.search) fired. searchFocused=\(searchFocused) text='\(searchText)'")
-            if searchFocused { commitSearch() }
+            commitSearch()
         }
         .onSubmit {
             print("🔸 onSubmit (generic) fired. searchFocused=\(searchFocused) text='\(searchText)'")
-            if searchFocused { commitSearch() }
+            commitSearch()
         }
         .onAppear {
-            // Ensure the search field can receive focus on macOS
-            #if os(macOS)
-            DispatchQueue.main.async {
-                self.searchFocused = true
-                print("🧭 macOS onAppear: searchFocused set to true")
-            }
-            #endif
+            // No explicit focus management needed here; let the system handle it.
         }
         .onChange(of: searchText) { _, newValue in
             let trimmed = newValue.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -296,20 +264,11 @@ struct NavigationLocationView: View {
             if !trimmed.isEmpty { searchFocused = true }
             #endif
             if trimmed.count > 1 {
-                #if os(macOS)
-                searchFocused = true
-                #endif
                 requestAutocomplete(for: trimmed)
             } else {
                 // Cancel any pending autocomplete if below threshold
                 autocompleteTask?.cancel()
                 print("✋ Autocomplete canceled: below threshold (<3)")
-            }
-            // Batch apply results to reduce layout churn
-            applyResultsTask?.cancel()
-            applyResultsTask = Task { @MainActor in
-                try? await Task.sleep(nanoseconds: 200_000_000) // 200ms idle
-                displayedResults = modelController.filteredLocationResults()
             }
         }
     #else
@@ -330,12 +289,6 @@ struct NavigationLocationView: View {
                 // Cancel any pending autocomplete if below threshold
                 autocompleteTask?.cancel()
                 print("✋ Autocomplete canceled: below threshold (<3)")
-            }
-            // Batch apply results to reduce layout churn
-            applyResultsTask?.cancel()
-            applyResultsTask = Task { @MainActor in
-                try? await Task.sleep(nanoseconds: 200_000_000) // 200ms idle
-                displayedResults = modelController.filteredLocationResults()
             }
         }
     #endif
@@ -375,6 +328,8 @@ struct NavigationLocationView: View {
             Task(priority: .userInitiated) {
                 do {
                     try await modelController.searchIntent(intent: intent)
+                    // Update displayed results *after* the search completes.
+                    displayedResults = modelController.filteredLocationResults()
                 } catch {
                     modelController.analyticsManager.trackError(error: error, additionalInfo: ["source": "NavigationLocationView.autocomplete"]) 
                 }
@@ -389,12 +344,17 @@ struct NavigationLocationView: View {
             print("⛔️ commitSearch aborted: empty query")
             return
         }
-        requestAutocomplete(for: query)
-        // Schedule a batched update to displayed results after commit
-        applyResultsTask?.cancel()
-        applyResultsTask = Task { @MainActor in
-            try? await Task.sleep(nanoseconds: 200_000_000)
-            displayedResults = modelController.filteredLocationResults()
+        // **FIX**: Perform a direct search instead of re-triggering autocomplete.
+        autocompleteTask?.cancel() // Cancel any pending autocomplete.
+        let intent = locationIntent(for: query)
+        Task(priority: .userInitiated) {
+            do {
+                try await modelController.searchIntent(intent: intent)
+                // Update displayed results *after* the search completes.
+                displayedResults = modelController.filteredLocationResults()
+            } catch {
+                modelController.analyticsManager.trackError(error: error, additionalInfo: ["source": "NavigationLocationView.commitSearch"])
+            }
         }
     }
     
@@ -410,7 +370,7 @@ struct NavigationLocationView: View {
             lastCenterCoordinate = locationResult.location.coordinate
             cameraPosition = MapCameraPosition.camera(
                 MapCamera(
-                    centerCoordinate: lastCenterCoordinate!,
+                    centerCoordinate: locationResult.location.coordinate,
                     distance: distanceFilterValue * 1000
                 )
             )
@@ -420,25 +380,14 @@ struct NavigationLocationView: View {
     /// Update camera distance while keeping the same center coordinate.
     /// This must not trigger any network requests; guarded by design.
     private func updateCameraDistance() {
-//        print("📹 updateCameraDistance called with distance: \(distanceFilterValue)")
-
-        if let center = lastCenterCoordinate {
-                cameraPosition = MapCameraPosition.camera(
-                    MapCamera(
-                        centerCoordinate: center,
-                        distance: distanceFilterValue * 1000
-                    )
-                )
-        }
-
-        // If we have a selected location, update to that location with new distance
-        lastCenterCoordinate = modelController.selectedDestinationLocationChatResult.location.coordinate
-                cameraPosition = MapCameraPosition.camera(
-                    MapCamera(
-                        centerCoordinate: lastCenterCoordinate!,
-                        distance: distanceFilterValue * 1000
-                    )
-                )
+        // Prioritize the user's last panned coordinate; fall back to selected destination
+        let center = lastCenterCoordinate ?? modelController.selectedDestinationLocationChatResult.location.coordinate
+        cameraPosition = MapCameraPosition.camera(
+            MapCamera(
+                centerCoordinate: center,
+                distance: distanceFilterValue * 1000
+            )
+        )
     }
     
     // MARK: - State Management Functions

@@ -36,15 +36,13 @@ struct RatingButton: View {
                     .foregroundColor(.green)
             default:
                 // Default case for unexpected rating values
-                Label("Recommend occasionally", systemImage: "star.leadinghalf.filled")
-                    .foregroundColor(.accentColor)
+                Label("Recommend rarely", systemImage: "star.slash")
+                    .foregroundColor(.red)
             }
         } else {
             // Default state for an item that is not yet saved/rated
-            Label("Recommend occasionally", systemImage: "star.leadinghalf.filled")
-                .foregroundColor(.accentColor)
+            Label("Recommend rarely", systemImage: "star.slash")
+                .foregroundColor(.red)
         }
     }
 }
-
-

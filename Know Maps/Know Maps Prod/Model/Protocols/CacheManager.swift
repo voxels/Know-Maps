@@ -10,6 +10,7 @@ import CoreLocation
 
 public protocol CacheManager : Sendable {
     var cloudCacheService:CloudCacheService { get }
+    var analyticsManager: AnalyticsService { get } // Add this line
     var isRefreshingCache: Bool  { get }
     var cacheFetchProgress:Double { get }
     var completedTasks:Int { get }

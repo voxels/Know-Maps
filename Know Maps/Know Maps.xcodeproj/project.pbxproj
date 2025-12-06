@@ -20,6 +20,7 @@
 		1E3FE0162CB7F7B40020B3CB /* SavedListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E3FE0152CB7F7B20020B3CB /* SavedListView.swift */; };
 		1E3FE0552CB852070020B3CB /* AppShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E3FE0542CB852000020B3CB /* AppShortcuts.swift */; };
 		1E3FE0572CB855020020B3CB /* PersonalizedSearchSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E3FE0562CB854FD0020B3CB /* PersonalizedSearchSection.swift */; };
+		1E5F4AF82EE2E3770077BA28 /* RatingButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E5F4AF72EE2E3770077BA28 /* RatingButton.swift */; };
 		1E601F5D2CB0512900E320D7 /* GoogleBannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E601F5C2CB0512900E320D7 /* GoogleBannerView.swift */; };
 		1E69444C2CB993C70017A81F /* FiltersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E69444B2CB993C70017A81F /* FiltersView.swift */; };
 		1E6944502CBA73060017A81F /* AddPromptView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E69444F2CBA73060017A81F /* AddPromptView.swift */; };
@@ -125,7 +126,6 @@
 		1EFFBAA92E8278020088882B /* generating_loop_0.wav in Resources */ = {isa = PBXBuildFile; fileRef = 1EFFBA9D2E8278020088882B /* generating_loop_0.wav */; };
 		1EFFBAAA2E8278020088882B /* generating_loop_2.wav in Resources */ = {isa = PBXBuildFile; fileRef = 1EFFBA9F2E8278020088882B /* generating_loop_2.wav */; };
 		1EFFBAAB2E8278020088882B /* generating_loop_1.wav in Resources */ = {isa = PBXBuildFile; fileRef = 1EFFBA9E2E8278020088882B /* generating_loop_1.wav */; };
-		1EFFBB2B2E83EA510088882B /* SupabaseService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EFFBB2A2E83EA510088882B /* SupabaseService.swift */; };
 		1EFFBB2E2E83EAA90088882B /* Auth in Frameworks */ = {isa = PBXBuildFile; productRef = 1EFFBB2D2E83EAA90088882B /* Auth */; };
 		1EFFBB302E83EAA90088882B /* Functions in Frameworks */ = {isa = PBXBuildFile; productRef = 1EFFBB2F2E83EAA90088882B /* Functions */; };
 		1EFFBB322E83EAA90088882B /* PostgREST in Frameworks */ = {isa = PBXBuildFile; productRef = 1EFFBB312E83EAA90088882B /* PostgREST */; };
@@ -189,6 +189,7 @@
 		1E3FE0542CB852000020B3CB /* AppShortcuts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppShortcuts.swift; sourceTree = "<group>"; };
 		1E3FE0562CB854FD0020B3CB /* PersonalizedSearchSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersonalizedSearchSection.swift; sourceTree = "<group>"; };
 		1E583F7C2B1671F300B2EC26 /* AppleAuthenticationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleAuthenticationService.swift; sourceTree = "<group>"; };
+		1E5F4AF72EE2E3770077BA28 /* RatingButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RatingButton.swift; sourceTree = "<group>"; };
 		1E601F5C2CB0512900E320D7 /* GoogleBannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoogleBannerView.swift; sourceTree = "<group>"; };
 		1E60F44F2CAC149F00891250 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.0.sdk/System/Library/Frameworks/StoreKit.framework; sourceTree = DEVELOPER_DIR; };
 		1E630C832B1636E400A57CCB /* ActivityViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityViewController.swift; sourceTree = "<group>"; };
@@ -290,7 +291,6 @@
 		1EFFBAA12E8278020088882B /* generating_loop_4.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = generating_loop_4.wav; sourceTree = "<group>"; };
 		1EFFBAA22E8278020088882B /* PLAY_fixed.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = PLAY_fixed.wav; sourceTree = "<group>"; };
 		1EFFBAA32E8278020088882B /* THINKING.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = THINKING.wav; sourceTree = "<group>"; };
-		1EFFBB2A2E83EA510088882B /* SupabaseService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseService.swift; sourceTree = "<group>"; };
 		76CE6FE4C4DB57CC9440194F /* ResultIndexServiceV2.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ResultIndexServiceV2.swift; path = "Know Maps Prod/Model/Protocols/ResultIndexServiceV2.swift"; sourceTree = "<group>"; };
 		7A2D02F43B0E4AE275201F07 /* ResultIndexServiceV2Tests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ResultIndexServiceV2Tests.swift; path = "Know MapsTests/ResultIndexServiceV2Tests.swift"; sourceTree = "<group>"; };
 		7C663478711D4B256D1641D0 /* InputValidationServiceV2Tests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = InputValidationServiceV2Tests.swift; path = "Know MapsTests/InputValidationServiceV2Tests.swift"; sourceTree = "<group>"; };
@@ -465,7 +465,6 @@
 				1E3FE0132CB6C6B60020B3CB /* DefaultRecommenderService.swift */,
 				1E9478462EDB79D7002F10E3 /* DefaultResultIndexServiceV2.swift */,
 				1E007ACD2CB40B1900A8DC5A /* SegmentAnalyticsService.swift */,
-				1EFFBB2A2E83EA510088882B /* SupabaseService.swift */,
 			);
 			path = Controllers;
 			sourceTree = "<group>";
@@ -541,6 +540,7 @@
 				1EE068892B0D1E2B0016851A /* PlaceDirectionsView.swift */,
 				1EE0688B2B0D1E930016851A /* PlacePhotosView.swift */,
 				1EE0688D2B0D1EB40016851A /* PlaceTipsView.swift */,
+				1E5F4AF72EE2E3770077BA28 /* RatingButton.swift */,
 				1E3FE0152CB7F7B20020B3CB /* SavedListView.swift */,
 				1EE068872B0D1ADB0016851A /* SettingsView.swift */,
 				1EA7F76C2B04FFD9002AE371 /* SearchView.swift */,
@@ -869,6 +869,7 @@
 				1E7D43592CB4658B00DC17FA /* DefaultLocationService.swift in Sources */,
 				1E3FE0572CB855020020B3CB /* PersonalizedSearchSection.swift in Sources */,
 				1E7D43612CB525F100DC17FA /* AnalyticsService.swift in Sources */,
+				1E5F4AF82EE2E3770077BA28 /* RatingButton.swift in Sources */,
 				1EF378F52C986EE7001C5E39 /* PlaceDetailsResponse.swift in Sources */,
 				1E8E5AFB2CA03D8F00B37E6A /* SearchPlacesView.swift in Sources */,
 				1E7D435D2CB5259100DC17FA /* ModelController.swift in Sources */,
@@ -888,7 +889,6 @@
 				1E007ACC2CB4089700A8DC5A /* CloudCacheManager.swift in Sources */,
 				1EF378FE2C986EE7001C5E39 /* RecommendedPlaceSearchRequest.swift in Sources */,
 				1EF378FF2C986EE7001C5E39 /* RecommendedPlaceSearchResponse.swift in Sources */,
-				1EFFBB2B2E83EA510088882B /* SupabaseService.swift in Sources */,
 				1E6944542CBA780A0017A81F /* AddCategoryView.swift in Sources */,
 				1EF379002C986EE7001C5E39 /* AssistiveChatHost.swift in Sources */,
 				1EF379022C986EE7001C5E39 /* AssistiveChatHostStreamResponseDelegate.swift in Sources */,

@@ -66,20 +66,21 @@ struct Know_MapsApp: App {
     init() {
         // Create required services locally first to avoid capturing self
         let cloudCacheService = CloudCacheService(analyticsManager: SegmentAnalyticsService.shared, modelContext: Know_MapsApp.sharedModelContainer.mainContext)
-        let cacheManager = CloudCacheManager(cloudCacheService: cloudCacheService)
+        let cacheManager = CloudCacheManager(cloudCacheService: cloudCacheService, analyticsManager: SegmentAnalyticsService.shared)
         let modelController = DefaultModelController(cacheManager: cacheManager)
         let chatModel = ChatResultViewModel.shared
         let searchSavedViewModel = SearchSavedViewModel.shared
+        let authenticationModel = AppleAuthenticationService.shared
 
-        // Assign to stored properties
-        self._authenticationModel = StateObject(wrappedValue: AppleAuthenticationService.shared)
-        self._chatModel = State(initialValue: chatModel)
-        self._searchSavedViewModel = State(initialValue: searchSavedViewModel)
-        self._cacheManager = State(initialValue: cacheManager)
-        self._modelController = State(initialValue: modelController)
+        // Assign to stored properties using wrappedValue initializers only
+        self._authenticationModel = StateObject(wrappedValue: authenticationModel)
+        self._chatModel = State(wrappedValue: chatModel)
+        self._searchSavedViewModel = State(wrappedValue: searchSavedViewModel)
+        self._cacheManager = State(wrappedValue: cacheManager)
+        self._modelController = State(wrappedValue: modelController)
 
-        // After self is fully initialized, schedule dependency registration on the main actor
-        Task { @MainActor in
+        // Defer dependency registration to the next run loop to avoid capturing self during init
+        DispatchQueue.main.async {
             AppDependencyManager.shared.add(dependency: cacheManager)
             AppDependencyManager.shared.add(dependency: modelController)
             AppDependencyManager.shared.add(dependency: chatModel)
@@ -104,14 +105,14 @@ struct Know_MapsApp: App {
         WindowGroup(id:"ContentView") {
             ZStack {
                 if showOnboarding {
-                    OnboardingView( settingsModel: authenticationModel, chatModel: $chatModel, modelController: $modelController, showOnboarding: $showOnboarding)
+                    OnboardingView( settingsModel: authenticationModel,  modelController: modelController, showOnboarding: $showOnboarding)
 #if !os(visionOS) && !os(macOS)
                         .containerBackground(.clear, for: .navigation)
 #endif
                         .toolbarBackgroundVisibility(self.showOnboarding ? .visible : .hidden)
                 } else {
                     
-                ContentView(settingsModel:authenticationModel, chatModel: $chatModel, cacheManager:$cacheManager, modelController:$modelController, searchSavedViewModel: $searchSavedViewModel, showOnboarding: $showOnboarding, showNavigationLocationView: $showNavigationLocationView,searchMode: $searchMode )
+                ContentView(settingsModel:authenticationModel, chatModel: chatModel, cacheManager:cacheManager, modelController:modelController, searchSavedViewModel: searchSavedViewModel, showOnboarding: $showOnboarding, showNavigationLocationView: $showNavigationLocationView, searchMode: $searchMode )
 #if os(visionOS) || os(macOS)
                     .frame(minWidth: 1280, minHeight: 720)
 #endif
@@ -363,11 +364,11 @@ struct Know_MapsApp: App {
     
     func filterView() -> some View {
         NavigationLocationView(
-            searchSavedViewModel: $searchSavedViewModel,
-            chatModel: $chatModel,
-            cacheManager: $cacheManager,
-            modelController: $modelController,
-            filters:$searchSavedViewModel.filters
+            searchSavedViewModel: searchSavedViewModel,
+            chatModel: chatModel,
+            cacheManager: cacheManager,
+            modelController: modelController,
+            filters: Binding(get: { searchSavedViewModel.filters }, set: { searchSavedViewModel.filters = $0 })
         )
     }
     

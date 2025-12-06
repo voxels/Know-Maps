@@ -4,6 +4,7 @@ import UniformTypeIdentifiers
 struct PromptRankingView: View {
     @Environment(\.horizontalSizeClass) var sizeClass
     @ObservedObject var chatHost: AssistiveChatHost
+    var cacheManager: CloudCacheManager // Add cacheManager
     @ObservedObject var chatModel: ChatResultViewModel
     @ObservedObject var locationProvider: LocationProvider
     
@@ -76,13 +77,13 @@ struct PromptRankingView: View {
                     if let idString = object as? String,
                        let uuid = UUID(uuidString: idString) {
                         Task {
-                            if let index = await chatModel.cachedTasteResults.firstIndex(where: { $0.id == uuid }) {
-                                let draggedCategoryResult = await chatModel.cachedTasteResults[index]
+                            if let index = await cacheManager.cachedTasteResults.firstIndex(where: { $0.id == uuid }) {
+                                let draggedCategoryResult = await cacheManager.cachedTasteResults[index]
                                 
-                                if let cachedTasteResults = await chatModel.cachedResults(for: "Taste", identity: draggedCategoryResult.parentCategory) {
+                                if let cachedTasteResults = try? await cacheManager.cloudCacheService.fetchGroupedUserCachedRecords(for: "Taste").filter({ $0.identity == draggedCategoryResult.parentCategory }) {
                                     for cachedTasteResult in cachedTasteResults {
                                         do {
-                                            try await chatModel.cloudCache.deleteUserCachedRecord(for: cachedTasteResult)
+                                            try await cacheManager.cloudCacheService.deleteUserCachedRecord(for: cachedTasteResult)
                                         } catch {
                                             await chatModel.analytics?.track(name: "error \(error)")
                                             print(error)
@@ -92,9 +93,9 @@ struct PromptRankingView: View {
                                 
                                 do {
                                     var userRecord = UserCachedRecord(recordId: "", group: "Taste", identity:draggedCategoryResult.parentCategory, title:draggedCategoryResult.parentCategory, icons: "", list:draggedCategoryResult.list, section:draggedCategoryResult.section.rawValue)
-                                    let record = try await chatModel.cloudCache.storeUserCachedRecord(for: userRecord.group, identity: userRecord.identity, title: userRecord.title, list:userRecord.list, section: userRecord.section)
+                                    let record = try await cacheManager.cloudCacheService.storeUserCachedRecord(recordId: userRecord.recordId, group: userRecord.group, identity: userRecord.identity, title: userRecord.title, icons: userRecord.icons, list: userRecord.list, section: userRecord.section, rating: userRecord.rating)
                                     userRecord.setRecordId(to: record)
-                                    try await chatModel.refreshCache(cloudCache: chatModel.cloudCache)
+                                    try await cacheManager.refreshCache()
                                 }
                                 catch {
                                     await chatModel.analytics?.track(name: "error \(error)")

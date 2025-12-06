@@ -116,19 +116,22 @@ struct OnboardingSignInView: View {
         )
     }
     
-#if os(macOS)
-    public func openSettingsPreferences() {
-        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Applications") {
-            NSWorkspace.shared.open(url)
-        }
-    }
-#else
-    func openSettingsPreferences() {
+    // Opens the appropriate Settings/Preferences screen depending on platform
+    private func openSettingsPreferences() {
+        #if canImport(UIKit)
+        // iOS/iPadOS: open the app's settings page
         if let url = URL(string: UIApplication.openSettingsURLString) {
-            if UIApplication.shared.canOpenURL(url) {
-                UIApplication.shared.open(url, options: [:], completionHandler: nil)
-            }
+            UIApplication.shared.open(url, options: [:], completionHandler: nil)
         }
+        #elseif canImport(AppKit)
+        // macOS: try to open the Apple ID pane in System Settings, fall back to System Settings app
+        let appleIDURL = URL(string: "x-apple.systempreferences:com.apple.AppleID-Settings.extension")
+        if let url = appleIDURL, NSWorkspace.shared.open(url) {
+            return
+        }
+        // Fallback: open System Settings app
+        let systemSettingsPath = "/System/Applications/System Settings.app"
+        NSWorkspace.shared.open(URL(fileURLWithPath: systemSettingsPath))
+        #endif
     }
-#endif
 }

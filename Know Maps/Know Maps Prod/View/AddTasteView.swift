@@ -9,10 +9,10 @@ import SwiftUI
 struct AddTasteView: View {
     @Environment(\.horizontalSizeClass) var sizeClass
     
-    @Binding public var viewModel: SearchSavedViewModel
-    @Binding public var chatModel: ChatResultViewModel
-    @Binding public var cacheManager: CloudCacheManager
-    @Binding public var modelController: DefaultModelController
+    public var viewModel: SearchSavedViewModel
+    public var chatModel: ChatResultViewModel
+    public var cacheManager: CloudCacheManager
+    public var modelController: DefaultModelController
     @Binding public var multiSelection: Set<String>
     @State private var multiSelectionArray: [String] = []
     
@@ -28,7 +28,6 @@ struct AddTasteView: View {
                                 Button(action: {
                                     Task(priority: .userInitiated) {
                                         await viewModel.addTaste(parent: tasteResult.id, rating: 0, cacheManager: cacheManager, modelController: modelController)
-                                        multiSelection.remove(tasteResult.id)
                                     }
                                 }) {
                                     Label("Recommend rarely", systemImage: "star.slash")
@@ -37,7 +36,6 @@ struct AddTasteView: View {
                                 Button(action: {
                                     Task(priority: .userInitiated) {
                                         await viewModel.addTaste(parent: tasteResult.id, rating: 2, cacheManager: cacheManager, modelController: modelController)
-                                        multiSelection.remove(tasteResult.id)
                                     }
                                 }) {
                                     Label("Recommend occasionally", systemImage: "star.leadinghalf.filled")
@@ -46,7 +44,6 @@ struct AddTasteView: View {
                                 Button(action: {
                                     Task(priority: .userInitiated) {
                                         await viewModel.addTaste(parent: tasteResult.id, rating: 3, cacheManager: cacheManager, modelController: modelController)
-                                        multiSelection.remove(tasteResult.id)
                                     }
                                 }) {
                                     Label("Recommend often", systemImage: "star.fill")

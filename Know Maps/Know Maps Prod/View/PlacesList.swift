@@ -125,7 +125,6 @@ struct PlacesList: View {
 #if os(visionOS)
                     .hoverEffect(.lift)
 #endif
-                    
                     .buttonStyle(.plain)
                     .animation(.snappy(duration: 0.35), value: modelController.recommendedPlaceResults)
                     .simultaneousGesture(TapGesture().onEnded {
@@ -194,7 +193,6 @@ struct PlacesList: View {
 #if os(visionOS)
                     .hoverEffect(.lift)
 #endif
-                    .animation(.snappy(duration: 0.35), value: modelController.filteredPlaceResults)
                     .listRowBackground(Color.clear)
                     .listStyle(.plain)
                     .simultaneousGesture(TapGesture().onEnded {

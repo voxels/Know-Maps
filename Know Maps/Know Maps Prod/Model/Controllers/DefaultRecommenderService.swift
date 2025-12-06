@@ -39,7 +39,6 @@ public final class DefaultRecommenderService: RecommenderService {
         }
     }
     
-    // Accept heterogenous arrays of values typed as the existential
     private func recommendationData(
         from categoryResults: [any RecommendationCategoryConvertible]
     ) -> [RecommendationData] {

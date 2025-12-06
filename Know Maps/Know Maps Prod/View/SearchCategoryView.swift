@@ -18,33 +18,42 @@ struct SearchCategoryView: View {
     @State private var expandedParents: Set<String> = []
     @State private var searchText: String = "" // State for search text
     
+    private func bindingForParentExpansion(id: String) -> Binding<Bool> {
+        Binding<Bool>(
+            get: { expandedParents.contains(id) },
+            set: { isExpanded in
+                if isExpanded {
+                    expandedParents.insert(id)
+                } else {
+                    expandedParents.remove(id)
+                }
+            }
+        )
+    }
+    
+    @ViewBuilder
+    private func childRow(for child: CategoryResult) -> some View {
+        HStack {
+            Text(child.parentCategory)
+            Spacer()
+            let savedItem = cacheManager.cachedIndustryResults.first(where: { $0.parentCategory == child.parentCategory })
+            let savedRatingInt: Int? = savedItem.map { Int($0.rating) }
+            RatingButton(result: child, rating: savedRatingInt) {
+                searchSavedViewModel.editingRecommendationWeightResult = child
+            }
+        }
+    }
+    
     var body: some View {
         List(selection: $multiSelection) {
-            // Use filtered results here
-            ForEach(modelController.filteredResults, id: \.id) { parent in
+            let parents = modelController.filteredResults
+            ForEach(parents, id: \.id) { parent in
                 Section {
                     DisclosureGroup(
-                        isExpanded: Binding(
-                            get: { expandedParents.contains(parent.id) },
-                            set: { isExpanded in
-                                if isExpanded {
-                                    expandedParents.insert(parent.id)
-                                } else {
-                                    expandedParents.remove(parent.id)
-                                }
-                            }
-                        )
+                        isExpanded: bindingForParentExpansion(id: parent.id)
                     ) {
                         ForEach(filteredChildren(for: parent), id: \.id) { child in
-                            HStack {
-                                Text(child.parentCategory)
-                                Spacer()
-                                // Correctly check if the item is saved and get its rating
-                                let savedItem = cacheManager.cachedIndustryResults.first(where: { $0.parentCategory == child.parentCategory })
-                                RatingButton(result: child, rating: savedItem?.rating) {
-                                    searchSavedViewModel.editingRecommendationWeightResult = child
-                                }
-                            }
+                            childRow(for: child)
                         }
                     } label: {
                         HStack {
@@ -104,3 +113,4 @@ struct SearchCategoryView: View {
         }
     }
 }
+

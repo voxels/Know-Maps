@@ -12,6 +12,9 @@ import Foundation
 /// Anything that can be turned into a single (identity, attribute, rating) row
 /// for the recommender.
 public protocol RecommendationCategoryConvertible {
+    /// A unique identifier for the item.
+    var id: String { get }
+
     /// The thing being rated (place, category, event, etc.)
     var recommenderIdentity: String { get }
 

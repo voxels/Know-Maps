@@ -41,6 +41,7 @@ struct ShowMoodResultsIntent: AppIntent {
     @Dependency var modelController: DefaultModelController
     @Dependency var cacheManager:CloudCacheManager
     @Dependency var chatModel: ChatResultViewModel
+    @Dependency var resultIndexer: ResultIndexServiceV2 // Add this line
 
     @MainActor
     func perform() async throws -> some IntentResult {

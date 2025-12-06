@@ -1,4 +1,4 @@
-//
+ //
 //  DefaultResultIndexServiceV2.swift
 //  Know Maps
 //
@@ -153,6 +153,28 @@ public final class DefaultResultIndexServiceV2: ResultIndexServiceV2 {
             }
         }
     }
+
+    // MARK: - Universal Finders
+
+    /// Finds a ChatResult from any source using a CategoryResult ID.
+    /// This is the primary method for resolving a selection from a mixed list.
+    /// This is the primary method for resolving a selection from a mixed list.
+    public func findResult(for id: CategoryResult.ID) -> ChatResult? {
+        // The most common case is a tap on a cached item.
+        if let cached = cachedChatResult(for: id) {
+            return cached
+        }
+        // Then check live results.
+        if let industry = industryChatResult(for: id) {
+            return industry
+        }
+        if let taste = tasteChatResult(for: id) {
+            return taste
+        }
+        // Finally, check if it's a place.
+        return placeChatResult(for: id)
+    }
+
 
     // MARK: - Place Result Lookups
 

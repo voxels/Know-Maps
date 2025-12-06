@@ -8,6 +8,7 @@
 import Foundation
 
 public struct EventCategoryResult {
+    public var id:String
     public let venueName: String             // "Barbican"
     public let exhibitionTitle: String       // "Temporal Debris: and the Machine"
     public let style: String                 // "cyberpunk", "academic", ...
@@ -22,7 +23,7 @@ public struct EventCategoryResult {
     public let endDate: Date?
     public let link: URL?
     
-    public init(
+    public init( id:String,
         venueName: String,
         exhibitionTitle: String,
         style: String,
@@ -35,6 +36,7 @@ public struct EventCategoryResult {
         endDate: Date? = nil,
         link: URL? = nil
     ) {
+        self.id = id
         self.venueName = venueName
         self.exhibitionTitle = exhibitionTitle
         self.style = style

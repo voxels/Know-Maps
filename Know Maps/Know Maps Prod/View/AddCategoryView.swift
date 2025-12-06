@@ -10,10 +10,10 @@ import SwiftUI
 struct AddCategoryView: View {
     @Environment(\.horizontalSizeClass) var sizeClass
     
-    @Binding public var viewModel:SearchSavedViewModel
-    @Binding public var chatModel:ChatResultViewModel
-    @Binding public var cacheManager:CloudCacheManager
-    @Binding public var modelController:DefaultModelController
+    public var viewModel:SearchSavedViewModel
+    public var chatModel:ChatResultViewModel
+    public var cacheManager:CloudCacheManager
+    public var modelController:DefaultModelController
     @Binding public var multiSelection: Set<String>
     @State private var multiSelectionArray: [String] = []
     
@@ -32,7 +32,6 @@ struct AddCategoryView: View {
                                     Button(action: {
                                         Task(priority: .userInitiated) {
                                             await viewModel.addCategory(parent: industryResult.id, rating:0, cacheManager: cacheManager, modelController:   modelController)
-                                            multiSelection.remove(industryResult.id)
                                         }
                                     }) {
                                         Label("Rarely", systemImage: "circle.slash")
@@ -41,7 +40,6 @@ struct AddCategoryView: View {
                                     Button(action: {
                                         Task(priority: .userInitiated) {
                                             await viewModel.addCategory(parent: industryResult.id,rating:2, cacheManager: cacheManager, modelController:   modelController)
-                                            multiSelection.remove(industryResult.id)
                                         }
                                     }) {
                                         Label("Occasionally", systemImage: "circle")
@@ -51,7 +49,6 @@ struct AddCategoryView: View {
                                         Task(priority: .userInitiated) {
                                             await viewModel.addCategory(parent: industryResult.id,rating:3, cacheManager: cacheManager, modelController:   modelController)
                                             
-                                            multiSelection.remove(industryResult.id)
                                         }
                                     }) {
                                         Label("Often", systemImage: "circle.fill")
@@ -68,4 +65,3 @@ struct AddCategoryView: View {
         }
     }
 }
-

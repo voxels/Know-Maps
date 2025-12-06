@@ -20,7 +20,7 @@ public struct SubscriptionPlan: Identifiable, Equatable, Hashable {
 }
 
 struct OnboardingSubscriptionView: View {
-    @Binding public var model:AppleAuthenticationService
+    @ObservedObject public var model:AppleAuthenticationService
     @Binding  public var selectedTab:String
     @Binding  public var showOnboarding:Bool
     @State private var selectedSubscription:SubscriptionPlan?

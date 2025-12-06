@@ -13,7 +13,7 @@ public protocol PlaceSearchService: Sendable {
     var placeSearchSession: PlaceSearchSession { get }
     var personalizedSearchSession: PersonalizedSearchSession { get }
     var analyticsManager:AnalyticsService { get }
-    var lastFetchedTastePage: Int { get }
+    var lastFetchedTastePage: Int { get set } // Add this line
     func retrieveFsqUser(cacheManager:CacheManager) async throws
     func autocompleteTastes(lastIntent: AssistiveChatHostIntent, currentTasteResults:[CategoryResult], cacheManager:CacheManager) async throws -> [CategoryResult]
     func refreshTastes(page: Int, currentTasteResults:[CategoryResult], cacheManager:CacheManager) async throws -> [CategoryResult]

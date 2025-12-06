@@ -17,11 +17,10 @@ public protocol FeatureFlag {
     // Check if a flag is owned (enabled)
     func owns(flag: FlagType) -> Bool
 
-
-    /*
     // Update a specific flag with a new state (allowed or not)
     func update(flag: FlagType, allowed: Bool)
 
+    /*
     // Update flags based on CustomerInfo from RevenueCat
     func updateFlags(with customerInfo: CustomerInfo)
 

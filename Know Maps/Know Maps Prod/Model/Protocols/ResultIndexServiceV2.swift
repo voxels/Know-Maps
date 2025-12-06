@@ -27,6 +27,10 @@ public protocol ResultIndexServiceV2 {
         cachedRecommendationData: [RecommendationData]
     )
 
+    /// Finds a ChatResult from any source using a CategoryResult ID.
+    /// This is the primary method for resolving a selection from a mixed list.
+    func findResult(for id: CategoryResult.ID) -> ChatResult?
+
     // MARK: - Place Result Lookups
 
     /// Returns filtered place results (non-empty results only)

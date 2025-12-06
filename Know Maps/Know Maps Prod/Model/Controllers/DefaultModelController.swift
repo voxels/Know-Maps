@@ -372,6 +372,27 @@ public final class DefaultModelController: ModelController {
         }
     }
 
+    @MainActor
+    public func handleCategorySelection(for id: CategoryResult.ID) async {
+        do {
+            // Use the result indexer to find the result, regardless of type.
+            // This checks across all cached and live results for a match.
+            if let chatResult = resultIndexer.findResult(for: id) {
+                // Create and dispatch the correct intent based on the result's properties.
+                // This reuses the existing intent creation logic.
+                let intent = try await assistiveHostDelegate.createIntent(for: chatResult, filters: [:], selectedDestination: selectedDestinationLocationChatResult)
+                try await searchIntent(intent: intent)
+            } else {
+                // Handle the rare case where the result ID cannot be resolved.
+                let errorInfo = ["reason": "Could not resolve CategoryResult ID: \(id)"]
+                analyticsManager.trackError(error: ModelControllerError.invalidAsyncOperation, additionalInfo: errorInfo)
+            }
+        } catch {
+            analyticsManager.trackError(error: error, additionalInfo: ["selectedCategoryID": id])
+        }
+    }
+
+
     /// Safely update selected place chat result state (supports reselection)
     public func setSelectedPlaceChatResult(_ fsqId: String?) {
         // Re-entrancy guard
@@ -449,70 +470,6 @@ public final class DefaultModelController: ModelController {
     public func setSelectedLocationAndGetLocation(_ locationResult: LocationResult) -> CLLocation {
         setSelectedLocation(locationResult)
         return getSelectedDestinationLocation()
-    }
-    
-    // MARK: - Input Sanitization
-    @available(*, deprecated, message: "Use inputValidator.join(searchTerms:) instead")
-    private func joinSearchTerms(_ terms: [String]) -> String {
-        return terms
-            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-            .filter { !$0.isEmpty }
-            .joined(separator: ",")
-    }
-    
-    @available(*, deprecated, message: "Use inputValidator.sanitize(query:) instead")
-    private func sanitizeCaption(_ caption: String) -> String {
-        var sanitized = caption.replacingOccurrences(of: "\n", with: " ")
-        sanitized = sanitized.replacingOccurrences(of: "\r", with: " ")
-        sanitized = sanitized.replacingOccurrences(of: "\t", with: " ")
-        
-        sanitized = sanitized.replacingOccurrences(
-            of: "[\\u0000-\\u001F\\u007F]",
-            with: "",
-            options: .regularExpression
-        )
-        
-        sanitized = sanitized.replacingOccurrences(
-            of: "\\s+",
-            with: " ",
-            options: .regularExpression
-        )
-        
-        sanitized = sanitized.replacingOccurrences(
-            of: "=\\s*,\\s*",
-            with: "=",
-            options: .regularExpression
-        )
-        sanitized = sanitized.replacingOccurrences(
-            of: ",\\s*,\\s*",
-            with: ",",
-            options: .regularExpression
-        )
-        
-        sanitized = sanitized.replacingOccurrences(
-            of: "\\s*,\\s*",
-            with: ",",
-            options: .regularExpression
-        )
-        sanitized = sanitized.replacingOccurrences(
-            of: "\\s*=\\s*",
-            with: "=",
-            options: .regularExpression
-        )
-        
-        sanitized = sanitized.replacingOccurrences(
-            of: "=,",
-            with: "=",
-            options: .regularExpression
-        )
-        
-        sanitized = sanitized.trimmingCharacters(in: .whitespacesAndNewlines)
-        
-        if sanitized.count > 200 {
-            sanitized = String(sanitized.prefix(200))
-        }
-        
-        return sanitized
     }
     
     /// Resolve a friendly name for the currently selected destination location.
@@ -827,7 +784,7 @@ public final class DefaultModelController: ModelController {
                 .map { String($0).trimmingCharacters(in: .whitespacesAndNewlines) }
                 .filter { !$0.isEmpty }
             let normalizedCaption = inputValidator.join(searchTerms: tokens)
-            let intent = assistiveHostDelegate.determineIntent(for: normalizedCaption, override: nil)
+            let intent = try await assistiveHostDelegate.determineIntentEnhanced(for: normalizedCaption, override: nil)
             let queryParameters = try await assistiveHostDelegate.defaultParameters(
                 for: normalizedCaption,
                 filters: filters
@@ -1163,38 +1120,13 @@ public final class DefaultModelController: ModelController {
         
         try await relatedPlaceQueryModel(intent: intent)
         
-        // Ensure details are present for unselected flows by fetching any missing ones
+        // Ensure details are present for unselected flows by enqueueing fetches for any missing ones
         if !hasSelected && !placeResponses.isEmpty {
-            let existingIDs = Set((intent.placeDetailsResponses ?? []).map { $0.fsqID })
-            let missingResponses = placeResponses.filter { !existingIDs.contains($0.fsqID) }
-            if !missingResponses.isEmpty {
-                let tempIntent = AssistiveChatHostIntent(
-                    caption: intent.caption,
-                    intent: .Place,
-                    selectedPlaceSearchResponse: nil,
-                    selectedPlaceSearchDetails: nil,
-                    placeSearchResponses: missingResponses,
-                    selectedDestinationLocation: intent.selectedDestinationLocation,
-                    placeDetailsResponses: nil,
-                    recommendedPlaceSearchResponses: intent.recommendedPlaceSearchResponses,
-                    relatedPlaceSearchResponses: intent.relatedPlaceSearchResponses,
-                    queryParameters: intent.queryParameters
-                )
-                do {
-                    try await placeSearchService.detailIntent(intent: tempIntent, cacheManager: cacheManager)
-                    if let fetched = tempIntent.placeDetailsResponses, !fetched.isEmpty {
-                        let merged = intent.placeDetailsResponses ?? []
-                        let mergedIDs = Set(merged.map { $0.fsqID })
-                        let newOnes = fetched.filter { !mergedIDs.contains($0.fsqID) }
-                        if !newOnes.isEmpty {
-                            intent.placeDetailsResponses = merged + newOnes
-                        }
+            await withTaskGroup(of: Void.self) { group in
+                for result in placeResults where result.placeDetailsResponse == nil {
+                    group.addTask {
+                        await self.enqueueLazyDetailFetch(for: result)
                     }
-                } catch {
-                    analyticsManager.trackError(
-                        error: error,
-                        additionalInfo: ["phase": "placeQueryModel.ensureDetails"]
-                    )
                 }
             }
         }
@@ -1824,7 +1756,7 @@ public final class DefaultModelController: ModelController {
             )
         } else {
             var intent: AssistiveChatHostService.Intent =
-                assistiveHostDelegate.determineIntent(for: safeCaption, override: nil)
+            try await assistiveHostDelegate.determineIntentEnhanced(for: safeCaption, override: nil)
             
             if let overrideIntent {
                 intent = overrideIntent
@@ -2013,27 +1945,7 @@ public final class DefaultModelController: ModelController {
         )
         trackProgress(phase: "start", caption: caption, locationName: destinationName)
         
-        // Minimal in-flight guard for duplicate search flows in searchIntent
-        // Only applies to .Search and .Location, leaving .Place and autocomplete flows untouched.
-        let intentKind = intent.intent
-        if intentKind == .Search || intentKind == .Location {
-            let key = makeSearchKey(for: intent)
-            if inFlightSearchKey == key {
-                analyticsManager.track(
-                    event: "searchIntent.duplicateSearchSuppressed",
-                    properties: ["key": key]
-                )
-                return
-            }
-            inFlightSearchKey = key
-            defer {
-                if inFlightSearchKey == key {
-                    inFlightSearchKey = nil
-                }
-            }
-        }
-        
-        switch intentKind {
+        switch intent.intent {
         case .Place:
             if intent.selectedPlaceSearchResponse != nil {
                 setProgressMessage(
