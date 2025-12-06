@@ -33,11 +33,12 @@ Built with 95%+ shared code across iPhone, iPad, Mac, and Vision Pro, Know Maps 
 
 ### AI & Machine Learning
 
-- **3 On-Device CoreML Models**:
+- **4 On-Device CoreML Models**:
   - `LocalMapsQueryClassifier` - Classifies user intent (Search, Place details, Location, etc.)
   - `LocalMapsQueryTagger` - Extracts entities like cuisine types, features, and locations
   - `FoursquareSectionClassifier` - Maps categories to Foursquare taxonomy
-- **Semantic Embeddings**: Intelligent search powered by vector embeddings for similarity matching
+  - `MiniLM-L12-Embedding` - Text embeddings for semantic search (66MB model)
+- **Semantic Search**: Intelligent query understanding powered by MiniLM text embeddings
 - **Privacy-First ML**: All machine learning processing happens entirely on-device
 - **Transparent Training**: ML model training data included in the repository (`/Model/ML/`)
 - **Intent Classification**: Automatically determines whether you're searching, asking about a place, or exploring
@@ -134,7 +135,7 @@ xcodebuild test -project "Know Maps.xcodeproj" -scheme "Know MapsTests" \
 
 - **SwiftUI** - 100% declarative UI across all platforms
 - **SwiftData** - Local persistence with automatic CloudKit sync
-- **CoreML** - On-device machine learning models (3 models, ~1.6MB total)
+- **CoreML** - On-device machine learning models (4 models: classifier, tagger, section classifier, embeddings)
 - **CloudKit** - Private iCloud database for user data synchronization
 - **CoreLocation & MapKit** - Location services and interactive maps
 - **Swift Concurrency** - Extensive use of `async/await`, `Task`, and `Actor` patterns
@@ -315,7 +316,7 @@ Protocol-based services with single responsibilities:
 Persistent storage and on-device ML:
 - **SwiftData**: Local persistence with models (`UserCachedRecord`, `RecommendationData`)
 - **CloudKit**: Automatic sync to iCloud private database
-- **CoreML Models**: 3 on-device models for intent classification and entity extraction
+- **CoreML Models**: 4 on-device models for intent classification, entity extraction, category mapping, and semantic search
 - **Sync Strategy**: SwiftData ↔ CloudKit bidirectional sync ensures consistency
 
 ### External Dependencies
@@ -542,13 +543,16 @@ Contributions are welcome! Here's how to get started:
 
 ## Roadmap
 
-### In Development
+### Recently Shipped ✨
 
-The `antigravity` branch contains significant V2 architecture improvements currently in development:
+Significant V2 architecture improvements merged from `antigravity` branch (December 2024):
 
-- **Performance Optimizations**: ResultIndexServiceV2 provides O(1) dictionary-based lookups (vs O(n) array scans)
-- **Enhanced ML Integration**: Advanced text embedding models for semantic search
-- **Expanded Test Coverage**: 1,500+ lines of new test code with comprehensive mocks
+- ✅ **Performance Optimizations**: ResultIndexServiceV2 provides O(1) dictionary-based lookups (vs O(n) array scans)
+- ✅ **Enhanced ML Integration**: Advanced text embedding models with MiniLM-L12 for semantic search
+- ✅ **FoursquareSectionClassifier**: New CoreML model for improved category mapping
+- ✅ **Input Validation**: DefaultInputValidationServiceV2 for query sanitization
+- ✅ **Expanded Test Coverage**: 1,500+ lines of new test code with comprehensive mocks
+- ✅ **Documentation**: Comprehensive CLAUDE.md and ModelInterfaces.md
 
 ### Planned Features
 
