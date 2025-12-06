@@ -1,0 +1,835 @@
+{
+  "activityEntities" : [
+    "trainingFinished",
+    [
+      {
+        "createdDate" : "2025-12-06T08:13:03Z",
+        "event" : "trainingFinished",
+        "id" : "2AB7EB9C-1565-4026-9F2F-81C3D066EC0A",
+        "subtitle" : "Model converged at 2 iterations",
+        "title" : "Training Completed"
+      }
+    ],
+    "experimentCreated",
+    [
+      {
+        "createdDate" : "2025-12-06T08:12:52Z",
+        "event" : "experimentCreated",
+        "id" : "517E35A1-9CEF-42F1-8F8C-2A153EC11FCF",
+        "subtitle" : "FoursquareSectionClassifier 1",
+        "title" : "Model Source Created"
+      }
+    ],
+    "trainingDataAdded",
+    [
+      {
+        "createdDate" : "2025-12-06T08:12:57Z",
+        "event" : "trainingDataAdded",
+        "id" : "A14131C6-7E44-4178-AB54-320756581A67",
+        "subtitle" : "FoursquareClassifierTrainingData.csv",
+        "title" : "Training Data Added"
+      }
+    ],
+    "trainingStarted",
+    [
+      {
+        "createdDate" : "2025-12-06T08:13:03Z",
+        "event" : "trainingStarted",
+        "id" : "73222A6F-E9DF-4A3D-A6BE-A72EB3DDFA50",
+        "subtitle" : "10 iterations",
+        "title" : "Training Started"
+      }
+    ]
+  ],
+  "contentDataResult" : {
+    "createdDate" : "2025-12-06T08:12:57Z"
+  },
+  "createdDate" : "2025-12-06T08:12:52Z",
+  "evaluationContainerEntity" : {
+    "createdDate" : "2025-12-06T08:13:03Z",
+    "evaluationEntities" : [
+      {
+        "analysedDataType" : "none",
+        "createdDate" : "2025-12-06T08:13:03Z",
+        "dataResult" : {
+
+        },
+        "id" : "c337dcf3-3ae9-4247-a438-3cea20ed4c09"
+      }
+    ],
+    "id" : "599b4d9c-f1d8-4087-a238-df1f026e3ba7",
+    "modifiedDate" : "2025-12-06T08:13:03Z",
+    "previewType" : "textClassifier",
+    "testingEvaluationEntity" : {
+      "analysedDataType" : "none",
+      "createdDate" : "2025-12-06T08:12:52Z",
+      "dataResult" : {
+        "createdDate" : "2025-12-06T08:12:57Z"
+      },
+      "id" : "8700295e-5953-4e6f-b408-43c8ada40583"
+    },
+    "trainingEvaluationEntity" : {
+      "analysedDataType" : "none",
+      "createdDate" : "2025-12-06T08:12:52Z",
+      "dataResult" : {
+        "classesCount" : 6,
+        "createdDate" : "2025-12-06T08:12:57Z",
+        "dataAnalysis" : {
+          "classifierAnalysis" : {
+            "labelStats" : {
+              "Art" : 30,
+              "Coffee" : 30,
+              "Drinks" : 30,
+              "Food" : 30,
+              "Outdoors" : 30,
+              "Shopping" : 30
+            }
+          },
+          "issues" : [
+            {
+              "description" : "6 classes found, including Coffee, Outdoors, Food",
+              "severity" : "debug"
+            },
+            {
+              "description" : "180 texts found, automatically creating validation set",
+              "severity" : "good"
+            },
+            {
+              "description" : "Smallest class is \"Shopping\" with 30 texts",
+              "severity" : "debug"
+            },
+            {
+              "description" : "Largest class is \"Coffee\" with 30 text",
+              "severity" : "debug"
+            }
+          ],
+          "objectDetectorAnalysis" : {
+            "details" : {
+
+            }
+          },
+          "summary" : {
+            "canUseValidation" : 1,
+            "classCount" : 6,
+            "sampleCount" : 180
+          }
+        },
+        "dataSourceID" : "1F70B339-B80D-4BA9-A550-6D754208A07D",
+        "dataURL" : "file:///Users/voxels/Documents/dev/Know%20Maps/Know-Maps/Know%20Maps/Know%20Maps%20Prod/Model/ML/FoursquareClassifierTrainingData.csv",
+        "itemsCount" : 180
+      },
+      "dataSourceID" : "1F70B339-B80D-4BA9-A550-6D754208A07D",
+      "evaluationResult" : {
+        "textClassifier" : {
+          "accuracy" : 1,
+          "confusionMatrix" : [
+            {
+              "actual" : "Art",
+              "count" : 29,
+              "expected" : "Art"
+            },
+            {
+              "actual" : "Coffee",
+              "count" : 26,
+              "expected" : "Coffee"
+            },
+            {
+              "actual" : "Drinks",
+              "count" : 27,
+              "expected" : "Drinks"
+            },
+            {
+              "actual" : "Food",
+              "count" : 28,
+              "expected" : "Food"
+            },
+            {
+              "actual" : "Outdoors",
+              "count" : 29,
+              "expected" : "Outdoors"
+            },
+            {
+              "actual" : "Shopping",
+              "count" : 23,
+              "expected" : "Shopping"
+            }
+          ],
+          "statsByLabel" : {
+            "Art" : {
+              "count" : 29,
+              "precisionRecall" : {
+                "success" : {
+                  "precision" : 1,
+                  "recall" : 1
+                }
+              }
+            },
+            "Coffee" : {
+              "count" : 26,
+              "precisionRecall" : {
+                "success" : {
+                  "precision" : 1,
+                  "recall" : 1
+                }
+              }
+            },
+            "Drinks" : {
+              "count" : 27,
+              "precisionRecall" : {
+                "success" : {
+                  "precision" : 1,
+                  "recall" : 1
+                }
+              }
+            },
+            "Food" : {
+              "count" : 28,
+              "precisionRecall" : {
+                "success" : {
+                  "precision" : 1,
+                  "recall" : 1
+                }
+              }
+            },
+            "Outdoors" : {
+              "count" : 29,
+              "precisionRecall" : {
+                "success" : {
+                  "precision" : 1,
+                  "recall" : 1
+                }
+              }
+            },
+            "Shopping" : {
+              "count" : 23,
+              "precisionRecall" : {
+                "success" : {
+                  "precision" : 1,
+                  "recall" : 1
+                }
+              }
+            }
+          }
+        }
+      },
+      "id" : "851998c3-4690-4a62-849b-f9d99f99c0de"
+    },
+    "validationEvaluationEntity" : {
+      "analysedDataType" : "auto",
+      "createdDate" : "2025-12-06T08:12:52Z",
+      "dataResult" : {
+        "createdDate" : "2025-12-06T08:12:57Z"
+      },
+      "evaluationResult" : {
+        "textClassifier" : {
+          "accuracy" : 0.6666666666666666,
+          "confusionMatrix" : [
+            {
+              "actual" : "Art",
+              "count" : 1,
+              "expected" : "Art"
+            },
+            {
+              "actual" : "Coffee",
+              "count" : 3,
+              "expected" : "Coffee"
+            },
+            {
+              "actual" : "Coffee",
+              "count" : 1,
+              "expected" : "Outdoors"
+            },
+            {
+              "actual" : "Drinks",
+              "count" : 1,
+              "expected" : "Art"
+            },
+            {
+              "actual" : "Drinks",
+              "count" : 2,
+              "expected" : "Drinks"
+            },
+            {
+              "actual" : "Food",
+              "count" : 1,
+              "expected" : "Food"
+            },
+            {
+              "actual" : "Food",
+              "count" : 1,
+              "expected" : "Outdoors"
+            },
+            {
+              "actual" : "Outdoors",
+              "count" : 1,
+              "expected" : "Art"
+            },
+            {
+              "actual" : "Shopping",
+              "count" : 2,
+              "expected" : "Food"
+            },
+            {
+              "actual" : "Shopping",
+              "count" : 5,
+              "expected" : "Shopping"
+            }
+          ],
+          "statsByLabel" : {
+            "Art" : {
+              "count" : 1,
+              "precisionRecall" : {
+                "success" : {
+                  "precision" : 0.3333333333333333,
+                  "recall" : 1
+                }
+              }
+            },
+            "Coffee" : {
+              "count" : 4,
+              "precisionRecall" : {
+                "success" : {
+                  "precision" : 1,
+                  "recall" : 0.75
+                }
+              }
+            },
+            "Drinks" : {
+              "count" : 3,
+              "precisionRecall" : {
+                "success" : {
+                  "precision" : 1,
+                  "recall" : 0.6666666666666666
+                }
+              }
+            },
+            "Food" : {
+              "count" : 2,
+              "precisionRecall" : {
+                "success" : {
+                  "precision" : 0.3333333333333333,
+                  "recall" : 0.5
+                }
+              }
+            },
+            "Outdoors" : {
+              "count" : 1,
+              "precisionRecall" : {
+                "success" : {
+                  "precision" : 0,
+                  "recall" : 0
+                }
+              }
+            },
+            "Shopping" : {
+              "count" : 7,
+              "precisionRecall" : {
+                "success" : {
+                  "precision" : 1,
+                  "recall" : 0.7142857142857143
+                }
+              }
+            }
+          }
+        }
+      },
+      "id" : "0d619175-4f7d-4960-b131-79a6c6c2cea2"
+    }
+  },
+  "evaluationEntity" : {
+    "analysedDataType" : "none",
+    "dataResult" : {
+
+    },
+    "id" : "ca2f19d3-df06-4c8d-99ce-647774fe5374"
+  },
+  "evaluationState" : "uninitialized",
+  "id" : "0AF84096-486E-47C2-A004-987B4B9325C8",
+  "modelEntity" : {
+    "createdDate" : "2025-12-06T08:12:52Z",
+    "experimentID" : "0AF84096-486E-47C2-A004-987B4B9325C8",
+    "id" : "CBF18B21-E020-40E8-AADB-D629290EA865",
+    "modelURL" : "Models/FoursquareSectionClassifier%201.mlmodel",
+    "modifiedDate" : "2025-12-06T08:12:52Z",
+    "title" : "",
+    "version" : "1.0"
+  },
+  "modifiedDate" : "2025-12-06T08:13:03Z",
+  "preferredFilename" : "FoursquareSectionClassifier 1",
+  "settingEntity" : {
+    "algorithmType" : "maxEnt",
+    "augmentations" : [
+
+    ],
+    "featureNames" : [
+
+    ],
+    "handActionClassifierAugmentations" : [
+
+    ],
+    "handPoseClassifierAugmentations" : [
+
+    ],
+    "harVideoAugmentations" : 0,
+    "iterationCount" : 10,
+    "seedType" : "default",
+    "styleTransferAlgorithmType" : "image",
+    "taskType" : "textClassifier",
+    "textClassifierArabicLanguage" : "automatic",
+    "textClassifierCJKLanguage" : "automatic",
+    "textClassifierCyrillicLanguage" : "automatic",
+    "textClassifierIndicLanguage" : "automatic",
+    "textClassifierLatin" : "automatic",
+    "textClassifierScript" : "latin",
+    "textClassifierThaiLanguage" : "automatic"
+  },
+  "snapshotRole" : {
+    "withoutSnapshots" : 0
+  },
+  "state" : "trained",
+  "title" : "FoursquareSectionClassifier 1",
+  "trainingEntity" : {
+    "analysedDataType" : "datasource",
+    "checkpointMetrics" : {
+
+    },
+    "dataResult" : {
+      "classesCount" : 6,
+      "createdDate" : "2025-12-06T08:12:57Z",
+      "dataAnalysis" : {
+        "classifierAnalysis" : {
+          "labelStats" : {
+            "Art" : 30,
+            "Coffee" : 30,
+            "Drinks" : 30,
+            "Food" : 30,
+            "Outdoors" : 30,
+            "Shopping" : 30
+          }
+        },
+        "issues" : [
+          {
+            "description" : "6 classes found, including Coffee, Outdoors, Food",
+            "severity" : "debug"
+          },
+          {
+            "description" : "180 texts found, automatically creating validation set",
+            "severity" : "good"
+          },
+          {
+            "description" : "Smallest class is \"Shopping\" with 30 texts",
+            "severity" : "debug"
+          },
+          {
+            "description" : "Largest class is \"Coffee\" with 30 text",
+            "severity" : "debug"
+          }
+        ],
+        "objectDetectorAnalysis" : {
+          "details" : {
+
+          }
+        },
+        "summary" : {
+          "canUseValidation" : 1,
+          "classCount" : 6,
+          "sampleCount" : 180
+        }
+      },
+      "dataSourceID" : "1F70B339-B80D-4BA9-A550-6D754208A07D",
+      "dataURL" : "file:///Users/voxels/Documents/dev/Know%20Maps/Know-Maps/Know%20Maps/Know%20Maps%20Prod/Model/ML/FoursquareClassifierTrainingData.csv",
+      "itemsCount" : 180
+    },
+    "dataSourceID" : "1F70B339-B80D-4BA9-A550-6D754208A07D",
+    "featureExtractionCheckpointMayBeAvailable" : false,
+    "finishTime" : "2025-12-06T08:13:03Z",
+    "progress" : [
+      {
+        "count" : 1,
+        "currentRowIndex" : 0,
+        "isLast" : false,
+        "percentComplete" : 0,
+        "tableDone" : false,
+        "tableIndex" : 1,
+        "tcTrainingColumnHeader" : {
+          "elapsedTime" : 0,
+          "hasTraining" : true,
+          "hasValidation" : false,
+          "remainingIterationCount" : 10,
+          "trainingAccuracy" : 0.17901234328746796,
+          "validationAccuracy" : 0
+        }
+      },
+      {
+        "count" : 2,
+        "currentRowIndex" : 0,
+        "isLast" : false,
+        "percentComplete" : 0,
+        "tableDone" : true,
+        "tableIndex" : 1,
+        "tcTrainingColumnHeader" : {
+          "elapsedTime" : 0,
+          "hasTraining" : true,
+          "hasValidation" : false,
+          "remainingIterationCount" : 9,
+          "trainingAccuracy" : 1,
+          "validationAccuracy" : 0
+        }
+      },
+      {
+        "count" : 12,
+        "currentRowIndex" : 0,
+        "isLast" : false,
+        "percentComplete" : 0,
+        "tableDone" : false,
+        "tableIndex" : 0
+      },
+      {
+        "count" : 22,
+        "currentRowIndex" : 0,
+        "isLast" : false,
+        "percentComplete" : 0,
+        "tableDone" : false,
+        "tableIndex" : 0
+      },
+      {
+        "count" : 32,
+        "currentRowIndex" : 0,
+        "isLast" : false,
+        "percentComplete" : 0,
+        "tableDone" : false,
+        "tableIndex" : 0
+      },
+      {
+        "count" : 42,
+        "currentRowIndex" : 0,
+        "isLast" : false,
+        "percentComplete" : 0,
+        "tableDone" : false,
+        "tableIndex" : 0
+      },
+      {
+        "count" : 52,
+        "currentRowIndex" : 0,
+        "isLast" : false,
+        "percentComplete" : 0,
+        "tableDone" : false,
+        "tableIndex" : 0
+      },
+      {
+        "count" : 62,
+        "currentRowIndex" : 0,
+        "isLast" : false,
+        "percentComplete" : 0,
+        "tableDone" : false,
+        "tableIndex" : 0
+      },
+      {
+        "count" : 72,
+        "currentRowIndex" : 0,
+        "isLast" : false,
+        "percentComplete" : 0,
+        "tableDone" : false,
+        "tableIndex" : 0
+      },
+      {
+        "count" : 82,
+        "currentRowIndex" : 0,
+        "isLast" : false,
+        "percentComplete" : 0,
+        "tableDone" : false,
+        "tableIndex" : 0
+      },
+      {
+        "count" : 92,
+        "currentRowIndex" : 0,
+        "isLast" : false,
+        "percentComplete" : 0,
+        "tableDone" : false,
+        "tableIndex" : 0
+      },
+      {
+        "count" : 102,
+        "currentRowIndex" : 0,
+        "isLast" : false,
+        "percentComplete" : 0,
+        "tableDone" : false,
+        "tableIndex" : 0
+      },
+      {
+        "count" : 112,
+        "currentRowIndex" : 0,
+        "isLast" : false,
+        "percentComplete" : 0,
+        "tableDone" : false,
+        "tableIndex" : 0
+      },
+      {
+        "count" : 122,
+        "currentRowIndex" : 0,
+        "isLast" : false,
+        "percentComplete" : 0,
+        "tableDone" : false,
+        "tableIndex" : 0
+      },
+      {
+        "count" : 132,
+        "currentRowIndex" : 0,
+        "isLast" : false,
+        "percentComplete" : 0,
+        "tableDone" : false,
+        "tableIndex" : 0
+      },
+      {
+        "count" : 142,
+        "currentRowIndex" : 0,
+        "isLast" : false,
+        "percentComplete" : 0,
+        "tableDone" : false,
+        "tableIndex" : 0
+      },
+      {
+        "count" : 152,
+        "currentRowIndex" : 0,
+        "isLast" : false,
+        "percentComplete" : 0,
+        "tableDone" : false,
+        "tableIndex" : 0
+      },
+      {
+        "count" : 162,
+        "currentRowIndex" : 0,
+        "isLast" : false,
+        "percentComplete" : 0,
+        "tableDone" : true,
+        "tableIndex" : 0
+      }
+    ],
+    "snapshottableCheckpoints" : {
+
+    },
+    "startTime" : "2025-12-06T08:13:03Z",
+    "trainingAccuracy" : 1,
+    "trainingResults" : {
+      "textClassifier" : {
+        "accuracy" : 1,
+        "confusionMatrix" : [
+          {
+            "actual" : "Art",
+            "count" : 29,
+            "expected" : "Art"
+          },
+          {
+            "actual" : "Coffee",
+            "count" : 26,
+            "expected" : "Coffee"
+          },
+          {
+            "actual" : "Drinks",
+            "count" : 27,
+            "expected" : "Drinks"
+          },
+          {
+            "actual" : "Food",
+            "count" : 28,
+            "expected" : "Food"
+          },
+          {
+            "actual" : "Outdoors",
+            "count" : 29,
+            "expected" : "Outdoors"
+          },
+          {
+            "actual" : "Shopping",
+            "count" : 23,
+            "expected" : "Shopping"
+          }
+        ],
+        "statsByLabel" : {
+          "Art" : {
+            "count" : 29,
+            "precisionRecall" : {
+              "success" : {
+                "precision" : 1,
+                "recall" : 1
+              }
+            }
+          },
+          "Coffee" : {
+            "count" : 26,
+            "precisionRecall" : {
+              "success" : {
+                "precision" : 1,
+                "recall" : 1
+              }
+            }
+          },
+          "Drinks" : {
+            "count" : 27,
+            "precisionRecall" : {
+              "success" : {
+                "precision" : 1,
+                "recall" : 1
+              }
+            }
+          },
+          "Food" : {
+            "count" : 28,
+            "precisionRecall" : {
+              "success" : {
+                "precision" : 1,
+                "recall" : 1
+              }
+            }
+          },
+          "Outdoors" : {
+            "count" : 29,
+            "precisionRecall" : {
+              "success" : {
+                "precision" : 1,
+                "recall" : 1
+              }
+            }
+          },
+          "Shopping" : {
+            "count" : 23,
+            "precisionRecall" : {
+              "success" : {
+                "precision" : 1,
+                "recall" : 1
+              }
+            }
+          }
+        }
+      }
+    },
+    "validationAccuracy" : 0.6666666666666666,
+    "validationResults" : {
+      "textClassifier" : {
+        "accuracy" : 0.6666666666666666,
+        "confusionMatrix" : [
+          {
+            "actual" : "Art",
+            "count" : 1,
+            "expected" : "Art"
+          },
+          {
+            "actual" : "Coffee",
+            "count" : 3,
+            "expected" : "Coffee"
+          },
+          {
+            "actual" : "Coffee",
+            "count" : 1,
+            "expected" : "Outdoors"
+          },
+          {
+            "actual" : "Drinks",
+            "count" : 1,
+            "expected" : "Art"
+          },
+          {
+            "actual" : "Drinks",
+            "count" : 2,
+            "expected" : "Drinks"
+          },
+          {
+            "actual" : "Food",
+            "count" : 1,
+            "expected" : "Food"
+          },
+          {
+            "actual" : "Food",
+            "count" : 1,
+            "expected" : "Outdoors"
+          },
+          {
+            "actual" : "Outdoors",
+            "count" : 1,
+            "expected" : "Art"
+          },
+          {
+            "actual" : "Shopping",
+            "count" : 2,
+            "expected" : "Food"
+          },
+          {
+            "actual" : "Shopping",
+            "count" : 5,
+            "expected" : "Shopping"
+          }
+        ],
+        "statsByLabel" : {
+          "Art" : {
+            "count" : 1,
+            "precisionRecall" : {
+              "success" : {
+                "precision" : 0.3333333333333333,
+                "recall" : 1
+              }
+            }
+          },
+          "Coffee" : {
+            "count" : 4,
+            "precisionRecall" : {
+              "success" : {
+                "precision" : 1,
+                "recall" : 0.75
+              }
+            }
+          },
+          "Drinks" : {
+            "count" : 3,
+            "precisionRecall" : {
+              "success" : {
+                "precision" : 1,
+                "recall" : 0.6666666666666666
+              }
+            }
+          },
+          "Food" : {
+            "count" : 2,
+            "precisionRecall" : {
+              "success" : {
+                "precision" : 0.3333333333333333,
+                "recall" : 0.5
+              }
+            }
+          },
+          "Outdoors" : {
+            "count" : 1,
+            "precisionRecall" : {
+              "success" : {
+                "precision" : 0,
+                "recall" : 0
+              }
+            }
+          },
+          "Shopping" : {
+            "count" : 7,
+            "precisionRecall" : {
+              "success" : {
+                "precision" : 1,
+                "recall" : 0.7142857142857143
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "validationEntity" : {
+    "analysedDataType" : "auto",
+    "dataResult" : {
+      "createdDate" : "2025-12-06T08:12:57Z"
+    },
+    "splitOptions" : {
+      "strategy" : {
+        "automatic" : {
+
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

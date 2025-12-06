@@ -1,0 +1,29 @@
+{
+  "activityEntities" : [
+    "projectCreated",
+    [
+      {
+        "createdDate" : "2024-09-30T12:22:33Z",
+        "event" : "projectCreated",
+        "id" : "02A58C99-A034-4EEC-904A-D93E1C0B8D72",
+        "subtitle" : "FoursquareSectionClassifier",
+        "title" : "Project Created"
+      }
+    ]
+  ],
+  "authorName" : "Michael A Edgcumbe",
+  "createdDate" : "2024-09-30T12:22:33Z",
+  "description" : "",
+  "id" : "A307D6F3-79C9-4EE7-8FA6-DAC283253F69",
+  "license" : "",
+  "location" : "",
+  "modifiedDate" : "2024-09-30T12:22:33Z",
+  "projectName" : "FoursquareSectionClassifier",
+  "settingsEntity" : {
+    "snapshotOnExtendTraining" : true,
+    "snapshotOnResumeTraining" : false
+  },
+  "taskType" : "textClassifier",
+  "title" : "Text Classification",
+  "version" : "1.1"
+}

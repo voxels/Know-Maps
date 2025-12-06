@@ -1,0 +1,51 @@
+{
+  "activityEntities" : [
+    "dataSourceTrainingStarted",
+    [
+      {
+        "createdDate" : "2025-12-06T08:13:03Z",
+        "event" : "dataSourceTrainingStarted",
+        "id" : "56FB2396-CC63-45CA-9D24-FD0BA266AFFA",
+        "subtitle" : "FoursquareSectionClassifier 1",
+        "title" : "Used By"
+      }
+    ],
+    "dataSourceCreated",
+    [
+      {
+        "createdDate" : "2025-12-06T08:12:57Z",
+        "event" : "dataSourceCreated",
+        "id" : "A14C51EE-22AA-4D13-AE60-99AC56A52680",
+        "subtitle" : "FoursquareClassifierTrainingData.csv",
+        "title" : "Data Source Created"
+      }
+    ],
+    "dataSourceMetrics",
+    [
+      {
+        "createdDate" : "2025-12-06T08:13:03Z",
+        "event" : "dataSourceMetrics",
+        "id" : "28BCC318-AAC9-483C-A678-E2CFA1938709",
+        "subtitle" : "6 Classes, 180 Items",
+        "title" : "Data Summary"
+      }
+    ]
+  ],
+  "createdDate" : "2025-12-06T08:12:57Z",
+  "dataPathRelativeToProjectURL" : "../FoursquareClassifierTrainingData.csv/",
+  "dataResult" : {
+    "createdDate" : "2025-12-06T08:12:57Z",
+    "dataSourceID" : "1F70B339-B80D-4BA9-A550-6D754208A07D",
+    "dataURL" : "file:///Users/voxels/Documents/dev/Know%20Maps/Know-Maps/Know%20Maps/Know%20Maps%20Prod/Model/ML/FoursquareClassifierTrainingData.csv"
+  },
+  "dataURL" : "file:///Users/voxels/Documents/dev/Know%20Maps/Know-Maps/Know%20Maps/Know%20Maps%20Prod/Model/ML/FoursquareClassifierTrainingData.csv",
+  "experimentIDs" : [
+    "0AF84096-486E-47C2-A004-987B4B9325C8"
+  ],
+  "id" : "1F70B339-B80D-4BA9-A550-6D754208A07D",
+  "modifiedDate" : "2025-12-06T08:13:03Z",
+  "pathType" : 0,
+  "preferredFilename" : "FoursquareClassifierTrainingData.csv",
+  "title" : "FoursquareClassifierTrainingData.csv",
+  "version" : "1.0"
+}
