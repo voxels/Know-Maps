@@ -1,1 +1,22 @@
-{"dataURL":"file:\/\/\/Users\/voxels\/Documents\/Documents%20-%20Michael%E2%80%99s%20MacBook%20Pro\/dev\/No%20Maps\/ML\/WordTaggingClassifierTrainingData_TestData.json","id":"BA02D9C2-10D4-4A01-9723-BF5202C31F63","createdDate":"2023-06-14T06:49:29Z","title":"WordTaggingClassifierTrainingData_TestData.json","modifiedDate":"2023-06-14T06:49:29Z","preferredFilename":"WordTaggingClassifierTrainingData_TestData.json","version":"1.0","dataResult":{"dataURL":"file:\/\/\/Users\/voxels\/Documents\/Documents%20-%20Michael%E2%80%99s%20MacBook%20Pro\/dev\/No%20Maps\/ML\/WordTaggingClassifierTrainingData_TestData.json","createdDate":"2023-06-14T06:49:29Z","dataSourceID":"BA02D9C2-10D4-4A01-9723-BF5202C31F63"},"activityEntities":[],"pathType":0,"experimentIDs":["44027750-A891-4F36-8EEA-1A32AD3D0821"]}
+{
+  "activityEntities" : [
+
+  ],
+  "createdDate" : "2023-06-14T06:49:29Z",
+  "dataPathRelativeToProjectURL" : "../../../../../../../../Documents%20-%20Michael%E2%80%99s%20MacBook%20Pro/dev/No%20Maps/ML/WordTaggingClassifierTrainingData_TestData.json/",
+  "dataResult" : {
+    "createdDate" : "2023-06-14T06:49:29Z",
+    "dataSourceID" : "BA02D9C2-10D4-4A01-9723-BF5202C31F63",
+    "dataURL" : "file:///Users/voxels/Documents/Documents%20-%20Michael%E2%80%99s%20MacBook%20Pro/dev/No%20Maps/ML/WordTaggingClassifierTrainingData_TestData.json"
+  },
+  "dataURL" : "file:///Users/voxels/Documents/Documents%20-%20Michael%E2%80%99s%20MacBook%20Pro/dev/No%20Maps/ML/WordTaggingClassifierTrainingData_TestData.json",
+  "experimentIDs" : [
+    "44027750-A891-4F36-8EEA-1A32AD3D0821"
+  ],
+  "id" : "BA02D9C2-10D4-4A01-9723-BF5202C31F63",
+  "modifiedDate" : "2025-12-06T07:53:51Z",
+  "pathType" : 0,
+  "preferredFilename" : "WordTaggingClassifierTrainingData_TestData.json",
+  "title" : "WordTaggingClassifierTrainingData_TestData.json",
+  "version" : "1.0"
+}

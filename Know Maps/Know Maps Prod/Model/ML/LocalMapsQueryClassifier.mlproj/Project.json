@@ -1,1 +1,29 @@
-{"id":"C82FCA4C-E529-4F7C-A0F1-78B9FB862194","projectName":"LocalMapsQueryClassifier","description":"Determines the intent of a query","version":"1.1","authorName":"Michael A Edgcumbe","createdDate":"2023-06-13T08:49:50Z","license":"","activityEntities":["projectCreated",[{"id":"AFF5ECD4-9A87-48BD-ADA2-B80CBDBB0247","title":"Project Created","createdDate":"2023-06-13T08:49:50Z","event":"projectCreated","subtitle":"LocalMapsQueryClassifier"}]],"taskType":"textClassifier","title":"Text Classification","location":"","versionErrorTitle":"Project file cannot be opened.","modifiedDate":"2023-06-13T08:49:50Z","settingsEntity":{"snapshotOnExtendTraining":true,"snapshotOnResumeTraining":false},"versionErrorSubtitle":"You need a newer version of Create ML to open this file. Download the latest version."}
+{
+  "activityEntities" : [
+    "projectCreated",
+    [
+      {
+        "createdDate" : "2023-06-13T08:49:50Z",
+        "event" : "projectCreated",
+        "id" : "AFF5ECD4-9A87-48BD-ADA2-B80CBDBB0247",
+        "subtitle" : "LocalMapsQueryClassifier",
+        "title" : "Project Created"
+      }
+    ]
+  ],
+  "authorName" : "Michael A Edgcumbe",
+  "createdDate" : "2023-06-13T08:49:50Z",
+  "description" : "Determines the intent of a query",
+  "id" : "C82FCA4C-E529-4F7C-A0F1-78B9FB862194",
+  "license" : "",
+  "location" : "",
+  "modifiedDate" : "2023-06-13T08:49:50Z",
+  "projectName" : "LocalMapsQueryClassifier",
+  "settingsEntity" : {
+    "snapshotOnExtendTraining" : true,
+    "snapshotOnResumeTraining" : false
+  },
+  "taskType" : "textClassifier",
+  "title" : "Text Classification",
+  "version" : "1.1"
+}
