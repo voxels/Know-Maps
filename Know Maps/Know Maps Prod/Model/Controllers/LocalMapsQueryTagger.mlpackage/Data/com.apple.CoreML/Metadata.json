@@ -1,0 +1,12 @@
+{
+  "MLModelVersionStringKey" : "--",
+  "MLModelDescriptionKey" : "Tags words in a query to match the syntax of Foursquare’s Place API",
+  "MLModelCreatorDefinedKey" : {
+    "com.apple.createml.version" : "13.4.0",
+    "com.apple.createml.app.tag" : "99.4",
+    "com.apple.coreml.model.preview.type" : "wordTagger",
+    "com.apple.createml.app.version" : "4.0"
+  },
+  "MLModelAuthorKey" : "Michael A Edgcumbe",
+  "MLModelLicenseKey" : "--"
+}

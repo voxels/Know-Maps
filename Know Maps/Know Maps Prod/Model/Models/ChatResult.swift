@@ -53,3 +53,35 @@ public struct ChatResult : Identifiable, Equatable, Hashable, Sendable {
         placeDetailsResponse = response
     }
 }
+
+extension ChatResult {
+    func toItemMetadata() -> ItemMetadata? {
+        // Try recommended response first
+        if let r = recommendedPlaceResponse {
+            return ItemMetadata(
+                id: r.fsqID,
+                title: r.name,
+                descriptionText: nil,
+                styleTags: r.categories,
+                categories: r.categories,
+                location: r.formattedAddress,
+                price: nil
+            )
+        }
+
+        // Otherwise fallback to search response
+        if let p = placeResponse {
+            return ItemMetadata(
+                id: p.fsqID,
+                title: p.name,
+                descriptionText: p.formattedAddress,
+                styleTags: p.categories,
+                categories: p.categories,
+                location: p.formattedAddress,
+                price: nil
+            )
+        }
+
+        return nil
+    }
+}

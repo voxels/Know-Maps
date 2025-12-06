@@ -13,6 +13,7 @@ import SwiftData
 public final class CloudCacheManager: CacheManager {
     
     public let cloudCacheService: CloudCacheService
+    public let analyticsManager:AnalyticsService
     public var isRefreshingCache: Bool = false
     public var cacheFetchProgress: Double = 0
     public var completedTasks = 0
@@ -26,8 +27,9 @@ public final class CloudCacheManager: CacheManager {
      public var cachedLocationResults = [LocationResult]()
      public var cachedRecommendationData = [RecommendationData]()
 
-    public init(cloudCacheService:CloudCacheService) {
+    public init(cloudCacheService:CloudCacheService, analyticsManager: AnalyticsService) { 
         self.cloudCacheService = cloudCacheService
+        self.analyticsManager = analyticsManager
     }
 
     // MARK: Refresh Cache
@@ -151,7 +153,6 @@ public final class CloudCacheManager: CacheManager {
     }
     
     public func restoreCache() async throws {
-        print("Restoring all cache records")
         try await cloudCacheService.fetchAllRecords(recordTypes: ["UserCachedRecord", "RecommendationData"])
     }
 
@@ -290,4 +291,3 @@ public final class CloudCacheManager: CacheManager {
         return "\(location.coordinate.latitude),\(location.coordinate.longitude)"
     }
 }
-

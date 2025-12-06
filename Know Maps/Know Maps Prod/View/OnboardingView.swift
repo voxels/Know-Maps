@@ -9,8 +9,8 @@ import SwiftUI
 
 struct OnboardingView: View {    
     @ObservedObject public var settingsModel:AppleAuthenticationService
-    @Binding public var chatModel:ChatResultViewModel
-    @Binding var modelController:DefaultModelController
+    // public var chatModel:ChatResultViewModel // Not used
+    var modelController:DefaultModelController
     
     @Binding  public var showOnboarding:Bool
     @State public var locationIsAuthorized:Bool = false
@@ -38,8 +38,7 @@ struct OnboardingView: View {
 
                         OnboardingLocationView(
                             settingsModel: settingsModel,
-                            chatModel: $chatModel,
-                            modelController: $modelController,
+                            modelController: modelController,
                             showOnboarding: $showOnboarding,
                             locationIsAuthorized: $locationIsAuthorized
                         )

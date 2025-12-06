@@ -16,7 +16,6 @@ public protocol AnalyticsService : Sendable {
     func trackError(error: Error, additionalInfo: [String: Any]?)
     
     // Track cache refreshes or updates
-    func trackCacheRefresh(cacheType: String, success: Bool, additionalInfo: [String: Any]?)
-    
-    func identify(userID:String)
+    func trackCacheRefresh(cacheType: String, success: Bool, additionalInfo: [String: Any]?) // This is fine
+    func identify(userID:String)    
 }

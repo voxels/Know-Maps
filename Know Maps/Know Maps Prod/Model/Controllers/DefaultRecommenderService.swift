@@ -4,7 +4,6 @@
 //
 //  Created by Michael A Edgcumbe on 10/9/24.
 //
-
 import Foundation
 #if canImport(CreateML)
 import CreateML
@@ -12,49 +11,117 @@ import CreateML
 import TabularData
 import CoreML
 
-struct RecommenderTableData : Hashable, Codable {
-    public let identity:String
-    public let attribute:String
-    public let rating:Double
+struct RecommenderTableData: Hashable, Codable {
+    public let identity: String
+    public let attribute: String
+    public let rating: Double
 }
 
-public final class DefaultRecommenderService : RecommenderService {
-    public func recommendationData(tasteCategoryResults: [CategoryResult], industryCategoryResults: [CategoryResult], placeRecommendationData:[RecommendationData]) -> [RecommendationData] {
+public final class DefaultRecommenderService: RecommenderService {
+    
+    // MARK: - Shared helper for any category-like input
+    
+    // Accept arrays of a single concrete conforming type
+    private func recommendationData<C: RecommendationCategoryConvertible>(
+        from categoryResults: [C]
+    ) -> [RecommendationData] {
+        categoryResults.map { result in
+            RecommendationData(
+                id: UUID(),
+                recordId: "",
+                identity: result.recommenderIdentity,
+                attributes: [result.recommenderAttribute],
+                reviews: [],
+                attributeRatings: [
+                    result.recommenderAttribute: result.recommenderRating
+                ]
+            )
+        }
+    }
+    
+    private func recommendationData(
+        from categoryResults: [any RecommendationCategoryConvertible]
+    ) -> [RecommendationData] {
+        categoryResults.map { result in
+            RecommendationData(
+                id: UUID(),
+                recordId: "",
+                identity: result.recommenderIdentity,
+                attributes: [result.recommenderAttribute],
+                reviews: [],
+                attributeRatings: [
+                    result.recommenderAttribute: result.recommenderRating
+                ]
+            )
+        }
+    }
+    
+    // MARK: - Existing public API (still works the same)
+    
+    public func recommendationData(
+        tasteCategoryResults: [CategoryResult],
+        industryCategoryResults: [CategoryResult],
+        placeRecommendationData: [RecommendationData]
+    ) -> [RecommendationData] {
         var retval = [RecommendationData]()
         
-        for tasteCategoryResult in tasteCategoryResults {
-            let data = RecommendationData(                id:UUID(),recordId: "", identity: tasteCategoryResult.parentCategory, attributes: [tasteCategoryResult.parentCategory], reviews: [], attributeRatings: [tasteCategoryResult.parentCategory: tasteCategoryResult.rating])
-            retval.append(data)
-        }
-        
-        for industryCategoryResult in industryCategoryResults {
-            let data = RecommendationData(                id:UUID(),recordId: "", identity: industryCategoryResult.parentCategory, attributes: [industryCategoryResult.parentCategory], reviews: [], attributeRatings: [industryCategoryResult.parentCategory: industryCategoryResult.rating])
-            retval.append(data)
-        }
-    
+        // Use the shared helper instead of duplicating logic.
+        retval.append(contentsOf: recommendationData(from: tasteCategoryResults))
+        retval.append(contentsOf: recommendationData(from: industryCategoryResults))
         retval.append(contentsOf: placeRecommendationData)
         
         return retval
     }
     
-    public func testingData(with responses:[RecommendedPlaceSearchResponse])->[RecommendationData] {
+    /// Optional: a more generic API you can start using for new category types
+    public func recommendationData(
+        categoryGroups: [[any RecommendationCategoryConvertible]],
+        placeRecommendationData: [RecommendationData]
+    ) -> [RecommendationData] {
+        var retval = [RecommendationData]()
+        
+        for group in categoryGroups {
+            retval.append(contentsOf: recommendationData(from: group))
+        }
+        
+        retval.append(contentsOf: placeRecommendationData)
+        return retval
+    }
+    
+    public func testingData(
+        with responses: [RecommendedPlaceSearchResponse]
+    ) -> [RecommendationData] {
         var retval = [RecommendationData]()
         
         for response in responses {
             for taste in response.tastes {
-                let data = RecommendationData(                id:UUID(),recordId: "", identity:response.fsqID, attributes: [taste], reviews: [], attributeRatings: [taste: 1])
+                let data = RecommendationData(
+                    id: UUID(),
+                    recordId: "",
+                    identity: response.fsqID,
+                    attributes: [taste],
+                    reviews: [],
+                    attributeRatings: [taste: 1]
+                )
                 retval.append(data)
             }
             
             for category in response.categories {
-                let data = RecommendationData(                id:UUID(),recordId: "", identity:response.fsqID, attributes: [category], reviews: [], attributeRatings: [category: 1])
+                let data = RecommendationData(
+                    id: UUID(),
+                    recordId: "",
+                    identity: response.fsqID,
+                    attributes: [category],
+                    reviews: [],
+                    attributeRatings: [category: 1]
+                )
                 retval.append(data)
             }
         }
         
         return retval
     }
-
+    
     #if canImport(CreateML)
     public func model(with recommendationData: [RecommendationData]) throws -> MLRandomForestRegressor {
         
@@ -70,13 +137,30 @@ public final class DefaultRecommenderService : RecommenderService {
             }
         }
         
-        let trainingData:DataFrame = ["identity": identities,"attribute":attributes,"rating":ratings]
-        let model = try MLRandomForestRegressor(trainingData: trainingData, targetColumn: "rating", parameters:MLRandomForestRegressor.ModelParameters.init(validation: .split(strategy: .automatic), maxIterations: 100    ))
+        let trainingData: DataFrame = [
+            "identity": identities,
+            "attribute": attributes,
+            "rating": ratings
+        ]
+        
+        let params = MLRandomForestRegressor.ModelParameters(
+            validation: .split(strategy: .automatic),
+            maxIterations: 100
+        )
+        
+        let model = try MLRandomForestRegressor(
+            trainingData: trainingData,
+            targetColumn: "rating",
+            parameters: params
+        )
         
         return model
     }
     
-    public func recommend(from testingData: [RecommendationData], with model: MLRandomForestRegressor) throws -> [RecommendationData] {
+    public func recommend(
+        from testingData: [RecommendationData],
+        with model: MLRandomForestRegressor
+    ) throws -> [RecommendationData] {
         var retval = testingData
         
         var identities = [String]()
@@ -89,15 +173,18 @@ public final class DefaultRecommenderService : RecommenderService {
             }
         }
         
-        let test:DataFrame = ["identity":identities,"attribute":attributes]
+        let test: DataFrame = [
+            "identity": identities,
+            "attribute": attributes
+        ]
         
         let results = try model.predictions(from: test)
         
         for index in 0..<results.count {
-            let retvalDatum = retval[index]
+            var retvalDatum = retval[index]
             retvalDatum.attributeRatings.removeAll()
             if let result = results[index] as? Double {
-                retvalDatum.attributeRatings = [attributes[index]:result]
+                retvalDatum.attributeRatings = [attributes[index]: result]
             }
             retval[index] = retvalDatum
         }

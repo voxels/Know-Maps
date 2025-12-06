@@ -1,4 +1,4 @@
-//
+ //
 //  AddPromptView.swift
 //  Know Maps
 //
@@ -6,10 +6,9 @@
 //
 
 import SwiftUI
-
 struct AddPromptView: View {
-    @Binding public var chatModel: ChatResultViewModel
-    @Binding public var cacheManager:CloudCacheManager
+    public var chatModel: ChatResultViewModel
+    public var cacheManager:CloudCacheManager
     @Binding public var modelController:DefaultModelController
     @Binding public var multiSelection: Set<String>
     
@@ -21,10 +20,10 @@ struct AddPromptView: View {
 struct AddPromptToolbarView: View {
     @Environment(\.horizontalSizeClass) var sizeClass
     
-    @Binding public var viewModel: SearchSavedViewModel
-    @Binding public var chatModel:ChatResultViewModel
-    @Binding public var cacheManager: CloudCacheManager
-    @Binding public var modelController: DefaultModelController
+    public var viewModel: SearchSavedViewModel
+    public var chatModel:ChatResultViewModel
+    var cacheManager: CloudCacheManager
+    public var modelController: DefaultModelController
     @Binding public var section: Int
     @Binding public var multiSelection: Set<String>
     @Binding public var searchMode:SearchMode
@@ -44,13 +43,11 @@ struct AddPromptToolbarView: View {
         else if searchMode == .industries {
             Button(action: {
                 Task(priority:.userInitiated) {
-                    for parent in multiSelection {
-                        await viewModel.addCategory(
-                            parent: parent, rating:2,
-                            cacheManager: cacheManager,
-                            modelController: modelController
-                        )
-                    }
+                    // Perform a single batched operation
+                    await viewModel.addCategories(
+                        parents: Array(multiSelection), rating: 2,
+                        cacheManager: cacheManager, modelController: modelController
+                    )
                 }
             }) {
                 Label("Save", systemImage: "plus.circle")
@@ -60,13 +57,11 @@ struct AddPromptToolbarView: View {
         } else if searchMode == .features {
             Button(action: {
                 Task(priority:.userInitiated) {
-                    for parent in multiSelection {
-                        await viewModel.addTaste(
-                            parent: parent, rating:2,
-                            cacheManager: cacheManager,
-                            modelController: modelController
-                        )
-                    }
+                    // Perform a single batched operation
+                    await viewModel.addTastes(
+                        parents: Array(multiSelection), rating: 2,
+                        cacheManager: cacheManager, modelController: modelController
+                    )
                 }
             }) {
                 Label("Save", systemImage: "plus.circle")

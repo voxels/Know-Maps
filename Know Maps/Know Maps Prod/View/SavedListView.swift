@@ -28,9 +28,9 @@ struct AddItemTip: Tip {
 struct SavedListView: View {
     @Environment(\.dismiss) var dismiss
 
-    @Binding public var searchSavedViewModel: SearchSavedViewModel
-    @Binding public var cacheManager: CloudCacheManager
-    @Binding public var modelController: DefaultModelController
+    var searchSavedViewModel: SearchSavedViewModel
+    var cacheManager: CloudCacheManager
+    var modelController: DefaultModelController
     @Binding public var section: Int
     @Binding public var searchMode:SearchMode
 
@@ -44,11 +44,55 @@ struct SavedListView: View {
     
     @State private var lastTapCategoryID: CategoryResult.ID? = nil
     @State private var lastTapAt: Date = .distantPast
+    @State private var refreshError: Error?
+    @State private var selectedCategoryID: CategoryResult.ID? = nil
+    
+    // MARK: - Computed Properties for Filtering
+    
+    private var filteredMoods: [CategoryResult] {
+        guard !searchText.isEmpty else { return cacheManager.cachedDefaultResults }
+        let needle = searchText
+        return cacheManager.cachedDefaultResults.filter { result in
+            let parent = result.parentCategory
+            return parent.localizedCaseInsensitiveContains(needle)
+        }
+    }
+    
+    private var filteredIndustries: [CategoryResult] {
+        guard !searchText.isEmpty else { return cacheManager.cachedIndustryResults }
+        let needle = searchText
+        return cacheManager.cachedIndustryResults.filter { result in
+            let parent = result.parentCategory
+            return parent.localizedCaseInsensitiveContains(needle)
+        }
+    }
+    
+    private var filteredTastes: [CategoryResult] {
+        guard !searchText.isEmpty else { return cacheManager.cachedTasteResults }
+        let needle = searchText
+        return cacheManager.cachedTasteResults.filter { result in
+            let parent = result.parentCategory
+            return parent.localizedCaseInsensitiveContains(needle)
+        }
+    }
+    
+    private var filteredPlaces: [CategoryResult] {
+        guard !searchText.isEmpty else { return cacheManager.cachedPlaceResults }
+        let needle = searchText
+        return cacheManager.cachedPlaceResults.filter { result in
+            let parent = result.parentCategory
+            return parent.localizedCaseInsensitiveContains(needle)
+        }
+    }
     
     var body: some View {
         NavigationStack {
             GeometryReader { geometry in
-                List(selection:$modelController.selectedCategoryChatResult) {
+                let selectionBinding: Binding<CategoryResult.ID?> = Binding(
+                    get: { selectedCategoryID },
+                    set: { selectedCategoryID = $0 }
+                )
+                List(selection: selectionBinding) {
 #if !os(macOS)
                     TipView(MenuNavigationIconTip())
 #endif
@@ -63,13 +107,9 @@ struct SavedListView: View {
 #endif // !os(macOS)
                         
                         DisclosureGroup("Moods", isExpanded: $isMoodsExpanded) {
-                            ForEach(cacheManager.cachedDefaultResults.filter({ result in
-                                if searchText.isEmpty { return true }
-                                else {
-                                    return result.parentCategory.lowercased().contains(searchText.lowercased())
-                                }
-                            }), id: \.id) { parent in
+                            ForEach(filteredMoods, id: \.id) { parent in
                                 Text(parent.parentCategory)
+                                    .id(parent.id)
                             }
                         }
                     } else {
@@ -78,23 +118,16 @@ struct SavedListView: View {
                     
                     DisclosureGroup("Favorite Industries", isExpanded: $isTypesExpanded) {
                         if !cacheManager.cachedIndustryResults.isEmpty {
-                            ForEach(cacheManager.cachedIndustryResults.filter({ result in
-                                if searchText.isEmpty { return true }
-                                else {
-                                    return result.parentCategory.lowercased().contains(searchText.lowercased())
+                            IndustriesList(
+                                items: filteredIndustries,
+                                onEdit: { parent in
+                                    searchSavedViewModel.editingRecommendationWeightResult = parent
+                                },
+                                onDelete: { indexSet in
+                                    let idsToDelete = indexSet.map { cacheManager.cachedIndustryResults[$0].id }
+                                    deleteCategoryItem(at: idsToDelete)
                                 }
-                            }), id: \.id) { parent in
-                                HStack {
-                                    Text(parent.parentCategory)
-                                    Spacer()
-                                    ratingButton(for: parent, searchMode: .industries)
-                                }
-                                .frame(maxWidth: .infinity)
-                            }
-                            .onDelete { indexSet in
-                                let idsToDelete = indexSet.map { cacheManager.cachedIndustryResults[$0].id }
-                                deleteCategoryItem(at: idsToDelete)
-                            }
+                            )
                         }
                         Button(action: {
                             searchMode = .industries
@@ -110,23 +143,16 @@ struct SavedListView: View {
                     
                     DisclosureGroup("Favorite Features", isExpanded: $isItemsExpanded) {
                         if !cacheManager.cachedTasteResults.isEmpty {
-                            ForEach(cacheManager.cachedTasteResults.filter({ result in
-                                if searchText.isEmpty { return true }
-                                else {
-                                    return result.parentCategory.lowercased().contains(searchText.lowercased())
+                            TastesList(
+                                items: filteredTastes,
+                                onEdit: { parent in
+                                    searchSavedViewModel.editingRecommendationWeightResult = parent
+                                },
+                                onDelete: { indexSet in
+                                    let idsToDelete = indexSet.map { cacheManager.cachedTasteResults[$0].id }
+                                    deleteTasteItem(at: idsToDelete)
                                 }
-                            }), id: \.id) { parent in
-                                HStack {
-                                    Text(parent.parentCategory)
-                                    Spacer()
-                                    ratingButton(for: parent, searchMode: .features)
-                                }
-                                .frame(maxWidth: .infinity)
-                            }
-                            .onDelete { indexSet in
-                                let idsToDelete = indexSet.map { cacheManager.cachedTasteResults[$0].id }
-                                deleteTasteItem(at: idsToDelete)
-                            }
+                            )
                         }
                         Button(action: {
                             searchMode = .features
@@ -136,25 +162,19 @@ struct SavedListView: View {
                                 Text("Add a feature")
                                 Spacer()
                             }
-                            
                             .foregroundColor(.accentColor)
                         }
                     }
                     
                     DisclosureGroup("Favorite Places", isExpanded: $isPlacesExpanded) {
                         if !cacheManager.cachedPlaceResults.isEmpty {
-                            ForEach(cacheManager.cachedPlaceResults.filter({ result in
-                                if searchText.isEmpty { return true }
-                                else {
-                                    return result.parentCategory.lowercased().contains(searchText.lowercased())
+                            PlacesList(
+                                items: filteredPlaces,
+                                onDelete: { indexSet in
+                                    let idsToDelete = indexSet.map { cacheManager.cachedPlaceResults[$0].id }
+                                    deletePlaceItem(at: idsToDelete)
                                 }
-                            }), id: \.id) { parent in
-                                Text(parent.parentCategory)
-                            }
-                            .onDelete { indexSet in
-                                let idsToDelete = indexSet.map { cacheManager.cachedPlaceResults[$0].id }
-                                deletePlaceItem(at: idsToDelete)
-                            }
+                            )
                         }
                         Button(action: {
                             searchMode = .places
@@ -172,12 +192,19 @@ struct SavedListView: View {
                 .listStyle(InsetGroupedListStyle())
                 .listRowBackground(Color(.systemGroupedBackground))
 #endif
+                .alert("Refresh Failed", isPresented: .constant(refreshError != nil), actions: {
+                    Button("OK") { refreshError = nil }
+                }, message: {
+                    Text(refreshError?.localizedDescription ?? "An unknown error occurred. Please check your network connection and try again.")
+                })
                 .refreshable {
                     Task(priority: .userInitiated) {
                         do {
                             try await cacheManager.refreshCache()
+                            // Update result indexer after cache refresh
+                            await MainActor.run { updateResultIndex() }
                         } catch {
-                            modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
+                            refreshError = error
                         }
                     }
                 }
@@ -186,10 +213,16 @@ struct SavedListView: View {
 #else
                 .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search for a favorite")
 #endif
+                .onChange(of: selectedCategoryID) { (_: CategoryResult.ID?, newValue: CategoryResult.ID?) in
+                    modelController.selectedCategoryChatResult = newValue
+                }
                 .task {
+                    self.selectedCategoryID = (modelController.selectedCategoryChatResult as CategoryResult.ID?)
                     Task(priority: .high) {
                         do {
                             try await cacheManager.refreshCache()
+                            // Update result indexer after cache refresh
+                            await MainActor.run { updateResultIndex() }
                         } catch {
                             modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
                         }
@@ -197,6 +230,76 @@ struct SavedListView: View {
                 }
             }
         }
+    }
+    
+    private struct IndustriesList: View {
+        let items: [CategoryResult]
+        let onEdit: (CategoryResult) -> Void
+        let onDelete: (IndexSet) -> Void
+
+        var body: some View {
+            ForEach(items, id: \.id) { parent in
+                HStack {
+                    Text(parent.parentCategory)
+                    Spacer()
+                    RatingButton(result: parent, rating: Int(parent.rating)) {
+                        onEdit(parent)
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .id(parent.id)
+            }
+            .onDelete(perform: onDelete)
+        }
+    }
+
+    private struct TastesList: View {
+        let items: [CategoryResult]
+        let onEdit: (CategoryResult) -> Void
+        let onDelete: (IndexSet) -> Void
+
+        var body: some View {
+            ForEach(items, id: \.id) { parent in
+                HStack {
+                    Text(parent.parentCategory)
+                    Spacer()
+                    RatingButton(result: parent, rating: Int(parent.rating)) {
+                        onEdit(parent)
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .id(parent.id)
+            }
+            .onDelete(perform: onDelete)
+        }
+    }
+
+    private struct PlacesList: View {
+        let items: [CategoryResult]
+        let onDelete: (IndexSet) -> Void
+
+        var body: some View {
+            ForEach(items, id: \.id) { parent in
+                Text(parent.parentCategory)
+                    .id(parent.id)
+            }
+            .onDelete(perform: onDelete)
+        }
+    }
+
+    private func updateResultIndex() {
+        modelController.resultIndexer.updateIndex(
+            placeResults: modelController.placeResults,
+            recommendedPlaceResults: modelController.recommendedPlaceResults,
+            relatedPlaceResults: modelController.relatedPlaceResults,
+            industryResults: modelController.industryResults,
+            tasteResults: modelController.tasteResults,
+            cachedIndustryResults: cacheManager.cachedIndustryResults,
+            cachedPlaceResults: cacheManager.cachedPlaceResults,
+            cachedTasteResults: cacheManager.cachedTasteResults,
+            cachedDefaultResults: cacheManager.cachedDefaultResults,
+            cachedRecommendationData: cacheManager.cachedRecommendationData
+        )
     }
     
     // MARK: - Helper Views
@@ -211,179 +314,34 @@ struct SavedListView: View {
         return true
     }
     
-    @ViewBuilder
-    func ratingButton(for parent: CategoryResult, searchMode:SearchMode) -> some View {
-        
-        switch searchMode {
-        case .industries:
-            let isSaved = cacheManager.cachedIndustryResults.contains(where: { $0.parentCategory == parent.parentCategory })
-            if isSaved, let rating = cacheManager.cachedIndustryResults.first(where: { $0.parentCategory == parent.parentCategory })?.rating {
-                switch rating {
-                case ..<1:
-                    Button(action: {
-                        searchSavedViewModel.editingRecommendationWeightResult = parent
-                    }) {
-                        Label("Never", systemImage: "star.slash")
-                            .foregroundColor(.red)
-                    }
-                    .frame(width: 44, height:44)
-                    .buttonStyle(BorderlessButtonStyle())
-                    .labelStyle(.iconOnly)
-                case 1..<3:
-                    Button(action: {
-                        searchSavedViewModel.editingRecommendationWeightResult = parent
-                    }) {
-                        Label("Occasionally", systemImage: "star.leadinghalf.filled")
-                            .foregroundColor(.accentColor)
-                    }
-                    .frame(width: 44, height:44)
-                    .buttonStyle(BorderlessButtonStyle())
-                    .labelStyle(.iconOnly)
-                case 3...:
-                    Button(action: {
-                        searchSavedViewModel.editingRecommendationWeightResult = parent
-                    }) {
-                        Label("Often", systemImage: "star.fill")
-                            .foregroundColor(.green)
-                    }
-                    .frame(width: 44, height:44)
-                    .buttonStyle(BorderlessButtonStyle())
-                    .labelStyle(.iconOnly)
-                default:
-                    EmptyView()
-                }
-            }
-
-        case .features:
-            let isSaved = cacheManager.cachedTasteResults.contains(where: { $0.parentCategory == parent.parentCategory })
-            if isSaved, let rating = cacheManager.cachedTasteResults.first(where: { $0.parentCategory == parent.parentCategory })?.rating {
-                switch rating {
-                case ..<1:
-                    Button(action: {
-                        searchSavedViewModel.editingRecommendationWeightResult = parent
-                    }) {
-                        Label("Never", systemImage: "star.slash")
-                            .foregroundColor(.red)
-                    }
-                    .frame(width: 44, height:44)
-                    .buttonStyle(BorderlessButtonStyle())
-                    .labelStyle(.iconOnly)
-                case 1..<3:
-                    Button(action: {
-                        searchSavedViewModel.editingRecommendationWeightResult = parent
-                    }) {
-                        Label("Occasionally", systemImage: "star.leadinghalf.filled")
-                            .foregroundColor(.accentColor)
-                    }
-                    .frame(width: 44, height:44)
-                    .buttonStyle(BorderlessButtonStyle())
-                    .labelStyle(.iconOnly)
-                case 3...:
-                    Button(action: {
-                        searchSavedViewModel.editingRecommendationWeightResult = parent
-                    }) {
-                        Label("Often", systemImage: "star.fill")
-                            .foregroundColor(.green)
-                    }
-                    .frame(width: 44, height:44)
-                    .buttonStyle(BorderlessButtonStyle())
-                    .labelStyle(.iconOnly)
-                default:
-                    EmptyView()
-                }
-            } else {
-                Button(action: {
-                    searchSavedViewModel.editingRecommendationWeightResult = parent
-                }) {
-                    Label("Occasionally", systemImage: "star.leadinghalf.filled")
-                        .foregroundColor(.accentColor)
-                }
-                .frame(width: 44, height:44)
-                .buttonStyle(BorderlessButtonStyle())
-                .labelStyle(.iconOnly)
-            }
-        case .places:
-            let isSaved = cacheManager.cachedPlaceResults.contains(where: { $0.parentCategory == parent.parentCategory })
-            
-            if isSaved, let rating = cacheManager.cachedPlaceResults.first(where: { $0.parentCategory == parent.parentCategory })?.rating {
-                switch rating {
-                case ..<1:
-                    Button(action: {
-                        searchSavedViewModel.editingRecommendationWeightResult = parent
-                    }) {
-                        Label("Never", systemImage: "star.slash")
-                            .foregroundColor(.red)
-                    }
-                    .frame(width: 44, height:44)
-                    .buttonStyle(BorderlessButtonStyle())
-                    .labelStyle(.iconOnly)
-                case 1..<3:
-                    Button(action: {
-                        searchSavedViewModel.editingRecommendationWeightResult = parent
-                    }) {
-                        Label("Occasionally", systemImage: "star.leadinghalf.filled")
-                            .foregroundColor(.accentColor)
-                    }
-                    .frame(width: 44, height:44)
-                    .buttonStyle(BorderlessButtonStyle())
-                    .labelStyle(.iconOnly)
-                case 3...:
-                    Button(action: {
-                        searchSavedViewModel.editingRecommendationWeightResult = parent
-                    }) {
-                        Label("Often", systemImage: "star.fill")
-                            .foregroundColor(.green)
-                    }
-                    .frame(width: 44, height:44)
-                    .buttonStyle(BorderlessButtonStyle())
-                    .labelStyle(.iconOnly)
-                default:
-                    EmptyView()
-                }
-            } else {
-                Button(action: {
-                    searchSavedViewModel.editingRecommendationWeightResult = parent
-                }) {
-                    Label("Occasionally", systemImage: "star.leadinghalf.filled")
-                        .foregroundColor(.accentColor)
-                }
-                .frame(width: 44, height:44)
-                .buttonStyle(BorderlessButtonStyle())
-                .labelStyle(.iconOnly)
-            }
-        default:
-            EmptyView()
-        }
-    }
-    
     func deleteTasteItem(at idsToDelete: [String]) {
-        for id in idsToDelete {
-            Task(priority: .userInitiated) {
-                if let parent = modelController.cachedTasteResult(for: id) {
-                    await searchSavedViewModel.removeCachedResults(group: "Taste", identity: parent.parentCategory, cacheManager: cacheManager, modelController: modelController)
-                }
-            }
+        Task(priority: .userInitiated) {
+            let identities = idsToDelete.compactMap { modelController.cachedTasteResult(for: $0)?.parentCategory }
+            guard !identities.isEmpty else { return }
+            // This assumes removeCachedResults can handle multiple identities.
+            // If not, the method in the ViewModel should be updated to loop.
+            await searchSavedViewModel.removeCachedResults(group: "Taste", identities: identities, cacheManager: cacheManager, modelController: modelController)
         }
     }
     
     func deleteCategoryItem(at idsToDelete: [String]) {
-        for id in idsToDelete {
-            Task(priority: .userInitiated) {
-                if let parent = modelController.cachedIndustryResult(for: id) {
-                    await searchSavedViewModel.removeCachedResults(group: "Category", identity: parent.parentCategory, cacheManager: cacheManager, modelController: modelController)
-                }
-            }
+        Task(priority: .userInitiated) {
+            let identities = idsToDelete.compactMap { modelController.cachedIndustryResult(for: $0)?.parentCategory }
+            guard !identities.isEmpty else { return }
+            await searchSavedViewModel.removeCachedResults(group: "Category", identities: identities, cacheManager: cacheManager, modelController: modelController)
         }
     }
     
     func deletePlaceItem(at idsToDelete: [String]) {
-        for id in idsToDelete {
-            Task(priority: .userInitiated) {
-                if let parent = modelController.cachedPlaceResult(for: id),
-                   let fsqID = parent.categoricalChatResults.first?.placeResponse?.fsqID {
-                    await searchSavedViewModel.removeCachedResults(group: "Place", identity: fsqID, cacheManager: cacheManager, modelController: modelController)
-                    _ = try? await cacheManager.cloudCacheService.deleteRecommendationData(for: fsqID)
-                }
+        Task(priority: .userInitiated) {
+            let fsqIDs = idsToDelete.compactMap {
+                modelController.cachedPlaceResult(for: $0)?.categoricalChatResults.first?.placeResponse?.fsqID
+            }
+            guard !fsqIDs.isEmpty else { return }
+            await searchSavedViewModel.removeCachedResults(group: "Place", identities: fsqIDs, cacheManager: cacheManager, modelController: modelController)
+            // Also batch the recommendation data deletion
+            for id in fsqIDs {
+                try? await cacheManager.cloudCacheService.deleteRecommendationData(for: id)
             }
         }
     }
