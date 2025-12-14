@@ -1006,6 +1006,7 @@
 		1E095B1C2B778AF000147119 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Know Maps.app/Know Maps";
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -1028,6 +1029,7 @@
 		1E095B1D2B778AF000147119 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Know Maps.app/Know Maps";
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -1215,6 +1217,7 @@
 		1EE599B92CA4A6DE00C211A6 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Know Maps.app/Know Maps";
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -1234,6 +1237,7 @@
 		1EE599BA2CA4A6DE00C211A6 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Know Maps.app/Know Maps";
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
