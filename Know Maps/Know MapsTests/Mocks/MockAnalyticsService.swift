@@ -6,7 +6,7 @@
 //
 
 import Foundation
-@testable import Know_Maps_Prod
+@testable import Know_Maps
 
 @MainActor
 final class MockAnalyticsService: AnalyticsService, @unchecked Sendable {

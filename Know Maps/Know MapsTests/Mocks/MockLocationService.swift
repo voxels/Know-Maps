@@ -7,7 +7,7 @@
 
 import Foundation
 import CoreLocation
-@testable import Know_Maps_Prod
+@testable import Know_Maps
 
 @MainActor
 final class MockLocationService: LocationService, @unchecked Sendable {
@@ -43,17 +43,16 @@ final class MockLocationService: LocationService, @unchecked Sendable {
 }
 
 // Mock LocationProvider to satisfy the dependency
-@MainActor
 final class MockLocationProvider: LocationProvider, @unchecked Sendable {
     
     var mockIsAuthorized: Bool = true
     var mockCurrentLocation: CLLocation = CLLocation(latitude: 37.7749, longitude: -122.4194)
     
-    func isAuthorized() -> Bool {
+    override func isAuthorized() -> Bool {
         return mockIsAuthorized
     }
     
-    func requestAuthorizationIfNeeded() async {
+    override func requestAuthorizationIfNeeded() async {
         // No-op for testing
     }
     
@@ -61,3 +60,4 @@ final class MockLocationProvider: LocationProvider, @unchecked Sendable {
         return mockCurrentLocation
     }
 }
+

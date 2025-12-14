@@ -6,7 +6,7 @@
 //
 
 import XCTest
-@testable import Know_Maps_Prod
+@testable import Know_Maps
 
 @MainActor
 final class ResultIndexServiceV2Tests: XCTestCase {

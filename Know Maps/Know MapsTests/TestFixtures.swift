@@ -7,7 +7,8 @@
 
 import Foundation
 import CoreLocation
-@testable import Know_Maps_Prod
+import CloudKit
+@testable import Know_Maps
 
 @MainActor
 struct TestFixtures {
@@ -225,11 +226,146 @@ struct TestFixtures {
 // MARK: - Mock CloudCacheService
 
 @MainActor
-final class MockCloudCacheService: CloudCacheService, @unchecked Sendable {
+final class MockCloudCacheService: CloudCache, @unchecked Sendable {
     var analyticsManager: AnalyticsService
     var hasFsqAccess: Bool = true
-    
+
+    // Track method calls for testing
+    private static var _mockCachedRecords: [UserCachedRecord] = []
+    private static var _mockRecommendationData: [RecommendationData] = []
+    private static var _fetchAllRecordsCalled: Bool = false
+    private static var _requestedRecordTypes: [String]? = nil
+
     init(analyticsManager: AnalyticsService) {
         self.analyticsManager = analyticsManager
+    }
+
+    // MARK: - Fetching and Caching Methods
+
+    func fetch(url: URL, from cloudService: CloudCacheServiceKey) async throws -> Any {
+        return [:]
+    }
+
+    func fetchGroupedUserCachedRecords(for group: String) async throws -> [UserCachedRecord] {
+        return type(of: self)._mockCachedRecords.filter { $0.list == group }
+    }
+
+    func storeUserCachedRecord(
+        recordId: String,
+        group: String,
+        identity: String,
+        title: String,
+        icons: String,
+        list: String,
+        section: String,
+        rating: Double
+    ) async throws -> Bool {
+        let record = UserCachedRecord()
+        record.identity = identity
+        record.title = title
+        record.icons = icons
+        record.list = list
+        record.section = section
+        record.rating = Int(rating)
+        type(of: self)._mockCachedRecords.append(record)
+        return true
+    }
+
+    func updateUserCachedRecordRating(identity: String, newRating: Double) async throws {
+        if let index = type(of: self)._mockCachedRecords.firstIndex(where: { $0.identity == identity }) {
+            type(of: self)._mockCachedRecords[index].rating = Int(newRating)
+        }
+    }
+
+    func deleteUserCachedRecord(for cachedRecord: UserCachedRecord) async throws {
+        type(of: self)._mockCachedRecords.removeAll { $0.identity == cachedRecord.identity }
+    }
+
+    func deleteAllUserCachedRecords(for group: String) async throws {
+        type(of: self)._mockCachedRecords.removeAll { $0.list == group }
+    }
+
+    func deleteAllUserCachedGroups() async throws {
+        type(of: self)._mockCachedRecords.removeAll()
+    }
+
+    // MARK: - Recommendation Data Methods
+
+    func storeRecommendationData(
+        for identity: String,
+        attributes: [String],
+        reviews: [String]
+    ) async throws -> Bool {
+        let data = RecommendationData(
+            identity: identity,
+            parentCategory: "Test Category",
+            rating: 3
+        )
+        type(of: self)._mockRecommendationData.append(data)
+        return true
+    }
+
+    func fetchRecommendationData() async throws -> [RecommendationData] {
+        return type(of: self)._mockRecommendationData
+    }
+
+    func deleteRecommendationData(for identity: String) async throws {
+        type(of: self)._mockRecommendationData.removeAll { $0.identity == identity }
+    }
+
+    func deleteRecommendationData(for fsqIDs: [String]) async throws {
+        type(of: self)._mockRecommendationData.removeAll { fsqIDs.contains($0.identity) }
+    }
+
+    // MARK: - CloudKit Identity and OAuth Management
+
+    func fetchFsqIdentity() async throws -> String {
+        return "mock-fsq-identity"
+    }
+
+    func fetchToken(for fsqUserId: String) async throws -> String {
+        return "mock-oauth-token"
+    }
+
+    func storeFoursquareIdentityAndToken(for fsqUserId: String, oauthToken: String) {
+        // Mock implementation - no-op
+    }
+
+    // MARK: - API Key and Session Management
+
+    func apiKey(for service: CloudCacheServiceKey) async throws -> String {
+        return "mock-api-key"
+    }
+
+    func session(service: String) async throws -> URLSession {
+        // Return a mock session configured with MockURLProtocol
+        return MockURLProtocol.makeMockSession()
+    }
+
+    func fetchCloudKitUserRecordID() async throws -> CKRecord.ID? {
+        return CKRecord.ID(recordName: "mock-record-id")
+    }
+
+    func fetchAllRecords(recordTypes: [String]) async throws {
+        type(of: self)._fetchAllRecordsCalled = true
+        type(of: self)._requestedRecordTypes = recordTypes
+    }
+
+    // MARK: - Background Operations
+
+    func clearCache() {
+        type(of: self)._mockCachedRecords.removeAll()
+        type(of: self)._mockRecommendationData.removeAll()
+        type(of: self)._fetchAllRecordsCalled = false
+        type(of: self)._requestedRecordTypes = nil
+    }
+
+    // MARK: - Test Helpers
+
+    static func reset() {
+        _mockCachedRecords = []
+        _mockRecommendationData = []
+        _fetchAllRecordsCalled = false
+        _requestedRecordTypes = nil
     }
 }

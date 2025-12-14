@@ -7,11 +7,11 @@
 
 import Foundation
 import CoreLocation
-@testable import Know_Maps_Prod
+@testable import Know_Maps
 
 @MainActor
 final class MockCacheManager: CacheManager, @unchecked Sendable {
-    
+    var analyticsManager: AnalyticsService
     var cloudCacheService: CloudCacheService
     var isRefreshingCache: Bool = false
     var cacheFetchProgress: Double = 0.0
@@ -31,8 +31,9 @@ final class MockCacheManager: CacheManager, @unchecked Sendable {
     var restoreCacheCalled: Bool = false
     var clearCacheCalled: Bool = false
     
-    init(cloudCacheService: CloudCacheService) {
+    init(cloudCacheService: CloudCacheService, analyticsManager:AnalyticsService) {
         self.cloudCacheService = cloudCacheService
+        self.analyticsManager = analyticsManager
     }
     
     func refreshCache() async throws {

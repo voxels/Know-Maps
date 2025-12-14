@@ -7,7 +7,7 @@
 
 import Foundation
 import CoreLocation
-@testable import Know_Maps_Prod
+@testable import Know_Maps
 
 final class MockPlaceSearchService: PlaceSearchService, @unchecked Sendable {
     

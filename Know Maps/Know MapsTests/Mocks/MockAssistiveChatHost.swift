@@ -7,11 +7,11 @@
 
 import Foundation
 import CoreLocation
-@testable import Know_Maps_Prod
+@testable import Know_Maps
 
+@MainActor
 final class MockAssistiveChatHost: AssistiveChatHost, @unchecked Sendable {
-    
-    var messagesDelegate: AssistiveChatHostMessagesDelegate
+    weak var messagesDelegate: (any AssistiveChatHostMessagesDelegate)?
     var placeSearchSession: PlaceSearchSession
     var queryIntentParameters: AssistiveChatHostQueryParameters
     var categoryCodes: [[String : [[String : String]]]] = []
@@ -30,7 +30,7 @@ final class MockAssistiveChatHost: AssistiveChatHost, @unchecked Sendable {
     var receiveMessageCalled: Bool = false
     var defaultParametersCalled: Bool = false
     
-    required init(analyticsManager: AnalyticsService, messagesDelegate: AssistiveChatHostMessagesDelegate) {
+    required init(analyticsManager: AnalyticsService, messagesDelegate: (any AssistiveChatHostMessagesDelegate)?) {
         self.messagesDelegate = messagesDelegate
         self.placeSearchSession = PlaceSearchSession()
         self.queryIntentParameters = AssistiveChatHostQueryParameters()
@@ -40,23 +40,7 @@ final class MockAssistiveChatHost: AssistiveChatHost, @unchecked Sendable {
         determineIntentCalled = true
         return override ?? mockIntent
     }
-    
-    func updateLastIntentParameters(intent: AssistiveChatHostIntent, modelController: ModelController) async {
-        updateLastIntentParametersCalled = true
-    }
-    
-    func appendIntentParameters(intent: AssistiveChatHostIntent, modelController: ModelController) async {
-        appendIntentParametersCalled = true
-    }
-    
-    func resetIntentParameters() {
-        resetIntentParametersCalled = true
-    }
-    
-    func receiveMessage(caption: String, isLocalParticipant: Bool, filters: [String : Any], modelController: ModelController, overrideIntent: AssistiveChatHostService.Intent?, selectedDestinationLocation: LocationResult?) async throws {
-        receiveMessageCalled = true
-    }
-    
+        
     func defaultParameters(for query: String, filters: [String : Any]) async throws -> [String : Any]? {
         defaultParametersCalled = true
         return mockDefaultParameters
@@ -70,3 +54,4 @@ final class MockAssistiveChatHost: AssistiveChatHost, @unchecked Sendable {
         return mockSection
     }
 }
+

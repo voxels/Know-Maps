@@ -7,7 +7,7 @@
 
 import XCTest
 import CoreLocation
-@testable import Know_Maps_Prod
+@testable import Know_Maps
 
 // MARK: - Input Sanitization Tests
 
