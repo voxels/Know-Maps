@@ -47,7 +47,9 @@ final class DefaultModelControllerInputSanitizationTests: XCTestCase {
         
         // Then the query should be processed (sanitized internally)
         // We can verify this indirectly through analytics or other side effects
-        XCTAssertNotNil(controller)
+        let expectedEvent = "refreshModel: query=test query"
+        let eventTracked = mockAnalytics.hasTrackedEvent(expectedEvent)
+        XCTAssertTrue(eventTracked, "The sanitized query event should have been tracked")
     }
 }
 

@@ -137,7 +137,9 @@ final class DefaultModelControllerStateManagementTests: XCTestCase {
         // Then results should be generated based on category codes
         // (This depends on the assistiveHostDelegate having category codes)
         XCTAssertNotNil(results)
-        // Note: Actual count will depend on the real implementation
+        // A more specific assertion would be better, but requires more context
+        // on the delegate. For now, we'll assume a non-nil result is sufficient.
+        // If the delegate is configured with categories, we could check for non-empty.
     }
     
     func testEnsureIndustryResultsPopulated_PopulatesWhenEmpty() async {
@@ -148,8 +150,7 @@ final class DefaultModelControllerStateManagementTests: XCTestCase {
         await controller.ensureIndustryResultsPopulated()
         
         // Then industry results should be populated
-        // Note: This test may need adjustment based on actual mock data
-        XCTAssertNotNil(controller.industryResults)
+        XCTAssertFalse(controller.industryResults.isEmpty, "Industry results should be populated")
     }
     
     func testEnsureIndustryResultsPopulated_SkipsWhenAlreadyPopulated() async {
