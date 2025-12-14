@@ -26,7 +26,7 @@ public enum CloudCacheServiceKey: String {
     case revenuecat
 }
 
-public final class CloudCacheService: NSObject, CloudCache {
+public class CloudCacheService: NSObject, CloudCache {
 
     public let analyticsManager: AnalyticsService
     
