@@ -67,11 +67,30 @@ final class MockPlaceSearchService: PlaceSearchService, @unchecked Sendable {
     
     func placeSearchRequest(intent: AssistiveChatHostIntent) async -> PlaceSearchRequest {
         placeSearchRequestCalled = true
-        return PlaceSearchRequest(location: CLLocation(latitude: 0, longitude: 0), parameters: [:])
+        // Provide required parameters with simple test defaults
+        return PlaceSearchRequest(
+            query: "",
+            ll: nil,
+            categories: nil,
+            fields: "",
+            openAt: nil,
+            openNow: nil,
+            nearLocation: nil,
+            sort: nil
+        )
     }
     
     func recommendedPlaceSearchRequest(intent: AssistiveChatHostIntent) async -> RecommendedPlaceSearchRequest {
         recommendedPlaceSearchRequestCalled = true
-        return RecommendedPlaceSearchRequest(location: CLLocation(latitude: 0, longitude: 0), parameters: [:])
+        // Provide required parameters with simple test defaults
+        return RecommendedPlaceSearchRequest(
+            query: "",
+            ll: nil,
+            categories:"",
+            openNow: nil,
+            section:.topPicks,
+            tags: [:]
+        )
     }
 }
+

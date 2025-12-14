@@ -18,6 +18,7 @@
 		1E3FE0162CB7F7B40020B3CB /* SavedListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E3FE0152CB7F7B20020B3CB /* SavedListView.swift */; };
 		1E3FE0552CB852070020B3CB /* AppShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E3FE0542CB852000020B3CB /* AppShortcuts.swift */; };
 		1E3FE0572CB855020020B3CB /* PersonalizedSearchSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E3FE0562CB854FD0020B3CB /* PersonalizedSearchSection.swift */; };
+		1E5894DB2EEF160500D6BB98 /* ResultIndexServiceV2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E5894DA2EEF160500D6BB98 /* ResultIndexServiceV2.swift */; };
 		1E5F4AF82EE2E3770077BA28 /* RatingButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E5F4AF72EE2E3770077BA28 /* RatingButton.swift */; };
 		1E5F4AFC2EE41EB90077BA28 /* FoursquareSectionClassifier.mlmodel in Sources */ = {isa = PBXBuildFile; fileRef = 1E5F4AFB2EE41EB90077BA28 /* FoursquareSectionClassifier.mlmodel */; };
 		1E601F5D2CB0512900E320D7 /* GoogleBannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E601F5C2CB0512900E320D7 /* GoogleBannerView.swift */; };
@@ -179,6 +180,7 @@
 		1E3FE0542CB852000020B3CB /* AppShortcuts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppShortcuts.swift; sourceTree = "<group>"; };
 		1E3FE0562CB854FD0020B3CB /* PersonalizedSearchSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersonalizedSearchSection.swift; sourceTree = "<group>"; };
 		1E583F7C2B1671F300B2EC26 /* AppleAuthenticationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleAuthenticationService.swift; sourceTree = "<group>"; };
+		1E5894DA2EEF160500D6BB98 /* ResultIndexServiceV2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResultIndexServiceV2.swift; sourceTree = "<group>"; };
 		1E5F4AF72EE2E3770077BA28 /* RatingButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RatingButton.swift; sourceTree = "<group>"; };
 		1E5F4AFB2EE41EB90077BA28 /* FoursquareSectionClassifier.mlmodel */ = {isa = PBXFileReference; lastKnownFileType = file.mlmodel; path = FoursquareSectionClassifier.mlmodel; sourceTree = "<group>"; };
 		1E601F5C2CB0512900E320D7 /* GoogleBannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoogleBannerView.swift; sourceTree = "<group>"; };
@@ -445,6 +447,7 @@
 				1EDF93C52CB52CC200FDCFDF /* LocationService.swift */,
 				1E7D435C2CB5258E00DC17FA /* ModelController.swift */,
 				1EDF93CB2CB52E5900FDCFDF /* PlaceSearchService.swift */,
+				1E5894DA2EEF160500D6BB98 /* ResultIndexServiceV2.swift */,
 			);
 			path = Protocols;
 			sourceTree = "<group>";
@@ -816,6 +819,7 @@
 				1E7D435B2CB46C0900DC17FA /* DefaultPlaceSearchService.swift in Sources */,
 				1EF379082C986EE7001C5E39 /* OnboardingLocationView.swift in Sources */,
 				1EDF93CC2CB52E5C00FDCFDF /* PlaceSearchService.swift in Sources */,
+				1E5894DB2EEF160500D6BB98 /* ResultIndexServiceV2.swift in Sources */,
 				1E3FE0552CB852070020B3CB /* AppShortcuts.swift in Sources */,
 				1EDF93C62CB52CC500FDCFDF /* LocationService.swift in Sources */,
 				1EF379092C986EE7001C5E39 /* OnboardingSubscriptionView.swift in Sources */,
@@ -1006,12 +1010,11 @@
 		1E095B1C2B778AF000147119 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Know Maps.app/Know Maps";
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = FTMC23LTVL;
+				DEVELOPMENT_TEAM = 23264QUM9A;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
@@ -1023,18 +1026,18 @@
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Know Maps.app/Know Maps";
 			};
 			name = Debug;
 		};
 		1E095B1D2B778AF000147119 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Know Maps.app/Know Maps";
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = FTMC23LTVL;
+				DEVELOPMENT_TEAM = 23264QUM9A;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
@@ -1046,6 +1049,7 @@
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Know Maps.app/Know Maps";
 			};
 			name = Release;
 		};
@@ -1055,7 +1059,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = FTMC23LTVL;
+				DEVELOPMENT_TEAM = 23264QUM9A;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
@@ -1077,7 +1081,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = FTMC23LTVL;
+				DEVELOPMENT_TEAM = 23264QUM9A;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
@@ -1217,7 +1221,6 @@
 		1EE599B92CA4A6DE00C211A6 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Know Maps.app/Know Maps";
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -1231,13 +1234,13 @@
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Know Maps.app/Know Maps";
 			};
 			name = Debug;
 		};
 		1EE599BA2CA4A6DE00C211A6 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Know Maps.app/Know Maps";
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -1251,6 +1254,7 @@
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Know Maps.app/Know Maps";
 			};
 			name = Release;
 		};
