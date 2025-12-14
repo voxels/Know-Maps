@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		037E6D32762A2C2DA4B15774 /* ResultIndexServiceV2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76CE6FE4C4DB57CC9440194F /* ResultIndexServiceV2.swift */; };
 		1E007ACC2CB4089700A8DC5A /* CloudCacheManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E007ACB2CB4089400A8DC5A /* CloudCacheManager.swift */; };
 		1E007ACE2CB40B1D00A8DC5A /* SegmentAnalyticsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E007ACD2CB40B1900A8DC5A /* SegmentAnalyticsService.swift */; };
 		1E1E310D2CC1954F00A23434 /* Nuke in Frameworks */ = {isa = PBXBuildFile; productRef = 1E1E310C2CC1954F00A23434 /* Nuke */; };
@@ -132,11 +131,6 @@
 		1EFFBB342E83EAA90088882B /* Realtime in Frameworks */ = {isa = PBXBuildFile; productRef = 1EFFBB332E83EAA90088882B /* Realtime */; };
 		1EFFBB362E83EAA90088882B /* Storage in Frameworks */ = {isa = PBXBuildFile; productRef = 1EFFBB352E83EAA90088882B /* Storage */; };
 		1EFFBB382E83EAA90088882B /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 1EFFBB372E83EAA90088882B /* Supabase */; };
-		28AC6B7B20316C039B1559FF /* MockInputValidationServiceV2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 163A205250927D184A1F3101 /* MockInputValidationServiceV2.swift */; };
-		74DE3EF71FF27D4EFD9CBB41 /* ResultIndexServiceV2Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A2D02F43B0E4AE275201F07 /* ResultIndexServiceV2Tests.swift */; };
-		C1AAE8F06911A83365CC5E61 /* DefaultResultIndexServiceV2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 999D1EBB6CCAEBB5492D2CD2 /* DefaultResultIndexServiceV2.swift */; };
-		E406DA8FFDFA022BCC714A1F /* MockResultIndexServiceV2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E9EA6A0E11D20E23BC1D325 /* MockResultIndexServiceV2.swift */; };
-		ED94C5A541050B57CE79340F /* InputValidationServiceV2Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C663478711D4B256D1641D0 /* InputValidationServiceV2Tests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -164,7 +158,6 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		163A205250927D184A1F3101 /* MockInputValidationServiceV2.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MockInputValidationServiceV2.swift; path = "Know MapsTests/Mocks/MockInputValidationServiceV2.swift"; sourceTree = "<group>"; };
 		1E007ACB2CB4089400A8DC5A /* CloudCacheManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudCacheManager.swift; sourceTree = "<group>"; };
 		1E007ACD2CB40B1900A8DC5A /* SegmentAnalyticsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SegmentAnalyticsService.swift; sourceTree = "<group>"; };
 		1E095AF82B778AEF00147119 /* Know Maps.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Know Maps.app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -173,8 +166,6 @@
 		1E095B022B778AF000147119 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		1E095B082B778AF000147119 /* Know Maps ProdTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Know Maps ProdTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		1E095B122B778AF000147119 /* Know Maps ProdUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Know Maps ProdUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
-		1E095B252B778EAE00147119 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS17.2.sdk/System/Library/Frameworks/StoreKit.framework; sourceTree = DEVELOPER_DIR; };
-		1E0C49662CBFFD0C0087E624 /* BlueECC */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = BlueECC; path = "/Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-himzneyjugqfhfayuscbrjgkaapl/SourcePackages/checkouts/BlueECC"; sourceTree = "<absolute>"; };
 		1E1E31102CC19E1B00A23434 /* Know-Maps-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "Know-Maps-Info.plist"; sourceTree = "<group>"; };
 		1E1F5E442B725D56008B6BAD /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		1E1F5E482B725FBB008B6BAD /* OnboardingSignInView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingSignInView.swift; sourceTree = "<group>"; };
@@ -191,7 +182,6 @@
 		1E5F4AF72EE2E3770077BA28 /* RatingButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RatingButton.swift; sourceTree = "<group>"; };
 		1E5F4AFB2EE41EB90077BA28 /* FoursquareSectionClassifier.mlmodel */ = {isa = PBXFileReference; lastKnownFileType = file.mlmodel; path = FoursquareSectionClassifier.mlmodel; sourceTree = "<group>"; };
 		1E601F5C2CB0512900E320D7 /* GoogleBannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoogleBannerView.swift; sourceTree = "<group>"; };
-		1E60F44F2CAC149F00891250 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.0.sdk/System/Library/Frameworks/StoreKit.framework; sourceTree = DEVELOPER_DIR; };
 		1E630C832B1636E400A57CCB /* ActivityViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityViewController.swift; sourceTree = "<group>"; };
 		1E630C852B16440100A57CCB /* CloudCacheService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudCacheService.swift; sourceTree = "<group>"; };
 		1E69444B2CB993C70017A81F /* FiltersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FiltersView.swift; sourceTree = "<group>"; };
@@ -291,11 +281,6 @@
 		1EFFBAA12E8278020088882B /* generating_loop_4.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = generating_loop_4.wav; sourceTree = "<group>"; };
 		1EFFBAA22E8278020088882B /* PLAY_fixed.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = PLAY_fixed.wav; sourceTree = "<group>"; };
 		1EFFBAA32E8278020088882B /* THINKING.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = THINKING.wav; sourceTree = "<group>"; };
-		76CE6FE4C4DB57CC9440194F /* ResultIndexServiceV2.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ResultIndexServiceV2.swift; path = "Know Maps Prod/Model/Protocols/ResultIndexServiceV2.swift"; sourceTree = "<group>"; };
-		7A2D02F43B0E4AE275201F07 /* ResultIndexServiceV2Tests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ResultIndexServiceV2Tests.swift; path = "Know MapsTests/ResultIndexServiceV2Tests.swift"; sourceTree = "<group>"; };
-		7C663478711D4B256D1641D0 /* InputValidationServiceV2Tests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = InputValidationServiceV2Tests.swift; path = "Know MapsTests/InputValidationServiceV2Tests.swift"; sourceTree = "<group>"; };
-		999D1EBB6CCAEBB5492D2CD2 /* DefaultResultIndexServiceV2.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = DefaultResultIndexServiceV2.swift; path = "Know Maps Prod/Model/Controllers/DefaultResultIndexServiceV2.swift"; sourceTree = "<group>"; };
-		9E9EA6A0E11D20E23BC1D325 /* MockResultIndexServiceV2.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MockResultIndexServiceV2.swift; path = "Know MapsTests/Mocks/MockResultIndexServiceV2.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -343,23 +328,6 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		00BF66CFFBB4303C119F0792 /* Know Maps Prod */ = {
-			isa = PBXGroup;
-			children = (
-				3E3577FBFBC81EE31DBDFCDC /* Model */,
-			);
-			name = "Know Maps Prod";
-			sourceTree = "<group>";
-		};
-		1C14715A01560189F6F3361E /* Mocks */ = {
-			isa = PBXGroup;
-			children = (
-				163A205250927D184A1F3101 /* MockInputValidationServiceV2.swift */,
-				9E9EA6A0E11D20E23BC1D325 /* MockResultIndexServiceV2.swift */,
-			);
-			name = Mocks;
-			sourceTree = "<group>";
-		};
 		1E095AF92B778AEF00147119 /* Know Maps Prod */ = {
 			isa = PBXGroup;
 			children = (
@@ -381,16 +349,6 @@
 				1E095B022B778AF000147119 /* Preview Assets.xcassets */,
 			);
 			path = "Preview Content";
-			sourceTree = "<group>";
-		};
-		1E6F4AFE2B20F538001E701B /* Frameworks */ = {
-			isa = PBXGroup;
-			children = (
-				1E60F44F2CAC149F00891250 /* StoreKit.framework */,
-				1E095B252B778EAE00147119 /* StoreKit.framework */,
-				1E0C49662CBFFD0C0087E624 /* BlueECC */,
-			);
-			name = Frameworks;
 			sourceTree = "<group>";
 		};
 		1E98C7D82B18E0A100283E92 /* Models */ = {
@@ -498,9 +456,6 @@
 				1E095AF92B778AEF00147119 /* Know Maps Prod */,
 				1EE599B42CA4A6DE00C211A6 /* Know MapsTests */,
 				1EA7F7462B03FA70002AE371 /* Products */,
-				1E6F4AFE2B20F538001E701B /* Frameworks */,
-				1EC133E0C83E127B36B26617 /* Know MapsTests */,
-				C71C598C4751686FD1AFB4B9 /* Know Maps */,
 			);
 			sourceTree = "<group>";
 		};
@@ -566,16 +521,6 @@
 			path = Model;
 			sourceTree = "<group>";
 		};
-		1EC133E0C83E127B36B26617 /* Know MapsTests */ = {
-			isa = PBXGroup;
-			children = (
-				1C14715A01560189F6F3361E /* Mocks */,
-				7C663478711D4B256D1641D0 /* InputValidationServiceV2Tests.swift */,
-				7A2D02F43B0E4AE275201F07 /* ResultIndexServiceV2Tests.swift */,
-			);
-			name = "Know MapsTests";
-			sourceTree = "<group>";
-		};
 		1EDF93CD2CB52E9800FDCFDF /* Network */ = {
 			isa = PBXGroup;
 			children = (
@@ -601,45 +546,12 @@
 			path = Audio;
 			sourceTree = "<group>";
 		};
-		3E3577FBFBC81EE31DBDFCDC /* Model */ = {
-			isa = PBXGroup;
-			children = (
-				43BE2935D5991D723389AE1B /* Protocols */,
-				43A8CA5F5973EEDDE60C8466 /* Controllers */,
-			);
-			name = Model;
-			sourceTree = "<group>";
-		};
-		43A8CA5F5973EEDDE60C8466 /* Controllers */ = {
-			isa = PBXGroup;
-			children = (
-				999D1EBB6CCAEBB5492D2CD2 /* DefaultResultIndexServiceV2.swift */,
-			);
-			name = Controllers;
-			sourceTree = "<group>";
-		};
-		43BE2935D5991D723389AE1B /* Protocols */ = {
-			isa = PBXGroup;
-			children = (
-				76CE6FE4C4DB57CC9440194F /* ResultIndexServiceV2.swift */,
-			);
-			name = Protocols;
-			sourceTree = "<group>";
-		};
 		A513DA3C9390CF09595D23C3 /* ML */ = {
 			isa = PBXGroup;
 			children = (
 				1E9478482EDC45D5002F10E3 /* FoundationModelsIntentClassifier.swift */,
 			);
 			name = ML;
-			sourceTree = "<group>";
-		};
-		C71C598C4751686FD1AFB4B9 /* Know Maps */ = {
-			isa = PBXGroup;
-			children = (
-				00BF66CFFBB4303C119F0792 /* Know Maps Prod */,
-			);
-			name = "Know Maps";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -938,8 +850,6 @@
 				1EF3791B2C986EE7001C5E39 /* PlaceTipsView.swift in Sources */,
 				1E96EE9A2CB5274D0070BCDD /* Authentication.swift in Sources */,
 				1E9478762EE1C93E002F10E3 /* TextEmbeddingClient.swift in Sources */,
-				037E6D32762A2C2DA4B15774 /* ResultIndexServiceV2.swift in Sources */,
-				C1AAE8F06911A83365CC5E61 /* DefaultResultIndexServiceV2.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -961,10 +871,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				28AC6B7B20316C039B1559FF /* MockInputValidationServiceV2.swift in Sources */,
-				ED94C5A541050B57CE79340F /* InputValidationServiceV2Tests.swift in Sources */,
-				E406DA8FFDFA022BCC714A1F /* MockResultIndexServiceV2.swift in Sources */,
-				74DE3EF71FF27D4EFD9CBB41 /* ResultIndexServiceV2Tests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
