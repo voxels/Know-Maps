@@ -9,23 +9,24 @@ import Foundation
 import CoreLocation
 import SwiftData
 
+
 @Observable
-public final class CloudCacheManager: CacheManager {
+public final class CloudCacheManager: @preconcurrency CacheManager {
     
     public let cloudCacheService: CloudCacheService
     public let analyticsManager:AnalyticsService
-    public var isRefreshingCache: Bool = false
-    public var cacheFetchProgress: Double = 0
-    public var completedTasks = 0
+    @MainActor public var isRefreshingCache: Bool = false
+    @MainActor public var cacheFetchProgress: Double = 0
+    @MainActor public var completedTasks = 0
 
     // Cached Results
-     public var cachedDefaultResults = [CategoryResult]()
-     public var cachedIndustryResults = [CategoryResult]()
-     public var cachedTasteResults = [CategoryResult]()
-     public var cachedPlaceResults = [CategoryResult]()
-     public var allCachedResults = [CategoryResult]()
-     public var cachedLocationResults = [LocationResult]()
-     public var cachedRecommendationData = [RecommendationData]()
+    @MainActor public var cachedDefaultResults = [CategoryResult]()
+    @MainActor public var cachedIndustryResults = [CategoryResult]()
+    @MainActor public var cachedTasteResults = [CategoryResult]()
+    @MainActor public var cachedPlaceResults = [CategoryResult]()
+    @MainActor public var allCachedResults = [CategoryResult]()
+    @MainActor public var cachedLocationResults = [LocationResult]()
+    @MainActor public var cachedRecommendationData = [RecommendationData]()
 
     public init(cloudCacheService:CloudCacheService, analyticsManager: AnalyticsService) { 
         self.cloudCacheService = cloudCacheService
@@ -79,6 +80,7 @@ public final class CloudCacheManager: CacheManager {
         }
     }
     
+    @MainActor
     public func refreshCachedCategories() async {
         do {
             let records = try await cloudCacheService.fetchGroupedUserCachedRecords(for: "Category")
@@ -91,6 +93,7 @@ public final class CloudCacheManager: CacheManager {
         }
     }
 
+    @MainActor
     public func refreshCachedTastes() async {
         do {
             let records = try await cloudCacheService.fetchGroupedUserCachedRecords(for: "Taste")
@@ -103,6 +106,7 @@ public final class CloudCacheManager: CacheManager {
         }
     }
 
+    @MainActor
     public func refreshCachedPlaces() async {
         do {
             let records = try await cloudCacheService.fetchGroupedUserCachedRecords(for: "Place")
@@ -115,6 +119,7 @@ public final class CloudCacheManager: CacheManager {
         }
     }
 
+    @MainActor
     public func refreshCachedLocations() async {
         do {
             let records = try await cloudCacheService.fetchGroupedUserCachedRecords(for: "Location")
@@ -127,6 +132,7 @@ public final class CloudCacheManager: CacheManager {
         }
     }
 
+    @MainActor
     public func refreshCachedRecommendationData() async {
         do {
             let records = try await cloudCacheService.fetchRecommendationData()
@@ -138,6 +144,7 @@ public final class CloudCacheManager: CacheManager {
         }
     }
 
+    @MainActor
     public func refreshCachedResults() async {
         let allCachedCategoryResults = self.getAllCachedCategoryResults()
         await MainActor.run {
@@ -263,6 +270,7 @@ public final class CloudCacheManager: CacheManager {
             .map({ $0.categoryResult() })
     }
 
+    @MainActor
     public func getAllCachedCategoryResults() -> [CategoryResult] {
         var results = cachedIndustryResults + cachedTasteResults +  cachedDefaultResults + cachedPlaceResults
         results.sort { $0.parentCategory.lowercased() < $1.parentCategory.lowercased() }
@@ -270,23 +278,22 @@ public final class CloudCacheManager: CacheManager {
     }
 
     // MARK: - Cached Records Methods
-
+    @MainActor
     public func cachedCategories(contains category: String) -> Bool {
         return cachedIndustryResults.contains { $0.parentCategory == category }
     }
-
+    @MainActor
     public func cachedTastes(contains taste: String) -> Bool {
         return cachedTasteResults.contains { $0.parentCategory == taste }
     }
-
+    @MainActor
     public func cachedLocation(contains location: String) -> Bool {
         return cachedLocationResults.contains { $0.locationName == location }
     }
-
+    @MainActor
     public func cachedPlaces(contains place: String) -> Bool {
         return cachedPlaceResults.contains { $0.parentCategory == place }
     }
-
     public func cachedLocationIdentity(for location: CLLocation) -> String {
         return "\(location.coordinate.latitude),\(location.coordinate.longitude)"
     }

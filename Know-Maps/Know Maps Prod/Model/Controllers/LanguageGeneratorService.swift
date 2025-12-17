@@ -7,15 +7,14 @@
 
 import Foundation
 
-// TODO: Replace with Apple Foundation Frameworks
-open class LanguageGeneratorService : LanguageGenerator {
+@MainActor
+public final class LanguageGeneratorService : LanguageGenerator {
+    private var session:LanguageGeneratorSession = LanguageGeneratorSession()
     public let analyticsManager: AnalyticsService
     
     public init(analyticsManager: AnalyticsService) {
         self.analyticsManager = analyticsManager
     }
-    
-    private var session:LanguageGeneratorSession = LanguageGeneratorSession()
     
     public func placeDescription(with description:String, chatResult:ChatResult, delegate:AssistiveChatHostStreamResponseDelegate) async {
         await delegate.willReceiveStreamingResult(for: chatResult.id)

@@ -8,7 +8,8 @@ public enum LanguageGeneratorSessionError : Error {
     case InvalidServerResponse
 }
 
-open class LanguageGeneratorSession : NSObject, ObservableObject {
+@MainActor
+open class LanguageGeneratorSession : NSObject, ObservableObject, Sendable {
     private var openaiApiKey = ""
     private var searchSession:URLSession?
     let keysContainer = CKContainer(identifier:"iCloud.com.secretatomics.knowmaps.Keys")
@@ -26,7 +27,9 @@ open class LanguageGeneratorSession : NSObject, ObservableObject {
         }
     }
     
-    public func query(languageGeneratorRequest:LanguageGeneratorRequest, delegate:AssistiveChatHostStreamResponseDelegate? = nil) async throws->NSDictionary? {
+    
+    @MainActor
+    public func query(languageGeneratorRequest:LanguageGeneratorRequest, delegate:AssistiveChatHostStreamResponseDelegate? = nil) async throws-> Dictionary<String,String>?{
         if searchSession == nil {
             searchSession = try await session()
         }
@@ -57,10 +60,10 @@ open class LanguageGeneratorSession : NSObject, ObservableObject {
         let jsonData = try JSONSerialization.data(withJSONObject: body)
         request.httpBody = jsonData
                 
-        return try await fetch(urlRequest: request, apiKey: self.openaiApiKey, session:searchSession) as? NSDictionary
+        return try await fetch(urlRequest: request, apiKey: self.openaiApiKey, session:searchSession)
     }
     
-    internal func fetch(urlRequest:URLRequest, apiKey:String, session:URLSession ) async throws -> Any {
+    internal func fetch(urlRequest:URLRequest, apiKey:String, session:URLSession ) async throws -> Dictionary<String,String> {
         print("Requesting URL: \(String(describing: urlRequest.url))")
         let responseAny:Any = try await withCheckedThrowingContinuation({checkedContinuation in
             let dataTask = session.dataTask(with: urlRequest, completionHandler: { data, response, error in
@@ -85,7 +88,7 @@ open class LanguageGeneratorSession : NSObject, ObservableObject {
             dataTask.resume()
         })
         
-        return responseAny
+        return responseAny as? [String:String] ?? [:]
     }
     
     internal func fetchBytes(urlRequest:URLRequest, apiKey:String, session:URLSession, languageGeneratorRequest:LanguageGeneratorRequest, delegate:AssistiveChatHostStreamResponseDelegate) async throws -> NSDictionary? {
@@ -127,38 +130,42 @@ open class LanguageGeneratorSession : NSObject, ObservableObject {
         
     
     public func session() async throws -> URLSession {
-        let task = Task.init { () -> Bool in
-            let predicate = NSPredicate(format: "service == %@", "openai")
-            let query = CKQuery(recordType: "KeyString", predicate: predicate)
-            let operation = CKQueryOperation(query: query)
-            operation.desiredKeys = ["value", "service"]
-            operation.resultsLimit = 1
-            operation.recordMatchedBlock = { [weak self] recordId, result in
-                guard let strongSelf = self else { return }
+        let predicate = NSPredicate(format: "service == %@", "openai")
+        let query = CKQuery(recordType: "KeyString", predicate: predicate)
+        let operation = CKQueryOperation(query: query)
+        operation.desiredKeys = ["value", "service"]
+        operation.resultsLimit = 1
 
-                do {
-                    let record = try result.get()
-                    if let apiKey = record["value"] as? String {
-                        print("\(String(describing: record["service"]))")
-                        strongSelf.openaiApiKey = apiKey
-                    } else {
-                        print("Did not find API Key")
-                    }
-                } catch {
-                    print(error)
-                }
-            }
-            
-            let success = try await withCheckedThrowingContinuation { checkedContinuation in
-                operation.queryResultBlock = { result in
-                    if self.openaiApiKey == "" {
-                        checkedContinuation.resume(with: .success(false))
-                    } else {
-                        checkedContinuation.resume(with: .success(true))
+        let task = await Task.init { () -> Bool in
+            let success = try await withCheckedThrowingContinuation { [weak self] checkedContinuation in
+                
+                operation.recordMatchedBlock = { recordId, result in
+                    do {
+                        let record = try result.get()
+                        if let apiKey = record["value"] as? String {
+                            print("\(String(describing: record["service"]))")
+                            DispatchQueue.main.async { [weak self] in
+                                self?.setOpenAPIKey(apiKey)
+                            }
+                        } else {
+                            print("Did not find API Key")
+                        }
+                    } catch {
+                        print(error)
                     }
                 }
                 
-                keysContainer.publicCloudDatabase.add(operation)
+                operation.queryResultBlock = { result in
+                    DispatchQueue.main.async { [weak self] in
+                        if self?.openaiApiKey == "" {
+                            checkedContinuation.resume(with: .success(false))
+                        } else {
+                            checkedContinuation.resume(with: .success(true))
+                        }
+                    }
+                }
+                
+                self?.keysContainer.publicCloudDatabase.add(operation)
             }
             
             return success
@@ -171,6 +178,10 @@ open class LanguageGeneratorSession : NSObject, ObservableObject {
         } else {
             throw LanguageGeneratorSessionError.ServiceNotFound
         }
+    }
+    
+    public func setOpenAPIKey(_ openaiAPIKey:String) {
+        self.openaiApiKey = openaiAPIKey
     }
 }
 

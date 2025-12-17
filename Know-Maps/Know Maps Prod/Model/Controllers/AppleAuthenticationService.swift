@@ -20,18 +20,18 @@ public enum AppleAuthenticationServiceError : Error {
     case failed
 }
 
+@MainActor
 class AppleAuthenticationService: NSObject, ObservableObject {
     // MARK: - Published Properties
-   
     @Published var fullName: String = ""
     @Published var appleUserId: String = ""
     @Published var signInErrorMessage: String = ""
     private var authorizationController: ASAuthorizationController?
-    
+     
     public var authCompletion:((Result<ASAuthorization, Error>) -> Void)?
     
     // Singleton instance (optional)
-    static let shared = AppleAuthenticationService()
+    @MainActor static let shared = AppleAuthenticationService()
     
     // Constants
     static let tag = "com.knowmaps.security.appleUserId"

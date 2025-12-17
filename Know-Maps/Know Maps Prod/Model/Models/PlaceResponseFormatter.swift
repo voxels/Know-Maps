@@ -604,7 +604,7 @@ open class PlaceResponseFormatter {
         return results
     }
     
-    public class func autocompletePlaceSearchResponses(with response:NSDictionary) throws ->[PlaceSearchResponse] {
+    public class func autocompletePlaceSearchResponses(with response:Dictionary<String, String>) throws ->[PlaceSearchResponse] {
         var retVal = [PlaceSearchResponse]()
         
         guard response.count > 0 else {
@@ -762,14 +762,14 @@ open class PlaceResponseFormatter {
         return retVal
     }
     
-    public class func placeSearchResponses(with response:[String:[NSDictionary]]) throws ->[PlaceSearchResponse] {
+    public class func placeSearchResponses(with response:[String:[Dictionary<String, String>]]) throws ->[PlaceSearchResponse] {
         var retVal = [PlaceSearchResponse]()
         
         guard let response = response as? NSDictionary else {
             throw PlaceResponseFormatterError.InvalidRawResponseType
         }
         
-        if let results = response["results"] as? [NSDictionary] {
+        if let results = response["results"] as? [Dictionary<String, String>] {
             
             for result in results {
                 var ident = ""
@@ -861,8 +861,8 @@ open class PlaceResponseFormatter {
                     link = linkString
                 }
                 
-                if let relatedPlacesDict = response["related_places"] as? NSDictionary {
-                    if let childrenArray = relatedPlacesDict["children"] as? [NSDictionary] {
+                if let relatedPlacesDict = response["related_places"] as? Dictionary<String, String> {
+                    if let childrenArray = relatedPlacesDict["children"] as? [Dictionary<String, String>] {
                         for childDict in childrenArray {
                             if let ident = childDict["fsq_id"] as? String {
                                 children.append(ident)
@@ -889,8 +889,7 @@ open class PlaceResponseFormatter {
         
         var searchResponse = placeSearchResponse
         
-        if searchResponse.name.isEmpty {
-            let embeddedSearchResponseDict = ["results":[response]]
+        if searchResponse.name.isEmpty, let embeddedSearchResponseDict = ["results":[response]] as? [String:[Dictionary<String, String>]] {
             let embeddedSearchResponse = try placeSearchResponses(with: embeddedSearchResponseDict).first
             if let embeddedSearchResponse = embeddedSearchResponse {
                 searchResponse = embeddedSearchResponse

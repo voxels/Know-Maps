@@ -310,13 +310,13 @@ public final class DefaultModelController: ModelController {
     
     /// Safely update location state
     public func setSelectedLocation(_ result: LocationResult?) {
+        let service = locationService
         guard let result else {
-            Task {
-                let currentLocation = locationService.currentLocation()
-                let name = try await locationService.currentLocationName()
-                await MainActor.run {
-                    selectedDestinationLocationChatResult = LocationResult(
-                        locationName: name,
+            let currentLocation = service.currentLocation()
+            Task { [weak self] in
+                if let name = try? await service.currentLocationName() {
+                    self?.selectedDestinationLocationChatResult = LocationResult(
+                        locationName:name,
                         location: currentLocation
                     )
                 }
@@ -340,9 +340,10 @@ public final class DefaultModelController: ModelController {
             if let cachedResult = self.locationChatResult(for: result.id, in: filteredLocationResults()) {
                 selectedDestinationLocationChatResult = cachedResult
             } else if result.locationName == "Current Location" {
+                let service = locationService
                 Task {
                     do {
-                        let candidatePlacemarks = try await locationService.lookUpLocation(result.location)
+                        let candidatePlacemarks = try await service.lookUpLocation(result.location)
                         if let firstPlacemark = candidatePlacemarks.first {
                             let resolvedNameResult = LocationResult(
                                 locationName: firstPlacemark.name ?? "Current Location",
@@ -772,7 +773,7 @@ public final class DefaultModelController: ModelController {
     public func refreshModel(
         query: String,
         queryIntents: [AssistiveChatHostIntent]?,
-        filters: [String: NSDictionary]
+        filters:  Dictionary<String, String>
     ) async throws -> [ChatResult] {
         
         if let lastIntent = queryIntents?.last {
@@ -1061,7 +1062,7 @@ public final class DefaultModelController: ModelController {
 
             if !items.isEmpty {
                 // No categoryResults or eventResults yet → pass empty arrays
-                let ranked = try recommender.rankItems(
+                let ranked = try await recommender.rankItems(
                     for: "defaultUser",
                     items: items,
                     categoryResults: [],
@@ -1218,16 +1219,6 @@ public final class DefaultModelController: ModelController {
             cacheManager.cachedIndustryResults.count > 2
         )
         
-        let precomputedTrainingData: [RecommendationData] = hasSufficientTrainingData ? {
-            let categoryGroups: [[any RecommendationCategoryConvertible]] = [
-                cacheManager.cachedTasteResults,
-                cacheManager.cachedIndustryResults
-            ]
-            return recommender.recommendationData(
-                categoryGroups: categoryGroups,
-                placeRecommendationData: cacheManager.cachedRecommendationData
-            )
-        }() : []
         
         if hasSufficientTrainingData {
             let destinationName = selectedDestinationLocationName()
@@ -1250,6 +1241,18 @@ public final class DefaultModelController: ModelController {
         
         // Heavy compute off-main
         let sortedResults: [ChatResult] = try await Task.detached(priority: .userInitiated) { () -> [ChatResult] in
+            
+            let precomputedTrainingData: [RecommendationData] = hasSufficientTrainingData ? {
+                let categoryGroups: [[any RecommendationCategoryConvertible]] = [
+                    cacheManager.cachedTasteResults,
+                    cacheManager.cachedIndustryResults
+                ]
+                return recommender.recommendationData(
+                    categoryGroups: categoryGroups,
+                    placeRecommendationData: cacheManager.cachedRecommendationData
+                )
+            }() : []
+
             var recommendedChatResults = [ChatResult]()
             
             #if canImport(CreateML)
@@ -1679,7 +1682,7 @@ public final class DefaultModelController: ModelController {
     public func updateLastIntentParameter(
         for placeChatResult: ChatResult,
         selectedDestinationChatResult: LocationResult,
-        filters: [String : NSDictionary]
+        filters:  Dictionary<String, String>
     ) async throws {
         guard let lastIntent = assistiveHostDelegate.queryIntentParameters.queryIntents.last else {
             return
@@ -1739,7 +1742,7 @@ public final class DefaultModelController: ModelController {
         caption: String,
         parameters: AssistiveChatHostQueryParameters,
         isLocalParticipant: Bool,
-        filters: [String : NSDictionary],
+        filters: Dictionary<String, String>,
         overrideIntent: AssistiveChatHostService.Intent? = nil,
         selectedDestinationLocation: LocationResult? = nil
     ) async throws {
@@ -1797,7 +1800,7 @@ public final class DefaultModelController: ModelController {
     public func didUpdateQuery(
         with query: String,
         parameters: AssistiveChatHostQueryParameters,
-        filters: [String : NSDictionary]
+        filters: Dictionary<String, String>
     ) async throws -> [ChatResult] {
         let safeQuery = inputValidator.sanitize(query: query)
         return try await refreshModel(

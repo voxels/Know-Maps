@@ -9,7 +9,8 @@ import Foundation
 import CoreLocation
 
 // MARK: - Location Service Protocol
-public protocol LocationService : Sendable {
+@MainActor
+public protocol LocationService {
     var locationProvider:LocationProvider { get } // Add this line
     func currentLocationName() async throws -> String
     func currentLocation() -> CLLocation

@@ -99,7 +99,7 @@ struct SavedListView: View {
                     if !cacheManager.allCachedResults.isEmpty {
 #if !os(macOS)
                         Section() {
-                            SiriTipView(intent: ShowMoodResultsIntent())
+//                            SiriTipView(intent: ShowMoodResultsIntent())
                         } header: {
                             Text("Shortcuts")
                                 .font(.subheadline)

@@ -9,7 +9,7 @@ import SwiftUI
 import CoreLocation
 import CallKit
 
-class PlaceAboutViewModel {
+class PlaceAboutViewModel : @unchecked Sendable {
     // Add Taste
     func addTaste(title: String, cacheManager: CacheManager, modelController: ModelController) async {
         do {
@@ -52,16 +52,18 @@ class PlaceAboutViewModel {
     func removeTaste(parent: CategoryResult, cacheManager: CacheManager, modelController: ModelController) async {
         // Check if the taste exists in the cache
         if cacheManager.cachedTastes(contains: parent.parentCategory) {
-            do {
-                // Fetch the cached record for the given taste
-                if let cachedRecord = try await cacheManager.cloudCacheService.fetchGroupedUserCachedRecords(for: "Taste").first(where: { $0.title == parent.parentCategory }) {
-                    // Delete the cached record
-                    try await cacheManager.cloudCacheService.deleteUserCachedRecord(for: cachedRecord)
+            Task { @MainActor in
+                do {
+                    // Fetch the cached record for the given taste
+                    if let cachedRecord = try await cacheManager.cloudCacheService.fetchGroupedUserCachedRecords(for: "Taste").first(where: { $0.title == parent.parentCategory }) {
+                        // Delete the cached record
+                        try await cacheManager.cloudCacheService.deleteUserCachedRecord(for: cachedRecord)
+                    }
+                    // Refresh the cached tastes after deletion
+                    await cacheManager.refreshCachedTastes()
+                } catch {
+                    await modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
                 }
-                // Refresh the cached tastes after deletion
-                await cacheManager.refreshCachedTastes()
-            } catch {
-                await modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
             }
         }
     }
@@ -77,17 +79,19 @@ class PlaceAboutViewModel {
         let saved = cacheManager.cachedPlaces(contains: placeResult.title)
 
         if saved {
-            // Delete from cache
-            do {
-                // Fetch the cached place record
-                if let cachedRecord = try await cacheManager.cloudCacheService.fetchGroupedUserCachedRecords(for: "Place")
-                    .first(where: { $0.identity == placeResponse.fsqID }) {
-                    
-                    // Delete the record from CloudKit
-                    try await cacheManager.cloudCacheService.deleteUserCachedRecord(for: cachedRecord)
+            Task { @MainActor in
+                // Delete from cache
+                do {
+                    // Fetch the cached place record
+                    if let cachedRecord = try await cacheManager.cloudCacheService.fetchGroupedUserCachedRecords(for: "Place")
+                        .first(where: { $0.identity == placeResponse.fsqID }) {
+                        
+                        // Delete the record from CloudKit
+                        try await cacheManager.cloudCacheService.deleteUserCachedRecord(for: cachedRecord)
+                    }
+                } catch {
+                    await modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
                 }
-            } catch {
-                await modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
             }
         } else {
             // Save to cache

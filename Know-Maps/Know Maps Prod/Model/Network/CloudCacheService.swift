@@ -469,7 +469,7 @@ public enum CloudCacheServiceKey: String {
             }
         }
     }
-    
+    @MainActor
     public func fetchGroupedUserCachedRecords(for group: String) async throws -> [SendableCachedRecord] {
         // Fetch from local store
     

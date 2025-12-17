@@ -7,6 +7,7 @@
 
 import Foundation
 
+@MainActor
 public struct LanguageGeneratorRequest {
     let chatResult:ChatResult
     let model:String

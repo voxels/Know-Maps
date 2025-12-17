@@ -15,7 +15,7 @@ import ConcurrencyExtras
 public typealias AssistiveChatHostTaggedWord = [String: [String]]
 
 @MainActor
-public final class AssistiveChatHostService : @MainActor AssistiveChatHost {
+public final class AssistiveChatHostService : AssistiveChatHost {
     
     public let analyticsManager:AnalyticsService
     public enum Intent : String, Sendable {
@@ -275,7 +275,7 @@ public final class AssistiveChatHostService : @MainActor AssistiveChatHost {
     }
     
     public func receiveMessage(caption:String, isLocalParticipant:Bool, filters:Dictionary<String, String>, modelController:ModelController, overrideIntent: AssistiveChatHostService.Intent? = nil, selectedDestinationLocation: LocationResult? = nil ) async throws {
-        try await messagesDelegate.addReceivedMessage(caption: caption, parameters: queryIntentParameters, isLocalParticipant: isLocalParticipant, filters: filters as NSDictionary, modelController: modelController, overrideIntent: overrideIntent, selectedDestinationLocation: selectedDestinationLocation)
+        try await messagesDelegate.addReceivedMessage(caption: caption, parameters: queryIntentParameters, isLocalParticipant: isLocalParticipant, filters: filters, modelController: modelController, overrideIntent: overrideIntent, selectedDestinationLocation: selectedDestinationLocation)
     }
     
     public func tags(for rawQuery:String) throws ->AssistiveChatHostTaggedWord? {

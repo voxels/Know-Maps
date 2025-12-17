@@ -13,7 +13,7 @@ struct FiltersView: View {
     public var cacheManager:CloudCacheManager
     public var modelController:DefaultModelController
     public var searchSavedViewModel:SearchSavedViewModel
-    @Binding public var filters:[String:Any]
+    @Binding public var filters:[String: String]
     @Binding public var distanceFilterValue:Double
 
     @State private var ratingFilterValue:Double = 0
@@ -39,7 +39,7 @@ struct FiltersView: View {
                 } onEditingChanged: { changed in
                     let clampedValue = max(distanceFilterValue, 0.5)
                     // Update filters continuously while dragging
-                    filters["distance"] = clampedValue
+                    filters["distance"] = "\(clampedValue)"
                     kilometers = Float(clampedValue)
                 }
                 Text(" (\(FiltersView.formatter.string(from:NSNumber(value:distanceFilterValue)) ?? "1") kilometers)")
@@ -52,7 +52,7 @@ struct FiltersView: View {
         }
         .onChange(of:openNowFilterValue) { _, newValue in
             if newValue {
-                filters["open_now"] = newValue
+                filters["open_now"] = "\(newValue)"
             }
         }
         .task {

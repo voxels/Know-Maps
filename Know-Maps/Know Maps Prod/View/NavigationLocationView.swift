@@ -9,9 +9,6 @@ import SwiftUI
 import CoreLocation
 import MapKit
 
-// Simplify type-checking for filters passed through SwiftUI bindings
-public typealias FiltersDictionary = [String: Any]
-
 struct NavigationLocationView: View {
     @Environment(\.dismiss) var dismiss
     @Environment(\.horizontalSizeClass) var sizeClass
@@ -19,7 +16,7 @@ struct NavigationLocationView: View {
     var chatModel:ChatResultViewModel
     var cacheManager:CloudCacheManager
     var modelController:DefaultModelController
-    @Binding public var filters: FiltersDictionary
+    @Binding public var filters: [String: String]
     @State private var searchIsPresented = false
     @State private var searchText:String = ""
     @State public var cameraPosition:MapCameraPosition = .automatic
@@ -455,7 +452,7 @@ private struct FiltersContainerView: View {
     var cacheManager: CloudCacheManager
     var modelController: DefaultModelController
     var searchSavedViewModel: SearchSavedViewModel
-    @Binding var filters: FiltersDictionary
+    @Binding var filters: [String: String]
     @Binding var distanceFilterValue: Double
 
     var body: some View {

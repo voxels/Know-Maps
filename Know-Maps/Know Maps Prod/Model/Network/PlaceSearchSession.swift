@@ -45,7 +45,8 @@ public actor PlaceSearchSession : ObservableObject {
         }
     }
     
-    public func query(request:PlaceSearchRequest) async throws ->[String:[NSDictionary]] {
+    @MainActor
+    public func query(request:PlaceSearchRequest) async throws ->[String:[Dictionary<String, String>]] {
         var components = URLComponents(string:"\(PlaceSearchSession.serverUrl)\(PlaceSearchSession.placeSearchAPIUrl)")
         var queryItems = [URLQueryItem]()
         if request.query.count > 0 {
@@ -114,8 +115,8 @@ public actor PlaceSearchSession : ObservableObject {
         
         let placeSearchResponse = try await fetch(url: url)
         
-        guard let response = placeSearchResponse as? [String:[NSDictionary]] else {
-            return [String:[NSDictionary]]()
+        guard let response = placeSearchResponse as? [String:[Dictionary<String, String>]] else {
+            return [String:[Dictionary<String, String>]]()
         }
                 
         return response
@@ -232,7 +233,7 @@ public actor PlaceSearchSession : ObservableObject {
         return try await fetch(url: url)
     }
     
-    public func autocomplete(caption: String, limit: Int?, locationResult: LocationResult) async throws -> NSDictionary {
+    public func autocomplete(caption: String, limit: Int?, locationResult: LocationResult) async throws -> Dictionary<String, String> {
         let ll = "\(locationResult.location.coordinate.latitude),\(locationResult.location.coordinate.longitude)"
         var resolvedLimit = 50
         if let limit = limit {
@@ -264,12 +265,12 @@ public actor PlaceSearchSession : ObservableObject {
 
         let placeSearchResponse = try await fetch(url: url)
 
-        if let response = placeSearchResponse as? NSDictionary {
+        if let response = placeSearchResponse as? Dictionary<String,String> {
             return response
-        } else if let dict = placeSearchResponse as? [String: Any] {
-            return dict as NSDictionary
+        } else if let dict = placeSearchResponse as? [String: String] {
+            return dict
         } else {
-            return NSDictionary()
+            return [:]
         }
     }
 
@@ -428,14 +429,14 @@ public actor PlaceSearchSession : ObservableObject {
             limit: 1,
             offset: 0
         )
-        let any = try await self.query(request: request)
-        guard let dict = any as? [String: Any],
-              let items = dict["results"] as? [[String: Any]],
+        let any = try? await self.query(request: request)
+        guard let dict = any,
+              let items = dict["results"] as? [[String: String]],
               let first = items.first,
-              let geocodes = first["geocodes"] as? [String: Any],
-              let main = geocodes["main"] as? [String: Any],
-              let lat = main["latitude"] as? Double,
-              let lon = main["longitude"] as? Double else {
+              let geocodes = first["geocodes"] as? [String: String],
+              let main = geocodes["main"] as? [String: String],
+              let lat = Double(main["latitude"] as? String ?? "37.333562"),
+              let lon = Double(main["longitude"] as? String ?? "-122.004927") else {
             return nil
         }
         return CLLocationCoordinate2D(latitude: lat, longitude: lon)

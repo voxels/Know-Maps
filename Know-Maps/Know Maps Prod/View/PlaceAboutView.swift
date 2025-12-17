@@ -253,7 +253,7 @@ private struct ActionButtonsRow: View {
             .contentShape(RoundedRectangle(cornerRadius: PlaceAboutView.cornerRadius, style: .continuous))
             .padding(PlaceAboutView.defaultPadding)
 #if !os(visionOS)
-.buttonStyle(.glass)
+//.buttonStyle(.glass)
 #endif
 
 #if os(visionOS)
@@ -281,7 +281,7 @@ private struct ActionButtonsRow: View {
                 .contentShape(RoundedRectangle(cornerRadius: PlaceAboutView.cornerRadius, style: .continuous))
                 .padding(PlaceAboutView.defaultPadding)
 #if !os(visionOS)
-.buttonStyle(.glass)
+//.buttonStyle(.glass)
 #endif
                 
 #if os(visionOS)
@@ -307,7 +307,7 @@ private struct ActionButtonsRow: View {
                 .contentShape(RoundedRectangle(cornerRadius: PlaceAboutView.cornerRadius, style: .continuous))
                 .padding(PlaceAboutView.defaultPadding)
 #if !os(visionOS)
-.buttonStyle(.glass)
+//.buttonStyle(.glass)
 #endif
 #if os(visionOS)
                 .hoverEffect(.lift)
@@ -349,7 +349,7 @@ private struct RatingsPriceShareRow<ShareSheetContent: View>: View {
                 .contentShape(RoundedRectangle(cornerRadius: PlaceAboutView.cornerRadius, style: .continuous))
                 .padding(PlaceAboutView.defaultPadding)
 #if !os(visionOS)
-.buttonStyle(.glass)
+//.buttonStyle(.glass)
 #endif
 #if os(visionOS)
                 .hoverEffect(.lift)
@@ -372,15 +372,16 @@ private struct RatingsPriceShareRow<ShareSheetContent: View>: View {
             .clipShape(RoundedRectangle(cornerRadius: PlaceAboutView.cornerRadius, style: .continuous))
             .contentShape(RoundedRectangle(cornerRadius: PlaceAboutView.cornerRadius, style: .continuous))
             .padding(PlaceAboutView.defaultPadding)
+            .sheet(isPresented: $presentingPopover) {
+                shareSheetContent
+            }
 #if !os(visionOS)
-.buttonStyle(.glass)
+//.buttonStyle(.glass)
 #endif
 #if os(visionOS)
             .hoverEffect(.lift)
 #endif
-            .sheet(isPresented: $presentingPopover) {
-                shareSheetContent
-            }
+
 #endif
             Spacer()
         }
@@ -407,14 +408,16 @@ private struct RelatedPlacesSection: View {
                             }
                         }
                         .padding(PlaceAboutView.defaultPadding)
-#if !os(visionOS)
-                        .glassEffect(.regular, in: .rect(cornerRadius: PlaceAboutView.cornerRadius))
-#endif
                         .clipShape(RoundedRectangle(cornerRadius: PlaceAboutView.cornerRadius, style: .continuous))
+                        .onTapGesture { onTap(relatedPlace) }
+#if !os(visionOS)
+//                        .glassEffect(.regular, in: .rect(cornerRadius: PlaceAboutView.cornerRadius))
+#endif
+                        
 #if os(visionOS)
                         .hoverEffect(.lift)
 #endif
-                        .onTapGesture { onTap(relatedPlace) }
+                        
                     }
                 }
             }
@@ -461,7 +464,7 @@ private struct TastesSection: View {
                         Group {
 #if !os(visionOS)
                             Color.clear
-                                .glassEffect(.regular, in: .rect(cornerRadius: PlaceAboutView.cornerRadius))
+//                                .glassEffect(.regular, in: .rect(cornerRadius: PlaceAboutView.cornerRadius))
 #endif
                         }
                     )

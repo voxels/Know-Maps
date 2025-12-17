@@ -4,7 +4,7 @@ import CoreML
 @MainActor
 final class MiniLMEmbeddingClient {
 
-    static let shared = MiniLMEmbeddingClient()
+    @MainActor static let shared = MiniLMEmbeddingClient()
 
     private let model: MLModel
     private let tokenizer: MiniLMTokenizer

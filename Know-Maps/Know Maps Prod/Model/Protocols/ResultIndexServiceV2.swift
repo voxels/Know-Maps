@@ -90,7 +90,7 @@ public protocol ResultIndexServiceV2 {
     func locationChatResult(
         with title: String,
         in locationResults: [LocationResult],
-        locationService: LocationService,
+        locationService: LocationService?,
         analyticsManager: AnalyticsService
     ) async -> LocationResult?
 }

@@ -7,7 +7,8 @@
 
 import Foundation
 
-public protocol AssistiveChatHostStreamResponseDelegate {
+@MainActor
+public protocol AssistiveChatHostStreamResponseDelegate : Sendable {
     func willReceiveStreamingResult(for chatResultID:ChatResult.ID) async
     func didReceiveStreamingResult(with string:String, for result:ChatResult, promptTokens:Int, completionTokens:Int) async
     func didFinishStreamingResult() async

@@ -116,7 +116,7 @@ public protocol ModelController : Sendable {
     /// Refreshes the model based on the provided query and intents.
     func refreshModel(
         query: String,
-        queryIntents: [AssistiveChatHostIntent]?, filters:NSDictionary
+        queryIntents: [AssistiveChatHostIntent]?, filters: Dictionary<String, String>
     ) async throws -> [ChatResult]
     
     /// Builds the model based on the given intent.

@@ -6,8 +6,8 @@
 //
 
 import Foundation
+import CoreLocation
 
-@MainActor
 @Observable
 public final class DefaultResultIndexServiceV2: ResultIndexServiceV2 {
 
@@ -266,14 +266,14 @@ public final class DefaultResultIndexServiceV2: ResultIndexServiceV2 {
    public func locationChatResult(
        with title: String,
        in locationResults: [LocationResult],
-       locationService: LocationService,
+       locationService: LocationService?,
        analyticsManager: AnalyticsService
    ) async -> LocationResult? {
+       guard let locationService else { return nil }
        // First check existing results
        if let existingResult = locationResults.first(where: { $0.locationName == title }) {
            return existingResult
        }
-
        // Fallback to geocoding
        do {
            let placemarks = try await locationService.lookUpLocationName(name: title)
@@ -282,12 +282,10 @@ public final class DefaultResultIndexServiceV2: ResultIndexServiceV2 {
                return result
            }
        } catch {
-           Task { @MainActor in
-               analyticsManager.trackError(error: error, additionalInfo: ["title": title])
-           }
+            analyticsManager.trackError(error: error, additionalInfo: ["title": title])
        }
-
-       return nil
+       
+       return LocationResult(locationName: "Selected Location", location:locationService.currentLocation() )
    }
 }
 

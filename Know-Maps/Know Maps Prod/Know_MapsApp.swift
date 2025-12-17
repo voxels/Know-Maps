@@ -28,8 +28,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 }
 #endif
 
-@main
-struct Know_MapsApp: App {
+@MainActor
+struct Know_MapsApp {
     
     //    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     
@@ -91,7 +91,7 @@ struct Know_MapsApp: App {
          the app's intent parameters. The app needs to call this function during its launch, in addition to any time the parameter values for
          the shortcut phrases change.
          */
-        KnowMapsShortcutsProvider.updateAppShortcutParameters()
+//        KnowMapsShortcutsProvider.updateAppShortcutParameters()
         do {
             // Configure and load all tips in the app.
             try Tips.configure()
@@ -306,9 +306,7 @@ struct Know_MapsApp: App {
         }
 
         do {
-            try await withTimeout(seconds: 10) {
-                await cacheRefreshTask.value
-            }
+            await cacheRefreshTask.value
         } catch {
             cacheRefreshTask.cancel()
             modelController.analyticsManager.trackError(error: error, additionalInfo:nil)
@@ -328,23 +326,23 @@ struct Know_MapsApp: App {
         modelController.setSelectedLocation(nil)
     }
     
-    func withTimeout<T>(seconds: TimeInterval, operation: @escaping () async throws -> T) async throws -> T {
-        try await withThrowingTaskGroup(of: T.self) { group in
-            group.addTask {
-                return try await operation()
-            }
-            group.addTask {
-                try await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000))
-                throw NSError(domain: "TaskTimeout", code: 1, userInfo: nil)
-            }
-            if let result = try await group.next() {
-                group.cancelAll()
-                return result
-            } else {
-                throw NSError(domain: "TaskTimeout", code: 1, userInfo: nil)
-            }
-        }
-    }
+//    func withTimeout<T>(seconds: TimeInterval, operation: @escaping () async throws -> T) async throws -> T {
+//        try await withThrowingTaskGroup(of: T.self) { group in
+//            group.addTask {
+//                return try await operation()
+//            }
+//            group.addTask {
+//                try await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000))
+//                throw NSError(domain: "TaskTimeout", code: 1, userInfo: nil)
+//            }
+//            if let result = try await group.next() {
+//                group.cancelAll()
+//                return result
+//            } else {
+//                throw NSError(domain: "TaskTimeout", code: 1, userInfo: nil)
+//            }
+//        }
+//    }
     
 #if os(macOS)
     public func openLocationPreferences() {

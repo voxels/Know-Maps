@@ -8,11 +8,12 @@
 @preconcurrency import CoreLocation
 
 // MARK: - Concrete Location Service
-public final class DefaultLocationService: NSObject, LocationService {
+@MainActor
+public final class DefaultLocationService: NSObject, @preconcurrency LocationService {
     
     // Debounce support
-    private var reverseGeocodeTask: Task<[CLPlacemark], Error>? = nil
-    private var forwardGeocodeTask: Task<[CLPlacemark], Error>? = nil
+    private var reverseGeocodeTask:[CLPlacemark]? = nil
+    private var forwardGeocodeTask:[CLPlacemark]?  = nil
     private let geocodeDebounceInterval: Duration = .milliseconds(300)
     
     // Equality / caching support
@@ -56,19 +57,14 @@ public final class DefaultLocationService: NSObject, LocationService {
             return cached
         }
         // Cancel any in-flight reverse geocode task
-        reverseGeocodeTask?.cancel()
-        let task = Task<[CLPlacemark], Error> {
-            // Small debounce window to coalesce rapid calls
-            try await Task.sleep(for: geocodeDebounceInterval)
-            return try await geocoder.reverseGeocodeLocation(location)
-        }
-        reverseGeocodeTask = task
+        try await Task.sleep(for: geocodeDebounceInterval)
         do {
-            let result = try await task.value
+            reverseGeocodeTask = try await geocoder.reverseGeocodeLocation(location)
+            let result =  reverseGeocodeTask
             // Cache input and result for equality short-circuiting
             lastReverseGeocodeLocation = location
             lastReverseGeocodeResult = result
-            return result
+            return result ?? []
         } catch is CancellationError {
             // Propagate cancellation if the caller cares
             throw CancellationError()
@@ -85,15 +81,11 @@ public final class DefaultLocationService: NSObject, LocationService {
             return cached
         }
         // Cancel any in-flight forward geocode task
-        forwardGeocodeTask?.cancel()
-        let task = Task<[CLPlacemark], Error> {
-            // Small debounce window to coalesce rapid calls
-            try await Task.sleep(for: geocodeDebounceInterval)
-            return try await geocoder.geocodeAddressString(name)
-        }
+        try await Task.sleep(for: geocodeDebounceInterval)
+        let task = try await geocoder.geocodeAddressString(name)
         forwardGeocodeTask = task
         do {
-            let result = try await task.value
+            let result = try await task
             // Cache input and result for equality short-circuiting
             lastForwardGeocodeName = name
             lastForwardGeocodeResult = result
