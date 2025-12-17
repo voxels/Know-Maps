@@ -12,28 +12,9 @@ import Segment
 import CoreLocation
 import AuthenticationServices
 import TipKit
-
-#if os(iOS)
-//import GoogleMobileAds
-
-class AppDelegate: UIResponder, UIApplicationDelegate {
-    
-    func application(_ application: UIApplication,
-                     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        
-        //GADMobileAds.sharedInstance().start(completionHandler: nil)
-        
-        return true
-    }
-}
-#endif
-
 @MainActor
-struct Know_MapsApp {
-    
-    //    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
-    
-    static let sharedModelContainer: ModelContainer = {
+public struct Know_MapsApp : View {
+    public static let sharedModelContainer: ModelContainer = {
         let schema = Schema([
             UserCachedRecord.self,
             RecommendationData.self,
@@ -48,50 +29,47 @@ struct Know_MapsApp {
         }
     }()
     
-    @StateObject public var authenticationModel:AppleAuthenticationService = AppleAuthenticationService.shared
     @State public var chatModel:ChatResultViewModel
     @State public var searchSavedViewModel:SearchSavedViewModel
-    @State public var cacheManager:CloudCacheManager
-    @State public var modelController:DefaultModelController
+    public var modelController:DefaultModelController
+    public var cacheManager:CloudCacheManager
+    @EnvironmentObject public var authenticationModel:AppleAuthenticationService
+    @Binding public var showOnboarding:Bool
+    @Binding public var showSplashScreen:Bool
+    @Binding public var showNavigationLocationView:Bool
+    @Binding public var searchMode:SearchMode
     
-    @State private var showOnboarding:Bool = true
-    @State private var showSplashScreen:Bool = true
-    @State private var isStoryrabbitEnabled:Bool = false
-    @State private var isStartingApp = false
-    @State private var didStartApp = false
     
-    @State private var searchMode: SearchMode = .favorites
-    @State private var showNavigationLocationView:Bool = false
-
-    init() {
+    public init(modelController:DefaultModelController, cacheManager:CloudCacheManager, showOnboarding:Binding<Bool>, showSplashScreen:Binding<Bool>, showNavigationLocationView:Binding<Bool>, searchMode:Binding<SearchMode>) {
+        self.modelController = modelController
+        self.cacheManager = cacheManager
+        _showOnboarding = showOnboarding
+        _showSplashScreen = showSplashScreen
+        _showNavigationLocationView = showNavigationLocationView
+        _searchMode = searchMode
+        
         // Create required services locally first to avoid capturing self
-        let cloudCacheService = CloudCacheService(analyticsManager: SegmentAnalyticsService.shared, modelContext: Know_MapsApp.sharedModelContainer.mainContext)
-        let cacheManager = CloudCacheManager(cloudCacheService: cloudCacheService, analyticsManager: SegmentAnalyticsService.shared)
-        let modelController = DefaultModelController(cacheManager: cacheManager)
         let chatModel = ChatResultViewModel.shared
         let searchSavedViewModel = SearchSavedViewModel.shared
         let authenticationModel = AppleAuthenticationService.shared
-
+        
         // Assign to stored properties using wrappedValue initializers only
-        self._authenticationModel = StateObject(wrappedValue: authenticationModel)
         self._chatModel = State(wrappedValue: chatModel)
         self._searchSavedViewModel = State(wrappedValue: searchSavedViewModel)
-        self._cacheManager = State(wrappedValue: cacheManager)
-        self._modelController = State(wrappedValue: modelController)
-
+        
         // Defer dependency registration to the next run loop to avoid capturing self during init
         DispatchQueue.main.async {
             AppDependencyManager.shared.add(dependency: cacheManager)
             AppDependencyManager.shared.add(dependency: modelController)
             AppDependencyManager.shared.add(dependency: chatModel)
         }
-
+        
         /**
          Call `updateAppShortcutParameters` on `AppShortcutsProvider` so that the system updates the App Shortcut phrases with any changes to
          the app's intent parameters. The app needs to call this function during its launch, in addition to any time the parameter values for
          the shortcut phrases change.
          */
-//        KnowMapsShortcutsProvider.updateAppShortcutParameters()
+        //        KnowMapsShortcutsProvider.updateAppShortcutParameters()
         do {
             // Configure and load all tips in the app.
             try Tips.configure()
@@ -101,17 +79,16 @@ struct Know_MapsApp {
         }
     }
     
-    var body: some Scene {
-        WindowGroup(id:"ContentView") {
-            ZStack {
-                if showOnboarding {
-                    OnboardingView( settingsModel: authenticationModel,  modelController: modelController, showOnboarding: $showOnboarding)
+    public var body: some View {
+        //        WindowGroup(id:"ContentView") {
+        ZStack {
+            if showOnboarding {
+                OnboardingView( settingsModel: authenticationModel,  modelController: modelController, showOnboarding: $showOnboarding)
 #if !os(visionOS) && !os(macOS)
-                        .containerBackground(.clear, for: .navigation)
+                    .containerBackground(.clear, for: .navigation)
 #endif
-                        .toolbarBackgroundVisibility(self.showOnboarding ? .visible : .hidden)
-                } else {
-                    
+                    .toolbarBackgroundVisibility(self.showOnboarding ? .visible : .hidden)
+            } else {
                 ContentView(settingsModel:authenticationModel, chatModel: chatModel, cacheManager:cacheManager, modelController:modelController, searchSavedViewModel: searchSavedViewModel, showOnboarding: $showOnboarding, showNavigationLocationView: $showNavigationLocationView, searchMode: $searchMode )
 #if os(visionOS) || os(macOS)
                     .frame(minWidth: 1280, minHeight: 720)
@@ -119,246 +96,25 @@ struct Know_MapsApp {
                     .sheet(isPresented: $showNavigationLocationView) {
                         filterSheet()
                     }
-                }
+            }
+            
+            if showSplashScreen {
                 
-                if showSplashScreen {
-                    ZStack(alignment: .center){
-                        Rectangle()
-                            .fill(.background)
-                            .ignoresSafeArea()
-                        VStack(alignment: .center) {
-                            Spacer()
-                            let text = "Welcome to Know Maps"
-                            Text(text).bold().padding()
-                            Image("logo_macOS_512")
-                                .resizable()
-                                .scaledToFit()
-                                .padding()
-                                .frame(width:100 , height: 100)
-                                .padding()
-                            Spacer()
-                            let cacheFetchProgress = max(cacheManager.cacheFetchProgress, 0)
-                            ProgressView(value: cacheFetchProgress) {
-                                Text("Login in progress...")
-                            }
-                            .padding()
-                            
-                            Spacer()
-                        }
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .task(priority:.userInitiated) {
-                        checkIfSignedInWithApple { signedIn in
-                            if signedIn, modelController.locationService.locationProvider.isAuthorized()  {
-                                Task {
-                                    await startApp()
-                                }
-                            } else {
-                                showSplashScreen = false
-                                showOnboarding = true
-                            }
-                        }
-                    }
+                
 #if os(visionOS) || os(macOS)
-                    .frame(minWidth: 1280, minHeight: 720)
+                .frame(minWidth: 1280, minHeight: 720)
 #endif
-                }
-            }
-        }.windowResizability(.contentSize)
-        
-#if os(visionOS)
-        ImmersiveSpace(id: "ImmersiveSpace") {
-            ImmersiveView()
-        }
-#endif
-    }
-    
-    private func startApp() async {
-        guard !isStartingApp else {
-            return
-        }
-        
-        isStartingApp = true
-        await startup()
-        isStartingApp = false
-    }
-    
-    public func checkIfSignedInWithApple(completion:@escaping (Bool)->Void) {
-        guard authenticationModel.isSignedIn(), !authenticationModel.appleUserId.isEmpty else {
-            DispatchQueue.main.async {
-                completion(false)
-            }
-            return
-        }
-        
-        let appleIDProvider = ASAuthorizationAppleIDProvider()
-        
-        // Retrieve the credential state for the Apple ID credential
-        appleIDProvider.getCredentialState(forUserID: authenticationModel.appleUserId) { (credentialState, error) in
-            switch credentialState {
-            case .authorized:
-                DispatchQueue.main.async {
-                    completion(true)
-                }
-            case .revoked, .notFound:
-                fallthrough
-            default:
-                DispatchQueue.main.async {
-                    completion(false)
-                }
             }
         }
-    }
-    
-    func performExistingAccountSetupFlows() {
-        // Kick off authorization work on the main actor but at a utility priority to avoid QoS inversion
-        Task(priority: .userInitiated) { @MainActor in
-            let requests = [ASAuthorizationAppleIDProvider().createRequest()]
-            let authorizationController = ASAuthorizationController(authorizationRequests: requests)
-            authorizationController.delegate = authenticationModel
-            authorizationController.presentationContextProvider = authenticationModel
-            authorizationController.performRequests()
-        }
-    }
-    
-    // Await a valid access token before proceeding with network-dependent startup work
-    private func ensureValidAccessToken() async {
-        let token = await authenticationModel.getValidAccessTokenAsync()
-        if token == nil {
-            // Log error when token refresh fails
-            print("⚠️ Failed to get valid access token during startup")
-            modelController.analyticsManager.trackError(
-                error: NSError(domain: "com.knowmaps.auth", code: -1, userInfo: [NSLocalizedDescriptionKey: "Token refresh failed during startup"]),
-                additionalInfo: nil
-            )
-        }
-    }
-    
-    /*
-     private func loadPurchases() async throws {
-     let purchasesId =  settingsModel.purchasesId
-     let revenuecatAPIKey = try await cacheManager.cloudCache.apiKey(for: .revenuecat)
-     Purchases.configure(withAPIKey: revenuecatAPIKey, appUserID: purchasesId)
-     Purchases.shared.delegate = FeatureFlagService.shared
-     
-     settingsModel.fetchSubscriptionOfferings()
-     let customerInfo = try await Purchases.shared.customerInfo()
-     FeatureFlagService.shared.updateFlags(with: customerInfo)
-     }*/
-    
-    private func startup() async {
-        await ensureValidAccessToken()
-        //        do {
-        //            try await loadPurchases()
-        //        } catch {
-        //            modelController.analyticsManager.trackError(error: error, additionalInfo:nil)
+        //        }.windowResizability(.contentSize)
+        //
+        //#if os(visionOS)
+        //        ImmersiveSpace(id: "ImmersiveSpace") {
+        //            ImmersiveView()
         //        }
-        await retrieveUser()
-        await ensureLocationAuthorizedAndSetCurrent()
-        await loadData()
-        await enter()
+        //#endif
     }
     
-    @MainActor
-    private func enter() async {
-        showOnboarding = false
-        showSplashScreen = false
-    }
-    
-    private func retrieveUser() async {
-        // Perform setup tasks
-        if !cacheManager.cloudCacheService.hasFsqAccess {
-            do {
-                try await modelController.placeSearchService.retrieveFsqUser(cacheManager: cacheManager)
-                
-            } catch {
-                modelController.analyticsManager.trackError(error: error, additionalInfo:nil)
-            }
-        }
-    }
-    
-    private func loadData() async {
-        await modelController.categoricalSearchModel()
-        
-        let cacheRefreshTask = Task { @MainActor in
-            do {
-                try await cacheManager.refreshCache()
-                if cacheManager.allCachedResults.isEmpty {
-                    try await cacheManager.restoreCache()
-                }
-
-                // Update result indexer with fresh cached data after cache refresh
-                modelController.resultIndexer.updateIndex(
-                    placeResults: modelController.placeResults,
-                    recommendedPlaceResults: modelController.recommendedPlaceResults,
-                    relatedPlaceResults: modelController.relatedPlaceResults,
-                    industryResults: modelController.industryResults,
-                    tasteResults: modelController.tasteResults,
-                    cachedIndustryResults: cacheManager.cachedIndustryResults,
-                    cachedPlaceResults: cacheManager.cachedPlaceResults,
-                    cachedTasteResults: cacheManager.cachedTasteResults,
-                    cachedDefaultResults: cacheManager.cachedDefaultResults,
-                    cachedRecommendationData: cacheManager.cachedRecommendationData
-                )
-            } catch {
-                modelController.analyticsManager.trackError(error: error, additionalInfo:nil)
-            }
-        }
-
-        do {
-            await cacheRefreshTask.value
-        } catch {
-            cacheRefreshTask.cancel()
-            modelController.analyticsManager.trackError(error: error, additionalInfo:nil)
-        }
-    }
-    
-    @MainActor
-    private func ensureLocationAuthorizedAndSetCurrent() async {
-        if !modelController.locationService.locationProvider.isAuthorized() {
-            await modelController.locationService.locationProvider.requestAuthorizationIfNeeded()
-        }
-        
-        guard modelController.locationService.locationProvider.isAuthorized() else {
-            return
-        }
-        
-        modelController.setSelectedLocation(nil)
-    }
-    
-//    func withTimeout<T>(seconds: TimeInterval, operation: @escaping () async throws -> T) async throws -> T {
-//        try await withThrowingTaskGroup(of: T.self) { group in
-//            group.addTask {
-//                return try await operation()
-//            }
-//            group.addTask {
-//                try await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000))
-//                throw NSError(domain: "TaskTimeout", code: 1, userInfo: nil)
-//            }
-//            if let result = try await group.next() {
-//                group.cancelAll()
-//                return result
-//            } else {
-//                throw NSError(domain: "TaskTimeout", code: 1, userInfo: nil)
-//            }
-//        }
-//    }
-    
-#if os(macOS)
-    public func openLocationPreferences() {
-        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_LocationServices") {
-            NSWorkspace.shared.open(url)
-        }
-    }
-#else
-    func openLocationPreferences() {
-        if let url = URL(string: UIApplication.openSettingsURLString) {
-            if UIApplication.shared.canOpenURL(url) {
-                UIApplication.shared.open(url, options: [:], completionHandler: nil)
-            }
-        }
-    }
-#endif
     
     func filterView() -> some View {
         NavigationLocationView(

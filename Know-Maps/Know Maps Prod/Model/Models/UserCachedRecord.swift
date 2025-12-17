@@ -3,7 +3,7 @@ import SwiftData
 
 @Model
 public class UserCachedRecord: Identifiable, Hashable, Equatable, Codable {
-    public var id:UUID
+    public var id:UUID = UUID()
     var recordId: String = UUID().uuidString
     var group: String = ""
     var identity: String = ""

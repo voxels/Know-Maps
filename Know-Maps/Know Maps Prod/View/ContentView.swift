@@ -34,14 +34,14 @@ public enum ContentDetailView {
     case add
 }
 
-enum SearchMode: Hashable {
+public enum SearchMode: Hashable {
     case favorites
     case industries
     case features
     case places
 }
 
-struct ContentView: View {
+public struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.horizontalSizeClass) var sizeClass
     @Environment(\.openWindow) private var openWindow
@@ -79,7 +79,7 @@ struct ContentView: View {
     @State private var searchTask: Task<Void, Never>? = nil
     @State private var columnVisibility: NavigationSplitViewVisibility = .automatic
     @State private var preferredCompactColumn:NavigationSplitViewColumn = .detail
-    var body: some View {
+    public var body: some View {
         GeometryReader { geometry in
             browseView()
                 .sheet(isPresented: $showSettings, content: {

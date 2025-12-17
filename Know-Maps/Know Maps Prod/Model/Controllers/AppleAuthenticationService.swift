@@ -21,23 +21,23 @@ public enum AppleAuthenticationServiceError : Error {
 }
 
 @MainActor
-class AppleAuthenticationService: NSObject, ObservableObject {
+public class AppleAuthenticationService: NSObject, ObservableObject {
     // MARK: - Published Properties
     @Published var fullName: String = ""
-    @Published var appleUserId: String = ""
-    @Published var signInErrorMessage: String = ""
+    @Published public var appleUserId: String = ""
+    @Published public var signInErrorMessage: String = ""
     private var authorizationController: ASAuthorizationController?
      
     public var authCompletion:((Result<ASAuthorization, Error>) -> Void)?
     
     // Singleton instance (optional)
-    @MainActor static let shared = AppleAuthenticationService()
+    @MainActor public static let shared = AppleAuthenticationService()
     
     // Constants
     static let tag = "com.knowmaps.security.appleUserId"
     
     @MainActor
-    func isSignedIn() -> Bool {
+    public func isSignedIn() -> Bool {
         if let _ = retrieveRefreshToken(), let userId = readFromKeychain(key: "appleUserId") {
             appleUserId = userId
             return true
@@ -46,7 +46,7 @@ class AppleAuthenticationService: NSObject, ObservableObject {
     }
     
     // MARK: - Sign In with Apple
-    func signIn() {
+    public func signIn() {
         Task(priority: .userInitiated) { @MainActor in
             let provider = ASAuthorizationAppleIDProvider()
             let request = provider.createRequest()
@@ -60,38 +60,40 @@ class AppleAuthenticationService: NSObject, ObservableObject {
         }
     }
     
-    func prepareSignInRequest(_ request: ASAuthorizationAppleIDRequest) {
+    public  func prepareSignInRequest(_ request: ASAuthorizationAppleIDRequest) {
         request.requestedScopes = [.fullName, .email]
     }
     
     // MARK: - Sign Out
-    func signOut() {
+    @MainActor
+    public func signOut()  {
         guard let refreshToken = retrieveRefreshToken() else {
             print("No refresh token found.")
             return
         }
-        revokeToken(refreshToken: refreshToken) { [weak self] success in
-            DispatchQueue.main.async {
-                if success {
-                    self?.fullName = ""
-                    self?.appleUserId = ""
-                    self?.deleteFromKeychain(key: "accessToken")
-                    self?.deleteFromKeychain(key: "refreshToken")
-                    self?.deleteFromKeychain(key: "appleUserId")
-                    self?.deleteFromKeychain(key: "accessTokenExpiry")
-                } else {
-                    self?.signInErrorMessage = "Failed to revoke token."
-                }
+                    
+        Task { @MainActor in
+                
+            let success = await revokeToken(refreshToken: refreshToken)
+            if success {
+                self.fullName = ""
+                self.appleUserId = ""
+                self.deleteFromKeychain(key: "accessToken")
+                self.deleteFromKeychain(key: "refreshToken")
+                self.deleteFromKeychain(key: "appleUserId")
+                self.deleteFromKeychain(key: "accessTokenExpiry")
+            } else {
+                self.signInErrorMessage = "Failed to revoke token."
             }
         }
     }
     
     // MARK: - Token Exchange
-    func exchangeAuthorizationCode(_ code: String, completion: @escaping (Bool) -> Void) {
+    public func exchangeAuthorizationCode(_ code: String) async -> Bool {
         guard let url = URL(string: "https://api-ewrihjjgiq-uc.a.run.app/exchangeAppleToken") else {
             print("Invalid exchange token URL.")
-            completion(false)
-            return
+            signInErrorMessage = "Invalid exchange token URL."
+            return false
         }
         
         var request = URLRequest(url: url)
@@ -99,57 +101,51 @@ class AppleAuthenticationService: NSObject, ObservableObject {
         let body: [String: Any] = ["code": code]
         request.httpBody = try? JSONSerialization.data(withJSONObject: body, options: [])
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
-        // Send the request
-        let task = URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
-            
-            
-            if let error = error {
-                DispatchQueue.main.async {
-                    self?.signInErrorMessage = "Network error: \(error.localizedDescription)"
-                }
-                completion(false)
-                return
-            }
-            guard let data = data else {
-                DispatchQueue.main.async {
-                    self?.signInErrorMessage = "No data received from server."
-                }
-                completion(false)
-                return
-            }
-            let response = String(data: data, encoding: .utf8)
-            print(response ?? "data corrupted")
 
+        for attempt in 1...4 {
             do {
-                let tokenResponse = try JSONDecoder().decode(TokenResponse.self, from: data)
-                    // Store tokens securely
-                    self?.storeTokens(
-                        accessToken: tokenResponse.accessToken,
-                        refreshToken: tokenResponse.refreshToken,
-                        expiresIn: tokenResponse.expiresIn
-                    )
-                    DispatchQueue.main.async {
-                        self?.signInErrorMessage = ""
-                    }
-                    completion(true)
-                
-            } catch {
-                DispatchQueue.main.async {
-                    self?.signInErrorMessage = "Failed to parse token data."
+                let (data, response) = try await URLSession.shared.data(for: request)
+                guard let httpResponse = response as? HTTPURLResponse else {
+                    signInErrorMessage = "Invalid server response."
+                    return false
                 }
-                completion(false)
+
+                // Handle 503 Server Error with exponential backoff
+                if httpResponse.statusCode == 503 && attempt < 4 {
+                    let delay = pow(2.0, Double(attempt))
+                    signInErrorMessage = "Server is starting up... Retrying."
+                    try await Task.sleep(for: .seconds(delay))
+                    continue // Next iteration of the loop
+                }
+
+                guard (200...299).contains(httpResponse.statusCode) else {
+                    let responseBody = String(data: data, encoding: .utf8) ?? "No response body"
+                    signInErrorMessage = "Server error: \(httpResponse.statusCode). Body: \(responseBody)"
+                    return false
+                }
+
+                let tokenResponse = try JSONDecoder().decode(TokenResponse.self, from: data)
+                storeTokens(
+                    accessToken: tokenResponse.accessToken,
+                    refreshToken: tokenResponse.refreshToken,
+                    expiresIn: tokenResponse.expiresIn
+                )
+                signInErrorMessage = ""
+                return true
+            } catch {
+                signInErrorMessage = "Network error or parsing failed: \(error.localizedDescription)"
             }
         }
-        task.resume()
+        // If all retries fail
+        signInErrorMessage = "Server is unavailable after multiple retries."
+        return false
     }
     
     // MARK: - Token Revocation
-    func revokeToken(refreshToken: String, completion: @escaping (Bool) -> Void) {
+    public func revokeToken(refreshToken: String) async -> Bool {
         guard let url = URL(string: "https://api-ewrihjjgiq-uc.a.run.app/revokeAppleToken") else {
             print("Invalid revoke token URL.")
-            completion(false)
-            return
+            return false
         }
         
         var request = URLRequest(url: url)
@@ -157,33 +153,18 @@ class AppleAuthenticationService: NSObject, ObservableObject {
         let body: [String: Any] = ["refresh_token": refreshToken]
         request.httpBody = try? JSONSerialization.data(withJSONObject: body, options: [])
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
-        // Send the request
-        let task = URLSession.shared.dataTask(with: request) { data, response, error in
-            if let error = error {
-                DispatchQueue.main.async {
-                    self.signInErrorMessage = "Network error: \(error.localizedDescription)"
-                }
-                completion(false)
-                return
+
+        do {
+            let (_, response) = try await URLSession.shared.data(for: request)
+            guard let httpResponse = response as? HTTPURLResponse, (200...299).contains(httpResponse.statusCode) else {
+                signInErrorMessage = "Failed to revoke token. Status: \((response as? HTTPURLResponse)?.statusCode ?? -1)"
+                return false
             }
-            guard let httpResponse = response as? HTTPURLResponse else {
-                DispatchQueue.main.async {
-                    self.signInErrorMessage = "Invalid server response."
-                }
-                completion(false)
-                return
-            }
-            if (200...299).contains(httpResponse.statusCode) {
-                completion(true)
-            } else {
-                DispatchQueue.main.async {
-                    self.signInErrorMessage = "Failed to revoke token. Status code: \(httpResponse.statusCode)"
-                }
-                completion(false)
-            }
+            return true
+        } catch {
+            signInErrorMessage = "Network error during token revocation: \(error.localizedDescription)"
+            return false
         }
-        task.resume()
     }
     
     // MARK: - Keychain Management
@@ -204,38 +185,36 @@ class AppleAuthenticationService: NSObject, ObservableObject {
         storeTokens(accessToken: accessToken, refreshToken: refreshToken, expiresIn: nil)
     }
     
-    func retrieveAccessToken() -> String? {
+    public func retrieveAccessToken() -> String? {
         return readFromKeychain(key: "accessToken")
     }
     
-    func retrieveRefreshToken() -> String? {
+    public func retrieveRefreshToken() -> String? {
         return readFromKeychain(key: "refreshToken")
     }
     
-    func retrieveAccessTokenExpiry() -> Date? {
+    public func retrieveAccessTokenExpiry() -> Date? {
         guard let ts = readFromKeychain(key: "accessTokenExpiry"), let seconds = TimeInterval(ts) else {
             return nil
         }
         return Date(timeIntervalSince1970: seconds)
     }
 
-    func isAccessTokenValid() -> Bool {
+    public func isAccessTokenValid() -> Bool {
         guard let _ = retrieveAccessToken() else { return false }
         guard let expiry = retrieveAccessTokenExpiry() else { return true } // If no expiry stored, assume valid
         return Date() < expiry
     }
 
     // MARK: - Token Refresh
-    func refreshAccessToken(completion: @escaping (Bool) -> Void) {
+    public func refreshAccessToken() async -> Bool {
         guard let refreshToken = retrieveRefreshToken() else {
-            DispatchQueue.main.async { self.signInErrorMessage = "No refresh token available." }
-            completion(false)
-            return
+            signInErrorMessage = "No refresh token available."
+            return false
         }
         guard let url = URL(string: "https://api-ewrihjjgiq-uc.a.run.app/refreshAppleToken") else {
             print("Invalid refresh token URL.")
-            completion(false)
-            return
+            return false
         }
 
         var request = URLRequest(url: url)
@@ -244,77 +223,38 @@ class AppleAuthenticationService: NSObject, ObservableObject {
         request.httpBody = try? JSONSerialization.data(withJSONObject: body, options: [])
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
-        let task = URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
-            guard let self = self else { completion(false); return }
-
-            if let error = error {
-                DispatchQueue.main.async {
-                    self.signInErrorMessage = "Network error: \(error.localizedDescription)"
-                }
-                completion(false)
-                return
-            }
-            guard let data = data else {
-                DispatchQueue.main.async {
-                    self.signInErrorMessage = "No data received from server."
-                }
-                completion(false)
-                return
-            }
-
-            do {
-                let tokenResponse = try JSONDecoder().decode(TokenResponse.self, from: data)
-                // Some refresh endpoints may omit refresh_token; keep existing if absent
-                let newRefresh = tokenResponse.refreshToken.isEmpty ? refreshToken : tokenResponse.refreshToken
-                self.storeTokens(
-                    accessToken: tokenResponse.accessToken,
-                    refreshToken: newRefresh,
-                    expiresIn: tokenResponse.expiresIn
-                )
-                DispatchQueue.main.async { self.signInErrorMessage = "" }
-                completion(true)
-            } catch {
-                DispatchQueue.main.async {
-                    self.signInErrorMessage = "Failed to parse refresh token data."
-                }
-                completion(false)
-            }
+        do {
+            let (data, _) = try await URLSession.shared.data(for: request)
+            let tokenResponse = try JSONDecoder().decode(TokenResponse.self, from: data)
+            // Some refresh endpoints may omit refresh_token; keep existing if absent
+            let newRefresh = tokenResponse.refreshToken.isEmpty ? refreshToken : tokenResponse.refreshToken
+            storeTokens(
+                accessToken: tokenResponse.accessToken,
+                refreshToken: newRefresh,
+                expiresIn: tokenResponse.expiresIn
+            )
+            signInErrorMessage = ""
+            return true
+        } catch {
+            signInErrorMessage = "Failed to parse refresh token data: \(error.localizedDescription)"
+            return false
         }
-        task.resume()
     }
 
     // Returns a valid access token, refreshing if needed
-    func getValidAccessToken(completion: @escaping (String?) -> Void) {
+    public func getValidAccessToken() async -> String? {
         if isAccessTokenValid(), let token = retrieveAccessToken() {
-            completion(token)
-            return
+            return token
         }
-        // Try to refresh
-        refreshAccessToken { [weak self] success in
-            guard let self = self else { completion(nil); return }
-            if success, let token = self.retrieveAccessToken() {
-                completion(token)
-            } else {
-                completion(nil)
-            }
-        }
+        
+        let success = await refreshAccessToken()
+        return success ? retrieveAccessToken() : nil
     }
 
     // FIX: Async version that properly awaits token refresh
     @MainActor
-    func getValidAccessTokenAsync() async -> String? {
-        if isAccessTokenValid(), let token = retrieveAccessToken() {
-            return token
-        }
-
-        // Properly await the refresh
-        let success = await withCheckedContinuation { continuation in
-            refreshAccessToken { success in
-                continuation.resume(returning: success)
-            }
-        }
-
-        return success ? retrieveAccessToken() : nil
+    public func getValidAccessTokenAsync() async -> String? {
+        return await getValidAccessToken()
     }
 
     private func saveToKeychain(key: String, value: String) {
@@ -367,7 +307,7 @@ class AppleAuthenticationService: NSObject, ObservableObject {
     }
     
     // MARK: - Handling Authorization Results
-    func handleAuthorization(_ authorization: ASAuthorization, completion: @escaping (Bool) -> Void) {
+    public func handleAuthorization(_ authorization: ASAuthorization) async {
         switch authorization.credential {
         case let appleIDCredential as ASAuthorizationAppleIDCredential:
             let userId = appleIDCredential.user
@@ -377,25 +317,20 @@ class AppleAuthenticationService: NSObject, ObservableObject {
             
             saveToKeychain(key: "appleUserId", value: userId)
             
-            DispatchQueue.main.async {
-                self.appleUserId = userId
-                self.fullName = name
-                self.signInErrorMessage = ""
-            }
+            self.appleUserId = userId
+            self.fullName = name
+            self.signInErrorMessage = ""
             
             // Exchange authorization code for tokens
             if let authorizationCodeData = appleIDCredential.authorizationCode,
                let authorizationCode = String(data: authorizationCodeData, encoding: .utf8) {
-                exchangeAuthorizationCode(authorizationCode) { [self] success in
+                let success = await exchangeAuthorizationCode(authorizationCode)
+                if success {
                     self.authCompletion?(.success(authorization))
-                    completion(success)
                 }
             } else {
-                DispatchQueue.main.async {
-                    self.authCompletion?(.failure(AppleAuthenticationServiceError.failed))
-                    self.signInErrorMessage = "Invalid authorization code."
-                }
-                completion(false)
+                self.authCompletion?(.failure(AppleAuthenticationServiceError.failed))
+                self.signInErrorMessage = "Invalid authorization code."
             }
             
         default:
@@ -404,13 +339,14 @@ class AppleAuthenticationService: NSObject, ObservableObject {
     }
     
     // MARK: - Handling Sign-In Errors
-    func handleSignInError(_ error: Error?) {
-        
+    public func handleSignInError(_ error: Error?) {
         DispatchQueue.main.async {
             if let error = error as NSError? {
                 self.signInErrorMessage = error.localizedDescription
                 print("Authorization failed: \(error.localizedDescription)")
             }
+        }
+        Task {
             self.signOut()
         }
     }
@@ -418,9 +354,10 @@ class AppleAuthenticationService: NSObject, ObservableObject {
 
 // MARK: - ASAuthorizationControllerDelegate
 extension AppleAuthenticationService: ASAuthorizationControllerDelegate {
-    func authorizationController(controller: ASAuthorizationController, didCompleteWithAuthorization authorization: ASAuthorization) {
-        handleAuthorization(authorization) { success in
-            if success {
+    public func authorizationController(controller: ASAuthorizationController, didCompleteWithAuthorization authorization: ASAuthorization) {
+        Task {
+            await handleAuthorization(authorization)
+            if self.signInErrorMessage.isEmpty {
                 print("Authorization and token exchange successful.")
             } else {
                 print("Authorization succeeded but token exchange failed.")
@@ -429,14 +366,16 @@ extension AppleAuthenticationService: ASAuthorizationControllerDelegate {
         }
     }
     
-    func authorizationController(controller: ASAuthorizationController, didCompleteWithError error: Error) {
-        handleSignInError(error)
+    public func authorizationController(controller: ASAuthorizationController, didCompleteWithError error: Error) {
+        Task {
+             handleSignInError(error)
+        }
     }
 }
 
 // MARK: - ASAuthorizationControllerPresentationContextProviding
 extension AppleAuthenticationService: ASAuthorizationControllerPresentationContextProviding {
-    func presentationAnchor(for controller: ASAuthorizationController) -> ASPresentationAnchor {
+    public func presentationAnchor(for controller: ASAuthorizationController) -> ASPresentationAnchor {
         #if os(macOS)
         // Prefer the key window, then main window, then any available window; fall back to a new NSWindow if needed.
         if let keyWindow = NSApp?.keyWindow {
@@ -499,4 +438,3 @@ struct TokenResponse: Codable {
         case expiresIn = "expires_in"
     }
 }
-

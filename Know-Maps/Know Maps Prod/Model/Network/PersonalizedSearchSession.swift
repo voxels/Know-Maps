@@ -525,7 +525,7 @@ public actor PersonalizedSearchSession {
                     throw PersonalizedSearchSessionError.ServerErrorMessage
                 }
 
-                return json as! String
+                return String(describing:json)
             } catch {
                 lastError = error
                 if attempt >= PersonalizedSearchSession.maxRetryAttempts {
