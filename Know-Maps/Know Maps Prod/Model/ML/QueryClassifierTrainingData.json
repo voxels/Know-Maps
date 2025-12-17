@@ -1,0 +1,5270 @@
+[
+  {
+    "text": "Can you share your thoughts on the seamless orchestration of flavors and textures at The River Café?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Are there any eateries around here that welcome pets?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any outdoor meditation or mindfulness retreats in the area?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest a pizza restaurant with a good selection of craft beers to pair with the pizza?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any famous archaeological sites or ancient ruins to explore?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a good selection of bookstores or literary shops?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Which pizza place is known for their unique and creative toppings?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any virtual reality arcades or gaming centers for a futuristic experience?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any restaurants that specialize in gluten-free cuisine?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I dine while enjoying live performances?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are the transportation options for reaching Amsterdam?",
+    "label": "Unsupported"
+  },
+  {
+    "text": "Where can I find restaurants that are sensitive to dietary restrictions?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you describe the iconic landmarks and architectural gems that grace Prospect Park?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "What are the best places for a leisurely boat ride or canal tour?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there restaurants around here with a to-go option?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest any stores or shops for gourmet food or specialty ingredients?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some popular neighborhoods or areas to explore in this city?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find the best spots for beachcombing or collecting seashells?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are the best places for a scenic picnic or outdoor relaxation?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a good Italian restaurant?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any specific historical sites or landmarks that are significant to the city?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend any nearby wildlife safari parks or animal reserves?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some spots that specialize in offering a range of craft beers?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "I'd appreciate it if you could share the address for the bookstore.",
+    "label": "ShareResult"
+  },
+  {
+    "text": "Where should I grab a meal that is both quick and healthy?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any pizzerias known for their authentic Neapolitan-style pizza?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest a place with live music or acoustic performances?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Which places are favorites among families for dining out?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a peaceful sculpture garden or public art installation?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest any nearby pet-friendly parks or dog-friendly beaches?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest places that focus on sourcing ingredients straight from the farm?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where do burger aficionados usually go in this area?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you give me insights into the reputation and dining experience at Peter Luger Steakhouse?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "What are some local farms or animal sanctuaries where I can interact with animals?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend a good pizza restaurant nearby?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I go for a thrilling day of jet skiing or water tubing?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "I've been searching for the address for the hospital.",
+    "label": "ShareResult"
+  },
+  {
+    "text": "Are there any outdoor painting or art workshops I can join?",
+    "label": "Unsupported"
+  },
+  {
+    "text": "Which restaurant is famous for its wine pairing?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some spots that provide cooking classes along with dining?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any specific local celebrations or festivals that are particularly lively and vibrant in Kyoto?",
+    "label": "Unsupported"
+  },
+  {
+    "text": "What words come to mind when you think of the sprawling green landscapes and serene atmosphere of Balboa Park?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Are there any restaurants known for their garden or patio dining experience?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest an eatery that provides great food at reasonable prices?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend a park with a dog-friendly café or refreshment area?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Could you kindly provide me with the address for the restaurant?",
+    "label": "ShareResult"
+  },
+  {
+    "text": "Tell me about Hollywood Walk of Fame",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Where can I find the best spots for wildlife safaris or guided nature tours?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest a place that serves top-notch French cuisine?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are the popular theaters or cinemas for entertainment and relaxation?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some popular local sports or recreational activities that visitors can participate in Detroit?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a good Indian restaurant?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some popular bungee jumping or skydiving locations for thrill-seekers?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I order food for delivery or takeout from local restaurants?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some interesting facts or trivia about Cuba that people may not know?",
+    "label": "Unsupported"
+  },
+  {
+    "text": "Could you share your impressions of the dining experience at The Ledbury?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Which pizzeria is considered the best in this area?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I go for a scenic drive or road trip?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I go for a fun day of rollerblading or skateboarding in a scenic park?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any outdoor theater or Shakespeare performances happening soon?",
+    "label": "Unsupported"
+  },
+  {
+    "text": "Can you recommend a restaurant that excels in seafood dishes?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Which park offers scenic trails or paths for dog walking?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any outdoor theater or musical performances happening soon?",
+    "label": "Unsupported"
+  },
+  {
+    "text": "Which pizza place is known for their generous portions and value for money?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find the best spots for off-roading or ATV adventures?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest a place for a tranquil calligraphy or handwriting class?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I go for a thrilling day of white-water rafting or river tubing?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some must-try eateries around here?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a relaxing art gallery or exhibition?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some beachfront eateries you would recommend?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find eateries with a rooftop setting for drinks?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Tell me about The Museum of Contemporary Art",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Can you recommend any scenic viewpoints or lookout points in Hong Kong?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find an eatery that offers a tranquil dining atmosphere?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a good ramen restaurant?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find the best viewpoints or scenic overlooks for photo opportunities?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some scenic horseback riding trails or ranches in the region?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any famous art galleries or art installations to visit along the way?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a peaceful hiking trail or nature reserve?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you name some restaurants that accommodate special diets?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any outdoor food festivals or food truck gatherings?",
+    "label": "Unsupported"
+  },
+  {
+    "text": "Which restaurant offers a good selection of vegetarian or vegan dishes?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "I'm interested in visiting the library.",
+    "label": "ShareResult"
+  },
+  {
+    "text": "What are the popular sushi chains in this area?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend any local maple syrup farms or sugarhouses for a tasting experience?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Is there a place you would endorse for a meal nearby?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any outdoor obstacle races or mud runs happening soon?",
+    "label": "Unsupported"
+  },
+  {
+    "text": "Where can I find eateries with a casual and friendly atmosphere?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find restaurants that are open 24/7?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "How would you summarize the sense of timelessness and escape from the urban jungle that Central Park offers?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "What are some 24-hour dining options in this area?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Is there a restaurant that’s celebrated for its breathtaking outlook?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend any nearby sand dunes or desert landscapes to explore?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you pass along the Twitter account information for Masa?",
+    "label": "ShareResult"
+  },
+  {
+    "text": "Are there eateries that offer both food and live shows?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Which spots are popular for an easygoing meal?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a dog-friendly park in this area?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some restaurants that are known for being family-friendly?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find the best spots for snowboarding or skiing in the mountains?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where do Mexican food enthusiasts usually go around here?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some restaurants that offer an exclusive chef’s table experience?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a restaurant with a diverse range of dishes from around the world?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest a place with scenic views for a peaceful stroll?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Could you help me find the Instagram username for Providence?",
+    "label": "ShareResult"
+  },
+  {
+    "text": "What are the top spots for Chinese food in this area?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any outdoor pottery or ceramics workshops I can participate in?",
+    "label": "Unsupported"
+  },
+  {
+    "text": "Which sushi restaurant offers an all-you-can-eat sushi option?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a good spot for kiteboarding or windsurfing on the coast?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some eateries renowned for their dessert offerings?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest some go-to spots for coffee around here?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend a restaurant with a live music performance?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Which restaurant offers a good selection of international cuisine?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any famous aviation museums or air shows happening during my trip?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest any guided tours or experiences that provide insight into Bogota?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Is there a Vietnamese place that stands out in this vicinity?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you name some restaurants that focus on sourcing ingredients locally?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any specific eco-tourism initiatives or sustainable practices in Costa Rica?",
+    "label": "Unsupported"
+  },
+  {
+    "text": "What are some popular outdoor music festivals or concerts happening during my trip?",
+    "label": "Unsupported"
+  },
+  {
+    "text": "Are there any standout bakery shops in this vicinity?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find the best local cuisine or food specialties in this city?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest any local historical sites or architectural wonders that are worth visiting in Monument Valley?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend a place known for authentic Italian cuisine?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a restaurant that’s completely vegan?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend places that are known for their variety of craft beers?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "I'd appreciate it if you could share the Instagram handle for Atomix so I can follow them.",
+    "label": "ShareResult"
+  },
+  {
+    "text": "Can you suggest any local historical sites or architectural wonders that are worth visiting in Texas?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I dine with my pet in this area?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you please share the Youtube username for Uchi so I can connect with them?",
+    "label": "ShareResult"
+  },
+  {
+    "text": "Can you suggest a restaurant with a pet-friendly policy?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend a place with outdoor hammocks or lounge areas?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest a restaurant with a fireplace or outdoor fire pit?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some popular water activities or beach spots in Saint Tropez?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest places that are known for their exceptional wine pairings?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest a sushi restaurant with a waterfront view?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where do locals usually grab a coffee in this area?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What sets Peter Luger Steakhouse apart from other steakhouse establishments?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "What are the best restaurants for a late-night meal?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a restaurant with an extensive gluten-free menu?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend a place known for its great happy hour promotions?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Tell me about The Los Angeles Zoo",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Are there any outdoor art installations or sculptures to explore?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest some eateries with outdoor patio or garden areas?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Which fast food chains are prevalent in this vicinity?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any eateries known for their serene and comfortable outdoor areas?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Is there an ice cream place that's particularly popular in town?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest a place for paddleboarding or kayaking in calm waters?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a good Korean restaurant?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are the best places for a scenic photography walk or photo tour?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest any local cooking classes or culinary experiences that allow visitors to learn about the local cuisine in Casablanca?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend any unique souvenirs or crafts to look for in New Mexico?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any parks that host dog-friendly events or meet-ups?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Tell me about The La Brea Tar Pits and Museum",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Are there any coffee shops with unique or signature coffee creations?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any paintball arenas or laser tag centers for an adrenaline-pumping experience?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find information about the city's local customs or etiquette?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any restaurants with a private dining option?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "I'm interested in connecting with Coi on Facebook.",
+    "label": "ShareResult"
+  },
+  {
+    "text": "Where can I find a good sushi restaurant?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any unique roadside attractions or oddities worth stopping for?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some spots that serve a wide range of craft beers from local breweries?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Which coffee shop is known for its friendly and knowledgeable baristas?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend a fun recreational center or facility nearby?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any restaurants known for their wine cellars?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest any local lavender farms or floral gardens to visit?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "How would you characterize the innovative and artistic presentation of dishes at Lyle's?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Are there any specific local celebrations or festivals that are particularly lively and vibrant in Jakarta?",
+    "label": "Unsupported"
+  },
+  {
+    "text": "Are there any go-to fast food places in this area?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any coffee shops with outdoor seating or a nice view?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Which food trucks are favorites among the locals?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest a restaurant with a healthy menu?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any hot springs or thermal baths for relaxation?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Is there a Korean place that stands out in this vicinity?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any restaurants that feature a play zone for kids?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any places that cater to a vegetarian or vegan diet?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any places known for their gluten-free menu?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you share your personal favorite spot or memory within Central Park that encapsulates its magic?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Which coffee shop offers a variety of brewing methods, such as pour-over or French press?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some popular hiking trails or national scenic trails to consider?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find an eatery that focuses on nutritious dishes?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any famous historical routes or trails associated with early American history?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you please give me the address for the airport?",
+    "label": "ShareResult"
+  },
+  {
+    "text": "Are there any famous film festivals or independent cinemas along the route?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any restaurants with a chef's tasting menu?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you share any interesting local customs or etiquette tips for visitors to Paris?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some scenic walking or jogging paths in the area?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some spots that have become popular for their happy hour specials?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are the best places for a scenic horseback riding trail or ranch visit?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What have you gathered from the conversations you've had about The Walt Disney Family Museum in terms of people's overall satisfaction and enjoyment?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Is there a food truck that’s particularly popular in town?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are the top spots for Thai food in this area?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend a place for a relaxing paddleboarding or kayaking excursion?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a good selection of sports or outdoor gear stores?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I experience the city's nightlife and entertainment scene?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are the top spots for an all-you-can-eat sushi experience?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are the must-see attractions or landmarks in this city?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest any local theaters or performing arts venues that showcase the cultural scene in Kiev?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find the best local souvenirs or crafts to take home?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Tell me about Santa Monica Pier",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Can you recommend places known for their selection of local artisanal beers?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any rooftop bars or lounges with a relaxed atmosphere?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any local legends or folklore associated with Saint Petersberg?",
+    "label": "Unsupported"
+  },
+  {
+    "text": "Can you recommend any nearby outdoor rock climbing or bouldering locations?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you share any interesting anecdotes or stories associated with L'Artusi?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Where do Italian food lovers usually go around here?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some places that serve niche or cultural dishes?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a coffee shop with comfortable seating and free Wi-Fi?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a restaurant with an impressive local craft beer menu?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest places that are known for their array of international cuisines?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any restaurants known for being exceptionally romantic?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find restaurants that emphasize fresh, locally-sourced ingredients?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any famous landmarks or sites associated with Native American culture?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend any nearby gardens or arboretums with unique plant collections?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a coffee shop that offers coffee tasting flights or cupping sessions?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Tell me about Griffith Park",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Where can I find a good selection of pet supplies or pet-friendly stores?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend a place that’s known for outstanding sushi?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend a place for horseback riding or equestrian activities?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Could you assist me in finding the address for the theater?",
+    "label": "ShareResult"
+  },
+  {
+    "text": "What are the top spots for Brazilian food in this area?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Is there a restaurant that's famous for its exclusive chef service?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest some reputable restaurants suitable for a business meeting?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend a restaurant with a view of the city skyline?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What do people tend to say about the local food and dining options near Muir Woods National Monument?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Which eatery should I visit to try a dish that’s celebrated?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any outdoor photography exhibitions or art festivals happening soon?",
+    "label": "Unsupported"
+  },
+  {
+    "text": "Can you suggest any unique accommodations or hotels that offer a distinct experience in Caracas?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any cultural or historical museums in Cape Town that provide insight into the local heritage?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any must-try Mexican joints nearby?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you provide a summary of the general sentiment and viewpoints expressed by others regarding The Painted Ladies?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "I'm interested in making a reservation at Manresa.",
+    "label": "ShareResult"
+  },
+  {
+    "text": "Where can I go for a fun day of zip-lining or aerial adventures?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find the best spots for camping or RV parks along the route?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest some eateries that provide food delivery or pickup?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What is the nightlife like in Moscow?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest some places known for quick service and good food?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any restaurants known for their stunning beachside locations?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a park with open spaces for dogs to run and play fetch?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a peaceful rooftop terrace or garden with city skyline views?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any restaurants that have gained fame for their brunch?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest some go-to spots for ice cream in this city?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Which restaurant offers a good selection of gluten-free options?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a restaurant with an extensive wine list?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest any nearby waterfalls or natural swimming pools?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Which places are favorites among health-conscious diners for quick meals?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any must-visit happy hour destinations in this area?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any outdoor food festivals or street food markets happening soon?",
+    "label": "Unsupported"
+  },
+  {
+    "text": "What are some spots that offer dining with a private chef?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are the best restaurants for a date night?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Is there a place that's both kid-friendly and has play facilities for children?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest a restaurant with a romantic ambiance?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any restaurants famous for their sushi buffet?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What elements contribute to the immersive and memorable dining experience at Hakkasan?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "What are some must-try ice cream shops in the area?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any specific cultural events or festivals happening during my visit?",
+    "label": "Unsupported"
+  },
+  {
+    "text": "What fast food chains are the locals fond of?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "How do people typically describe the energy and diversity found at Twin Peaks?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Can you recommend a place known for its exceptional brunch offerings?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any restaurants known for their private chef dining experiences?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I dine al fresco in a garden setting?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "I'm wondering if you have the address for the restaurant.",
+    "label": "ShareResult"
+  },
+  {
+    "text": "What are some popular camping spots in the region?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some popular roadside markets or farmers' markets for local produce?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Which restaurants offer meals with a view of the cityscape?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some famous landmarks or attractions specific to each state on my route?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest any stores or boutiques that focus on local or handmade products?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Which fine dining establishments have earned a reputation in this city?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any must-try Brazilian restaurants nearby?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What’s the best place around here to grab a burger?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend a good place to eat nearby?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest any local food festivals or culinary events happening nearby?",
+    "label": "Unsupported"
+  },
+  {
+    "text": "Tell me about The Japanese American National Museum",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Are there any comedy festivals or live comedy performances for a night of laughter?",
+    "label": "Unsupported"
+  },
+  {
+    "text": "Where can I find the best spots for stargazing or astronomy observation?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend a restaurant that serves genuine local dishes?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest any local distilleries or craft breweries for a tasting experience?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend any cultural centers or institutions that offer insights into the local arts and heritage in Lagos?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest a park with well-maintained walking paths and adequate lighting for evening walks with dogs?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any restaurants with a wine cellar?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some popular roadside parks or rest areas with amenities along the way?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some of the things people often mention or discuss when talking about their time at Chinatown?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Can you recommend any local cafes or restaurants that offer a unique dining experience in Bangkok?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Is there somewhere nearby that specializes in vegetarian or vegan cuisine?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Could you describe the ambiance and atmosphere of Momofuku Ko?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "What are the best restaurants for a family-friendly outing?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any must-try spots for regional cuisine?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any parks known for their dog-friendly amenities, such as water fountains or waste stations?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Which sushi place is known for their creative sushi presentation?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are the critically acclaimed high-end restaurants in this city?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find restaurants with views of the water?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest a coffee shop with a selection of dairy-free or plant-based milk alternatives?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend a place for a relaxing paddleboarding or kayaking tour?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some local nature centers or environmental education programs to visit?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some local water parks or splash pads for cooling off in the summer?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find the best pizza in this area?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest any nearby horse racing tracks or equestrian events?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some must-see attractions or landmarks in New York City?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "I need to know the address for the venue.",
+    "label": "ShareResult"
+  },
+  {
+    "text": "Where can I find a pizza restaurant with a wide selection of gourmet pizzas?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are the best restaurants for a pre-theater dinner?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any scenic hiking trails or natural parks to explore in Utah?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Is there a place that's known for its calm and quiet ambiance?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Is there a place that’s famous for its chef’s table experience?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Which restaurant offers a good selection of craft beers?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a tranquil rooftop pool or lounge with mountain views?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some popular local trails or routes for cycling or biking enthusiasts in London?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any restaurants that have gained fame for their Sunday brunch menu?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some popular small towns or hidden gems that are worth exploring?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some restaurants that specialize in organic cuisine?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any vegan-specific restaurants in the area?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a good spot for a peaceful outdoor meditation or yoga session?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any specific religious or spiritual sites that are significant in Venice?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some restaurants that specialize in farm-to-table cuisine?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest any local wellness centers or spas that offer relaxation and rejuvenation services in Santa Fe?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you describe the level of craftsmanship and culinary expertise displayed at The Ritz Restaurant?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Could you describe the sprawling lawns and picturesque lakes that add to the charm of Central Park?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Are there any escape rooms or interactive puzzle experiences for entertainment?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any eateries that specialize in fast yet delicious meals?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a quiet cafe or coffee shop to unwind?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some places that serve meals buffet style?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a serene rooftop pool or lounge with skyline views?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a good selection of fashion stores or clothing outlets?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any standout coffee shops or cafes in this area?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any famous ghost towns or abandoned places to explore?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a restaurant that prides itself on using farm-fresh ingredients?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a good seafood restaurant?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend any local cheese factories or dairy farms for a tasting experience?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a tranquil indoor garden or conservatory for relaxation?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Is there a ramen place that stands out in this vicinity?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where do locals usually go for a weekend brunch?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest a place that has exceptional happy hour offerings?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find the best spots for rock climbing or bouldering along the way?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What places offer the convenience of getting food delivered or ready for pickup?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest any outdoor activities or adventure sports available in Great Smoky Mountains National Park?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Is there a place that's famous for its rooftop dining experience?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a good Chinese restaurant?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend a place for a peaceful photography or art exhibition?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What is the local fashion or shopping scene like in Rome?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Is there a restaurant that's famous for its chef-curated menu?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where do steak lovers usually dine around here?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where do Korean food lovers usually go around here?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some popular stores for beauty and cosmetics in this area?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any restaurants with a farm-to-table concept?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a good spot for a barbecue or picnic?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are the go-to places for coffee or tea aficionados?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Which restaurants have a chilled, outdoor setting?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend any interesting museums or exhibits dedicated to American history?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find restaurants offering vegan baked goods?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you please send me the Youtube account details for Momofuku Ko?",
+    "label": "ShareResult"
+  },
+  {
+    "text": "What are the popular ice cream parlors in this city?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where do seafood enthusiasts usually go around here?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What is the local theater or performing arts scene like in Denver?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "I've been searching for the phone number for Peter Luger Steakhouse. Could you assist me in finding it?",
+    "label": "ShareResult"
+  },
+  {
+    "text": "How would you summarize the philosophy and ethos that guide the culinary team at Zuma?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "What are the best places for a scenic bike ride or cycling path?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest places that cater to gluten-free diets?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any restaurants that are known for their commitment to organic ingredients?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend any gardens or parks with beautiful flowers?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest a place for a quiet photography or art exhibition?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some popular sports stadiums or arenas that offer tours or events?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some scenic river rafting or kayaking spots in the region?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you give me an idea of the clientele and popularity of Le Coucou?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "What are some local sports fields or courts for outdoor games?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are the best restaurants for a business lunch?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any outdoor sculpture or art installations that are worth seeing?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are the go-to spots for French food in this area?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a sushi restaurant with a private dining room for a special occasion?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there eateries that provide spaces for private dining occasions?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend a place known for authentic Indian cuisine?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest any nearby outdoor shooting ranges or archery centers?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest a restaurant that has a live entertainment feature?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Is there a place where I can catch a live act while eating?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend any nearby tree-top adventure parks or high ropes courses?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any parks with dog-friendly playgrounds or play structures?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "I'm looking for the hotel, and I was wondering if you have its address.",
+    "label": "ShareResult"
+  },
+  {
+    "text": "What have you heard people say about the attractions and activities available at Exploratorium?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Where can I find a good spot for a beach bonfire or campfire?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest some places that are favorites for brunch?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest restaurants where I can watch meals being prepared live?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest a park with fenced-in areas for small dogs to play safely?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "I'd appreciate it if you could share the contact information, specifically the phone number, for Saison.",
+    "label": "ShareResult"
+  },
+  {
+    "text": "Can you suggest a sushi restaurant with a good selection of Japanese appetizers and side dishes?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any local markets or shopping districts that are worth visiting?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Is it possible for you to provide me with the address for the gallery?",
+    "label": "ShareResult"
+  },
+  {
+    "text": "Can you suggest eateries that offer cooking classes?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any specific local cultural practices or rituals that visitors can witness or be a part of in Hawai'i?",
+    "label": "Unsupported"
+  },
+  {
+    "text": "Which coffee shop offers a loyalty program or rewards for frequent customers?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some scenic horseback riding trails or equestrian centers in the area?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are the popular wellness retreats or meditation centers in this city?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any indoor trampoline parks or adventure zones for enjoyment?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Which restaurants are known for their sports bar atmosphere?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend a place that has a lovey-dovey atmosphere?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any comedy clubs or improv theaters for a fun night out?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Which park has designated dog waste disposal stations for easy cleanup?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any spots renowned for their pre-theater dining options?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest a restaurant that serves gluten-free options?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are the popular rooftop pools or lounges for relaxation?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any specific local handicraft markets or artisanal fairs that showcase the local craftsmanship in Tulsa?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find eateries with an impressive wine cellar?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest a park with benches or picnic tables for dog owners to relax?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend any lakes or beaches for swimming or sunbathing?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Which restaurant offers a good breakfast menu?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest any day trips or nearby attractions that are family-friendly in Singapre?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Is there a must-try place for pizza enthusiasts?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Could you provide me with some recommendations for ordering at Carbone?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Is there a Brazilian place that stands out in this vicinity?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any specific local delicacies or food specialties that are a must-try in Incheon?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What is the local music or nightlife scene like in Seattle?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Which restaurant is famous for its brunch menu?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where do lovers of Greek cuisine usually dine around here?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any restaurants that specialize in a particular cuisine?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I go to enjoy some outdoor activities?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Is there a restaurant that’s famous for its wine cellar?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Is there a place known for pairing dishes with excellent wines?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some charming and cozy restaurants perfect for couples?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Tell me about The Broad",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Where can I find eateries that feature personalized chef services?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend any nearby hot springs or thermal baths?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some spots renowned for their mixology and craft drinks?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there restaurants that are renowned for their wine collection?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some restaurants that are known for being open late?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a coffee shop that roasts their own coffee beans?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Could you paint a picture with your words, describing the sights and sounds of Griffith Park?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Where can I go for a relaxing swim in a natural lake or river near [location]?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Is there a must-visit place for craft cocktail enthusiasts?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a restaurant that has a lively sports bar vibe?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find restaurants that cater to group events?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any dance studios or classes for a fun and energetic experience?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some local skateboard parks or BMX tracks for outdoor sports enthusiasts?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any parks or green spaces in Rio de Janeiro that are perfect for a picnic or leisurely walk?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any pizza places that offer a lunch buffet?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you capture the balance between tradition and innovation at Sketch (The Lecture Room & Library)?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "I'm in need of the restaurant's address. Would you be able to share it with me?",
+    "label": "ShareResult"
+  },
+  {
+    "text": "What are some fun places to go for a bike ride?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a good spot for a beach volleyball or beach soccer game?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Is there a place known for its international culinary delights?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Is there a spot that’s perfect for a cozy dining experience?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any restaurants known for offering lessons in cooking?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find restaurants with plant-based menus?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any indoor trampoline parks or adventure zones for family fun?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest some eateries that offer a chef's table dining experience?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "How would you summarize the role of City Park as a gathering place for people from all walks of life?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Is there a place that's known for its relaxed ambiance and outdoor seating?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any restaurants known for their rooftop dining settings?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "How would you describe the sense of serenity and rejuvenation that one can experience in Zilker Park?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Tell me about The Huntington Library, Art Museum, and Botanical Gardens",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Can you suggest a restaurant with a relaxed outdoor seating area?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What is the best time of year to visit Alaska in terms of weather and events?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any must-try Chinese restaurants nearby?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some safety tips or precautions I should be aware of when exploring the city?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend any scenic drives or road trips that showcase the beauty of Scotland?",
+    "label": "Unsupported"
+  },
+  {
+    "text": "Are there any famous historic battlesites or war memorials to visit?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any eateries with a cozy or romantic setting?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any restaurants that specialize in health-conscious cuisine?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any specific local cultural practices or rituals that visitors can witness or be a part of in Santiago?",
+    "label": "Unsupported"
+  },
+  {
+    "text": "Where can I find a tranquil rooftop terrace or lounge with sunset views?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Which restaurants offer a dining experience with a view of the beach?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend any nearby rock climbing gyms or indoor climbing facilities?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a good Greek restaurant?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Is there a place that’s popular for getting a quick meal?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some must-try dishes on the menu of ABC Kitchen?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Where can I find the best viewpoints or panoramic spots to see the city skyline?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some spots that specialize in Sunday brunches?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a restaurant with an extensive menu of coffees or teas?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any restaurants that cater to specific dietary restrictions?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Is there an Italian place that stands out in this vicinity?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend a restaurant with a view?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Do you have any dining suggestions in the area?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend some eateries that are perfect for late-night dining?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Which restaurants offer a dining experience in a book-themed setting?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend any hidden gems or lesser-known spots to visit in Chicago?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any restaurants known for their desserts?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any restaurants that are popular for business lunch gatherings?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "How would you characterize the role of Piedmont Park  as a beloved escape from the bustling city?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Could you provide me with the Instagram username for Eleven Madison Park?",
+    "label": "ShareResult"
+  },
+  {
+    "text": "What are the popular food trucks in this city?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some outdoor sports or recreational facilities in the area?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Is there a place known for being accommodating to pets?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some restaurants that boast impressive vistas?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Is there a place known for its dining experience by the water?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "I'm in need of the phone number for The French Laundry.",
+    "label": "ShareResult"
+  },
+  {
+    "text": "What are the go-to restaurants for happy hour around here?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some nearby lakes or rivers for boating or fishing?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there eateries that offer tailored menus for dietary needs?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find eateries that feature chef's tasting menus?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a peaceful bookstore or library with a cozy reading corner?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest a coffee shop with a quiet and relaxed ambiance for reading or working?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some family-friendly eateries that include a children’s play area?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What is the local music or nightlife scene like in Ibiza?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a restaurant with a standout brunch menu?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some local vineyards or wineries where visitors can enjoy wine tasting?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend any local bookstores or literary spots that book lovers would enjoy in Sydney?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend a place that’s known for serving great steaks?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any restaurants where I can enjoy a meal in a serene environment?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I go for a leisurely boat cruise or sailing trip?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Is there a barbecue place that stands out in this vicinity?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find the best spots for wildflower viewing or floral festivals?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any specific neighborhoods or areas that are known for their charm in Denver?",
+    "label": "Unsupported"
+  },
+  {
+    "text": "Where can I find the best local diners or roadside food joints?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some of the praises and criticisms people express when discussing their time at The Castro District?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Can you recommend a place with a standout, signature meal?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any eateries with a sports-themed ambiance and big-screen TVs?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest a place for a quiet photography or art gallery exhibition?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "I'm hoping you can help me out by sharing the phone number for Peter Luger Steakhouse.",
+    "label": "ShareResult"
+  },
+  {
+    "text": "I'd like to obtain the contact number for Chef's Table at Brooklyn Fare.",
+    "label": "ShareResult"
+  },
+  {
+    "text": "Where can I find the best spots for wildlife spotting or birdwatching?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "How do people typically characterize the atmosphere and vibe of Palace of Fine Arts?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Where can I find a rooftop bar or lounge with panoramic city views?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Is there a spot that’s renowned for its all-vegan menu?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some popular stores for jewelry and accessories in this city?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you elaborate on the exceptional service and attention to detail at Gymkhana?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Can you recommend any local hidden gems or off-the-beaten-path places to visit?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Which restaurant has the best seafood?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are the popular pizza chains in this area?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest any local wellness centers or spas that offer relaxation and rejuvenation services in Sedona?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some local hot springs or geothermal pools for a relaxing soak?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any restaurants that specialize in vegetarian or vegan cuisine?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where do lovers of Middle Eastern cuisine usually dine around here?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are the top spots for Vietnamese food in this area?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some popular kayaking or canoeing routes on scenic rivers or lakes?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I have a meal with a view from the rooftop?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "In your experience, what do people tend to comment on when discussing their visit to Lombard Street?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Which place offers a combination of quality food and affordability?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Which eateries have gained popularity for their brunch menu?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Which restaurant offers a good selection of craft cocktails?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Is there a place that's known for its panoramic city skyline view?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Is there a restaurant that’s particularly celebrated for its happy hour menu?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any restaurants known for their rooftop lounges?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some eateries with a relaxed and cozy environment?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a serene rooftop bar or lounge with ocean views?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any must-try Thai restaurants nearby?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are the top spots for seafood in this area?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some spots that offer a wine cellar dining experience?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Could you assist me in finding the telephone number for Atelier Crenn?",
+    "label": "ShareResult"
+  },
+  {
+    "text": "Can you recommend any local museums or exhibitions that showcase the history and culture of Honolulu?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "I'd like to connect with Alinea on Facebook.",
+    "label": "ShareResult"
+  },
+  {
+    "text": "Are there any rooftop yoga sessions or outdoor fitness classes?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Is there a spot that stands out for its coffee or tea offerings?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Could you please share the Instagram handle for Daniel?",
+    "label": "ShareResult"
+  },
+  {
+    "text": "Are there any restaurants with outdoor seating?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Which restaurant is known for its organic menu?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a restaurant that hosts live music shows?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "How have others described the iconic boardwalk and its unique charm at Presidio of San Francisco?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Can you recommend a coffee shop with a cozy and welcoming atmosphere?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What makes the dining experience at St. John stand out from other fine dining establishments?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Are there any must-try barbecue joints nearby?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Do you know of any establishments that specialize in accommodating special diets?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest some go-to spots for baked goods in this area?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Could you describe the vibrant tapestry of nature and urban life that coexist within Forest Park?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Where do locals usually grab pastries and bread?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a serene rooftop garden or urban oasis?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Do any eateries around offer vegetarian or vegan choices?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any establishments that cater specifically to families and children?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some historical sites or museums that are worth visiting?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest a place for a calming pottery or ceramics workshop?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "I'd like to follow Le Jardinier on Facebook.",
+    "label": "ShareResult"
+  },
+  {
+    "text": "Is there a spot with a notable outdoor garden or patio seating?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find restaurants that include a culinary learning experience?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Is there a restaurant with vegetarian or vegan options?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Could you share your thoughts on the rich history and cultural significance of Rock Creek Park?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Can you suggest places known for offering sushi buffets?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What is the general consensus among visitors about the experience at Golden Gate Bridge?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Where can I find the best spots for cross-country skiing or snowshoeing in winter?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I dine while enjoying scenic surroundings?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a good coffee shop in this area?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some popular water parks or amusement parks along the route?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Tell me about Los Angeles County Museum of Art",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Where can I find a good steakhouse?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Is there a place that's famous for its beachfront dining experience?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any cooking classes or culinary experiences for leisure?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some good spots for dining with a large party?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any restaurants that have gained fame for their wine pairing menu?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any places known for being open all day and night?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a good spot for stargazing?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend a pizza restaurant with outdoor seating?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend a place known for authentic Thai cuisine?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Do you know any places that are popular among families with little ones?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you enlighten me about the history and offerings of Eleven Madison Park?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Are there any outdoor trampoline parks or bounce houses for a fun-filled day?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are the popular wine bars or wineries for a relaxed evening?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a serene garden or zen-inspired space?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where do ramen enthusiasts usually dine around here?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend any rooftop bars or restaurants with outdoor seating?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend a place known for authentic Greek cuisine?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some eateries that offer gluten-free dishes?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you name some restaurants that are famous for their sweet treats?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any restaurants known for combining dining with live music?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any restaurants that specialize in serving international cuisine?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What is the history or significance behind Kitty Hawk?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "I'm wondering if you have the phone number for SingleThread.",
+    "label": "ShareResult"
+  },
+  {
+    "text": "Where do locals usually go for a sweet treat in this city?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any coffee shops known for their specialty or artisanal coffee?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any specific local handicrafts or artisanal products that make for great souvenirs in Dehli?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any must-try Italian restaurants nearby?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Is there a go-to restaurant for a hearty breakfast?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest any guided tours or experiences to learn about the city's history and culture?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Is there a bakery that’s particularly popular around here?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any restaurants known for their casual dining environment?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend a place known for authentic Chinese cuisine?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What is the local cuisine like in Des Moines?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some restaurants that are ideal for a romantic evening?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a restaurant that has facilities for children to play?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend a place for a soothing glassblowing or pottery class?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are the best restaurants for a casual dining experience?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest any local breweries or wineries for a tasting experience?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any botanical gardens or arboretums nearby?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any must-try Greek restaurants nearby?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any spots that have made a name for themselves for quick and nutritious food?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest restaurants that feature a wine cellar?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Could you pass on the address for the stadium?",
+    "label": "ShareResult"
+  },
+  {
+    "text": "Can you suggest a beach or lakeside destination for relaxation?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any dance parties or social events for a night of fun and enjoyment?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where do Chinese food lovers usually go around here?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any eateries that excel in serving quality coffee or tea?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some popular local vineyards or wineries where visitors can taste the local wines in Sonoma County?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any specific local handicraft markets or artisanal fairs that showcase the local craftsmanship in Santa Fe?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any must-try Vietnamese restaurants nearby?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "I'm trying to locate the park.",
+    "label": "ShareResult"
+  },
+  {
+    "text": "Are there any must-try burger joints in the vicinity?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some popular horseback riding trails or equestrian centers in the area?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest any local farms or orchards for fruit picking?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest any national parks or natural wonders along the way?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any restaurants with a live cooking station?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some restaurants with tranquil outdoor patios?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Is there a Mexican place that stands out in this vicinity?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest any nearby paintball or laser tag arenas for a fun day out?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are the best places for a leisurely boat cruise or yacht rental?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any standout dessert shops or cafés in this area?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Tell me about The Walt Disney Concert Hall",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Can you recommend any local cultural festivals or events showcasing diverse traditions?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you name some well-known fast food joints around here?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any restaurants with a buffet option?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are the popular whiskey bars or distillery tours for a relaxed evening?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any comedy shows or stand-up performances for a good laugh?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you please provide me with the address for the mall so that I can find it?",
+    "label": "ShareResult"
+  },
+  {
+    "text": "Can you suggest any nearby natural swimming holes or waterfall pools for a refreshing dip?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any sushi places with a revolving conveyor belt sushi concept?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest a place that offers both good food and a great view?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Is there a Chinese place that stands out in this vicinity?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some places to catch the game and enjoy a good meal?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What is the local theater or performing arts scene like in Knoxville?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some specialty stores or niche markets that are worth visiting?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any karaoke bars or venues for a fun singing session with friends?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any specific local street food markets or food tours that allow visitors to explore the local cuisine in Tokyo?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Tell me about The Grammy Museum",
+    "label": "TellPlace"
+  },
+  {
+    "text": "What are some popular local hiking or trekking trails that offer stunning views in Switzerland?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any outdoor theater performances or open-air concerts happening soon?",
+    "label": "Unsupported"
+  },
+  {
+    "text": "What is the local theater or performing arts scene like in Chicago?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any restaurants with a patio or garden seating?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Which restaurants in this city have received the highest accolades for fine dining?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are the top spots for sushi in this area?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some restaurants that are known for offering speedy and wholesome meals?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest places that offer secluded or private dining rooms?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Could you provide an overview of the overall feedback and reviews shared by visitors of the Japanese Tea Garden?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Tell me about The Original Farmers Market",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Where can I find the best spots for stand-up paddleboarding or kayaking?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find restaurants that are welcoming to children?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some restaurants that allow patrons to bring their pets?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are the popular rooftop bars or lounges with a lively atmosphere?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any restaurants that feature book-inspired interiors?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any restaurants with a vegan bakery?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any unique traditions or cultural events that take place in Illinois?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a restaurant known for great happy hour deals?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any restaurants with a rooftop dining option?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend any local festivals or events happening during my road trip?",
+    "label": "Unsupported"
+  },
+  {
+    "text": "What are some must-visit landmarks or attractions along this route?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest some eateries with rooftop dining spaces?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some popular bike trails or cycling routes to explore?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend a pizza restaurant with a vegan or plant-based menu?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some popular bungee jumping or skydiving locations for thrill-seekers?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest some eateries that operate round the clock?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend some eateries that are perfect for dining before a show?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Tell me about Universal Studios Hollywood",
+    "label": "TellPlace"
+  },
+  {
+    "text": "What are the best places for birdwatching and connecting with nature?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any specific local superstitions or beliefs that are interesting to know about in Kinshasa?",
+    "label": "Unsupported"
+  },
+  {
+    "text": "Are there any restaurants renowned for their tasting menus?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What’s a good restaurant you would suggest close by?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Could you paint a picture of the sensory delights and exquisite flavors at The Clove Club?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Is it possible for you to share the phone number for Per Se?",
+    "label": "ShareResult"
+  },
+  {
+    "text": "What words come to mind when reflecting on the unforgettable dining experience at Dishoom?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Are there any must-try Indian restaurants nearby?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any spots renowned for their late-night menu?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are the top spots for Mexican food in this area?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest a place for a relaxing horseback riding excursion in nature?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest a coffee shop with a selection of international or single-origin coffees?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a calm and soothing indoor swimming pool or spa?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "I'm trying to find L2O on Facebook.",
+    "label": "ShareResult"
+  },
+  {
+    "text": "Are there any gaming arcades or amusement centers for fun and relaxation?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you please provide me with the Instagram details for Acquerello?",
+    "label": "ShareResult"
+  },
+  {
+    "text": "Where can I go for a fun day at the amusement park?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a restaurant with a warm and inviting ambiance?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend a place known for authentic Korean cuisine?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What’s the top spot for pizza around here?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are the top spots for Korean food in this area?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a good spot for kite flying or frisbee throwing?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are the popular distilleries or cocktail bars for a relaxed evening out?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Is there a seafood place that stands out in this vicinity?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any must-try Korean restaurants nearby?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a sushi restaurant that offers delivery or takeout services?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a good sushi buffet?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend a place for a soothing pottery or ceramics class?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any indoor rock climbing gyms or adventure parks for an exciting experience?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you name some well-known food trucks around here?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a good spot for outdoor photography or nature walks?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Is there a spot known for its wellness-oriented menu?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any dining spots that are known for their value deals?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some restaurants known for offering healthy meal options?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where’s the best place to grab breakfast around here?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "I'm trying to get in contact with The Restaurant at Meadowood.",
+    "label": "ShareResult"
+  },
+  {
+    "text": "Are there places to dine outside in this vicinity?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a restaurant with a personal dining room?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest a restaurant with a quiet ambiance?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any restaurants with a private chef experience?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any salsa clubs or dance studios for a vibrant and energetic night?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Could you paint a picture of the experience one can expect at Gramercy Tavern?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Is there a place that combines a dining experience with cooking classes?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest any local historical sites or architectural wonders that are worth visiting in Arizona?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend any local museums or exhibitions that showcase the history and culture of Bali?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Which places are favorites among night owls for dining?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Tell me about The Hollywood Sign",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Are there any specific local handicraft markets or artisanal fairs that showcase the local craftsmanship in Portland?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Is there a place that's known for its bookish decor?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Tell me about The Getty Center",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Which restaurants offer a more subdued dining experience?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest places that are known for their vegetarian or vegan options?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What is the local fashion or design scene like in Milan?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any local volunteering opportunities or community projects that visitors can participate in Cape Town?",
+    "label": "Unsupported"
+  },
+  {
+    "text": "Can you recommend any local museums or exhibitions that showcase the history and culture of Warsaw?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "How would you summarize the unique dining concept and approach at The Fat Duck?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "What are some of the recurring themes or opinions that come up when discussing Coit Tower with others?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Can you point me to a notable dining spot in the vicinity?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any must-visit ramen restaurants around?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Is there a seafood specialty restaurant that stands out?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What can you tell me about the culinary journey one can expect at Core by Clare Smyth?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Are there any restaurants with a cooking class option?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Is there a Middle Eastern place that stands out in this vicinity?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some nearby beaches for surfing or water sports?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Which restaurants are equipped with a play area for the little ones?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where should I take my date for a special night out?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you provide an overview of the overall opinions and recommendations shared by others about California Academy of Sciences?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Are there any spots renowned for their appeal to families?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Could you pass along the Twitter handle for Oriole so I can follow them?",
+    "label": "ShareResult"
+  },
+  {
+    "text": "What are some popular zip-lining or canopy tours for an adrenaline rush?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a peaceful yoga retreat or meditation center?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you provide me with the contact details, particularly the phone number, for The Willows Inn?",
+    "label": "ShareResult"
+  },
+  {
+    "text": "Can you suggest any local spas or wellness centers for relaxation and rejuvenation?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some restaurants known for their peaceful and quiet setting?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Is there a must-try sushi buffet in town?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Which pizza place offers a variety of vegetarian toppings?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "I need to make a call to Jean-Georges.",
+    "label": "ShareResult"
+  },
+  {
+    "text": "Can you recommend a restaurant with a sports bar atmosphere?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Which restaurant is known for its farm-fresh ingredients?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where do lovers of Brazilian cuisine usually dine around here?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you name a restaurant with a scenic waterfront setting?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a good spot for a scenic hot air balloon ride?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some restaurants known for their cost-effective dining options?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I grab a fast and tasty meal?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are the best restaurants for a quick bite?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Is there a must-visit place for Sunday brunch enthusiasts?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest any horseback riding trails or equestrian centers?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Is there any chance you could provide me with the address for the beach?",
+    "label": "ShareResult"
+  },
+  {
+    "text": "Are there any famous scenic byways or historic routes to include in my road trip?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What restaurants are known for staying true to local culinary traditions?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Which restaurant offers a good selection of local craft beers?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Could you send me the Instagram account name for Eleven Madison Park?",
+    "label": "ShareResult"
+  },
+  {
+    "text": "Is there a must-visit spot for brunch lovers?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Is there a Thai place that stands out in this vicinity?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Is there a restaurant known for its enchanting ambiance?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Which restaurant has the best happy hour deals?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any specific local customs or greetings that visitors should be familiar with in Pyongyang?",
+    "label": "Unsupported"
+  },
+  {
+    "text": "Which place has unbeatable deals during happy hour?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some eateries in the area that are good for families with kids?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a serene rooftop pool or lounge with ocean views?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are the top spots for barbecue in this area?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Which place is renowned for their seafood offerings?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend a place for a relaxing boat ride or river cruise?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any must-visit steakhouses around?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some must-try bakeries in the neighborhood?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any famous caves or caverns open for guided tours?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend some romantic spots ideal for a dinner date?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What elements make Discovery Park a beloved destination for both locals and tourists alike?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Can you recommend a coffee shop with a community-focused atmosphere or events?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any must-visit French restaurants around?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Which places are must-visit for dessert lovers?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a restaurant that has a designated play area for kids?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where are the must-visit spots for fine dining around the city?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Do you know of any establishments that accommodate private dining?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a park with a dog-friendly beach or waterfront access?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some spots that offer an exclusive chef's selection of dishes?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a coffee shop that supports local artists or hosts art exhibitions?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some must-visit cafes for coffee lovers?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any must-try sushi joints nearby?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a restaurant that’s renowned for its Sunday brunch?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I try a renowned dish that's a favorite among locals?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find top-notch desserts at local restaurants?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any specific local crafts or artisan workshops that offer hands-on experiences in Manila?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a good Mexican restaurant?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What is the local music or nightlife scene like in Philadelphia?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Tell me about Venice Beach",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Is there a restaurant that’s known for an exceptional tasting menu?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend a place known for its coffee or tea varieties?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest a place known for its exceptional seafood dishes?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Tell me about Rodeo Drive",
+    "label": "TellPlace"
+  },
+  {
+    "text": "What are the popular brunch spots in this area?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find eateries that feature live cooking stations?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a restaurant with a laid-back atmosphere and outdoor seating?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What is the local sports scene like in Madrid?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Is there a spot known for its gluten-free meal options?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you give me a sense of the lasting impressions and memories that people associate with Ferry Building Marketplace?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Can you name a place that has a particularly snug atmosphere?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Is there a restaurant that specializes in gluten-free cuisine?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest any local food markets or farmers' markets for fresh produce?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some waterfront dining spots that you suggest?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any specific customs or traditions that visitors should be aware of in Kinshasa?",
+    "label": "Unsupported"
+  },
+  {
+    "text": "Can you suggest a place that specializes in artisanal cocktails?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest a restaurant with a cozy atmosphere?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any outdoor music concerts or festivals happening soon?",
+    "label": "Unsupported"
+  },
+  {
+    "text": "Where should I grab dinner before heading to the theater?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are the top spots for Italian food in this area?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some scenic hiking trails or nature walks in the region?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any restaurants known for hosting group celebrations?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some outdoor parks or green spaces where I can relax or go for a walk?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest any local wellness centers or spas that offer relaxation and rejuvenation services in San Diego?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any famous archaeological sites or ancient ruins to explore?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Is there a spot known for its range of plant-based dishes?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some local vineyards or wineries for wine tasting?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are the popular coffee shops in this area?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you provide me with the Instagram account information for Bresca, please?",
+    "label": "ShareResult"
+  },
+  {
+    "text": "Is there a place known for its vegan bakery options?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I go for a refreshing swim in a natural lake or river?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a good Vietnamese restaurant?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find the most enticing happy hour specials?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are the go-to places for a festive group meal?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where do people usually grab fast food around here?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any outdoor painting or art workshops happening soon?",
+    "label": "Unsupported"
+  },
+  {
+    "text": "What are some eateries that feature live musical performances?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any brunch spots that stand out in this area?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any specific local legends or ghost stories associated with certain places in Ankara?",
+    "label": "Unsupported"
+  },
+  {
+    "text": "Can you suggest a sushi place with vegetarian or vegan sushi rolls?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any famous lighthouses or coastal landmarks to visit?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some eateries that come equipped with a children’s play space?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any botanical gardens or arboretums with a serene ambiance?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find the best spots for autumn foliage viewing during the fall season?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any restaurants that have gained fame for their craft beer selection?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some popular local hangout spots or cafes in Lagos?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any pizza places with a BYOB (bring your own beer) policy?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "I'm looking to follow Meadowood on Facebook.",
+    "label": "ShareResult"
+  },
+  {
+    "text": "What are the coffee shops with extended opening hours or a 24-hour service?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some popular ski resorts or winter sports destinations in the area?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you convey the sense of community and togetherness that is fostered within Grant Park?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "What are the best restaurants for a quick and healthy meal?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest any local parks or green spaces that are ideal for relaxation and unwinding in Cairo?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any sushi places with a cozy ambiance and traditional decor?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Is there a place that stands out for its commitment to farm-fresh ingredients?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Is there a place that’s known for being kid-friendly with a play zone?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a cozy bookstore or library to relax and read?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any coffee shops with a selection of freshly baked pastries or treats?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Is there a dessert place that's particularly popular in town?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a pizza restaurant that offers a build-your-own pizza option?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend any local chocolate factories or candy stores for a sweet indulgence?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any outdoor pottery or ceramics classes I can join?",
+    "label": "Unsupported"
+  },
+  {
+    "text": "What are the top-rated fine dining establishments in this city?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest any scenic hiking trails or outdoor activities near the route?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any sushi places with a happy hour or discounted sushi rolls?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend eateries that are suitable for large gatherings or celebrations?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a good Middle Eastern restaurant?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where do sushi lovers usually go around here?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you help me locate the address for the cafes by providing it to me?",
+    "label": "ShareResult"
+  },
+  {
+    "text": "Can you help me locate the Instagram account for Eleven Madison Park?",
+    "label": "ShareResult"
+  },
+  {
+    "text": "Are there any restaurants that offer delivery or takeout services?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where do locals usually go for a scoop or two of ice cream?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend any local gardens or parks with unique flora and fauna in Paris?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend a restaurant with a good wine selection?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Is there a must-visit place for craft beer enthusiasts?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Is there a must-visit place for wine pairing enthusiasts?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any must-try food trucks in this area?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you share any insider tips or secrets about dining at Jean-Georges?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "What are some spots that offer the experience of live cooking?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are the popular wellness resorts or retreats for a holistic relaxation experience?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a rooftop bar or lounge with a serene garden setting?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest a pizza restaurant with a wood-fired oven for that perfect crust?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Is there a place that’s a must-visit for cocktail enthusiasts?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Tell me about The Queen Mary",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Are there any art galleries or museums that showcase the local culture in Mexico City?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "How do people generally feel about the beach culture and street performers at Venice Beach?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Are there any famous jazz clubs or music venues known for live performances?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Could you give me a sense of the overall feedback and reactions from individuals who have visited Golden Gate Park?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Are there any comedy shows or improv performances for a night of laughter?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "In conversations, what are the most commonly mentioned aspects or highlights of Haight-Ashbury?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Where can I find a restaurant that’s perfect for a date night?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some of the common opinions or feedback that people express about Pier 39?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Which places follow a farm-to-table approach in their menus?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a rooftop bar or lounge with a serene garden setting?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some popular sand dunes or desert landscapes to explore?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend any nearby disc golf courses or frisbee golf parks?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I go for a relaxing day at the spa?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any outdoor adventure parks or obstacle courses?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest some restaurants that offer a sampling menu?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some popular day trips or excursions from the city that are worth considering?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a variety of shops and stores in this area?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Do you know any restaurants that have an outdoor dining area?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Tell me about The Grove and Farmers Market",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Where can I find the best spots for fishing or fly fishing along the route?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where do people usually go to eat around here?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend any unique roadside food challenges or eating contests?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What do people usually comment on regarding the artistic and creative scene at Mission Dolores Park?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "What are the popular breweries or craft beer tasting rooms for a laid-back experience?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some eateries known for their picturesque city views?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend any local guides or tour operators that provide in-depth knowledge about Havana?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find quality breakfast options in this vicinity?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are the popular spas or wellness retreats in this city?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Is there an Indian place that stands out in this vicinity?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are the best places for a leisurely bike ride or cycling tour?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any outdoor markets or flea markets happening today?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are the popular fast food chains in this area?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Tell me about The Petersen Automotive Museum",
+    "label": "TellPlace"
+  },
+  {
+    "text": "How do people generally feel about the street markets and shopping experience at Venice Beach?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Are there any specific local celebrations or festivals that are particularly lively and vibrant in New Orleans?",
+    "label": "Unsupported"
+  },
+  {
+    "text": "How would you convey the sense of anticipation and excitement throughout the meal at Hawksmoor?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Can you suggest any nearby sandboarding or dune buggy experiences?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Is there a must-visit place for local craft beer enthusiasts?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What emotions or sensations did you experience while dining at Roganic?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "What are some places that specialize in vegan cuisine?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend any outdoor mini-golf or go-karting venues?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you provide a vivid description of the enchanting beauty of Central Park?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "What are some popular electronic or tech stores in this city?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where do lovers of French cuisine usually dine around here?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are the popular bakery shops in this area?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some popular local sports or recreational activities that visitors can participate in Dallas?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some must-visit places for dessert lovers?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some nearby parks or nature reserves I can visit?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are the best places for stargazing and observing the night sky?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a restaurant that has a bibliophile's décor?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are the popular parks with dog-friendly hiking trails in this area?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest any local parks or gardens that are perfect for a leisurely day out in Mumbai?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Which restaurant is known for its signature dish?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any family-friendly restaurants with a designated play area for kids?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Could you pass on the phone number for Quince?",
+    "label": "ShareResult"
+  },
+  {
+    "text": "Where can I find a restaurant with an exceptional selection of craft cocktails?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a restaurant that's right on the beach?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest eateries that have a vegan bakery section?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find the best spots for bird migration watching or birding festivals?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Is Los Angeles known for any particular festivals or celebrations?",
+    "label": "Unsupported"
+  },
+  {
+    "text": "I'd like to follow Eleven Madison Park on Instagram. Can you provide their account handle?",
+    "label": "ShareResult"
+  },
+  {
+    "text": "Are there any famous literary landmarks or author-related sites to visit?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Is there a place that's famous for its live music and dining experience?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a good Brazilian restaurant?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "How would you capture the essence and allure of Golden Gate Park in words?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "What are some scenic cycling routes or bike trails in the area?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest any local food tours or culinary experiences specific to each region?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What’s the go-to place for seafood around here?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you share any notable quotes or remarks from individuals who have visited San Francisco Museum of Modern Art?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Where can I find a park with agility equipment or training facilities for dogs?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a restaurant that excels in pairing dishes with wine?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Which restaurants should I consider for a healthful dining experience?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some scenic golf courses or driving ranges in the region?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find restaurants with an all-you-can-eat option?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are the transportation options in the city and how can I get around easily?",
+    "label": "Unsupported"
+  },
+  {
+    "text": "Where do food truck enthusiasts usually go in this city?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend any local hot springs or natural thermal baths for relaxation?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any eateries around that focus on specific culinary traditions?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Which places offer spa and wellness services for relaxation?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest some go-to spots for desserts around here?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What makes the dining experience at Del Posto memorable and worth visiting?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "What are some eateries renowned for their farm-to-table offerings?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you provide me with the address for the school?",
+    "label": "ShareResult"
+  },
+  {
+    "text": "Is there a place that's famous for its fireplace or fire pit dining experience?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a restaurant that prides itself on using organic ingredients?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some nearby golf courses or driving ranges?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "I'd like to learn about the renowned Peter Luger Steakhouse. What can you tell me?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Are there any restaurants known for their homely and comfortable setting?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend a place for a peaceful paddleboarding or kayaking session?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend a place with outdoor hammocks or swings?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some must-try places for brunch around here?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some restaurants that offer dining by a fireplace or fire pit?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I experience a tasting menu in this area?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some places that offer seating in a patio or garden?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are the popular dessert places in this city?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a good spot for a beach bonfire or campfire under the stars?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Which sushi place is known for their omakase experience?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest some eateries that offer buffet-style dining?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "I'm interested in checking out Sushi Ginza Onodera's Instagram.",
+    "label": "ShareResult"
+  },
+  {
+    "text": "Which restaurants have an ambiance-enhancing fireplace or fire pit?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Which places are must-visit for wine enthusiasts?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any restaurants known for their extensive buffets?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a tranquil rooftop bar or lounge with city views?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "I'm interested in discovering the unique qualities and menu of Jean-Georges.",
+    "label": "TellPlace"
+  },
+  {
+    "text": "What are some places that offer rooftop bar experiences?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a pizza restaurant that caters to families with children?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any specific local cultural practices or rituals that visitors can witness or be a part of in Russia?",
+    "label": "Unsupported"
+  },
+  {
+    "text": "Are there any restaurants known for their live cooking display?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some restaurants that offer an elevated rooftop dining experience?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any restaurants with live music or entertainment?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Is there a restaurant that's famous for its live cooking station?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you name some restaurants that have a bar on the rooftop?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any famous historical figures or landmarks associated with Virginia Beach?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any sushi places that offer sushi-making classes or workshops?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some good spots for people with dietary preferences or allergies?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest a place for a peaceful sunset or sunrise viewing?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Could you provide some information about Peter Luger Steakhouse?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Where can I find a restaurant that offers a stunning city skyline view?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Is there a Greek place that stands out in this vicinity?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a good French restaurant?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any eateries known for their cozy fireplaces or outdoor fire pits?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some popular stores for children's toys and clothing?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Is there a steakhouse that stands out in this vicinity?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some spots that offer a varied menu of global dishes?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest any outdoor yoga or fitness classes?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I go for a day of kayaking or paddleboarding on a calm river or lake?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where do professionals typically go for a business lunch around here?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any dance clubs or nightlife venues for a fun and lively evening?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you share your impressions of the tranquil oasis that is Millennium Park?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "What are the transportation options within London?",
+    "label": "Unsupported"
+  },
+  {
+    "text": "Are there any must-try seafood restaurants nearby?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "I'd like to obtain the address for the station.",
+    "label": "ShareResult"
+  },
+  {
+    "text": "Can you recommend some eateries that are perfect for family dining?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend a park with a designated off-leash area for dogs?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend a place known for authentic Mexican cuisine?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some restaurants that have gained fame for one of their dishes?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any parks with agility courses or dog-friendly obstacles?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some popular local sports or recreational activities that visitors can participate in Orlando?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where do Vietnamese food lovers usually go around here?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find the best spots for hot air balloon rides or aerial adventures?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any specific local street food markets or food tours that allow visitors to explore the local cuisine in Soeul?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend a place that’s known for amazing pizza?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "I'm eager to know more about the signature dishes and specialties at Sushi Nakazawa.",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Are there any outdoor painting or art classes I can enroll in?",
+    "label": "Unsupported"
+  },
+  {
+    "text": "Can you recommend a sushi restaurant with a unique fusion twist to their sushi rolls?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any outdoor cinemas or movie screenings happening tonight?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I go for a relaxing day of paddleboard yoga or SUP fitness?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest any thrift stores or vintage shops for unique finds?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend any local theaters or music venues for live performances?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are the go-to spots for a swift bite to eat?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any famous bridges or architectural landmarks to see along the way?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a good spot for birdwatching?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Is there a spot known for its rooftop bar and views?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a sushi restaurant that specializes in sashimi?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you name a restaurant that has a pet-friendly atmosphere?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Which park has shaded areas or trees for dogs to rest and cool off?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where do barbecue lovers usually go around here?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Which restaurants in this area are currently in vogue?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a good selection of art supplies or art galleries?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any standout ice cream parlors in this city?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest a restaurant with a book-themed decor?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a good spot for a picnic?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are the top spots for a steak dinner in this area?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "I'd like to reach out to Alinea.",
+    "label": "ShareResult"
+  },
+  {
+    "text": "Where can I find a good selection of home decor or furniture stores?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find restaurants that cater to a gluten-free diet?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there restaurants with a standout dessert menu?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some spots that feature vegan bakeries?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend a restaurant with a play area for children?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any restaurants with a vegan-only menu?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you please provide me with the phone number for Benu so that I can get in touch with them?",
+    "label": "ShareResult"
+  },
+  {
+    "text": "What are some notable activities or events that make Cherokee Park a vibrant hub of entertainment?",
+    "label": "Unsupported"
+  },
+  {
+    "text": "Where can I find a good Thai restaurant?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any must-try Middle Eastern restaurants nearby?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any eateries situated by the water's edge?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I taste the authentic flavors of the region?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend any museums or art galleries that showcase the local culture?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Is there a sushi place that stands out in this vicinity?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are the local hotspots for dining in this vicinity?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any outdoor theater performances or open-air concerts?",
+    "label": "Unsupported"
+  },
+  {
+    "text": "Can you suggest places that focus on an all-organic menu?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest any scenic hiking trails in the area?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are the best restaurants for a group celebration?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some popular local hiking or trekking trails that offer stunning views in California?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend a good sushi restaurant nearby?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What emotions or sensations are evoked when exploring the winding paths and hidden corners of Fairmount Park?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Are there any pizza places with a cozy fireplace or outdoor fire pit?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a tranquil waterfall or natural swimming spot?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend a place known for authentic Vietnamese cuisine?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend a spot that’s famous for its burgers?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you name some restaurants known for their distinct type of food?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Which restaurant is famous for its happy hour specials?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend any local gardens or parks with unique flora and fauna in Tokyo?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a sushi restaurant with a family-friendly atmosphere?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where should I go for some standout pizza in this town?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any parks with designated dog parks or dog runs?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest any nearby wildlife sanctuaries or bird-watching areas?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend any local street markets or flea markets that offer a vibrant shopping experience in Melbourne?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some popular local dishes or street foods that I should try in Ankara?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a restaurant that features a fireplace or fire pit?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any restaurants with a tasting menu?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Is there a restaurant that's famous for a particular dish?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any meditation or yoga studios in this area?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Which restaurant offers the best value for money?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest a place for a quiet painting or art class?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any restaurants known for their chef’s table dining options?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend any local gardens or parks with unique flora and fauna in Florence?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some places that provide curated tasting menus?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "I'm hoping you can help me out by sharing the address for the office.",
+    "label": "ShareResult"
+  },
+  {
+    "text": "What are some eateries that have a literary-themed atmosphere?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Is there a place that stands out for its organic menu?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some scenic golf courses or mini-golf courses in the area?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some eateries known for being conducive to business discussions?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Tell me about The Natural History Museum of Los Angeles County",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Can you recommend any stores or shops with a focus on sustainable or eco-friendly products?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend a park with a lake or pond where dogs are allowed to swim?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest some eateries that exclusively serve vegan dishes?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any sushi places known for their fresh and high-quality fish?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are the popular restaurants in this area?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some popular bungee jumping or skydiving locations for thrill-seekers?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I get the most bang for my buck in terms of dining?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any restaurants that have gained fame for their local craft beer selection?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any board game cafes or recreational spaces for socializing?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend a sushi restaurant with an extensive sake menu?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Is there a go-to place for gourmet burgers around here?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Which restaurants should I consider for a formal business lunch?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some spots that specialize in craft cocktails?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you please give me the telephone number for Peter Luger Steakhouse? I need to get a hold of them.",
+    "label": "ShareResult"
+  },
+  {
+    "text": "Where can I find a park with separate areas for large and small dogs?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some local sports fields or courts where I can play outdoor games with friends?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What words would you use to capture the elegance and sophistication of The Wolseley?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Is there any chance you could provide me with the phone number for Blue Hill at Stone Barns?",
+    "label": "ShareResult"
+  },
+  {
+    "text": "Where can I find a good burger joint?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend any artisan markets or craft fairs happening soon?",
+    "label": "Unsupported"
+  },
+  {
+    "text": "Where can I find a restaurant with a patio or terrace?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some popular adventure activities or extreme sports available in Greece?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some eateries known for their wine offerings?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Tell me about The California Science Center",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Are there any eateries that offer standout happy hour discounts?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "I'd appreciate it if you could provide me with an overview of Marea.",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Can you recommend any local pottery studios or ceramic workshops for a hands-on experience?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What is the local theater or performing arts scene like in Mexico City?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you provide insights into the carefully curated wine and beverage program at Barrafina?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Where can I find a calm and serene indoor garden or conservatory?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any pizza places with a cozy ambiance for a casual dinner?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend a coffee shop with a focus on sustainability or fair-trade coffee?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a good barbecue restaurant?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a pizza place that offers delivery or takeout services?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there restaurants known for serving dishes made with produce from local farms?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any restaurants that are known for their fresh-from-the-farm ingredients?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend any scenic drives or routes that offer breathtaking views?",
+    "label": "Unsupported"
+  },
+  {
+    "text": "Where can I find top-notch seafood in a restaurant?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you share some insights into what people commonly say about their time at Alcatraz Island?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "What are some popular resorts or retreats for a relaxing getaway?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Is there a place where sports fans typically gather for food and drinks?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some great spots for a morning meal in this area?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest any scenic train or boat rides in the area?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are the top spots for a ramen bowl in this area?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any restaurants with a chef's table experience?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend an eatery that excels in breakfast dishes?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest any local honey farms or beekeeping experiences?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "I'd love to hear your thoughts on whyBalthazar is so highly regarded.",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Are there any outdoor photography spots or scenic viewpoints?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any restaurants with a 24-hour service?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any restaurants known for their chef's tasting experience?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "I'm looking to reach out to The Inn at Little Washington, and I was wondering if you have their phone number.",
+    "label": "ShareResult"
+  },
+  {
+    "text": "Where can I find a restaurant with an extensive vegetarian or vegan menu?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find the best sushi in this area?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Which eateries are popular for an intimate dining experience?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "How do people typically describe their impressions of Fisherman's Wharf?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "What are some popular river rafting or whitewater rafting destinations in the area?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any restaurants that have gained fame for their craft cocktails?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any specific local street food markets or food tours that allow visitors to explore the local cuisine in Sao Paolo?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are the top spots for Middle Eastern food in this area?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend any malls or shopping centers nearby?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any virtual reality arcades or gaming centers for a thrilling experience?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Which restaurants have an in-house vegan bakery?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are the go-to places for an informal dining experience?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some restaurants with options for intimate dining experiences?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some eateries that cater well to vegetarian or vegan diets?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I have a meal at a chef’s table?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find the best spots for outdoor water activities like kayaking or rafting?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where do Thai food lovers usually go around here?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where do sushi lovers go for buffet options?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest some family-oriented dining places nearby?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some spots that specialize in offering wine pairings with meals?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some of the positive aspects that people commonly highlight when talking about their experience at de Young Museum?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "What are the top spots for Greek food in this area?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Is there a go-to place for dinner before seeing a show?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any unique architectural structures or buildings to see in Taipei?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where should I take my family for a meal that caters to all age groups?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any restaurants that have gained fame for their craft cocktail selection?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I get authentic local cuisine?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest a pizza restaurant with gluten-free crust options?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any famous comedy clubs or theaters known for live performances?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Which restaurant is famous for its Sunday brunch?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some scenic golf courses or mini-golf courses in the area?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Which eateries are trending around here?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any restaurants with a rooftop bar?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are the best places to experience the traditional food of this area?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Which restaurants offer a musical feast along with the food?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any parks or gardens with a peaceful atmosphere?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are the best places for a scenic horseback riding trail or equestrian adventure?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend a tranquil lake or river for boating or fishing?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you elaborate on the diverse recreational activities and attractions available within Boston Common?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Where can I find a place to relax and unwind in this area?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest some laid-back spots for a relaxed meal?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a tranquil indoor garden or greenhouse for a peaceful escape?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a restaurant with an impressive craft beer list?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Which restaurants should I consider for dining with kids and have a play area?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where should I go for a meal late at night?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "I'd like to find Atera's Instagram profile.",
+    "label": "ShareResult"
+  },
+  {
+    "text": "How would you describe the overall atmosphere and ambiance at Sketch?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Can you recommend a restaurant with a beachfront location?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Which restaurant is known for its craft cocktails?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are the popular local coffee chains or franchises in this area?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any iconic music venues or live performances happening during my trip?",
+    "label": "Unsupported"
+  },
+  {
+    "text": "Are there any restaurants that combine dining with a view of the city?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What is the local film or cinema industry like in Buenos Aires?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest any day trips or nearby excursions from Cancun?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you help me get in touch with Le Bernardin by providing their telephone number?",
+    "label": "ShareResult"
+  },
+  {
+    "text": "Is there a coffee place that's particularly popular in town?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend a restaurant with a kid's play area?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some popular scuba diving or snorkeling spots along the coast?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you name some of the well-liked restaurants nearby?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you name some of the city’s elite fine dining venues?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any famous observatories or planetariums for stargazing or astronomy education?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some nearby nature trails for wildlife spotting?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What is the local music scene like in Shanghai?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find the best pizza in town?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest places that offer dining al fresco?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you provide a detailed account of what it's like to dine at Dinner by Heston Blumenthal?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Which eateries should I consider for a delivery or takeout meal?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any specific local celebrations or festivals that are particularly lively and vibrant in Paris?",
+    "label": "Unsupported"
+  },
+  {
+    "text": "Can you recommend a place for a calming paddleboarding or kayaking experience?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Is there a place that’s popular for its buffet spread?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend a place known for authentic Brazilian cuisine?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest restaurants that offer an exclusive private chef experience?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find a restaurant with an impressive craft cocktail menu?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend places known for their artisanal cocktails?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend any stores or shops for unique gifts or souvenirs?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend a restaurant with a waterfront location?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any eateries with picturesque settings or panoramas?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest restaurants that offer a curated chef's tasting menu?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are the go-to places for a sumptuous brunch?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend a place known for authentic Middle Eastern cuisine?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any kid-friendly restaurants around?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where do Indian food enthusiasts usually go around here?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "I'm curious to know more about Per Se.",
+    "label": "TellPlace"
+  },
+  {
+    "text": "What are some popular local boutiques or independent shops to explore?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest a place for a peaceful calligraphy or handwriting workshop?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are the popular wineries or vineyards for wine tasting and relaxation?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Where can I find the best spots for whale watching or dolphin cruises?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend a spot with a good selection of gluten-free options?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Is there a standout French restaurant in this vicinity?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend a place that’s known for serving great ramen?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Tell me about Griffith Observatory",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Do you know of any restaurants that offer specialized cuisines?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any famous filming locations or sites from movies and TV shows?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some eateries that offer a variety of gluten-free dishes?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest a place with a good selection of vegetarian or vegan dishes?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some good spots for dining with live music in the backdrop?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Is there a spot that's famous for its 24-hour dining service?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend a place known for its excellent barbecue?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you capture the seasonal transformations and the ever-changing beauty of Shelby Farms Park throughout the year?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "How would you describe the thoughtfulness and creativity behind each course at Pollen Street Social?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Which restaurant has the best coffee or tea selection?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Could you kindly provide me with the contact number for Peter Luger Steakhouse?",
+    "label": "ShareResult"
+  },
+  {
+    "text": "Can you recommend any local gardens or parks with unique flora and fauna in Manila?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are the top spots for Indian food in this area?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you suggest any local coffee shops or cafes that are popular among locals?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are some eateries with open-air seating options?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are the best places for a leisurely boat tour or sailing experience?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "I'd like to find the museum, but I need its address.",
+    "label": "ShareResult"
+  },
+  {
+    "text": "Can you recommend places known for an amazing Sunday brunch?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What is the local art scene like in Toronto?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Can you recommend eateries that are perfect for fast yet nutritious dining?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Are there any local markets or shopping districts worth checking out in Berlin?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Find me a quiet coffee shop with strong Wi-Fi.",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What's the history of the Eiffel Tower?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Can you book me a flight to Tokyo?",
+    "label": "Unsupported"
+  },
+  {
+    "text": "Send the address of that restaurant to my friend.",
+    "label": "ShareResult"
+  },
+  {
+    "text": "I'm looking for a pet-friendly park.",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Tell me more about the Louvre Museum.",
+    "label": "TellPlace"
+  },
+  {
+    "text": "What's the weather like tomorrow?",
+    "label": "Unsupported"
+  },
+  {
+    "text": "I need the phone number for that cafe.",
+    "label": "ShareResult"
+  },
+  {
+    "text": "Show me vegan restaurants nearby.",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Give me some details about Central Park.",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Who won the world series in 1998?",
+    "label": "Unsupported"
+  },
+  {
+    "text": "Share the location of the nearest hospital.",
+    "label": "ShareResult"
+  },
+  {
+    "text": "Where can I find a good place for brunch?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What's special about the Statue of Liberty?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Can you order me a pizza?",
+    "label": "Unsupported"
+  },
+  {
+    "text": "Text me the details of that concert venue.",
+    "label": "ShareResult"
+  },
+  {
+    "text": "Find a bookstore with a cafe inside.",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Tell me about the Golden Gate Bridge.",
+    "label": "TellPlace"
+  },
+  {
+    "text": "What is the meaning of life?",
+    "label": "Unsupported"
+  },
+  {
+    "text": "I need the Instagram handle for that boutique.",
+    "label": "ShareResult"
+  },
+  {
+    "text": "Are there any rooftop bars in this area?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What can you tell me about the British Museum?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "How do I get to the airport from here?",
+    "label": "Unsupported"
+  },
+  {
+    "text": "Email me the directions to the park.",
+    "label": "ShareResult"
+  },
+  {
+    "text": "I'm searching for a place with live jazz music.",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Describe the architecture of the Sydney Opera House.",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Can you help me with my homework?",
+    "label": "Unsupported"
+  },
+  {
+    "text": "Share the website for that art gallery.",
+    "label": "ShareResult"
+  },
+  {
+    "text": "Where's the nearest ATM?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What's the story behind the Colosseum?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "What's your favorite color?",
+    "label": "Unsupported"
+  },
+  {
+    "text": "I need to send the museum's hours to my mom.",
+    "label": "ShareResult"
+  },
+  {
+    "text": "Show me places to go hiking.",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Tell me everything about the Tower of London.",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Can you make a reservation for two at 7 PM?",
+    "label": "Unsupported"
+  },
+  {
+    "text": "Could you share the contact info for that hotel?",
+    "label": "ShareResult"
+  },
+  {
+    "text": "I need a family-friendly restaurant.",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What are the highlights of the Metropolitan Museum of Art?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "What time is it in Singapore?",
+    "label": "Unsupported"
+  },
+  {
+    "text": "Send the social media links for that place.",
+    "label": "ShareResult"
+  },
+  {
+    "text": "Find a 24-hour pharmacy.",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Give me the backstory of Alcatraz Island.",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Can you translate 'hello' into Japanese?",
+    "label": "Unsupported"
+  },
+  {
+    "text": "I need to forward the address of the library.",
+    "label": "ShareResult"
+  },
+  {
+    "text": "Where can I find authentic Italian food?",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What's interesting about the Acropolis of Athens?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "How much does a ticket to the movies cost?",
+    "label": "Unsupported"
+  },
+  {
+    "text": "Share the details of that steakhouse with me.",
+    "label": "ShareResult"
+  },
+  {
+    "text": "Show me nearby parks with playgrounds.",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "Tell me about the significance of Machu Picchu.",
+    "label": "TellPlace"
+  },
+  {
+    "text": "Can you call me a taxi?",
+    "label": "Unsupported"
+  },
+  {
+    "text": "I need to get the Facebook page for that bar.",
+    "label": "ShareResult"
+  },
+  {
+    "text": "I'm looking for a place to get a good steak.",
+    "label": "SearchQuery"
+  },
+  {
+    "text": "What's the deal with the Hollywood Walk of Fame?",
+    "label": "TellPlace"
+  },
+  {
+    "text": "What is the capital of Australia?",
+    "label": "Unsupported"
+  },
+  {
+    "text": "Send me the location of the nearest gas station.",
+    "label": "ShareResult"
+  },
+  {
+    "text": "Find a place with outdoor seating.",
+    "label": "SearchQuery"
+  },
+]

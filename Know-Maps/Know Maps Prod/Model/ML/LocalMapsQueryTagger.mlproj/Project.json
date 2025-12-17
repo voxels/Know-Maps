@@ -1,0 +1,29 @@
+{
+  "activityEntities" : [
+    "projectCreated",
+    [
+      {
+        "createdDate" : "2023-06-14T06:35:59Z",
+        "event" : "projectCreated",
+        "id" : "55C9B5F8-2543-4407-8F58-D97ECA65B129",
+        "subtitle" : "LocalMapsQueryTagger",
+        "title" : "Project Created"
+      }
+    ]
+  ],
+  "authorName" : "Michael A Edgcumbe",
+  "createdDate" : "2023-06-14T06:35:59Z",
+  "description" : "Tags words in a query to match the syntax of Foursquare’s Place API",
+  "id" : "D8BB1D99-8A55-4802-825A-02D2B8B58869",
+  "license" : "",
+  "location" : "",
+  "modifiedDate" : "2023-06-14T06:35:59Z",
+  "projectName" : "LocalMapsQueryTagger",
+  "settingsEntity" : {
+    "snapshotOnExtendTraining" : true,
+    "snapshotOnResumeTraining" : false
+  },
+  "taskType" : "wordTagger",
+  "title" : "Word Tagging",
+  "version" : "1.1"
+}

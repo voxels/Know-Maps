@@ -1,0 +1,41 @@
+{
+  "activityEntities" : [
+    "dataSourceMetrics",
+    [
+      {
+        "createdDate" : "2025-12-06T07:57:27Z",
+        "event" : "dataSourceMetrics",
+        "id" : "5D0CA4A5-6732-4CA4-9055-48614B38079B",
+        "subtitle" : "4 Classes, 130 Items",
+        "title" : "Data Summary"
+      }
+    ],
+    "dataSourceTrainingStarted",
+    [
+      {
+        "createdDate" : "2025-12-06T07:57:27Z",
+        "event" : "dataSourceTrainingStarted",
+        "id" : "B632F1F6-C6E1-421F-8655-E529ED2DCDBF",
+        "subtitle" : "LocalMapsQueryTagger 1",
+        "title" : "Used By"
+      }
+    ]
+  ],
+  "createdDate" : "2025-12-06T07:57:07Z",
+  "dataPathRelativeToProjectURL" : "../WordTaggingClassifierTrainingData.json/",
+  "dataResult" : {
+    "createdDate" : "2025-12-06T07:57:07Z",
+    "dataSourceID" : "D275486A-F51E-40FF-BF2F-FFE11C2C5E3F",
+    "dataURL" : "file:///Users/voxels/Documents/dev/Know%20Maps/Know-Maps/Know%20Maps/Know%20Maps%20Prod/Model/ML/WordTaggingClassifierTrainingData.json"
+  },
+  "dataURL" : "file:///Users/voxels/Documents/dev/Know%20Maps/Know-Maps/Know%20Maps/Know%20Maps%20Prod/Model/ML/WordTaggingClassifierTrainingData.json",
+  "experimentIDs" : [
+    "5049082D-C8AE-4B36-B41A-911D81EAD10D"
+  ],
+  "id" : "D275486A-F51E-40FF-BF2F-FFE11C2C5E3F",
+  "modifiedDate" : "2025-12-06T07:57:27Z",
+  "pathType" : 0,
+  "preferredFilename" : "WordTaggingClassifierTrainingData.json",
+  "title" : "WordTaggingClassifierTrainingData.json",
+  "version" : "1.0"
+}
