@@ -16,7 +16,6 @@ let package = Package(
         )
     ],
     dependencies: [
-        .package(path: "../../../../DiverKit"),
         // External dependencies from the original project
         .package(url: "https://github.com/kean/Nuke.git", from: "12.0.0"),
         .package(url: "https://github.com/supabase/supabase-swift.git", from: "2.0.0"),
@@ -26,7 +25,6 @@ let package = Package(
         .target(
             name: "KnowMaps",
             dependencies: [
-                "DiverKit",
                 .product(name: "Nuke", package: "Nuke"),
                 .product(name: "NukeUI", package: "Nuke"),
                 .product(name: "Supabase", package: "supabase-swift"),
@@ -40,9 +38,6 @@ let package = Package(
                 "Know_Maps_Prod.entitlements",
                 "Know Maps ProdDebug.entitlements"
             ],
-            resources: [
-                .process("Model/ML")
-            ]
         ),
         .testTarget(
             name: "KnowMapsTests",
