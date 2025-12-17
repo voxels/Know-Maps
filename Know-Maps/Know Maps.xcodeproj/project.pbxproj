@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		1E007ACC2CB4089700A8DC5A /* CloudCacheManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E007ACB2CB4089400A8DC5A /* CloudCacheManager.swift */; };
 		1E007ACE2CB40B1D00A8DC5A /* SegmentAnalyticsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E007ACD2CB40B1900A8DC5A /* SegmentAnalyticsService.swift */; };
+		1E0112BF2EF2D0B600A94FCF /* FoursquareSectionClassifier.mlmodel in Sources */ = {isa = PBXBuildFile; fileRef = 1E0112BE2EF2D0B600A94FCF /* FoursquareSectionClassifier.mlmodel */; };
+		1E0112C12EF2D11300A94FCF /* FoundationModelsIntentClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E0112C02EF2D11300A94FCF /* FoundationModelsIntentClassifier.swift */; };
 		1E1E310D2CC1954F00A23434 /* Nuke in Frameworks */ = {isa = PBXBuildFile; productRef = 1E1E310C2CC1954F00A23434 /* Nuke */; };
 		1E1E310F2CC1954F00A23434 /* NukeUI in Frameworks */ = {isa = PBXBuildFile; productRef = 1E1E310E2CC1954F00A23434 /* NukeUI */; };
 		1E213E172CAD81F600B93697 /* Segment in Frameworks */ = {isa = PBXBuildFile; productRef = 1E213E162CAD81F600B93697 /* Segment */; };
@@ -19,9 +21,7 @@
 		1E3FE0552CB852070020B3CB /* AppShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E3FE0542CB852000020B3CB /* AppShortcuts.swift */; };
 		1E3FE0572CB855020020B3CB /* PersonalizedSearchSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E3FE0562CB854FD0020B3CB /* PersonalizedSearchSection.swift */; };
 		1E5894DB2EEF160500D6BB98 /* ResultIndexServiceV2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E5894DA2EEF160500D6BB98 /* ResultIndexServiceV2.swift */; };
-		1E5894DD2EEF287200D6BB98 /* FoundationModelsIntentClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E5894DC2EEF287200D6BB98 /* FoundationModelsIntentClassifier.swift */; };
 		1E5F4AF82EE2E3770077BA28 /* RatingButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E5F4AF72EE2E3770077BA28 /* RatingButton.swift */; };
-		1E5F4AFC2EE41EB90077BA28 /* FoursquareSectionClassifier.mlmodel in Sources */ = {isa = PBXBuildFile; fileRef = 1E5F4AFB2EE41EB90077BA28 /* FoursquareSectionClassifier.mlmodel */; };
 		1E601F5D2CB0512900E320D7 /* GoogleBannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E601F5C2CB0512900E320D7 /* GoogleBannerView.swift */; };
 		1E69444C2CB993C70017A81F /* FiltersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E69444B2CB993C70017A81F /* FiltersView.swift */; };
 		1E6944502CBA73060017A81F /* AddPromptView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E69444F2CBA73060017A81F /* AddPromptView.swift */; };
@@ -161,6 +161,8 @@
 /* Begin PBXFileReference section */
 		1E007ACB2CB4089400A8DC5A /* CloudCacheManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudCacheManager.swift; sourceTree = "<group>"; };
 		1E007ACD2CB40B1900A8DC5A /* SegmentAnalyticsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SegmentAnalyticsService.swift; sourceTree = "<group>"; };
+		1E0112BE2EF2D0B600A94FCF /* FoursquareSectionClassifier.mlmodel */ = {isa = PBXFileReference; lastKnownFileType = file.mlmodel; name = FoursquareSectionClassifier.mlmodel; path = ML/FoursquareSectionClassifier.mlmodel; sourceTree = "<group>"; };
+		1E0112C02EF2D11300A94FCF /* FoundationModelsIntentClassifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoundationModelsIntentClassifier.swift; sourceTree = "<group>"; };
 		1E095AF82B778AEF00147119 /* Know Maps.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Know Maps.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		1E095AFE2B778AF000147119 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		1E095B002B778AF000147119 /* Know_Maps_Prod.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Know_Maps_Prod.entitlements; sourceTree = "<group>"; };
@@ -181,7 +183,6 @@
 		1E3FE0562CB854FD0020B3CB /* PersonalizedSearchSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersonalizedSearchSection.swift; sourceTree = "<group>"; };
 		1E583F7C2B1671F300B2EC26 /* AppleAuthenticationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleAuthenticationService.swift; sourceTree = "<group>"; };
 		1E5894DA2EEF160500D6BB98 /* ResultIndexServiceV2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResultIndexServiceV2.swift; sourceTree = "<group>"; };
-		1E5894DC2EEF287200D6BB98 /* FoundationModelsIntentClassifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FoundationModelsIntentClassifier.swift; path = ML/FoundationModelsIntentClassifier.swift; sourceTree = "<group>"; };
 		1E5F4AF72EE2E3770077BA28 /* RatingButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RatingButton.swift; sourceTree = "<group>"; };
 		1E5F4AFB2EE41EB90077BA28 /* FoursquareSectionClassifier.mlmodel */ = {isa = PBXFileReference; lastKnownFileType = file.mlmodel; path = FoursquareSectionClassifier.mlmodel; sourceTree = "<group>"; };
 		1E601F5C2CB0512900E320D7 /* GoogleBannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoogleBannerView.swift; sourceTree = "<group>"; };
@@ -352,6 +353,7 @@
 		1E98C7D82B18E0A100283E92 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				1E0112C02EF2D11300A94FCF /* FoundationModelsIntentClassifier.swift */,
 				1E9478812EE1EF94002F10E3 /* EmbeddingCache.swift */,
 				1E94787B2EE1CCEB002F10E3 /* vocab.txt */,
 				1E94786F2EE1C02D002F10E3 /* UserItemInteraction.swift */,
@@ -547,7 +549,7 @@
 		A513DA3C9390CF09595D23C3 /* ML */ = {
 			isa = PBXGroup;
 			children = (
-				1E5894DC2EEF287200D6BB98 /* FoundationModelsIntentClassifier.swift */,
+				1E0112BE2EF2D0B600A94FCF /* FoursquareSectionClassifier.mlmodel */,
 			);
 			name = ML;
 			sourceTree = "<group>";
@@ -742,10 +744,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1E0112BF2EF2D0B600A94FCF /* FoursquareSectionClassifier.mlmodel in Sources */,
 				1EDF93D02CB53DC100FDCFDF /* LanguageGeneratorService.swift in Sources */,
 				1E9478452EDB79C8002F10E3 /* DefaultInputValidationServiceV2.swift in Sources */,
 				1EF3791E2C986F96001C5E39 /* LocalMapsQueryClassifier.mlmodel in Sources */,
-				1E5894DD2EEF287200D6BB98 /* FoundationModelsIntentClassifier.swift in Sources */,
 				1EDF93CF2CB52F1900FDCFDF /* DefaultModelController.swift in Sources */,
 				1E9478472EDB79D7002F10E3 /* DefaultResultIndexServiceV2.swift in Sources */,
 				1EF378E22C986EE7001C5E39 /* Know_MapsApp.swift in Sources */,
@@ -809,6 +811,7 @@
 				1E601F5D2CB0512900E320D7 /* GoogleBannerView.swift in Sources */,
 				1E69444C2CB993C70017A81F /* FiltersView.swift in Sources */,
 				1EF379072C986EE7001C5E39 /* OnboardingSignInView.swift in Sources */,
+				1E0112C12EF2D11300A94FCF /* FoundationModelsIntentClassifier.swift in Sources */,
 				1E7D435B2CB46C0900DC17FA /* DefaultPlaceSearchService.swift in Sources */,
 				1EF379082C986EE7001C5E39 /* OnboardingLocationView.swift in Sources */,
 				1EDF93CC2CB52E5C00FDCFDF /* PlaceSearchService.swift in Sources */,
@@ -824,7 +827,6 @@
 				1EF3790D2C986EE7001C5E39 /* SettingsView.swift in Sources */,
 				1E94786E2EE1BFFE002F10E3 /* ItemMetadata.swift in Sources */,
 				1E9478702EE1C032002F10E3 /* UserItemInteraction.swift in Sources */,
-				1E5F4AFC2EE41EB90077BA28 /* FoursquareSectionClassifier.mlmodel in Sources */,
 				1EF3790E2C986EE7001C5E39 /* SearchView.swift in Sources */,
 				1EF3790F2C986EE7001C5E39 /* SearchCategoryView.swift in Sources */,
 				1E6944582CBA78560017A81F /* AddPlaceView.swift in Sources */,
