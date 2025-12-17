@@ -195,7 +195,7 @@ public final class AssistiveChatHostService : @MainActor AssistiveChatHost {
             let json = try JSONSerialization.jsonObject(with: data)
             if let encodedEmptyParameters = json as? [String:String] {
                 var encodedParameters = encodedEmptyParameters
-                var typedParameters = [String: AnyHashableSendable]()
+                var typedParameters = [String: String]()
                 
                 if var rawParameters = encodedParameters["parameters"] as? [String:String] {
                     if let tags = try tags(for: query) {

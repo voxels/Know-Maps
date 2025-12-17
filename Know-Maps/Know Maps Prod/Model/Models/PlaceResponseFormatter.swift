@@ -21,15 +21,15 @@ open class PlaceResponseFormatter {
 
         // v2 endpoints typically nest payload under "response"
         let payload: [String: Any]
-        if let nested = response["response"] as? [String: AnyHashableSendable] {
+        if let nested = response["response"] as? [String: String] {
             payload = nested
         } else {
             payload = response
         }
 
-        if let results = payload["tastes"] as? [AnyHashableSendable] {
+        if let results = payload["tastes"] as? [String] {
             for any in results {
-                guard let result = any as? [String: AnyHashableSendable] else { continue }
+                guard let result = any as? [String: String] else { continue }
                 // id can be String or Int from some v2 responses; coerce to String
                 var id: String = ""
                 if let rawId = result["id"] as? String {
@@ -49,7 +49,7 @@ open class PlaceResponseFormatter {
         return retval
     }
     
-    public class func autocompleteRecommendedPlaceSearchResponses(with response:[String:AnyHashableSendable]) throws ->[RecommendedPlaceSearchResponse] {
+    public class func autocompleteRecommendedPlaceSearchResponses(with response:[String:String]) throws ->[RecommendedPlaceSearchResponse] {
         var retval = [RecommendedPlaceSearchResponse]()
         
         guard response.keys.count > 0 else {
@@ -403,7 +403,7 @@ open class PlaceResponseFormatter {
         return retVal
     }
     
-    public class func relatedPlaceSearchResponses(with response:[String:AnyHashableSendable]) throws ->[RecommendedPlaceSearchResponse] {
+    public class func relatedPlaceSearchResponses(with response:[String:String]) throws ->[RecommendedPlaceSearchResponse] {
         var retval = [RecommendedPlaceSearchResponse]()
         
         guard response.keys.count > 0 else {
@@ -531,7 +531,7 @@ open class PlaceResponseFormatter {
     /// Build a LocationResult from a Foursquare autocomplete geo item
     /// Expects a container that includes a `geo` dictionary (as returned by autocomplete),
     /// but will also accept the geo dictionary itself.
-    public class func locationResult(from resultDict: [String: AnyHashableSendable]) -> LocationResult? {
+    public class func locationResult(from resultDict: [String: String]) -> LocationResult? {
         print("Autocomplete raw (geo path): \(resultDict)")
         // Accept either a wrapper with `geo` or a direct geo object
         let geoAny = (resultDict["geo"] as? NSDictionary) ?? (resultDict as NSDictionary)

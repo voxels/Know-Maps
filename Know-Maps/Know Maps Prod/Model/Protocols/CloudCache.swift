@@ -14,7 +14,7 @@ public protocol CloudCache: AnyObject {
     
     // Fetching and Caching Methods
     func fetch(url: URL, from cloudService: CloudCacheServiceKey) async throws -> Any
-    func fetchGroupedUserCachedRecords(for group: String) async throws -> [UserCachedRecord]
+    func fetchGroupedUserCachedRecords(for group: String) async throws -> [SendableCachedRecord]
     func storeUserCachedRecord(recordId:String, group: String, identity: String, title: String, icons: String, list: String, section: String, rating:Double) async throws -> Bool
     func updateUserCachedRecordRating(identity: String, newRating: Double) async throws
     func deleteUserCachedRecord(for cachedRecord: UserCachedRecord) async throws

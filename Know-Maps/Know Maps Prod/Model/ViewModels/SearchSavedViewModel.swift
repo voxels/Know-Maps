@@ -15,7 +15,7 @@ public final class SearchSavedViewModel : Sendable {
     
     public static let shared = SearchSavedViewModel()
     
-    public var filters: [String:AnyHashableSendable] {
+    public var filters: [String:String] {
         get {
             retrieveFiltersFromUserDefaults()
         }
@@ -27,7 +27,7 @@ public final class SearchSavedViewModel : Sendable {
     
     public var editingRecommendationWeightResult: CategoryResult?
     
-    func saveFiltersToUserDefaults(filters: [String: AnyHashableSendable]) {
+    func saveFiltersToUserDefaults(filters: [String: String]) {
         do {
             let data = try JSONSerialization.data(withJSONObject: filters, options: [])
             UserDefaults.standard.set(data, forKey: "savedFilters")
@@ -36,10 +36,10 @@ public final class SearchSavedViewModel : Sendable {
         }
     }
     
-    func retrieveFiltersFromUserDefaults() -> [String: AnyHashableSendable] {
+    func retrieveFiltersFromUserDefaults() -> [String: String] {
         if let data = UserDefaults.standard.data(forKey: "savedFilters") {
             do {
-                if let filters = try JSONSerialization.jsonObject(with: data, options: []) as? [String: AnyHashableSendable] {
+                if let filters = try JSONSerialization.jsonObject(with: data, options: []) as? [String: String] {
                     return filters
                 }
             } catch {

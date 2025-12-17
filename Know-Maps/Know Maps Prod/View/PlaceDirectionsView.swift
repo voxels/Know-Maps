@@ -35,7 +35,7 @@ struct PlaceDirectionsView: View {
             GeometryReader { geo in
                 ScrollView {
                     VStack(alignment:.leading) {
-                        if model.showLookAroundScene, let lookAroundScene = model.lookAroundScene {
+                        if model.showLookAroundScene, let lookAroundScene = model.lookAroundScene as? MKLookAroundScene {
                             LookAroundPreview(initialScene: lookAroundScene)
                                 .padding(16)
                                 .frame(width:geo.size.width, height:geo.size.height)
@@ -91,7 +91,7 @@ struct PlaceDirectionsView: View {
                     }
                 }
             }
-            .task {
+            .task { @MainActor in
                 // **FIX**: Simplify initial directions fetch. Use the model's currently selected
                 // location as the source, rather than manually calculating the closest one.
                 guard let destinationResult = modelController.placeChatResult(for: resultId),
@@ -123,7 +123,7 @@ struct PlaceDirectionsView: View {
                     return
                 }
                 
-                Task{
+                Task{ @MainActor in
                     do {
                         try await model.refreshDirections(with: sourceLocation, destination:CLLocation(latitude: placeResponse.latitude, longitude: placeResponse.longitude))
                     } catch {

@@ -83,7 +83,7 @@ public final class DefaultModelController: ModelController {
             let mirror = Mirror(reflecting: last)
             for child in mirror.children {
                 if let label = child.label?.lowercased() {
-                    if label.contains("filters"), let dict = child.value as? [String: AnyHashableSendable] {
+                    if label.contains("filters"), let dict = child.value as? [String: String] {
                         if let d = dict["rangeMeters"] as? Double { return d }
                         if let d = dict["distance"] as? Double { return d }
                         if let d = dict["radius"] as? Double { return d }
@@ -512,12 +512,12 @@ public final class DefaultModelController: ModelController {
     }
     
     // MARK: - Recommendation Payload Normalization / Diagnostics
-    private func normalizeRecommendedResponsePayload(_ raw: [String: AnyHashableSendable]) -> [String: AnyHashableSendable]? {
-        if let outer = raw as? [String: AnyHashableSendable] {
-            if let inner = outer["response"] as? [String: AnyHashableSendable] {
+    private func normalizeRecommendedResponsePayload(_ raw: [String: String]) -> [String: String]? {
+        if let outer = raw as? [String: String] {
+            if let inner = outer["response"] as? [String: String] {
                 return inner
             }
-            if let inner = outer["data"] as? [String: AnyHashableSendable] {
+            if let inner = outer["data"] as? [String: String] {
                 return inner
             }
             return outer
@@ -906,7 +906,7 @@ public final class DefaultModelController: ModelController {
                 )
                 
                 var topLevelKeys: [String] = []
-                if let dict = rawPayload as? [String: AnyHashableSendable] {
+                if let dict = rawPayload as? [String: String] {
                     topLevelKeys = Array(dict.keys)
                 }
                 

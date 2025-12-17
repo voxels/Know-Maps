@@ -470,14 +470,15 @@ public enum CloudCacheServiceKey: String {
         }
     }
     
-    public func fetchGroupedUserCachedRecords(for group: String) async throws -> [UserCachedRecord] {
+    public func fetchGroupedUserCachedRecords(for group: String) async throws -> [SendableCachedRecord] {
         // Fetch from local store
     
         let fetchDescriptor = FetchDescriptor<UserCachedRecord>(
             predicate: #Predicate { $0.group == group }
         )
-        return try modelContext.fetch(fetchDescriptor)
-    
+        
+        let cachedRecord = try modelContext.fetch(fetchDescriptor)
+        return SendableCachedRecord.sendableRecords(cachedRecord) as! [SendableCachedRecord]
     }
     
     @discardableResult

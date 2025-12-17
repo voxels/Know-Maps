@@ -121,7 +121,7 @@ public actor PlaceSearchSession : ObservableObject {
         return response
     }
     
-    public func details(for request:PlaceDetailsRequest) async throws -> AnyHashableSendable {
+    public func details(for request:PlaceDetailsRequest) async throws -> String {
         var components = URLComponents(string:"\(PlaceSearchSession.serverUrl)\(PlaceSearchSession.placeDetailsAPIUrl)\(request.fsqID)")
         var detailsString = ""
         
@@ -205,7 +205,7 @@ public actor PlaceSearchSession : ObservableObject {
         return try await fetch(url: url)
     }
     
-    public func photos(for fsqID:String) async throws -> AnyHashableSendable {
+    public func photos(for fsqID:String) async throws -> String {
         var queryComponents = URLComponents(string:"\(PlaceSearchSession.serverUrl)\(PlaceSearchSession.placeDetailsAPIUrl)\(fsqID)\(PlaceSearchSession.placePhotosAPIUrl)")
         
         let limitQueryItem = URLQueryItem(name: "limit", value: "\(50)")
@@ -218,7 +218,7 @@ public actor PlaceSearchSession : ObservableObject {
         return try await fetch(url: url)
     }
     
-    public func tips(for fsqID:String) async throws -> AnyHashableSendable {
+    public func tips(for fsqID:String) async throws -> String {
         var queryComponents = URLComponents(string:"\(PlaceSearchSession.serverUrl)\(PlaceSearchSession.placeDetailsAPIUrl)\(fsqID)\(PlaceSearchSession.placeTipsAPIUrl)")
         
         let limitQueryItem = URLQueryItem(name: "limit", value: "\(50)")
@@ -531,7 +531,7 @@ public actor PlaceSearchSession : ObservableObject {
     
     private let sessionQueue = DispatchQueue(label: "com.secretatomics.knowmaps.sessionQueue")
 
-    func fetch(url: URL) async throws -> AnyHashableSendable {
+    func fetch(url: URL) async throws -> String {
         print("Requesting URL: \(url)")
 
         // Acquire a configured session before entering the continuation to avoid calling async APIs in non-async closures
@@ -562,7 +562,7 @@ public actor PlaceSearchSession : ObservableObject {
                     } else if let checkDict = json as? NSDictionary, let message = checkDict["message"] as? String, message == "Invalid request token." {
                         checkedContinuation.resume(throwing: PlaceSearchSessionError.InvalidSession)
                     } else {
-                        checkedContinuation.resume(returning: json as! AnyHashableSendable)
+                        checkedContinuation.resume(returning: json as! String)
                     }
                 } catch {
                     print(error)

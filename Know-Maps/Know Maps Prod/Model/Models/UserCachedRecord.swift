@@ -2,8 +2,8 @@ import Foundation
 import SwiftData
 
 @Model
-public final class UserCachedRecord: Identifiable, Hashable, Equatable, Codable {
-    public var id: UUID = UUID()
+public class UserCachedRecord: Identifiable, Hashable, Equatable, Codable {
+    public var id:UUID
     var recordId: String = UUID().uuidString
     var group: String = ""
     var identity: String = ""
@@ -56,7 +56,7 @@ public final class UserCachedRecord: Identifiable, Hashable, Equatable, Codable 
         try container.encode(rating, forKey: .rating)
     }
 
-    public convenience init(from decoder: Decoder) throws {
+    public required convenience init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let id = try container.decode(UUID.self, forKey: .id)
         let recordId = try container.decode(String.self, forKey: .recordId)
@@ -68,5 +68,49 @@ public final class UserCachedRecord: Identifiable, Hashable, Equatable, Codable 
         let section = try container.decode(String.self, forKey: .section)
         let rating = try container.decode(Double.self, forKey: .rating)
         self.init(id: id, recordId: recordId, group: group, identity: identity, title: title, icons: icons, list: list, section: section, rating: rating)
+    }
+}
+
+public class SendableCachedRecord : UserCachedRecord, Sendable {
+    public let _id:UUID
+    let _recordId: String
+    let _group: String
+    let _identity: String
+    let _title: String
+    let _icons: String
+    let _list: String
+    let _section: String
+    let _rating: Double
+    
+    static func sendableRecords(_ userCachedRecords:[UserCachedRecord])->[SendableCachedRecord] {
+        return userCachedRecords.compactMap({ record in
+            return SendableCachedRecord(record)
+        })
+    }
+    
+    public convenience init(_ userCachedRecord:UserCachedRecord) {
+        self.init(id:userCachedRecord.id, recordId: userCachedRecord.recordId, group: userCachedRecord.group, identity: userCachedRecord.identity, title: userCachedRecord.title, icons: userCachedRecord.icons, list: userCachedRecord.list, section: userCachedRecord.section, rating:userCachedRecord.rating)
+    }
+    
+    public required override init(id: UUID, recordId: String, group: String, identity: String, title: String, icons: String, list: String, section: String, rating: Double) {
+        let userCachedRecord = UserCachedRecord(recordId: recordId, group: group, identity: identity, title: title, icons: icons, list: list, section: section, rating: rating)
+        self._id = userCachedRecord.id
+        self._recordId = userCachedRecord.recordId
+        self._group = userCachedRecord.group
+        self._identity = userCachedRecord.identity
+        self._title = userCachedRecord.title
+        self._icons = userCachedRecord.icons
+        self._list = userCachedRecord.list
+        self._section = userCachedRecord.section
+        self._rating = userCachedRecord.rating
+        super.init(recordId: recordId, group: group, identity: identity, title: title, icons: icons, list: list, section: section, rating: rating)
+    }
+    
+    public required convenience init(from decoder: Decoder) throws {
+        fatalError("init(from:) has not been implemented")
+    }
+    
+    required public init(backingData: any SwiftData.BackingData<UserCachedRecord>) {
+        fatalError("init(backingData:) has not been implemented")
     }
 }

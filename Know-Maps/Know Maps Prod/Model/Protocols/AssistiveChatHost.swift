@@ -11,7 +11,7 @@ import Segment
 import ConcurrencyExtras
 
 @MainActor
-public protocol AssistiveChatHost: AnyObject {
+public protocol AssistiveChatHost: Sendable {
     
     var messagesDelegate:AssistiveChatHostMessagesDelegate { get }
     var placeSearchSession:PlaceSearchSession { get }

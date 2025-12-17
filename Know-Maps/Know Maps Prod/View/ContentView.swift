@@ -93,7 +93,7 @@ struct ContentView: View {
                             }
                             .padding()
                             #if !os(visionOS)
-                            .glassEffect()
+//                            .glassEffect()
                             #endif
                         }
                     }

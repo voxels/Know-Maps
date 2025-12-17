@@ -9,8 +9,9 @@ import SwiftUI
 import MapKit
 import Combine
 
+
 public class PlaceDirectionsViewModel : ObservableObject {
-    @Published var lookAroundScene: MKLookAroundScene?
+    @Published var lookAroundScene: Any?
     @Published var showLookAroundScene:Bool = false
     @Published public var route:MKRoute?
     public var source:MKMapItem?
@@ -59,6 +60,8 @@ public class PlaceDirectionsViewModel : ObservableObject {
         return retval
     }
     
+
+    @MainActor
     func refreshDirections(with source:CLLocation, destination:CLLocation) async throws {
         if isFetchingDirections{
             return
@@ -68,12 +71,16 @@ public class PlaceDirectionsViewModel : ObservableObject {
         
         if let sourceMapItem = mapItem(for: source), let destinationMapItem = mapItem(for:destination) {
             try await getDirections(source:sourceMapItem, destination:destinationMapItem)
-            try await getLookAroundScene(mapItem:destinationMapItem)
+            Task { [ weak self ] in
+                guard let self else { return }
+                try await self.getLookAroundScene(mapItem:destinationMapItem)
+            }
         }
         
         isFetchingDirections = false
     }
     
+
     func mapItem(for location:CLLocation?, name:String? = nil)->MKMapItem? {
         guard let location = location, let placemark = placemark(for: location) else {
             return nil
@@ -92,6 +99,8 @@ public class PlaceDirectionsViewModel : ObservableObject {
         return MKPlacemark(coordinate: location.coordinate)
     }
     
+
+    @MainActor
     func getDirections(source:MKMapItem, destination:MKMapItem) async throws {
         self.source = source
         self.destination = destination
@@ -104,11 +113,8 @@ public class PlaceDirectionsViewModel : ObservableObject {
         let directions = MKDirections(request: request)
         
         let response = try await directions.calculate()
-        await MainActor.run {
             self.route = response.routes.first
-        }
         if let route = route {
-            await MainActor.run {
                 polyline = route.polyline
                 chatRouteResults = route.steps.compactMap({ step in
                     let instructions = step.instructions
@@ -118,17 +124,12 @@ public class PlaceDirectionsViewModel : ObservableObject {
                         return route.steps.count > 0 ? nil : ChatRouteResult(route: route, instructions: "Check Apple Maps for a route")
                     }
                 })
-            }
             
             if let routeResults = chatRouteResults, routeResults.isEmpty {
-                await MainActor.run {
                     chatRouteResults = [ChatRouteResult(route: route, instructions: "Check Apple Maps for a route")]
-                }
             }
         } else {
-            await MainActor.run {
                 chatRouteResults = [ChatRouteResult(route: nil, instructions: "Check Apple Maps for a route")]
-            }
         }
     }
     
@@ -138,13 +139,14 @@ public class PlaceDirectionsViewModel : ObservableObject {
         }
         
         let request = MKLookAroundSceneRequest(coordinate: mapItem.placemark.coordinate)
-        await MainActor.run {
             lookAroundSceneRequest = request
-        }
         
-        let scene = try await lookAroundSceneRequest?.scene
-        await MainActor.run {
-            lookAroundScene = scene
-        }
+        guard let scene = try await self.lookAroundSceneRequest?.scene else  { return }
+        await self.setLookAroundScene(scene)
+   }
+    
+    @MainActor
+    func setLookAroundScene(_ newValue:Any) {
+        lookAroundScene = newValue
     }
 }

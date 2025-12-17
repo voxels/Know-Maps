@@ -126,7 +126,7 @@ public final class DefaultPlaceSearchService: @preconcurrency PlaceSearchService
         return results
     }
         
-    private func tasteCategoryResults(tastes: [String], page: Int, currentTasteResults: [CategoryResult]) -> [CategoryResult] {
+    @MainActor private func tasteCategoryResults(tastes: [String], page: Int, currentTasteResults: [CategoryResult]) -> [CategoryResult] {
         var results = currentTasteResults
         
         for (index, taste) in tastes.enumerated() {
