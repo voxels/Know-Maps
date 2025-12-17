@@ -10,7 +10,7 @@ import CoreLocation
 
 /// Represents the classified intent from a user's search query.
 /// This structure is populated by FoundationModelsIntentClassifier.
-public struct UnifiedSearchIntent: Codable {
+public struct UnifiedSearchIntent: Codable, Sendable {
     
     // MARK: - Properties
     
@@ -41,7 +41,7 @@ public struct UnifiedSearchIntent: Codable {
     // MARK: - Nested Types
     
     /// The type of search being performed
-    public enum SearchType: String, Codable {
+    public enum SearchType: String, Codable, Sendable {
         /// Searching by category/industry (e.g., "restaurants", "coffee shops")
         case category
         
@@ -59,7 +59,7 @@ public struct UnifiedSearchIntent: Codable {
     }
     
     /// Price range structure
-    public struct PriceRange: Codable {
+    public struct PriceRange: Codable, Sendable, Sendable {
         public let min: Int // 1-4
         public let max: Int // 1-4
         

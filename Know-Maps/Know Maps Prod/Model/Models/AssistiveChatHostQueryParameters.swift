@@ -11,7 +11,7 @@ import Combine
 @Observable
 public final class AssistiveChatHostQueryParameters : ObservableObject, Equatable, Sendable {
     public let uuid = UUID()
-    public var queryIntents = [AssistiveChatHostIntent]()
+    public let queryIntents = [AssistiveChatHostIntent]()
     
     public static func == (lhs: AssistiveChatHostQueryParameters, rhs: AssistiveChatHostQueryParameters) -> Bool {
         lhs.uuid == rhs.uuid

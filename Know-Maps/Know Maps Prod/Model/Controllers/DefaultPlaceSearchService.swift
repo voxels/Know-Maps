@@ -9,13 +9,13 @@ import Foundation
 import CoreLocation
 
 @Observable
-public final class DefaultPlaceSearchService: PlaceSearchService {
+public final class DefaultPlaceSearchService: @preconcurrency PlaceSearchService {
     public let assistiveHostDelegate: AssistiveChatHost
     public let placeSearchSession: PlaceSearchSession
     public let personalizedSearchSession: PersonalizedSearchSession
     public let analyticsManager: AnalyticsService
     
-    public var lastFetchedTastePage: Int = 0
+    @MainActor public var lastFetchedTastePage: Int = 0
     
     public init(
         assistiveHostDelegate: AssistiveChatHost,
@@ -39,8 +39,7 @@ public final class DefaultPlaceSearchService: PlaceSearchService {
     }
     
     public func fetchDetails(for responses: [PlaceSearchResponse]) async throws -> [PlaceDetailsResponse] {
-        return try await withThrowingTaskGroup(of: PlaceDetailsResponse.self) { [weak self] group in
-            guard let self = self else { return [] }
+        return try await withThrowingTaskGroup(of: PlaceDetailsResponse?.self) { [placeSearchSession = self.placeSearchSession, analyticsManager = self.analyticsManager, previousDetails = self.assistiveHostDelegate.queryIntentParameters.queryIntents.last?.placeDetailsResponses] group in
             for response in responses {
                 group.addTask {
                     let request = PlaceDetailsRequest(
@@ -63,74 +62,70 @@ public final class DefaultPlaceSearchService: PlaceSearchService {
                         tastes: true,
                         features: false
                     )
-                    
-                    var rawDetailsResponse: Any?
-                    var tipsData: Any?
-                    var photosData: Any?
-                    
-                    try await withThrowingTaskGroup(of: Void.self) { innerGroup in
-                        // Fetch details
-                        innerGroup.addTask { [weak self] in
-                            rawDetailsResponse = try await self?.placeSearchSession.details(for: request)
-                            self?.analyticsManager.track(event: "fetchDetails", properties: nil)
-                        }
-                        
-                        // Fetch tips in parallel
-                        innerGroup.addTask {
-                            tipsData = try await self.placeSearchSession.tips(for: response.fsqID)
-                        }
-                        // Fetch photos in parallel
-                        innerGroup.addTask {
-                            photosData = try await self.placeSearchSession.photos(for: response.fsqID)
-                        }
-                        // Wait for all tasks to complete
-                        try await innerGroup.waitForAll()
-                    }
-                    
-                    let tipsResponses = try PlaceResponseFormatter.placeTipsResponses(with: tipsData!, for: response.fsqID)
-                    let photoResponses = try PlaceResponseFormatter.placePhotoResponses(with: photosData!, for: response.fsqID)
-                    
+
+                    // Await each call sequentially to keep Any-typed results from crossing isolation boundaries
+                    let rawDetailsWrapped = try await placeSearchSession.details(for: request)
+                    let tipsWrapped = try await placeSearchSession.tips(for: response.fsqID)
+                    let photosWrapped = try await placeSearchSession.photos(for: response.fsqID)
+
+                    // Tracking should not block or cross isolation with non-Sendable payloads
+                    analyticsManager.track(event: "fetchDetails", properties: nil)
+
+                    let tipsResponses = try PlaceResponseFormatter.placeTipsResponses(with: tipsWrapped, for: response.fsqID)
+                    let photoResponses = try PlaceResponseFormatter.placePhotoResponses(with: photosWrapped, for: response.fsqID)
+
                     return try await PlaceResponseFormatter.placeDetailsResponse(
-                        with: rawDetailsResponse!,
+                        with: rawDetailsWrapped,
                         for: response,
                         placePhotosResponses: photoResponses,
                         placeTipsResponses: tipsResponses,
-                        previousDetails: self.assistiveHostDelegate.queryIntentParameters.queryIntents.last?.placeDetailsResponses
+                        previousDetails: previousDetails
                     )
                 }
             }
+
             var allResponses = [PlaceDetailsResponse]()
-            for try await response in group {
-                allResponses.append(response)
+            for try await maybeResponse in group {
+                if let response = maybeResponse {
+                    allResponses.append(response)
+                }
             }
             return allResponses
         }
     }
     
     public func fetchRelatedPlaces(for fsqID: String, cacheManager:CacheManager) async throws -> [RecommendedPlaceSearchResponse] {
-        let rawRelatedVenuesResponse = try await personalizedSearchSession.fetchRelatedVenues(for: fsqID, cacheManager: cacheManager)
-        return try PlaceResponseFormatter.relatedPlaceSearchResponses(with: rawRelatedVenuesResponse)
+        let rawRelatedVenuesWrapped = try await personalizedSearchSession.fetchRelatedVenues(for: fsqID, cacheManager: cacheManager)
+        return try PlaceResponseFormatter.relatedPlaceSearchResponses(with: rawRelatedVenuesWrapped)
     }
     
     // MARK: Autocomplete Methods
     
     public func autocompleteTastes(lastIntent: AssistiveChatHostIntent, currentTasteResults:[CategoryResult], cacheManager:CacheManager) async throws -> [CategoryResult] {
-        let query = lastIntent.caption
-        let rawResponse = try await personalizedSearchSession.autocompleteTastes(caption: query, parameters: lastIntent.queryParameters, cacheManager: cacheManager)
-        let tastes = try PlaceResponseFormatter.autocompleteTastesResponses(with: rawResponse)
-        let results = tasteCategoryResults(with: tastes, page: 0, currentTasteResults: currentTasteResults)
+        var query = lastIntent.caption
+        if let revisedQuery = lastIntent.queryParameters?["query"] as? String {
+            query = revisedQuery
+        }
+        query = query.trimmingCharacters(in: .whitespacesAndNewlines)
         
+        let rawWrapped = try await personalizedSearchSession.autocompleteTastes(caption: query, parameters: lastIntent.queryParameters, cacheManager: cacheManager)
+        let tastes = try PlaceResponseFormatter.autocompleteTastesResponses(with: rawWrapped)
+        let results = tasteCategoryResults(tastes: tastes, page: 0, currentTasteResults: currentTasteResults)
         return results
     }
     
     public func refreshTastes(page: Int, currentTasteResults:[CategoryResult], cacheManager:CacheManager) async throws -> [CategoryResult] {
-        let tastes = try await personalizedSearchSession.fetchTastes(page: page, cacheManager: cacheManager)
-        let results = tasteCategoryResults(with: tastes, page: page, currentTasteResults: currentTasteResults)
-        lastFetchedTastePage = page
+        let tastesWrapped = try await personalizedSearchSession.fetchTastes(page: page, cacheManager: cacheManager)
+        let tastesArray = try PlaceResponseFormatter.autocompleteTastesResponses(with: tastesWrapped)
+        let tastes = tastesArray
+        DispatchQueue.main.async {
+            self.lastFetchedTastePage = page
+        }
+        let results = tasteCategoryResults(tastes: tastes, page: page, currentTasteResults: currentTasteResults)
         return results
     }
         
-    private func tasteCategoryResults(with tastes: [String], page: Int, currentTasteResults: [CategoryResult]) -> [CategoryResult] {
+    private func tasteCategoryResults(tastes: [String], page: Int, currentTasteResults: [CategoryResult]) -> [CategoryResult] {
         var results = currentTasteResults
         
         for (index, taste) in tastes.enumerated() {
@@ -145,10 +140,19 @@ public final class DefaultPlaceSearchService: PlaceSearchService {
     // MARK: Detail Intent
     
     public func detailIntent(intent: AssistiveChatHostIntent, cacheManager:CacheManager) async throws {
-        if let placeSearchResponse = intent.selectedPlaceSearchResponse {
-            intent.selectedPlaceSearchDetails = try await fetchDetails(for: [placeSearchResponse]).first
-            intent.relatedPlaceSearchResponses = try await fetchRelatedPlaces(for: placeSearchResponse.fsqID, cacheManager: cacheManager)
-            intent.placeDetailsResponses = [intent.selectedPlaceSearchDetails!]
+        guard let placeSearchResponse = await intent.selectedPlaceSearchResponse else { return }
+        
+        let details = try await fetchDetails(for: [placeSearchResponse]).first
+        let related = try await fetchRelatedPlaces(for: placeSearchResponse.fsqID, cacheManager: cacheManager)
+        
+        await MainActor.run {
+            intent.selectedPlaceSearchDetails = details
+            intent.relatedPlaceSearchResponses = related
+            if let details = details {
+                intent.placeDetailsResponses = [details]
+            } else {
+                intent.placeDetailsResponses = []
+            }
         }
     }
         
@@ -324,3 +328,4 @@ public final class DefaultPlaceSearchService: PlaceSearchService {
         return request
     }
 }
+

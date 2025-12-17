@@ -18,15 +18,15 @@ public final class CategoryResult : Identifiable, Equatable, Hashable, Sendable 
     }
     
     public let id:String
-    var identity:String
-    var parentCategory:String
-    var list:String
-    var icon:String
-    var rating:Double
-    var section:PersonalizedSearchSection
-    private(set) var categoricalChatResults:[ChatResult] = [ChatResult]()
-    public var children:[CategoryResult] = [CategoryResult]()
-    public var isExpanded:Bool = false
+    let  identity:String
+    let parentCategory:String
+    let list:String
+    let icon:String
+    let rating:Double
+    let section:PersonalizedSearchSection
+    private let categoricalChatResults:[ChatResult]
+    private let children:[CategoryResult]
+    public let isExpanded:Bool = false
     
     public init(identity:String, parentCategory: String,  list:String, icon:String, rating:Double, section:PersonalizedSearchSection, categoricalChatResults: [ChatResult]) {
         self.id = identity
@@ -36,17 +36,11 @@ public final class CategoryResult : Identifiable, Equatable, Hashable, Sendable 
         self.icon = icon
         self.section = section
         self.categoricalChatResults = categoricalChatResults
-        self.section = section
         self.rating = rating
-        self.children = children(with: self.categoricalChatResults)
+        self.children = CategoryResult.children(with: self.categoricalChatResults, parentCategory: parentCategory)
     }
     
-    func replaceChatResults(with results:[ChatResult]) {
-        categoricalChatResults = results
-        children = children(with: results)
-    }
-    
-    func children(with chatResults:[ChatResult]?)->[CategoryResult] {
+    static func children(with chatResults:[ChatResult]?, parentCategory:String)->[CategoryResult] {
         var retval = [CategoryResult]()
         guard let chatResults = chatResults else {
             return retval

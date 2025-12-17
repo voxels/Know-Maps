@@ -8,6 +8,7 @@
 import SwiftUI
 import NaturalLanguage
 import CoreLocation
+import ConcurrencyExtras
 
 public enum PlaceResponseFormatterError : Error {
     case InvalidRawResponseType
@@ -20,15 +21,15 @@ open class PlaceResponseFormatter {
 
         // v2 endpoints typically nest payload under "response"
         let payload: [String: Any]
-        if let nested = response["response"] as? [String: Any] {
+        if let nested = response["response"] as? [String: AnyHashableSendable] {
             payload = nested
         } else {
             payload = response
         }
 
-        if let results = payload["tastes"] as? [Any] {
+        if let results = payload["tastes"] as? [AnyHashableSendable] {
             for any in results {
-                guard let result = any as? [String: Any] else { continue }
+                guard let result = any as? [String: AnyHashableSendable] else { continue }
                 // id can be String or Int from some v2 responses; coerce to String
                 var id: String = ""
                 if let rawId = result["id"] as? String {

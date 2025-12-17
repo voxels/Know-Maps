@@ -8,6 +8,7 @@
 import Foundation
 import CloudKit
 import NaturalLanguage
+import ConcurrencyExtras
 
 public enum PersonalizedSearchSessionError : Error {
     case UnsupportedRequest
@@ -180,12 +181,12 @@ public actor PersonalizedSearchSession {
             throw PersonalizedSearchSessionError.NoUserFound
         }
                 
-        cacheManager.cloudCacheService.storeFoursquareIdentityAndToken(for: identity, oauthToken: token)
+        await cacheManager.cloudCacheService.storeFoursquareIdentityAndToken(for: identity, oauthToken: token)
         
         return true
     }
 
-    public func autocompleteTastes(caption:String, parameters:[String:Any]?, cacheManager:CacheManager) async throws -> [String:Any] {
+    public func autocompleteTastes(caption:String, parameters:[String:AnyHashableSendable]?, cacheManager:CacheManager) async throws -> [String:AnyHashableSendable] {
         
         let apiKey = try await requireAccessToken(cacheManager: cacheManager) {
             _ = await self.cloudCacheService.refreshFsqToken()
@@ -228,12 +229,12 @@ public actor PersonalizedSearchSession {
         
         let tastesAutocompleteResponse = try await fetch(url: url, apiKey: apiKey, urlQueryItems: queryItems)
         
-        guard let response = tastesAutocompleteResponse as? [String:Any] else {
-            return [String:Any]()
+        guard let response = tastesAutocompleteResponse as? [String:AnyHashableSendable] else {
+            return [String:AnyHashableSendable]()
         }
                 
-        var retval = [String:Any]()
-        if let responseDict = response["response"] as? [String:Any] {
+        var retval = [String:AnyHashableSendable]()
+        if let responseDict = response["response"] as? [String:AnyHashableSendable] {
             print(responseDict)
             retval = responseDict
         }
@@ -328,7 +329,7 @@ public actor PersonalizedSearchSession {
         throw PersonalizedSearchSessionError.NoVenuesFound
     }
     
-    public func fetchTastes(page:Int, cacheManager:CacheManager) async throws -> [String] {
+    public func fetchTastes(page:Int, cacheManager:CacheManager) async throws -> [String:[String]] {
         let apiKey = try await requireAccessToken(cacheManager: cacheManager) {
             _ = await self.cloudCacheService.refreshFsqToken()
         }
@@ -347,20 +348,20 @@ public actor PersonalizedSearchSession {
         
         let responseAny = try await fetch(url: components.url!, apiKey: apiKey, urlQueryItems: [intentQueryItem, limitQueryItem, offsetQueryItem])
         
-        guard let responseDict = responseAny as? [String:Any], let nestedResponse = responseDict["response"] as? [String:Any] else {
-            return []
+        guard let responseDict = responseAny as? [String:Any], let nestedResponse = responseDict["response"] as? [String:AnyHashableSendable] else {
+            return ["tastes": [String]()]
         }
         
-        guard let tastesArray = nestedResponse["tastes"] as? [[String:Any]] else {
-            return []
+        guard let tastesArray = nestedResponse["tastes"] as? [[String:AnyHashableSendable]] else {
+            return ["tastes": [String]()]
         }
         
         let texts = tastesArray.compactMap { $0["text"] as? String }
         
-        return texts
+        return ["tastes": texts]
     }
 
-    public func fetchTastesResponse(page:Int, cacheManager:CacheManager) async throws -> [String:Any] {
+    public func fetchTastesResponse(page:Int, cacheManager:CacheManager) async throws -> [String:AnyHashableSendable] {
         let apiKey = try await requireAccessToken(cacheManager: cacheManager) {
             _ = await self.cloudCacheService.refreshFsqToken()
         }
@@ -379,7 +380,7 @@ public actor PersonalizedSearchSession {
         
         let responseAny = try await fetch(url: components.url!, apiKey: apiKey, urlQueryItems: [intentQueryItem, limitQueryItem, offsetQueryItem])
         
-        if let responseDict = responseAny as? [String:Any], let nestedResponse = responseDict["response"] as? [String:Any] {
+        if let responseDict = responseAny as? [String:AnyHashableSendable], let nestedResponse = responseDict["response"] as? [String:AnyHashableSendable] {
             return nestedResponse
         }
         
@@ -387,7 +388,7 @@ public actor PersonalizedSearchSession {
     }
 
     
-    public func fetchRelatedVenues(for fsqID:String, cacheManager:CacheManager) async throws -> [String:Any] {
+    public func fetchRelatedVenues(for fsqID:String, cacheManager:CacheManager) async throws -> [String:AnyHashableSendable] {
         let apiKey = try await requireAccessToken(cacheManager: cacheManager) {
             _ = await self.cloudCacheService.refreshFsqToken()
         }
@@ -406,12 +407,12 @@ public actor PersonalizedSearchSession {
         
         let response = try await fetch(url: url, apiKey: apiKey, urlQueryItems: [])
         
-        guard let response = response as? [String:Any] else {
+        guard let response = response as? [String:AnyHashableSendable] else {
             throw PersonalizedSearchSessionError.NoTasteFound
         }
                         
-        var retval = [String:Any]()
-        if let responseDict = response["response"] as? [String:Any] {
+        var retval = [String:AnyHashableSendable]()
+        if let responseDict = response["response"] as? [String:AnyHashableSendable] {
             retval = responseDict
         }
 
@@ -478,7 +479,7 @@ public actor PersonalizedSearchSession {
         apiKey: String,
         urlQueryItems: [URLQueryItem],
         httpMethod: String = "GET"
-    ) async throws -> Any {
+    ) async throws -> AnyHashableSendable {
         // Construct URL with query items
         guard var urlComponents = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
             throw PersonalizedSearchSessionError.UnsupportedRequest
@@ -524,7 +525,7 @@ public actor PersonalizedSearchSession {
                     throw PersonalizedSearchSessionError.ServerErrorMessage
                 }
 
-                return json
+                return json as! AnyHashableSendable
             } catch {
                 lastError = error
                 if attempt >= PersonalizedSearchSession.maxRetryAttempts {

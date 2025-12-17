@@ -10,6 +10,7 @@ import CloudKit
 import NaturalLanguage
 import Combine
 import CoreLocation
+import ConcurrencyExtras
 
 public enum PlaceSearchSessionError : Error {
     case ServiceNotFound
@@ -44,7 +45,7 @@ public actor PlaceSearchSession : ObservableObject {
         }
     }
     
-    public func query(request:PlaceSearchRequest) async throws ->[String:Any] {
+    public func query(request:PlaceSearchRequest) async throws ->[String:AnyHashableSendable] {
         var components = URLComponents(string:"\(PlaceSearchSession.serverUrl)\(PlaceSearchSession.placeSearchAPIUrl)")
         var queryItems = [URLQueryItem]()
         if request.query.count > 0 {
@@ -113,14 +114,14 @@ public actor PlaceSearchSession : ObservableObject {
         
         let placeSearchResponse = try await fetch(url: url)
         
-        guard let response = placeSearchResponse as? [String:Any] else {
-            return [String:Any]()
+        guard let response = placeSearchResponse as? [String:AnyHashableSendable] else {
+            return [String:AnyHashableSendable]()
         }
                 
         return response
     }
     
-    public func details(for request:PlaceDetailsRequest) async throws -> Any {
+    public func details(for request:PlaceDetailsRequest) async throws -> AnyHashableSendable {
         var components = URLComponents(string:"\(PlaceSearchSession.serverUrl)\(PlaceSearchSession.placeDetailsAPIUrl)\(request.fsqID)")
         var detailsString = ""
         
@@ -204,7 +205,7 @@ public actor PlaceSearchSession : ObservableObject {
         return try await fetch(url: url)
     }
     
-    public func photos(for fsqID:String) async throws -> Any {
+    public func photos(for fsqID:String) async throws -> AnyHashableSendable {
         var queryComponents = URLComponents(string:"\(PlaceSearchSession.serverUrl)\(PlaceSearchSession.placeDetailsAPIUrl)\(fsqID)\(PlaceSearchSession.placePhotosAPIUrl)")
         
         let limitQueryItem = URLQueryItem(name: "limit", value: "\(50)")
@@ -217,7 +218,7 @@ public actor PlaceSearchSession : ObservableObject {
         return try await fetch(url: url)
     }
     
-    public func tips(for fsqID:String) async throws -> Any {
+    public func tips(for fsqID:String) async throws -> AnyHashableSendable {
         var queryComponents = URLComponents(string:"\(PlaceSearchSession.serverUrl)\(PlaceSearchSession.placeDetailsAPIUrl)\(fsqID)\(PlaceSearchSession.placeTipsAPIUrl)")
         
         let limitQueryItem = URLQueryItem(name: "limit", value: "\(50)")
@@ -231,32 +232,28 @@ public actor PlaceSearchSession : ObservableObject {
         return try await fetch(url: url)
     }
     
-    public func autocomplete(caption:String, parameters:[String:Any]?, locationResult:LocationResult) async throws -> [String:Any] {
+    public func autocomplete(caption: String, limit: Int?, locationResult: LocationResult) async throws -> NSDictionary {
         let ll = "\(locationResult.location.coordinate.latitude),\(locationResult.location.coordinate.longitude)"
-        var limit = 50
-        
-        if let parameters = parameters, let rawParameters = parameters["parameters"] as? NSDictionary {
-            
-            if let rawLimit = rawParameters["limit"] as? Int {
-                limit = rawLimit
-            }
+        var resolvedLimit = 50
+        if let limit = limit {
+            resolvedLimit = limit
         }
-        
+
         var queryComponents = URLComponents(string:"\(PlaceSearchSession.serverUrl)\(PlaceSearchSession.autocompleteAPIUrl)")
         var queryItems = [URLQueryItem]()
 
         let queryUrlItem = URLQueryItem(name: "query", value: caption)
         queryItems.append(queryUrlItem)
-        
+
         if ll.count > 0 {
             let locationQueryItem = URLQueryItem(name: "ll", value: ll)
             queryItems.append(locationQueryItem)
-            
+
             let radiusItem = URLQueryItem(name: "radius", value: "\(100000)")
             queryItems.append(radiusItem)
         }
-        
-        let limitQueryItem = URLQueryItem(name: "limit", value: "\(limit)")
+
+        let limitQueryItem = URLQueryItem(name: "limit", value: "\(resolvedLimit)")
         queryItems.append(limitQueryItem)
 
         queryComponents?.queryItems = queryItems
@@ -264,14 +261,16 @@ public actor PlaceSearchSession : ObservableObject {
         guard let url = queryComponents?.url else {
             throw PlaceSearchSessionError.UnsupportedRequest
         }
-        
+
         let placeSearchResponse = try await fetch(url: url)
-        
-        guard let response = placeSearchResponse as? [String:Any] else {
-            return [String:Any]()
+
+        if let response = placeSearchResponse as? NSDictionary {
+            return response
+        } else if let dict = placeSearchResponse as? [String: Any] {
+            return dict as NSDictionary
+        } else {
+            return NSDictionary()
         }
-                
-        return response
     }
 
     private func splitQueryAndNear(_ caption: String) -> (poi: String, near: String?) {
@@ -443,7 +442,14 @@ public actor PlaceSearchSession : ObservableObject {
     }
     
     public func autocompleteLocationResults(caption: String, parameters: [String: Any]?, locationResult: LocationResult) async throws -> [LocationResult] {
-        let (poi, near) = splitQueryAndNear(caption)
+        let (poi, near) = await splitQueryAndNear(caption)
+
+        var limitParam: Int? = nil
+        if let parameters = parameters, let rawParameters = parameters["parameters"] as? NSDictionary {
+            if let rawLimit = rawParameters["limit"] as? Int {
+                limitParam = rawLimit
+            }
+        }
 
         if let near = near, !near.isEmpty {
             // Remote flow: resolve a representative ll for the city, then run remote-biased autocomplete and place search in parallel
@@ -451,12 +457,11 @@ public actor PlaceSearchSession : ObservableObject {
                 let remoteLoc = CLLocation(latitude: coord.latitude, longitude: coord.longitude)
                 let remoteLR = LocationResult(locationName: near, location: remoteLoc)
 
-                async let raw = autocomplete(caption: poi, parameters: parameters, locationResult: remoteLR)
-                async let placesAny = placeSearchForAutocomplete(caption: caption, locationResult: remoteLR)
+                let rawNSDictionary = try await autocomplete(caption: poi, limit: limitParam, locationResult: remoteLR)
+                let placesResponseAny = try await placeSearchForAutocomplete(caption: caption, locationResult: remoteLR)
 
-                let (rawResponse, placesResponseAny) = try await (raw, placesAny)
-
-                var results = parseAutocompleteToLocationResults(rawResponse)
+                let rawResponse = (rawNSDictionary as? [String: Any]) ?? [:]
+                var results = await parseAutocompleteToLocationResults(rawResponse)
 
                 if let placesDict = placesResponseAny as? [String: Any],
                    let items = placesDict["results"] as? [[String: Any]] {
@@ -490,11 +495,10 @@ public actor PlaceSearchSession : ObservableObject {
         }
 
         // Local/default flow
-        async let raw = autocomplete(caption: caption, parameters: parameters, locationResult: locationResult)
-        async let placesAny = placeSearchForAutocomplete(caption: caption, locationResult: locationResult)
-        let (rawResponse, placesResponseAny) = try await (raw, placesAny)
-
-        var results = parseAutocompleteToLocationResults(rawResponse)
+        let rawNSDictionary = try await autocomplete(caption: caption, limit: limitParam, locationResult: locationResult)
+        let placesResponseAny = try await placeSearchForAutocomplete(caption: caption, locationResult: locationResult)
+        var rawResponse = (rawNSDictionary as? [String: Any]) ?? [:]
+        var results = await parseAutocompleteToLocationResults(rawResponse)
 
         if let placesDict = placesResponseAny as? [String: Any],
            let items = placesDict["results"] as? [[String: Any]] {
@@ -527,7 +531,7 @@ public actor PlaceSearchSession : ObservableObject {
     
     private let sessionQueue = DispatchQueue(label: "com.secretatomics.knowmaps.sessionQueue")
 
-    func fetch(url: URL) async throws -> Any {
+    func fetch(url: URL) async throws -> AnyHashableSendable {
         print("Requesting URL: \(url)")
 
         // Acquire a configured session before entering the continuation to avoid calling async APIs in non-async closures
@@ -558,7 +562,7 @@ public actor PlaceSearchSession : ObservableObject {
                     } else if let checkDict = json as? NSDictionary, let message = checkDict["message"] as? String, message == "Invalid request token." {
                         checkedContinuation.resume(throwing: PlaceSearchSessionError.InvalidSession)
                     } else {
-                        checkedContinuation.resume(returning: json)
+                        checkedContinuation.resume(returning: json as! AnyHashableSendable)
                     }
                 } catch {
                     print(error)
@@ -629,7 +633,7 @@ public actor PlaceSearchSession : ObservableObject {
         }
 
         if success {
-            return ConfiguredSearchSession.shared
+            return await ConfiguredSearchSession.shared
         } else {
             throw PlaceSearchSessionError.ServiceNotFound
         }
