@@ -100,7 +100,7 @@ public final class DefaultPlaceSearchService: @preconcurrency PlaceSearchService
     }
     
     // MARK: Autocomplete Methods
-    
+    @MainActor
     public func autocompleteTastes(lastIntent: AssistiveChatHostIntent, currentTasteResults:[CategoryResult], cacheManager:CacheManager) async throws -> [CategoryResult] {
         var query = lastIntent.caption
         if let revisedQuery = lastIntent.queryParameters?["query"] as? String {
@@ -114,6 +114,7 @@ public final class DefaultPlaceSearchService: @preconcurrency PlaceSearchService
         return results
     }
     
+    @MainActor
     public func refreshTastes(page: Int, currentTasteResults:[CategoryResult], cacheManager:CacheManager) async throws -> [CategoryResult] {
         let tastesWrapped = try await personalizedSearchSession.fetchTastes(page: page, cacheManager: cacheManager)
         let tastesArray = try PlaceResponseFormatter.autocompleteTastesResponses(with: tastesWrapped)
@@ -158,6 +159,7 @@ public final class DefaultPlaceSearchService: @preconcurrency PlaceSearchService
         
     //MARK: - Request Building
     
+    @MainActor
     public func placeSearchRequest(intent:AssistiveChatHostIntent) async ->PlaceSearchRequest {
         var query = intent.caption
         
@@ -245,6 +247,7 @@ public final class DefaultPlaceSearchService: @preconcurrency PlaceSearchService
         return request
     }
     
+    @MainActor
     public func recommendedPlaceSearchRequest(intent:AssistiveChatHostIntent) async -> RecommendedPlaceSearchRequest
     {
         var query = intent.caption

@@ -9,6 +9,7 @@ import SwiftUI
 import NaturalLanguage
 import CoreLocation
 import Segment
+import ConcurrencyExtras
 
 enum ChatResultViewModelError: Error {
     case missingLastIntent
@@ -28,7 +29,7 @@ public final class ChatResultViewModel: AssistiveChatHostMessagesDelegate {
     
     // MARK: - Model Building and Query Handling
         
-    public func addReceivedMessage(caption: String, parameters: AssistiveChatHostQueryParameters, isLocalParticipant: Bool, filters:[String:AnyObject], modelController:ModelController, overrideIntent: AssistiveChatHostService.Intent? = nil, selectedDestinationLocation: LocationResult? = nil) async throws { // This is fine
+    public func addReceivedMessage(caption: String, parameters: AssistiveChatHostQueryParameters, isLocalParticipant: Bool, filters:Dictionary<String, String>, modelController:ModelController, overrideIntent: AssistiveChatHostService.Intent? = nil, selectedDestinationLocation: LocationResult? = nil) async throws {
         try await modelController.addReceivedMessage(caption: caption, parameters: parameters, isLocalParticipant: isLocalParticipant, filters: filters, overrideIntent:overrideIntent, selectedDestinationLocation:selectedDestinationLocation)
     }
     

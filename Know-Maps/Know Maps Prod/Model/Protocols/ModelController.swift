@@ -7,6 +7,7 @@
 
 import Foundation
 import CoreLocation
+import ConcurrencyExtras
 
 // MARK: - ModelController
 
@@ -115,7 +116,7 @@ public protocol ModelController : Sendable {
     /// Refreshes the model based on the provided query and intents.
     func refreshModel(
         query: String,
-        queryIntents: [AssistiveChatHostIntent]?, filters:[String:Any]
+        queryIntents: [AssistiveChatHostIntent]?, filters:NSDictionary
     ) async throws -> [ChatResult]
     
     /// Builds the model based on the given intent.
@@ -140,11 +141,11 @@ public protocol ModelController : Sendable {
         intent: AssistiveChatHostIntent
     ) async throws
     
-    func addReceivedMessage(caption:String, parameters:AssistiveChatHostQueryParameters, isLocalParticipant:Bool, filters:[String:Any], overrideIntent: AssistiveChatHostService.Intent?, selectedDestinationLocation: LocationResult?) async throws
+    func addReceivedMessage(caption:String, parameters:AssistiveChatHostQueryParameters, isLocalParticipant:Bool, filters:Dictionary<String, String>, overrideIntent: AssistiveChatHostService.Intent?, selectedDestinationLocation: LocationResult?) async throws
 
-    func didUpdateQuery(with query:String, parameters: AssistiveChatHostQueryParameters, filters:[String:Any]) async throws -> [ChatResult]
+    func didUpdateQuery(with query:String, parameters: AssistiveChatHostQueryParameters, filters:Dictionary<String, String>) async throws -> [ChatResult]
 
-    func updateLastIntentParameter(for placeChatResult:ChatResult, selectedDestinationChatResult:LocationResult, filters:[String:Any]) async throws
+    func updateLastIntentParameter(for placeChatResult:ChatResult, selectedDestinationChatResult:LocationResult, filters:Dictionary<String, String>) async throws
     
     func updateQueryParametersHistory(with parameters: AssistiveChatHostQueryParameters) async
 }

@@ -45,7 +45,7 @@ public actor PlaceSearchSession : ObservableObject {
         }
     }
     
-    public func query(request:PlaceSearchRequest) async throws ->[String:AnyHashableSendable] {
+    public func query(request:PlaceSearchRequest) async throws ->[String:[NSDictionary]] {
         var components = URLComponents(string:"\(PlaceSearchSession.serverUrl)\(PlaceSearchSession.placeSearchAPIUrl)")
         var queryItems = [URLQueryItem]()
         if request.query.count > 0 {
@@ -114,8 +114,8 @@ public actor PlaceSearchSession : ObservableObject {
         
         let placeSearchResponse = try await fetch(url: url)
         
-        guard let response = placeSearchResponse as? [String:AnyHashableSendable] else {
-            return [String:AnyHashableSendable]()
+        guard let response = placeSearchResponse as? [String:[NSDictionary]] else {
+            return [String:[NSDictionary]]()
         }
                 
         return response

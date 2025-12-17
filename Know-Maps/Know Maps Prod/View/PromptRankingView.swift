@@ -3,15 +3,16 @@ import UniformTypeIdentifiers
 
 struct PromptRankingView: View {
     @Environment(\.horizontalSizeClass) var sizeClass
-    @ObservedObject var chatHost: AssistiveChatHost
+    var chatHost: AssistiveChatHost
     var cacheManager: CloudCacheManager // Add cacheManager
-    @ObservedObject var chatModel: ChatResultViewModel
-    @ObservedObject var locationProvider: LocationProvider
+    var chatModel: ChatResultViewModel
+    var locationProvider: LocationProvider
     
     @Binding var contentViewDetail: ContentDetailView
     
     var body: some View {
         GeometryReader { geometry in
+            /*
             HStack(spacing:0) {
                 ScrollView {
                     let columns = sizeClass == .compact ?
@@ -27,16 +28,16 @@ struct PromptRankingView: View {
                         alignment: .leading,
                         spacing: 16
                     ) {
-                        ForEach(chatModel.allCachedResults) { result in
-                            Text(result.parentCategory)
-                                .padding()
-                                .font(.title3)
-                                // Enable dragging
-                                .onDrag {
-                                    let itemProvider = NSItemProvider(object: result.id.uuidString as NSString)
-                                    return itemProvider
-                                }
-                        }
+//                        ForEach(chatModel.allCachedResults) { result in
+//                            Text(result.parentCategory)
+//                                .padding()
+//                                .font(.title3)
+//                                // Enable dragging
+//                                .onDrag {
+//                                    let itemProvider = NSItemProvider(object: result.id.uuidString as NSString)
+//                                    return itemProvider
+//                                }
+//                        }
                     }
                 }
                 
@@ -47,6 +48,7 @@ struct PromptRankingView: View {
                         alignment: .leading,
                         spacing: 32
                     ) {
+                        /*
                         ForEach(chatModel.cachedListResults) { result in
                             VStack(alignment:.leading ,spacing: 8) {
                                 Text(result.parentCategory)
@@ -63,9 +65,11 @@ struct PromptRankingView: View {
                                 handleDrop(providers: providers, onto: result)
                             }
                         }
+                         */
                     }
                 }
             }
+             */
         }
     }
     
@@ -75,9 +79,10 @@ struct PromptRankingView: View {
             if provider.canLoadObject(ofClass: NSString.self) {
                 provider.loadObject(ofClass: NSString.self) { (object, error) in
                     if let idString = object as? String,
-                       let uuid = UUID(uuidString: idString) {
+                       let uuid = UUID(uuidString: idString)?.uuidString {
                         Task {
                             if let index = await cacheManager.cachedTasteResults.firstIndex(where: { $0.id == uuid }) {
+                                /*
                                 let draggedCategoryResult = await cacheManager.cachedTasteResults[index]
                                 
                                 if let cachedTasteResults = try? await cacheManager.cloudCacheService.fetchGroupedUserCachedRecords(for: "Taste").filter({ $0.identity == draggedCategoryResult.parentCategory }) {
@@ -85,11 +90,13 @@ struct PromptRankingView: View {
                                         do {
                                             try await cacheManager.cloudCacheService.deleteUserCachedRecord(for: cachedTasteResult)
                                         } catch {
-                                            await chatModel.analytics?.track(name: "error \(error)")
+//                                            await chatModel.analytics?.track(name: "error \(error)")
                                             print(error)
                                         }
                                     }
                                 }
+                                
+
                                 
                                 do {
                                     var userRecord = UserCachedRecord(recordId: "", group: "Taste", identity:draggedCategoryResult.parentCategory, title:draggedCategoryResult.parentCategory, icons: "", list:draggedCategoryResult.list, section:draggedCategoryResult.section.rawValue)
@@ -101,6 +108,8 @@ struct PromptRankingView: View {
                                     await chatModel.analytics?.track(name: "error \(error)")
                                     print(error)
                                 }
+                                 
+                                 */
                             }
                         }
                     }

@@ -8,6 +8,7 @@
 import SwiftUI
 import CoreLocation
 import AVKit
+import ConcurrencyExtras
 
 // MARK: - Model Controller Errors
 public enum ModelControllerError: Error, LocalizedError {
@@ -31,7 +32,7 @@ public enum ModelControllerError: Error, LocalizedError {
 }
 
 @Observable
-public final class DefaultModelController: ModelController {
+public final class DefaultModelController: ModelController {    
     
     // MARK: - Dependencies
     public let assistiveHostDelegate: AssistiveChatHost
@@ -82,7 +83,7 @@ public final class DefaultModelController: ModelController {
             let mirror = Mirror(reflecting: last)
             for child in mirror.children {
                 if let label = child.label?.lowercased() {
-                    if label.contains("filters"), let dict = child.value as? [String: Any] {
+                    if label.contains("filters"), let dict = child.value as? [String: AnyHashableSendable] {
                         if let d = dict["rangeMeters"] as? Double { return d }
                         if let d = dict["distance"] as? Double { return d }
                         if let d = dict["radius"] as? Double { return d }
@@ -504,19 +505,19 @@ public final class DefaultModelController: ModelController {
     }
     
     private func trackProgress(phase: String, caption: String?, locationName: String?) {
-        var props: [String: Any] = ["phase": phase]
+        var props: [String: String] = ["phase": phase]
         if let c = caption, !c.isEmpty { props["caption"] = c }
         if let l = locationName, !l.isEmpty { props["locationName"] = l }
         analyticsManager.track(event: "progressPhase", properties: props)
     }
     
     // MARK: - Recommendation Payload Normalization / Diagnostics
-    private func normalizeRecommendedResponsePayload(_ raw: Any) -> [String: Any]? {
-        if let outer = raw as? [String: Any] {
-            if let inner = outer["response"] as? [String: Any] {
+    private func normalizeRecommendedResponsePayload(_ raw: [String: AnyHashableSendable]) -> [String: AnyHashableSendable]? {
+        if let outer = raw as? [String: AnyHashableSendable] {
+            if let inner = outer["response"] as? [String: AnyHashableSendable] {
                 return inner
             }
-            if let inner = outer["data"] as? [String: Any] {
+            if let inner = outer["data"] as? [String: AnyHashableSendable] {
                 return inner
             }
             return outer
@@ -771,7 +772,7 @@ public final class DefaultModelController: ModelController {
     public func refreshModel(
         query: String,
         queryIntents: [AssistiveChatHostIntent]?,
-        filters: [String: Any]
+        filters: [String: NSDictionary]
     ) async throws -> [ChatResult] {
         
         if let lastIntent = queryIntents?.last {
@@ -811,10 +812,8 @@ public final class DefaultModelController: ModelController {
         caption: String,
         intent: AssistiveChatHostIntent
     ) async throws -> [ChatResult] {
-        
         let autocompleteResponse = try await placeSearchService.placeSearchSession.autocomplete(
-            caption: caption,
-            parameters: intent.queryParameters,
+            caption: caption, limit: 5,
             locationResult: intent.selectedDestinationLocation
         )
         let placeSearchResponses = try PlaceResponseFormatter.autocompletePlaceSearchResponses(
@@ -907,7 +906,7 @@ public final class DefaultModelController: ModelController {
                 )
                 
                 var topLevelKeys: [String] = []
-                if let dict = rawPayload as? [String: Any] {
+                if let dict = rawPayload as? [String: AnyHashableSendable] {
                     topLevelKeys = Array(dict.keys)
                 }
                 
@@ -1097,6 +1096,7 @@ public final class DefaultModelController: ModelController {
         updateFoundResultsMessage()
     }
     
+    @MainActor
     @discardableResult
     public func placeQueryModel(intent: AssistiveChatHostIntent) async throws -> [ChatResult] {
         // Component-level in-flight guard to prevent duplicate place queries for the same intent key
@@ -1131,7 +1131,7 @@ public final class DefaultModelController: ModelController {
         }
         
         // Heavy compute off-main: build chatResults
-        let chatResults: [ChatResult] = await Task.detached(priority: .userInitiated) { () -> [ChatResult] in
+        let chatResults: [ChatResult] = await Task.detached(priority: .userInitiated) { @MainActor () -> [ChatResult] in
             var results: [ChatResult] = []
             
             if hasSelected,
@@ -1679,7 +1679,7 @@ public final class DefaultModelController: ModelController {
     public func updateLastIntentParameter(
         for placeChatResult: ChatResult,
         selectedDestinationChatResult: LocationResult,
-        filters: [String : Any]
+        filters: [String : NSDictionary]
     ) async throws {
         guard let lastIntent = assistiveHostDelegate.queryIntentParameters.queryIntents.last else {
             return
@@ -1739,7 +1739,7 @@ public final class DefaultModelController: ModelController {
         caption: String,
         parameters: AssistiveChatHostQueryParameters,
         isLocalParticipant: Bool,
-        filters: [String : Any],
+        filters: [String : NSDictionary],
         overrideIntent: AssistiveChatHostService.Intent? = nil,
         selectedDestinationLocation: LocationResult? = nil
     ) async throws {
@@ -1797,7 +1797,7 @@ public final class DefaultModelController: ModelController {
     public func didUpdateQuery(
         with query: String,
         parameters: AssistiveChatHostQueryParameters,
-        filters: [String : Any]
+        filters: [String : NSDictionary]
     ) async throws -> [ChatResult] {
         let safeQuery = inputValidator.sanitize(query: query)
         return try await refreshModel(

@@ -8,10 +8,11 @@
 import Foundation
 import Combine
 
+@MainActor
 @Observable
-public final class AssistiveChatHostQueryParameters : ObservableObject, Equatable, Sendable {
+public final class AssistiveChatHostQueryParameters : @MainActor Equatable, Sendable {
     public let uuid = UUID()
-    public let queryIntents = [AssistiveChatHostIntent]()
+    public var queryIntents = [AssistiveChatHostIntent]()
     
     public static func == (lhs: AssistiveChatHostQueryParameters, rhs: AssistiveChatHostQueryParameters) -> Bool {
         lhs.uuid == rhs.uuid

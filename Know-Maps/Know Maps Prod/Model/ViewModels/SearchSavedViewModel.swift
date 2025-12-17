@@ -7,13 +7,15 @@
 
 import Foundation
 import CoreLocation
+import ConcurrencyExtras
 
+@MainActor
 @Observable
 public final class SearchSavedViewModel : Sendable {
     
     public static let shared = SearchSavedViewModel()
     
-    public var filters: [String:Any] {
+    public var filters: [String:AnyHashableSendable] {
         get {
             retrieveFiltersFromUserDefaults()
         }
@@ -22,10 +24,10 @@ public final class SearchSavedViewModel : Sendable {
             saveFiltersToUserDefaults(filters: newValue)
         }
     }
+    
     public var editingRecommendationWeightResult: CategoryResult?
     
-    
-    func saveFiltersToUserDefaults(filters: [String: Any]) {
+    func saveFiltersToUserDefaults(filters: [String: AnyHashableSendable]) {
         do {
             let data = try JSONSerialization.data(withJSONObject: filters, options: [])
             UserDefaults.standard.set(data, forKey: "savedFilters")
@@ -34,10 +36,10 @@ public final class SearchSavedViewModel : Sendable {
         }
     }
     
-    func retrieveFiltersFromUserDefaults() -> [String: Any] {
+    func retrieveFiltersFromUserDefaults() -> [String: AnyHashableSendable] {
         if let data = UserDefaults.standard.data(forKey: "savedFilters") {
             do {
-                if let filters = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
+                if let filters = try JSONSerialization.jsonObject(with: data, options: []) as? [String: AnyHashableSendable] {
                     return filters
                 }
             } catch {
@@ -355,17 +357,19 @@ public final class SearchSavedViewModel : Sendable {
             let cachedRecords = try await cacheManager.cloudCacheService.fetchGroupedUserCachedRecords(for: group)
             let matchingRecords = cachedRecords.filter { $0.identity == identity }
             
-            // Delete matching cached records concurrently
-            await withTaskGroup(of: Void.self) { group in
-                for record in matchingRecords {
-                    group.addTask {
-                        do {
-                            try await cacheManager.cloudCacheService.deleteUserCachedRecord(for: record)
-                        } catch {
-                            await modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
-                        }
-                    }
+            // Delete matching cached records sequentially to avoid sending non-Sendable values into concurrent closures
+            var deletionErrors: [Error] = []
+            for record in matchingRecords {
+                do {
+                    try await cacheManager.cloudCacheService.deleteUserCachedRecord(for: record)
+                } catch {
+                    deletionErrors.append(error)
                 }
+            }
+
+            // Report any errors back on the main actor after deletions
+            for err in deletionErrors {
+                await modelController.analyticsManager.trackError(error: err, additionalInfo: nil)
             }
             
             // Refresh the cache after deletion
@@ -408,17 +412,18 @@ public final class SearchSavedViewModel : Sendable {
             let identitySet = Set(identities)
             let matchingRecords = cachedRecords.filter { identitySet.contains($0.identity) }
 
-            // Delete matching cached records concurrently
-            await withTaskGroup(of: Void.self) { group in
-                for record in matchingRecords {
-                    group.addTask {
-                        do {
-                            try await cacheManager.cloudCacheService.deleteUserCachedRecord(for: record)
-                        } catch {
-                            await modelController.analyticsManager.trackError(error: error, additionalInfo: ["context": "removeCachedResults(batched)", "recordId": record.recordId])
-                        }
-                    }
+            // Delete matching cached records sequentially to avoid sending non-Sendable values into concurrent closures
+            var deletionErrors: [Error] = []
+            for record in matchingRecords {
+                do {
+                    try await cacheManager.cloudCacheService.deleteUserCachedRecord(for: record)
+                } catch {
+                    deletionErrors.append(error)
                 }
+            }
+
+            for err in deletionErrors {
+                await modelController.analyticsManager.trackError(error: err, additionalInfo: ["context": "removeCachedResults(batched)"])
             }
 
             // Refresh the cache once after all deletions
@@ -468,3 +473,4 @@ public final class SearchSavedViewModel : Sendable {
 
     }
 }
+

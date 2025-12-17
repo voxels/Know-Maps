@@ -9,6 +9,7 @@ import Foundation
 import AppIntents
 import SwiftUI
 
+/*
 struct KnowMapsShortcutsProvider: AppShortcutsProvider {
     static var appShortcuts: [AppShortcut] {
             AppShortcut(
@@ -99,3 +100,5 @@ struct ShowMoodResultsIntent: AppIntent {
         return .result()
     }
 }
+
+*/

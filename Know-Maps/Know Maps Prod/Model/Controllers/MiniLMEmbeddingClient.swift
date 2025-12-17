@@ -1,13 +1,13 @@
 import Foundation
 import CoreML
 
+@MainActor
 final class MiniLMEmbeddingClient {
 
     static let shared = MiniLMEmbeddingClient()
 
     private let model: MLModel
     private let tokenizer: MiniLMTokenizer
-    private let queue = DispatchQueue(label: "MiniLMEmbeddingClient")
 
     private init() {
         tokenizer = MiniLMTokenizer()
@@ -37,10 +37,9 @@ final class MiniLMEmbeddingClient {
 
     // MARK: - Public API
 
-    public func embed(_ text: String) throws -> [Double] {
-        try queue.sync {
-            try self._embed(text)
-        }
+    @discardableResult
+    public func embed(_ text: String) async throws -> [Double] {
+        try _embed(text)
     }
 
     // MARK: - Internal

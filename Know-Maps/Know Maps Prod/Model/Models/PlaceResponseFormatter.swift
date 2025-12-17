@@ -16,7 +16,7 @@ public enum PlaceResponseFormatterError : Error {
 
 open class PlaceResponseFormatter {
     
-    public class func autocompleteTastesResponses(with response:[String:Any]) throws ->[String] {
+    public class func autocompleteTastesResponses(with response:[String:[String]]) throws ->[String] {
         var retval = [String]()
 
         // v2 endpoints typically nest payload under "response"
@@ -49,7 +49,7 @@ open class PlaceResponseFormatter {
         return retval
     }
     
-    public class func autocompleteRecommendedPlaceSearchResponses(with response:[String:Any]) throws ->[RecommendedPlaceSearchResponse] {
+    public class func autocompleteRecommendedPlaceSearchResponses(with response:[String:AnyHashableSendable]) throws ->[RecommendedPlaceSearchResponse] {
         var retval = [RecommendedPlaceSearchResponse]()
         
         guard response.keys.count > 0 else {
@@ -403,7 +403,7 @@ open class PlaceResponseFormatter {
         return retVal
     }
     
-    public class func relatedPlaceSearchResponses(with response:[String:Any]) throws ->[RecommendedPlaceSearchResponse] {
+    public class func relatedPlaceSearchResponses(with response:[String:AnyHashableSendable]) throws ->[RecommendedPlaceSearchResponse] {
         var retval = [RecommendedPlaceSearchResponse]()
         
         guard response.keys.count > 0 else {
@@ -531,7 +531,7 @@ open class PlaceResponseFormatter {
     /// Build a LocationResult from a Foursquare autocomplete geo item
     /// Expects a container that includes a `geo` dictionary (as returned by autocomplete),
     /// but will also accept the geo dictionary itself.
-    public class func locationResult(from resultDict: [String: Any]) -> LocationResult? {
+    public class func locationResult(from resultDict: [String: AnyHashableSendable]) -> LocationResult? {
         print("Autocomplete raw (geo path): \(resultDict)")
         // Accept either a wrapper with `geo` or a direct geo object
         let geoAny = (resultDict["geo"] as? NSDictionary) ?? (resultDict as NSDictionary)
@@ -604,10 +604,10 @@ open class PlaceResponseFormatter {
         return results
     }
     
-    public class func autocompletePlaceSearchResponses(with response:[String:Any]) throws ->[PlaceSearchResponse] {
+    public class func autocompletePlaceSearchResponses(with response:NSDictionary) throws ->[PlaceSearchResponse] {
         var retVal = [PlaceSearchResponse]()
         
-        guard response.keys.count > 0 else {
+        guard response.count > 0 else {
             throw PlaceResponseFormatterError.InvalidRawResponseType
         }
         
@@ -762,7 +762,7 @@ open class PlaceResponseFormatter {
         return retVal
     }
     
-    public class func placeSearchResponses(with response:Any) throws ->[PlaceSearchResponse] {
+    public class func placeSearchResponses(with response:[String:[NSDictionary]]) throws ->[PlaceSearchResponse] {
         var retVal = [PlaceSearchResponse]()
         
         guard let response = response as? NSDictionary else {

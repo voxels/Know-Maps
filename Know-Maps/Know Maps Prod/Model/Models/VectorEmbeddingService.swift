@@ -14,7 +14,7 @@ import NaturalLanguage
 /// Example:
 /// - Query "cozy date spot" matches places with "romantic", "intimate", "quiet"
 /// - Query "work from" matches places with "wifi", "outlets", "laptop-friendly"
-public class VectorEmbeddingService {
+public class VectorEmbeddingService: @unchecked Sendable {
     
     // MARK: - Properties
     

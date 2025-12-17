@@ -8,11 +8,12 @@
 import Foundation
 //import RevenueCat
 
+@MainActor
 @Observable
-public final class FeatureFlagService : NSObject, FeatureFlag/*, @preconcurrency PurchasesDelegate*/ {
+public final class FeatureFlagService : NSObject, @preconcurrency @MainActor FeatureFlag {
     
     // Shared instance (singleton)
-    public static let shared = FeatureFlagService()
+    @MainActor public static let shared = FeatureFlagService()
     
     public enum Flag : String {
         case hasMonthlySubscription

@@ -12,7 +12,7 @@ public enum LocationProviderError : Error {
 }
 
 public class LocationProvider : NSObject  {
-    public static let shared = LocationProvider()
+    @MainActor public static let shared = LocationProvider()
     
     public var locationManager: CLLocationManager = CLLocationManager()
     

@@ -93,7 +93,6 @@ struct PlacesList: View {
                         }
                         .padding(16)
 #if !os(visionOS)
-                        .glassEffect(.regular, in: .rect(cornerRadius: 32))
                         .padding(16)
 #else
                         .background(.ultraThinMaterial)
@@ -112,13 +111,13 @@ struct PlacesList: View {
                                 .padding()
                         }
 #if !os(visionOS)
-                        .glassEffect()
+//                        .glassEffect()
 #else
                         .background(.ultraThinMaterial)
                         .clipShape(Circle())
 #endif
-                        .buttonStyle(.plain)
-                        .padding(12)
+//                        .buttonStyle(.plain)
+//                        .padding(12)
                     }
                     .clipShape(RoundedRectangle(cornerRadius: 32, style: .continuous))
                     .contentShape(RoundedRectangle(cornerRadius: 32, style: .continuous))

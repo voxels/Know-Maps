@@ -186,7 +186,7 @@ public actor PersonalizedSearchSession {
         return true
     }
 
-    public func autocompleteTastes(caption:String, parameters:[String:AnyHashableSendable]?, cacheManager:CacheManager) async throws -> [String:AnyHashableSendable] {
+    public func autocompleteTastes(caption:String, parameters:[String:AnyHashableSendable]?, cacheManager:CacheManager) async throws -> [String:[String]] {
         
         let apiKey = try await requireAccessToken(cacheManager: cacheManager) {
             _ = await self.cloudCacheService.refreshFsqToken()
@@ -230,11 +230,11 @@ public actor PersonalizedSearchSession {
         let tastesAutocompleteResponse = try await fetch(url: url, apiKey: apiKey, urlQueryItems: queryItems)
         
         guard let response = tastesAutocompleteResponse as? [String:AnyHashableSendable] else {
-            return [String:AnyHashableSendable]()
+            return [String:[String]]()
         }
                 
-        var retval = [String:AnyHashableSendable]()
-        if let responseDict = response["response"] as? [String:AnyHashableSendable] {
+        var retval = [String:[String]]()
+        if let responseDict = response["response"] as? [String:[String]] {
             print(responseDict)
             retval = responseDict
         }
@@ -242,7 +242,7 @@ public actor PersonalizedSearchSession {
         return retval
     }
     
-    public func fetchRecommendedVenues(with request:RecommendedPlaceSearchRequest, cacheManager:CacheManager) async throws -> [String:Any]{
+    public func fetchRecommendedVenues(with request:RecommendedPlaceSearchRequest, cacheManager:CacheManager) async throws -> [String:AnyHashableSendable]{
         guard !isFetchingRecommendations else { throw PersonalizedSearchSessionError.Debounce }
         isFetchingRecommendations = true
         let apiKey = try await requireAccessToken(cacheManager: cacheManager) {
@@ -302,13 +302,13 @@ public actor PersonalizedSearchSession {
                 let queryItems = buildQueryItems(radius: radius)
                 let response = try await fetch(url: components.url!, apiKey: apiKey, urlQueryItems: queryItems)
                 isFetchingRecommendations = false
-                guard let response = response as? [String:Any] else { throw PersonalizedSearchSessionError.NoVenuesFound }
-                if let responseDict = response["response"] as? [String:Any] {
+                guard let response = response as? [String:AnyHashableSendable] else { throw PersonalizedSearchSessionError.NoVenuesFound }
+                if let responseDict = response["response"] as? [String:AnyHashableSendable] {
                     // If results are sparse, only escalate radius if more attempts remain
-                    if let groups = responseDict["group"] as? [[String:Any]], groups.isEmpty, index < radiiToTry.count - 1 {
+                    if let groups = responseDict["group"] as? [[String:AnyHashableSendable]], groups.isEmpty, index < radiiToTry.count - 1 {
                         continue
                     }
-                    if let results = responseDict["results"] as? [Any], results.isEmpty, index < radiiToTry.count - 1 {
+                    if let results = responseDict["results"] as? [AnyHashableSendable], results.isEmpty, index < radiiToTry.count - 1 {
                         continue
                     }
                     return responseDict

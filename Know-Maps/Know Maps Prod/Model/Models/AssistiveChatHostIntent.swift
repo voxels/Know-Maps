@@ -23,23 +23,23 @@ public struct AnySendable: Sendable {
 @Observable
 public final class AssistiveChatHostIntent : @MainActor Equatable, Sendable {
     public let uuid = UUID()
-    public let caption:String
-    public let intent:AssistiveChatHostService.Intent
+    public var caption:String
+    public var intent:AssistiveChatHostService.Intent
     public var selectedPlaceSearchResponse:PlaceSearchResponse?
     public var selectedPlaceSearchDetails:PlaceDetailsResponse?
-    public let placeSearchResponses:[PlaceSearchResponse]
-    public let selectedDestinationLocation:LocationResult
+    public var placeSearchResponses:[PlaceSearchResponse]
+    public var selectedDestinationLocation:LocationResult
     public var placeDetailsResponses:[PlaceDetailsResponse]?
     public var recommendedPlaceSearchResponses:[RecommendedPlaceSearchResponse]?
     public var relatedPlaceSearchResponses:[RecommendedPlaceSearchResponse]?
-    public let queryParameters: [String: AnyHashableSendable]?
+    public var queryParameters: [String:String]?
     
     // MARK: - Foundation Models Enhancement
     /// Optional enriched intent from Foundation Models classifier
     /// Contains extracted categories, tastes, price range, etc.
     public let enrichedIntent: UnifiedSearchIntent?
     
-    public init(caption: String, intent: AssistiveChatHostService.Intent, selectedPlaceSearchResponse: PlaceSearchResponse?, selectedPlaceSearchDetails: PlaceDetailsResponse?, placeSearchResponses: [PlaceSearchResponse], selectedDestinationLocation:LocationResult, placeDetailsResponses:[PlaceDetailsResponse]?, recommendedPlaceSearchResponses:[RecommendedPlaceSearchResponse]? = nil, relatedPlaceSearchResponses:[RecommendedPlaceSearchResponse]? = nil, queryParameters: [String: AnyHashableSendable]?, enrichedIntent: UnifiedSearchIntent? = nil) {
+    public init(caption: String, intent: AssistiveChatHostService.Intent, selectedPlaceSearchResponse: PlaceSearchResponse?, selectedPlaceSearchDetails: PlaceDetailsResponse?, placeSearchResponses: [PlaceSearchResponse], selectedDestinationLocation:LocationResult, placeDetailsResponses:[PlaceDetailsResponse]?, recommendedPlaceSearchResponses:[RecommendedPlaceSearchResponse]? = nil, relatedPlaceSearchResponses:[RecommendedPlaceSearchResponse]? = nil, queryParameters: [String:String]?, enrichedIntent: UnifiedSearchIntent? = nil) {
         self.caption = caption
         self.intent = intent
         self.selectedPlaceSearchResponse = selectedPlaceSearchResponse

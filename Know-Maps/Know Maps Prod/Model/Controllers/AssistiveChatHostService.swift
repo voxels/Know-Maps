@@ -10,11 +10,13 @@ import NaturalLanguage
 @preconcurrency import CoreLocation
 import CoreML
 import Segment
-
+import ConcurrencyExtras
 
 public typealias AssistiveChatHostTaggedWord = [String: [String]]
 
-public final class AssistiveChatHostService : AssistiveChatHost {
+@MainActor
+public final class AssistiveChatHostService : @MainActor AssistiveChatHost {
+    
     public let analyticsManager:AnalyticsService
     public enum Intent : String, Sendable {
         case Search
@@ -160,7 +162,7 @@ public final class AssistiveChatHostService : AssistiveChatHost {
         }
     }
     
-    public func defaultParameters(for query:String, filters:[String:Any]) async throws -> [String:Any]? {
+    public func defaultParameters(for query:String, filters:[String:String]) async throws -> [String:String]? {
         var radius:Double = 20000
         var open:Bool? = nil
         
@@ -191,43 +193,49 @@ public final class AssistiveChatHostService : AssistiveChatHost {
         
         do {
             let json = try JSONSerialization.jsonObject(with: data)
-            if let encodedEmptyParameters = json as? [String:Any] {
+            if let encodedEmptyParameters = json as? [String:String] {
                 var encodedParameters = encodedEmptyParameters
+                var typedParameters = [String: AnyHashableSendable]()
                 
-                guard var rawParameters = encodedParameters["parameters"] as? [String:Any] else {
+                if var rawParameters = encodedParameters["parameters"] as? [String:String] {
+                    if let tags = try tags(for: query) {
+                        var tagsString = ""
+                        for tag in tags.keys {
+                            tagsString.append("\(tag),")
+                        }
+                        rawParameters["tags"] = tagsString
+                        
+                        if let categories = await categoryCodes(for: query, tags: tags) {
+                            rawParameters["categories"] = categories.joined(separator: ",")
+                        }
+                    }
+                                    
+                    if let minPrice = minPrice(for: query) {
+                        rawParameters["min_price"] = String(describing: minPrice)
+                    }
+                    
+                    if let maxPrice = maxPrice(for: query) {
+                        rawParameters["min_price"] = String(describing: maxPrice)
+                    }
+                    
+                    if let openAt = openAt(for: query) {
+                        rawParameters["open_at"] = "\(openAt)"
+                    }
+                    
+                    if let openNow = open {
+                        rawParameters["open_now"] = "\(openNow)"
+                    }
+                    
+
+                    let section = section(for: query).rawValue
+                    rawParameters["section"] = "\(section)"
+
+                    return rawParameters
+                }
+                else {
                     return encodedParameters
                 }
                 
-                let tags = try tags(for: query)
-                rawParameters["tags"] = tags
-                                
-                if let minPrice = minPrice(for: query) {
-                    rawParameters["min_price"] = minPrice
-                }
-                
-                if let maxPrice = maxPrice(for: query) {
-                    rawParameters["max_price"] = maxPrice
-                }
-                
-                if let openAt = openAt(for: query) {
-                    rawParameters["open_at"] = openAt
-                }
-                
-                if let openNow = open {
-                    rawParameters["open_now"] = openNow
-                }
-                
-                if let categories = await categoryCodes(for: query, tags: tags) {
-                    rawParameters["categories"] = categories
-                }
-
-                let section = section(for: query).rawValue
-                rawParameters["section"] = section
-                
-                encodedParameters["query"] = parsedQuery(for: query, tags: tags)
-                
-                encodedParameters["parameters"] = rawParameters
-                return encodedParameters
             } else {
                 return nil
             }
@@ -237,20 +245,23 @@ public final class AssistiveChatHostService : AssistiveChatHost {
         }
     }
     
-    public func updateLastIntent(caption:String, selectedDestinationLocation:LocationResult, filters:[String:Any], modelController:ModelController) async throws {
+    @MainActor
+    public func updateLastIntent(caption:String, selectedDestinationLocation:LocationResult, filters:Dictionary<String, String>, modelController:ModelController) async throws {
         if  let lastIntent = queryIntentParameters.queryIntents.last {
             let queryParameters = try await defaultParameters(for: caption, filters:filters)
             let intent = try await determineIntentEnhanced(for: caption)
-            let newIntent = AssistiveChatHostIntent(caption: caption, intent:intent, selectedPlaceSearchResponse: lastIntent.selectedPlaceSearchResponse, selectedPlaceSearchDetails: lastIntent.selectedPlaceSearchDetails, placeSearchResponses: lastIntent.placeSearchResponses, selectedDestinationLocation: selectedDestinationLocation, placeDetailsResponses: lastIntent.placeDetailsResponses, recommendedPlaceSearchResponses: lastIntent.recommendedPlaceSearchResponses, relatedPlaceSearchResponses: lastIntent.relatedPlaceSearchResponses, queryParameters: queryParameters)
+            let newIntent = await AssistiveChatHostIntent(caption: caption, intent:intent, selectedPlaceSearchResponse: lastIntent.selectedPlaceSearchResponse, selectedPlaceSearchDetails: lastIntent.selectedPlaceSearchDetails, placeSearchResponses: lastIntent.placeSearchResponses, selectedDestinationLocation: selectedDestinationLocation, placeDetailsResponses: lastIntent.placeDetailsResponses, recommendedPlaceSearchResponses: lastIntent.recommendedPlaceSearchResponses, relatedPlaceSearchResponses: lastIntent.relatedPlaceSearchResponses, queryParameters: queryParameters)
             await updateLastIntentParameters(intent: newIntent, modelController: modelController)
         }
     }
     
+    @MainActor
     public func updateLastIntentParameters(intent:AssistiveChatHostIntent, modelController:ModelController) async {
         queryIntentParameters.queryIntents.append(intent)
         await messagesDelegate.updateQueryParametersHistory(with:queryIntentParameters, modelController: modelController)
     }
     
+    @MainActor
     public func appendIntentParameters(intent:AssistiveChatHostIntent, modelController:ModelController) async {
         
         queryIntentParameters.queryIntents.append(intent)
@@ -258,12 +269,13 @@ public final class AssistiveChatHostService : AssistiveChatHost {
         await messagesDelegate.updateQueryParametersHistory(with:queryIntentParameters, modelController: modelController)
     }
     
+    @MainActor
     public func resetIntentParameters() {
         queryIntentParameters.queryIntents = [AssistiveChatHostIntent]()
     }
     
-    public func receiveMessage(caption:String, isLocalParticipant:Bool, filters:[String:Any], modelController:ModelController, overrideIntent: AssistiveChatHostService.Intent? = nil, selectedDestinationLocation: LocationResult? = nil ) async throws {
-        try await messagesDelegate.addReceivedMessage(caption: caption, parameters: queryIntentParameters, isLocalParticipant: isLocalParticipant, filters: filters, modelController: modelController, overrideIntent: overrideIntent, selectedDestinationLocation: selectedDestinationLocation)
+    public func receiveMessage(caption:String, isLocalParticipant:Bool, filters:Dictionary<String, String>, modelController:ModelController, overrideIntent: AssistiveChatHostService.Intent? = nil, selectedDestinationLocation: LocationResult? = nil ) async throws {
+        try await messagesDelegate.addReceivedMessage(caption: caption, parameters: queryIntentParameters, isLocalParticipant: isLocalParticipant, filters: filters as NSDictionary, modelController: modelController, overrideIntent: overrideIntent, selectedDestinationLocation: selectedDestinationLocation)
     }
     
     public func tags(for rawQuery:String) throws ->AssistiveChatHostTaggedWord? {
@@ -427,8 +439,8 @@ extension AssistiveChatHostService {
         }
         
         let locationComponents = parsedQuery.components(separatedBy: "near")
-        
-        return locationComponents.first ?? parsedQuery
+        let finalString = locationComponents.first ?? parsedQuery
+        return finalString
     }
         
     internal func minPrice(for rawQuery:String)->Int? {
@@ -584,7 +596,7 @@ extension AssistiveChatHostService {
     /// - Returns: A fully configured `AssistiveChatHostIntent`.
     public func createIntent(
         for result: ChatResult,
-        filters: [String: Any],
+        filters:Dictionary<String, String>,
         selectedDestination: LocationResult
     ) async throws -> AssistiveChatHostIntent {
         
@@ -593,7 +605,7 @@ extension AssistiveChatHostService {
         
         // If the result is a specific place, create a .Place intent.
         if let placeResponse = result.placeResponse {
-            return AssistiveChatHostIntent(
+            return await AssistiveChatHostIntent(
                 caption: caption,
                 intent: .Place,
                 selectedPlaceSearchResponse: placeResponse,
@@ -606,6 +618,7 @@ extension AssistiveChatHostService {
         }
         
         // Otherwise, create a generic .Search intent.
-        return AssistiveChatHostIntent(caption: caption, intent: .Search, selectedPlaceSearchResponse: nil, selectedPlaceSearchDetails: nil, placeSearchResponses: [], selectedDestinationLocation: selectedDestination, placeDetailsResponses: nil, queryParameters: queryParameters)
+        return await AssistiveChatHostIntent(caption: caption, intent: .Search, selectedPlaceSearchResponse: nil, selectedPlaceSearchDetails: nil, placeSearchResponses: [], selectedDestinationLocation: selectedDestination, placeDetailsResponses: nil, queryParameters: queryParameters)
     }
 }
+
