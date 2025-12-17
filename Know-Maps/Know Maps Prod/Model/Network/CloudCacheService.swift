@@ -26,7 +26,7 @@ public enum CloudCacheServiceKey: String {
     case revenuecat
 }
 
-public class CloudCacheService: NSObject, CloudCache {
+@MainActor public class CloudCacheService: NSObject, @preconcurrency CloudCache {
 
     public let analyticsManager: AnalyticsService
     
@@ -68,24 +68,30 @@ public class CloudCacheService: NSObject, CloudCache {
 #endif
     }
     
-    @objc func appDidEnterBackground() {
+    @MainActor @objc func appDidEnterBackground() {
         // Register background task
 #if !os(macOS)
-        backgroundTask = UIApplication.shared.beginBackgroundTask(expirationHandler: {
-            // Cancel operations if background time expires
-            self.cancelAllOperations()
-            UIApplication.shared.endBackgroundTask(self.backgroundTask)
-            self.backgroundTask = .invalid
+        backgroundTask = UIApplication.shared.beginBackgroundTask(expirationHandler: { [weak self] in
+            guard let self = self else { return }
+            Task { @MainActor in
+                // Cancel operations if background time expires
+                self.cancelAllOperations()
+#if !os(macOS)
+                UIApplication.shared.endBackgroundTask(self.backgroundTask)
+                self.backgroundTask = .invalid
+#endif
+            }
         })
 #endif
         
         // Do not immediately cancel operations; allow them to finish in the background
-        DispatchQueue.global().async {
-            self.waitForOperationsToFinish()
+        Task { [weak self] in
+            guard let self else { return }
+            await self.waitForOperationsToFinishSafely()
         }
     }
     
-    @objc func appWillEnterForeground() {
+    @MainActor @objc func appWillEnterForeground() {
         // End background task if necessary
 #if !os(macOS)
         if backgroundTask != .invalid {
@@ -96,29 +102,37 @@ public class CloudCacheService: NSObject, CloudCache {
         // Resume or restart any necessary operations
     }
     
-    private func waitForOperationsToFinish() {
-        // Wait for ongoing operations to finish before canceling
-        cacheOperations.forEach { operation in
-            if operation.isExecuting {
-                operation.queuePriority = .veryLow
-            }
+    @MainActor private func snapshotOperations() -> (cache: [CKDatabaseOperation], keys: [CKDatabaseOperation]) {
+        var cache: [CKDatabaseOperation] = []
+        var keys: [CKDatabaseOperation] = []
+        operationQueue.sync {
+            cache = Array(self.cacheOperations)
+            keys = Array(self.keysOperations)
         }
-        keysOperations.forEach { operation in
-            if operation.isExecuting {
-                operation.queuePriority = .veryLow
-            }
+        return (cache, keys)
+    }
+
+    nonisolated private func waitForOperationsToFinishSafely() async {
+        // Lower priority of ongoing operations using a snapshot to avoid touching actor-isolated state
+        let ops = await MainActor.run { self.snapshotOperations() }
+        ops.cache.forEach { op in
+            if op.isExecuting { op.queuePriority = .veryLow }
         }
-        
-        // Optionally wait for a specific amount of time before cancelling if necessary
-        DispatchQueue.main.asyncAfter(deadline: .now() + 20) {
-            self.cancelAllOperations()
+        ops.keys.forEach { op in
+            if op.isExecuting { op.queuePriority = .veryLow }
+        }
+        // After a grace period, cancel on the main actor to touch state safely
+        try? await Task.sleep(nanoseconds: 20 * 1_000_000_000)
+        await MainActor.run { [weak self] in
+            self?.cancelAllOperations()
         }
     }
     
-    private func cancelAllOperations() {
-        // Safely cancel all operations
-        cacheOperations.forEach { $0.cancel() }
-        keysOperations.forEach { $0.cancel() }
+    @MainActor private func cancelAllOperations() {
+        operationQueue.async(flags: .barrier) {
+            self.cacheOperations.forEach { $0.cancel() }
+            self.keysOperations.forEach { $0.cancel() }
+        }
     }
     
     private func insertCacheOperation(_ operation: CKDatabaseOperation) {
@@ -194,20 +208,19 @@ public class CloudCacheService: NSObject, CloudCache {
         operation.desiredKeys = ["value", "service"]
         operation.resultsLimit = 1
         operation.recordMatchedBlock = { [weak self] _, result in
-            guard let strongSelf = self else { return }
-            
             do {
                 let record = try result.get()
                 if let apiKey = record["value"] as? String {
                     print("\(String(describing: record["service"]))")
                     Task { @MainActor in
+                        guard let strongSelf = self else { return }
                         strongSelf.serviceAPIKey = apiKey
                     }
                 } else {
                     print("Did not find API Key")
                 }
             } catch {
-                strongSelf.analyticsManager.trackError(error: error, additionalInfo: nil)
+                self?.analyticsManager.trackError(error: error, additionalInfo: nil)
             }
         }
         operation.queuePriority = .veryHigh
@@ -224,11 +237,11 @@ public class CloudCacheService: NSObject, CloudCache {
                     continuation.resume(returning: false)
                 }
             }
-            self.insertKeysOperation(operation)
+            Task { @MainActor in self.insertKeysOperation(operation) }
             keysContainer.publicCloudDatabase.add(operation)
         }
         
-        self.removeKeysOperation(operation)
+        await MainActor.run { self.removeKeysOperation(operation) }
         
         if success {
             let session = defaultSession()
@@ -280,11 +293,11 @@ public class CloudCacheService: NSObject, CloudCache {
                     continuation.resume(returning: false)
                 }
             }
-            self.insertKeysOperation(operation)
+            Task { @MainActor in self.insertKeysOperation(operation) }
             keysContainer.publicCloudDatabase.add(operation)
         }
         
-        self.removeKeysOperation(operation)
+        await MainActor.run { self.removeKeysOperation(operation) }
         
         if success {
             return await MainActor.run {
@@ -348,11 +361,11 @@ public class CloudCacheService: NSObject, CloudCache {
                     continuation.resume(returning: false)
                 }
             }
-            self.insertCacheOperation(operation)
+            Task { @MainActor in self.insertCacheOperation(operation) }
             cacheContainer.privateCloudDatabase.add(operation)
         }
         
-        self.removeCacheOperation(operation)
+        await MainActor.run { self.removeCacheOperation(operation) }
         
         if success {
             return await MainActor.run { fsqUserId }
@@ -399,11 +412,11 @@ public class CloudCacheService: NSObject, CloudCache {
                     continuation.resume(returning: false)
                 }
             }
-            self.insertCacheOperation(operation)
+            Task { @MainActor in self.insertCacheOperation(operation) }
             cacheContainer.privateCloudDatabase.add(operation)
         }
         
-        self.removeCacheOperation(operation)
+        await MainActor.run { self.removeCacheOperation(operation) }
         if success {
             // Access oauthToken on the main actor
             return await MainActor.run { oauthToken }
@@ -459,12 +472,12 @@ public class CloudCacheService: NSObject, CloudCache {
     
     public func fetchGroupedUserCachedRecords(for group: String) async throws -> [UserCachedRecord] {
         // Fetch from local store
-        return try await MainActor.run {
-            let fetchDescriptor = FetchDescriptor<UserCachedRecord>(
-                predicate: #Predicate { $0.group == group }
-            )
-            return try modelContext.fetch(fetchDescriptor)
-        }
+    
+        let fetchDescriptor = FetchDescriptor<UserCachedRecord>(
+            predicate: #Predicate { $0.group == group }
+        )
+        return try modelContext.fetch(fetchDescriptor)
+    
     }
     
     @discardableResult
@@ -609,12 +622,12 @@ public class CloudCacheService: NSObject, CloudCache {
                     }
 
                     // Add operation to tracking
-                    self.insertCacheOperation(operation)
+                    Task { @MainActor in self.insertCacheOperation(operation) }
                     self.cacheContainer.privateCloudDatabase.add(operation)
                 }
 
                 // Remove operation from tracking
-                self.removeCacheOperation(operation)
+                await MainActor.run { self.removeCacheOperation(operation) }
 
                 // Process the fetched batch
                 if !batchRecords.isEmpty {
@@ -718,10 +731,8 @@ public class CloudCacheService: NSObject, CloudCache {
     
     public func fetchRecommendationData() async throws -> [RecommendationData] {
         // Fetch from local store
-        return try await MainActor.run {
             let fetchDescriptor = FetchDescriptor<RecommendationData>()
             return try modelContext.fetch(fetchDescriptor)
-        }
     }
     
     public func storeRecommendationData(
@@ -732,7 +743,6 @@ public class CloudCacheService: NSObject, CloudCache {
         // Generate a local record ID
         let recordID = UUID().uuidString
         
-        await MainActor.run {
             let recommendationData = RecommendationData(
                 id:UUID(),
                 recordId: recordID,
@@ -747,7 +757,6 @@ public class CloudCacheService: NSObject, CloudCache {
             } catch {
                 analyticsManager.trackError(error: error, additionalInfo: nil)
             }
-        }
         return true
     }
     
@@ -799,7 +808,7 @@ public class CloudCacheService: NSObject, CloudCache {
 }
 
 private extension CloudCacheService {
-    func defaultSession() -> URLSession {
+    nonisolated func defaultSession() -> URLSession {
         let sessionConfiguration = URLSessionConfiguration.default
         sessionConfiguration.timeoutIntervalForRequest = 10.0
         sessionConfiguration.timeoutIntervalForResource = 10.0

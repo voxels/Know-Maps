@@ -8,7 +8,7 @@
 import Foundation
 import AppIntents
 
-public enum PersonalizedSearchSection: String, Hashable, CaseIterable, AppEnum, Sendable  {
+public enum PersonalizedSearchSection: String, Hashable, CaseIterable, @preconcurrency AppEnum, Sendable  {
     
     case food = "Food"
     case drinks = "Drinks"
@@ -21,9 +21,9 @@ public enum PersonalizedSearchSection: String, Hashable, CaseIterable, AppEnum, 
     case topPicks = "Popular places"
 
     // Implement required properties for AppEnum
-    public static var typeDisplayRepresentation = TypeDisplayRepresentation(name: "Mood")
+    @MainActor public static var typeDisplayRepresentation = TypeDisplayRepresentation(name: "Mood")
 
-    public static var caseDisplayRepresentations: [PersonalizedSearchSection: DisplayRepresentation] = [
+    @MainActor public static var caseDisplayRepresentations: [PersonalizedSearchSection: DisplayRepresentation] = [
         .food: DisplayRepresentation(title: "Food"),
         .drinks: DisplayRepresentation(title: "Drinks"),
         .coffee: DisplayRepresentation(title: "Coffee"),

@@ -28,7 +28,7 @@ public final class ChatResultViewModel: AssistiveChatHostMessagesDelegate {
     
     // MARK: - Model Building and Query Handling
         
-    public func addReceivedMessage(caption: String, parameters: AssistiveChatHostQueryParameters, isLocalParticipant: Bool, filters:[String:Any], modelController:ModelController, overrideIntent: AssistiveChatHostService.Intent? = nil, selectedDestinationLocation: LocationResult? = nil) async throws { // This is fine
+    public func addReceivedMessage(caption: String, parameters: AssistiveChatHostQueryParameters, isLocalParticipant: Bool, filters:[String:AnyObject], modelController:ModelController, overrideIntent: AssistiveChatHostService.Intent? = nil, selectedDestinationLocation: LocationResult? = nil) async throws { // This is fine
         try await modelController.addReceivedMessage(caption: caption, parameters: parameters, isLocalParticipant: isLocalParticipant, filters: filters, overrideIntent:overrideIntent, selectedDestinationLocation:selectedDestinationLocation)
     }
     

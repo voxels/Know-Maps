@@ -12,7 +12,7 @@ import Foundation
 public final class ItemLookup {
 
     // MARK: - Singleton
-    public static let shared = ItemLookup()
+    @MainActor public static let shared = ItemLookup()
 
     // MARK: - Storage
     /// Internal registry: itemID → ItemMetadata

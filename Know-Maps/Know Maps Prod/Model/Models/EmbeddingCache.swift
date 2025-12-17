@@ -10,7 +10,7 @@ import Foundation
 /// Keys are stable identifiers: fsqID, eventID, categoryName, etc.
 public final class EmbeddingCache {
 
-    public static let shared = EmbeddingCache()
+    @MainActor public static let shared = EmbeddingCache()
 
     private let queue = DispatchQueue(label: "EmbeddingCacheQueue", qos: .utility)
     private var memoryCache: [String: [Double]] = [:]

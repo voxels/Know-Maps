@@ -30,7 +30,6 @@ public enum ModelControllerError: Error, LocalizedError {
     }
 }
 
-@MainActor
 @Observable
 public final class DefaultModelController: ModelController {
     

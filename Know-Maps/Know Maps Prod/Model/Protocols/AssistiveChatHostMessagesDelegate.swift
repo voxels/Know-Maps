@@ -9,6 +9,6 @@ import Foundation
 import Segment
 
 public protocol AssistiveChatHostMessagesDelegate : AnyObject, Sendable {
-    func addReceivedMessage(caption:String, parameters:AssistiveChatHostQueryParameters, isLocalParticipant:Bool, filters:[String:Any], modelController:ModelController, overrideIntent: AssistiveChatHostService.Intent?, selectedDestinationLocation: LocationResult?) async throws
+    func addReceivedMessage(caption:String, parameters:AssistiveChatHostQueryParameters, isLocalParticipant:Bool, filters:[String:AnyObject], modelController:ModelController, overrideIntent: AssistiveChatHostService.Intent?, selectedDestinationLocation: LocationResult?) async throws
     func updateQueryParametersHistory(with parameters: AssistiveChatHostQueryParameters, modelController:ModelController) async // This is fine
 }

@@ -8,7 +8,7 @@
 import Foundation
 
 public struct ConfiguredSearchSession {
-    static var shared = ConfiguredSearchSession.session()
+    @MainActor static var shared = ConfiguredSearchSession.session()
     
     static func session()->URLSession {
         let sessionConfiguration = URLSessionConfiguration.default
