@@ -12,6 +12,7 @@ import Segment
 import CoreLocation
 import AuthenticationServices
 import TipKit
+
 @MainActor
 public struct Know_MapsApp : View {
     public static let sharedModelContainer: ModelContainer = {
@@ -38,7 +39,6 @@ public struct Know_MapsApp : View {
     @Binding public var showSplashScreen:Bool
     @Binding public var showNavigationLocationView:Bool
     @Binding public var searchMode:SearchMode
-    
     
     public init(modelController:DefaultModelController, cacheManager:CloudCacheManager, showOnboarding:Binding<Bool>, showSplashScreen:Binding<Bool>, showNavigationLocationView:Binding<Bool>, searchMode:Binding<SearchMode>) {
         self.modelController = modelController
