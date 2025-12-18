@@ -13,52 +13,61 @@
 import SwiftUI
 import AuthenticationServices
 
-struct OnboardingSignInView: View {
-    @ObservedObject var authService: AppleAuthenticationService
+public struct OnboardingSignInView: View {
+    @ObservedObject public var authService: AppleAuthenticationService
+    public var onAuthCompletion: (Result<ASAuthorization, any Error>) -> Void?
     @State private var popoverPresented: Bool = false
     @State private var signInErrorMessage: String = ""
     
-    var body: some View {
+    public init(
+        authService: AppleAuthenticationService,
+        onAuthCompletion: @escaping (Result<ASAuthorization, Error>) -> Void = { _ in }
+    ) {
+        self.authService = authService
+        self.onAuthCompletion = onAuthCompletion
+    }
+    
+    public var body: some View {
         VStack(alignment: .center, spacing: 16) {
-            // App identity
-            Image("logo_macOS_512")
-                .resizable()
-                .scaledToFit()
-                .frame(width: 80, height: 80)
-                .accessibilityHidden(true)
-
-            VStack(spacing: 6) {
-                Text("Sign in to continue")
-                    .font(.title2).bold()
-                    .multilineTextAlignment(.center)
-                Text("Use your Apple ID to create saved lists. Your data stays private in iCloud.")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
-            }
-            .padding(.horizontal)
-
-            // Status row
-            Group {
-                if !authService.appleUserId.isEmpty {
-                    Label {
-                        Text("Signed in with Apple ID")
-                    } icon: {
-                        Image(systemName: "person.crop.circle.badge.checkmark")
-                    }
-                    .foregroundStyle(.green)
-                    .accessibilityLabel("Signed in with Apple ID")
-                } else {
-                    Label {
-                        Text("Not signed in")
-                    } icon: {
-                        Image(systemName: "person.crop.circle")
-                    }
-                    .foregroundStyle(.secondary)
-                    .accessibilityLabel("Not signed in")
-                }
-            }
-            .padding(.top, 4)
+//            // App identity
+//            Image("logo_macOS_512")
+//                .resizable()
+//                .scaledToFit()
+//                .frame(width: 80, height: 80)
+//                .accessibilityHidden(true)
+//
+//            VStack(spacing: 6) {
+//                Text("Sign in to continue")
+//                    .font(.title2).bold()
+//                    .multilineTextAlignment(.center)
+//                Text("Use your Apple ID to create saved lists. Your data stays private in iCloud.")
+//                    .font(.subheadline)
+//                    .foregroundStyle(.secondary)
+//                    .multilineTextAlignment(.center)
+//            }
+//            .padding(.horizontal)
+//
+//            // Status row
+//            Group {
+//                if !authService.appleUserId.isEmpty {
+//                    Label {
+//                        Text("Signed in with Apple ID")
+//                    } icon: {
+//                        Image(systemName: "person.crop.circle.badge.checkmark")
+//                    }
+//                    .foregroundStyle(.green)
+//                    .accessibilityLabel("Signed in with Apple ID")
+//                } else {
+//                    Label {
+//                        Text("Not signed in")
+//                    } icon: {
+//                        Image(systemName: "person.crop.circle")
+//                    }
+//                    .foregroundStyle(.secondary)
+//                    .accessibilityLabel("Not signed in")
+//                }
+//            }
+//            .padding(.top, 4)
 
             // Action area
             if authService.appleUserId.isEmpty {
@@ -77,6 +86,7 @@ struct OnboardingSignInView: View {
                         signInErrorMessage = error.localizedDescription
                         popoverPresented = true
                     }
+                    onAuthCompletion(result)
                 })
                 .frame(maxWidth: 280, maxHeight: 48)
                 .signInWithAppleButtonStyle(.whiteOutline)
