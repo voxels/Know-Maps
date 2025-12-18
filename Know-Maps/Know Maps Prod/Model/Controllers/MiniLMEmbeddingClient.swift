@@ -1,10 +1,11 @@
 import Foundation
 import CoreML
+import NaturalLanguage
 
 @MainActor
-final class MiniLMEmbeddingClient {
+public final class MiniLMEmbeddingClient {
 
-    @MainActor static let shared = MiniLMEmbeddingClient()
+    public static let shared = MiniLMEmbeddingClient()
 
     private let model: MLModel
     private let tokenizer: MiniLMTokenizer
@@ -12,18 +13,16 @@ final class MiniLMEmbeddingClient {
     private init() {
         tokenizer = MiniLMTokenizer()
 
-        print("Bundle path:", Bundle.main.bundlePath)
-        print("mlpackage URLs:", Bundle.main.urls(forResourcesWithExtension: "mlpackage", subdirectory: nil) ?? [])
-        print("mlmodelc URLs:", Bundle.main.urls(forResourcesWithExtension: "mlmodelc", subdirectory: nil) ?? [])
-
         // Load the ML model (support both .mlpackage and compiled .mlmodelc)
         let modelURL = Bundle.main.url(forResource: "MiniLM-L12-Embedding", withExtension: "mlpackage") ??
                        Bundle.main.url(forResource: "MiniLM-L12-Embedding", withExtension: "mlmodelc")
 
         guard let url = modelURL else {
-            let foundMLPackages = Bundle.main.urls(forResourcesWithExtension: "mlpackage", subdirectory: nil) ?? []
-            let foundMLModelc   = Bundle.main.urls(forResourcesWithExtension: "mlmodelc", subdirectory: nil) ?? []
-            fatalError("Could not locate MiniLM model in bundle. Looked for MiniLM-L12-Embedding.mlpackage and .mlmodelc. Found mlpackage: \(foundMLPackages), mlmodelc: \(foundMLModelc)")
+            // If we can't find the heavy model, we might be in a constrained target where it was intentionally omitted
+            // We'll allow initialization and rely on the fallback logic in embed()
+            print("MiniLM-L12-Embedding model not found. MiniLMEmbeddingClient will use NLEmbedding fallback.")
+            model = try! MLModel(contentsOf: URL(fileURLWithPath: "/dev/null"), configuration: MLModelConfiguration()) // Placeholder
+            return
         }
 
         do {
@@ -39,7 +38,31 @@ final class MiniLMEmbeddingClient {
 
     @discardableResult
     public func embed(_ text: String) async throws -> [Double] {
-        try _embed(text)
+        // Hybrid Fallback: Use NLEmbedding in resource-constrained App Extensions
+        if isExtensionTarget() {
+            return try _embedFallback(text)
+        }
+        
+        do {
+            return try _embed(text)
+        } catch {
+            print("MiniLM embedding failed, falling back to NLEmbedding: \(error)")
+            return try _embedFallback(text)
+        }
+    }
+    
+    private func _embedFallback(_ text: String) throws -> [Double] {
+        guard let embedding = NLEmbedding.sentenceEmbedding(for: .english) else {
+            throw NSError(domain: "MiniLMEmbeddingClient", code: -2, userInfo: [NSLocalizedDescriptionKey: "NLEmbedding not available"])
+        }
+        guard let vector = embedding.vector(for: text) else {
+            throw NSError(domain: "MiniLMEmbeddingClient", code: -3, userInfo: [NSLocalizedDescriptionKey: "NLEmbedding failed for text"])
+        }
+        return vector
+    }
+    
+    private func isExtensionTarget() -> Bool {
+        return Bundle.main.bundlePath.hasSuffix(".appex")
     }
 
     // MARK: - Internal

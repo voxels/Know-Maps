@@ -23,6 +23,7 @@ public final class AssistiveChatHostService : AssistiveChatHost {
         case Place
         case AutocompleteTastes
         case Location
+        case Define
     }
     
     public let messagesDelegate:AssistiveChatHostMessagesDelegate
@@ -137,10 +138,15 @@ public final class AssistiveChatHostService : AssistiveChatHost {
         return Array(retval)
     }
     
-    /// Enhanced intent determination using Foundation Models (async version)
     public func determineIntentEnhanced(for caption: String, override: AssistiveChatHostService.Intent? = nil) async throws -> AssistiveChatHostService.Intent {
         if let override = override {
             return override
+        }
+        
+        // Detect 'Define' or 'Track' for dynamic taxonomy
+        let lowerCaption = caption.lowercased()
+        if lowerCaption.hasPrefix("define ") || lowerCaption.hasPrefix("track ") {
+            return .Define
         }
         
         // Use Foundation Models classifier
