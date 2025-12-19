@@ -207,9 +207,13 @@ public final class CloudCacheManager: @preconcurrency CacheManager {
     private func createPlaceResults(from records: [UserCachedRecord]) -> [CategoryResult] {
         var results = [CategoryResult]()
         for (index, record) in records.enumerated() {
+            let resolvedName = record.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                ? "Place \(record.identity.prefix(8))"
+                : record.title
+
             let placeResponse = PlaceSearchResponse(
                 fsqID: record.identity,
-                name: "",
+                name: resolvedName,
                 categories: [],
                 latitude: 0,
                 longitude: 0,
@@ -226,6 +230,7 @@ public final class CloudCacheManager: @preconcurrency CacheManager {
                 childIDs: [],
                 parentIDs: []
             )
+
             let chatResults = [ChatResult(
                 index: index,
                 identity: record.identity, title: record.title,

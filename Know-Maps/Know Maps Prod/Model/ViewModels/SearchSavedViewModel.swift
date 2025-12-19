@@ -116,18 +116,26 @@ public final class SearchSavedViewModel : Sendable {
         }
 
         do {
-            // Create a new UserCachedRecord for the category
+            let resolvedTitle: String = {
+                let name = placeResponse.name.trimmingCharacters(in: .whitespacesAndNewlines)
+                if !name.isEmpty { return name }
+                let t = placeChatResult.title.trimmingCharacters(in: .whitespacesAndNewlines)
+                if !t.isEmpty { return t }
+                return "Place \(placeResponse.fsqID.prefix(8))"
+            }()
+
             let userRecord = UserCachedRecord(
-                id:UUID(),
+                id: UUID(),
                 recordId: UUID().uuidString,
                 group: "Place",
                 identity: placeResponse.fsqID,
-                title: placeChatResult.title,
+                title: resolvedTitle,
                 icons: "",
                 list: placeChatResult.list,
                 section: placeChatResult.section.rawValue,
                 rating: rating
             )
+
             
             // Store the record in the local cache and CloudKit
             _ = try await cacheManager.cloudCacheService.storeUserCachedRecord(recordId: userRecord.recordId,

@@ -1930,6 +1930,25 @@ public final class DefaultModelController: ModelController {
                 )
                 throw error
             }
+            
+        case .Define:
+            setProgressMessage(
+                phase: "Defining concept",
+                caption: caption,
+                locationName: nil
+            )
+            trackProgress(
+                phase: "taxonomy.define.begin",
+                caption: caption,
+                locationName: nil
+            )
+            // Bridge to Diver app's TaxonomyService via Notification
+            NotificationCenter.default.post(
+                name: NSNotification.Name("DiverDidRequestConceptDefinition"),
+                object: nil,
+                userInfo: ["caption": caption]
+            )
+            analyticsManager.track(event: "searchIntentWithDefine", properties: ["caption": caption])
         }
         
         return placeResults
@@ -2110,6 +2129,25 @@ public final class DefaultModelController: ModelController {
                 )
                 throw error
             }
+            
+        case .Define:
+            setProgressMessage(
+                phase: "Defining concept",
+                caption: caption,
+                locationName: nil
+            )
+            trackProgress(
+                phase: "taxonomy.define.begin",
+                caption: caption,
+                locationName: nil
+            )
+            // Bridge to Diver app's TaxonomyService via Notification
+            NotificationCenter.default.post(
+                name: NSNotification.Name("DiverDidRequestConceptDefinition"),
+                object: nil,
+                userInfo: ["caption": caption]
+            )
+            analyticsManager.track(event: "searchIntentWithDefine", properties: ["caption": caption])
         }
     }
 }
