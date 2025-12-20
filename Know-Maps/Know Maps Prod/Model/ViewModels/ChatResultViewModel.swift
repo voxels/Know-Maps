@@ -100,3 +100,7 @@ public final class ChatResultViewModel: AssistiveChatHostMessagesDelegate {
  }
  
  */
+
+public extension ChatResultViewModel {
+    static var sharedInstance: ChatResultViewModel { shared }
+}

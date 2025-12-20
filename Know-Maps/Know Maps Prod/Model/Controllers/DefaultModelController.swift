@@ -945,9 +945,18 @@ public final class DefaultModelController: ModelController {
                 }
                 
                 do {
-                    let recs = try PlaceResponseFormatter.recommendedPlaceSearchResponses(
-                        with: normalizedDict
-                    )
+                    // Encode normalized dictionary to JSON Data expected by the formatter
+                    guard let payloadData = try? JSONSerialization.data(withJSONObject: normalizedDict, options: []) else {
+                        self.analyticsManager.track(
+                            event: "recommendedSearch.encodingFailed",
+                            properties: [
+                                "reason": "Could not encode normalizedDict to JSON data"
+                            ]
+                        )
+                        return ([], false)
+                    }
+
+                    let recs = try PlaceResponseFormatter.autocompleteRecommendedPlaceSearchResponses(from: payloadData)
                     
                     self.analyticsManager.track(
                         event: "recommendedSearch.parsed",
@@ -1018,7 +1027,27 @@ public final class DefaultModelController: ModelController {
         
         if !recs.isEmpty {
             intent.recommendedPlaceSearchResponses = recs
-            let recAsPlaces = PlaceResponseFormatter.placeSearchResponses(from: recs)
+            let recAsPlaces: [PlaceSearchResponse] = recs.map { rec in
+                PlaceSearchResponse(
+                    fsqID: rec.fsqID,
+                    name: rec.name,
+                    categories: rec.categories,
+                    latitude: rec.latitude,
+                    longitude: rec.longitude,
+                    address: rec.address,
+                    addressExtended: "",
+                    country: rec.country,
+                    dma: "",
+                    formattedAddress: rec.formattedAddress,
+                    locality: rec.city,
+                    postCode: rec.postCode,
+                    region: rec.state,
+                    chains: [],
+                    link: "",
+                    childIDs: [],
+                    parentIDs: []
+                )
+            }
 
             if !recAsPlaces.isEmpty {
                 finalPlaceResponses = recAsPlaces
@@ -1677,6 +1706,19 @@ public final class DefaultModelController: ModelController {
         update(&self.placeResults)
         update(&self.recommendedPlaceResults)
         self.updateFoundResultsMessage()
+
+        self.resultIndexer.updateIndex(
+            placeResults: self.placeResults,
+            recommendedPlaceResults: self.recommendedPlaceResults,
+            relatedPlaceResults: self.relatedPlaceResults,
+            industryResults: self.industryResults,
+            tasteResults: self.tasteResults,
+            cachedIndustryResults: self.cacheManager.cachedIndustryResults,
+            cachedPlaceResults: self.cacheManager.cachedPlaceResults,
+            cachedTasteResults: self.cacheManager.cachedTasteResults,
+            cachedDefaultResults: self.cacheManager.cachedDefaultResults,
+            cachedRecommendationData: self.cacheManager.cachedRecommendationData
+        )
     }
     
     public func updateLastIntentParameter(
@@ -1917,7 +1959,7 @@ public final class DefaultModelController: ModelController {
                 trackProgress(
                     phase: "autocomplete.tastes.end",
                     caption: caption,
-                    locationName: destinationName
+                    locationName:  destinationName
                 )
                 analyticsManager.track(
                     event: "searchIntentWithPersonalizedAutocompleteTastes",

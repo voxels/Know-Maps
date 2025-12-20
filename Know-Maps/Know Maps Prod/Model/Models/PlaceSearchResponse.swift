@@ -26,4 +26,24 @@ public struct PlaceSearchResponse: Equatable, Hashable, Sendable {
     let link:String
     let childIDs:[String]
     let parentIDs:[String]
+    
+    public init(fsqID: String, name: String, categories: [String], latitude: Double, longitude: Double, address: String, addressExtended: String, country: String, dma: String, formattedAddress: String, locality: String, postCode: String, region: String, chains: [String], link: String, childIDs: [String], parentIDs: [String]) {
+        self.fsqID = fsqID
+        self.name = name
+        self.categories = categories
+        self.latitude = latitude
+        self.longitude = longitude
+        self.address = address
+        self.addressExtended = addressExtended
+        self.country = country
+        self.dma = dma
+        self.formattedAddress = formattedAddress
+        self.locality = locality
+        self.postCode = postCode
+        self.region = region
+        self.chains = chains
+        self.link = link
+        self.childIDs = childIDs
+        self.parentIDs = parentIDs
+    }
 }

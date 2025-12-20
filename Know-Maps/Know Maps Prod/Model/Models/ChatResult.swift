@@ -14,17 +14,17 @@ public struct ChatResult : Identifiable, Equatable, Hashable, Sendable {
     
     public let id:String
     private(set) var parentId:String? = nil
-    let index:Int
-    let identity:String
-    let title:String
-    let list:String
-    let icon:String
-    let rating:Double
-    let section:PersonalizedSearchSection
-    private(set) var placeResponse:PlaceSearchResponse?
-    let recommendedPlaceResponse:RecommendedPlaceSearchResponse?
+    public let index:Int
+    public let identity:String
+    public let title:String
+    public let list:String
+    public let icon:String
+    public let rating:Double
+    public let section:PersonalizedSearchSection
+    public private(set) var placeResponse:PlaceSearchResponse?
+    public let recommendedPlaceResponse:RecommendedPlaceSearchResponse?
     
-    private(set) var placeDetailsResponse:PlaceDetailsResponse?
+    public var placeDetailsResponse:PlaceDetailsResponse?
     
     public init(parentId: String? = nil, index: Int, identity: String, title: String, list: String, icon: String, rating: Double, section: PersonalizedSearchSection, placeResponse: PlaceSearchResponse?, recommendedPlaceResponse: RecommendedPlaceSearchResponse?, placeDetailsResponse: PlaceDetailsResponse? = nil) {
         self.id = identity

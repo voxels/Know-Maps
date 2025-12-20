@@ -44,7 +44,7 @@ public final class DefaultPlaceSearchService: @preconcurrency PlaceSearchService
                 group.addTask {
                     let request = PlaceDetailsRequest(
                         fsqID: response.fsqID,
-                        core: response.name.isEmpty,
+                        core: true,
                         description: true,
                         tel: true,
                         fax: false,
@@ -94,9 +94,20 @@ public final class DefaultPlaceSearchService: @preconcurrency PlaceSearchService
         }
     }
     
-    public func fetchRelatedPlaces(for fsqID: String, cacheManager:CacheManager) async throws -> [RecommendedPlaceSearchResponse] {
+    public func fetchRelatedPlaces(for fsqID: String, cacheManager: CacheManager) async throws -> [RecommendedPlaceSearchResponse] {
         let rawRelatedVenuesWrapped = try await personalizedSearchSession.fetchRelatedVenues(for: fsqID, cacheManager: cacheManager)
-        return try PlaceResponseFormatter.relatedPlaceSearchResponses(with: rawRelatedVenuesWrapped)
+
+        // Encode wrapper into JSON Data expected by the formatter
+        guard JSONSerialization.isValidJSONObject(rawRelatedVenuesWrapped),
+              let payloadData = try? JSONSerialization.data(withJSONObject: rawRelatedVenuesWrapped, options: []) else {
+            analyticsManager.track(
+                event: "relatedPlaces.encodingFailed",
+                properties: ["reason": "Could not encode related venues payload to JSON data"]
+            )
+            return []
+        }
+
+        return try PlaceResponseFormatter.relatedPlaceSearchResponses(from: payloadData)
     }
     
     // MARK: Autocomplete Methods

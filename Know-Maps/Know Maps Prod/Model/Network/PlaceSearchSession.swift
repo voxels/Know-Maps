@@ -12,6 +12,372 @@ import Combine
 import CoreLocation
 import ConcurrencyExtras
 
+@inline(__always)
+private func stringify<T>(_ value: T?) -> String {
+    if let v = value { return String(describing: v) }
+    return "nil"
+}
+
+protocol JSONRepresentable { func toJSON() -> [String: Any] }
+
+extension Array where Element: JSONRepresentable {
+    func toJSON() -> [[String: Any]] { self.map { $0.toJSON() } }
+}
+
+public struct FSQCategory: Codable, Sendable {
+    let id: Int?
+    let name: String?
+}
+extension FSQCategory: CustomStringConvertible {
+    public var description: String { "FSQCategory(id: \(stringify(id)), name: \(name ?? "nil"))" }
+    public var stringValue: String { description }
+}
+extension FSQCategory: JSONRepresentable {
+    func toJSON() -> [String: Any] {
+        var dict: [String: Any] = [:]
+        if let id = id { dict["id"] = id }
+        if let name = name { dict["name"] = name }
+        return dict
+    }
+}
+
+public struct FSQGeocodePoint: Codable, Sendable {
+    let latitude: Double?
+    let longitude: Double?
+}
+extension FSQGeocodePoint: CustomStringConvertible {
+    public var description: String { "FSQGeocodePoint(latitude: \(stringify(latitude)), longitude: \(stringify(longitude)))" }
+    public var stringValue: String { description }
+}
+extension FSQGeocodePoint: JSONRepresentable {
+    func toJSON() -> [String: Any] {
+        var dict: [String: Any] = [:]
+        if let latitude = latitude { dict["latitude"] = latitude }
+        if let longitude = longitude { dict["longitude"] = longitude }
+        return dict
+    }
+}
+
+public struct FSQGeocodes: Codable, Sendable {
+    let main: FSQGeocodePoint?
+    let roof: FSQGeocodePoint?
+}
+extension FSQGeocodes: JSONRepresentable {
+    func toJSON() -> [String: Any] {
+        var dict: [String: Any] = [:]
+        if let main = main { dict["main"] = main.toJSON() }
+        if let roof = roof { dict["roof"] = roof.toJSON() }
+        return dict
+    }
+}
+
+public struct FSQLocation: Codable, Sendable {
+    let address: String?
+    let address_extended: String?
+    let locality: String?
+    let region: String?
+    let postcode: String?
+    let country: String?
+    let neighborhood: FSQStringArray?
+    let formatted_address: String?
+}
+extension FSQLocation: CustomStringConvertible {
+    public var description: String { "FSQLocation(formatted_address: \(formatted_address ?? "nil"))" }
+    public var stringValue: String { description }
+}
+extension FSQLocation: JSONRepresentable {
+    func toJSON() -> [String: Any] {
+        var dict: [String: Any] = [:]
+        if let address = address { dict["address"] = address }
+        if let address_extended = address_extended { dict["address_extended"] = address_extended }
+        if let locality = locality { dict["locality"] = locality }
+        if let region = region { dict["region"] = region }
+        if let postcode = postcode { dict["postcode"] = postcode }
+        if let country = country { dict["country"] = country }
+        if let neighborhood = neighborhood { dict["neighborhood"] = neighborhood.values }
+        if let formatted_address = formatted_address { dict["formatted_address"] = formatted_address }
+        return dict
+    }
+}
+
+public struct FSQStringArray: Codable, Sendable {
+    let values: [String]
+
+    init(_ values: [String]) {
+        self.values = values
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        if let array = try? container.decode([String].self) {
+            self.values = array
+        } else if let string = try? container.decode(String.self) {
+            self.values = [string]
+        } else {
+            self.values = []
+        }
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(values)
+    }
+}
+
+public struct FSQStringOrInt: Codable, Sendable {
+    let value: String
+
+    init(_ value: String) {
+        self.value = value
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        if let stringValue = try? container.decode(String.self) {
+            self.value = stringValue
+        } else if let intValue = try? container.decode(Int.self) {
+            self.value = String(intValue)
+        } else if let doubleValue = try? container.decode(Double.self) {
+            self.value = String(doubleValue)
+        } else if let boolValue = try? container.decode(Bool.self) {
+            self.value = String(boolValue)
+        } else {
+            self.value = ""
+        }
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(value)
+    }
+}
+
+public struct FSQSocialMedia: Codable, Sendable {
+    let facebook_id: FSQStringOrInt?
+    let instagram: String?
+    let twitter: String?
+
+    var dictionaryValue: [String: String] {
+        var dict: [String: String] = [:]
+        if let facebook_id, !facebook_id.value.isEmpty { dict["facebook_id"] = facebook_id.value }
+        if let instagram, !instagram.isEmpty { dict["instagram"] = instagram }
+        if let twitter, !twitter.isEmpty { dict["twitter"] = twitter }
+        return dict
+    }
+}
+
+public struct FSQHours: Codable, Sendable {
+    let display: String?
+    let open_now: Bool?
+}
+
+public struct FSQPlace: Codable, Sendable {
+    let fsq_id: String?
+    let name: String?
+    let geocodes: FSQGeocodes?
+    let location: FSQLocation?
+    let categories: [FSQCategory]?
+
+    let place_description: String?
+    let tel: String?
+    let fax: String?
+    let email: String?
+    let website: String?
+    let social_media: FSQSocialMedia?
+    let verified: Bool?
+    let hours: FSQHours?
+    let rating: Double?
+    let popularity: Double?
+    let price: Int?
+    let date_closed: String?
+    let tastes: [String]?
+
+    private enum CodingKeys: String, CodingKey {
+        case fsq_id
+        case name
+        case geocodes
+        case location
+        case categories
+        case place_description = "description"
+        case tel
+        case fax
+        case email
+        case website
+        case social_media
+        case verified
+        case hours
+        case rating
+        case popularity
+        case price
+        case date_closed
+        case tastes
+    }
+}
+extension FSQPlace: CustomStringConvertible {
+    public var description: String {
+        let idStr = fsq_id ?? "nil"
+        let nameStr = name ?? "nil"
+        return "FSQPlace(fsq_id: \(idStr), name: \(nameStr))"
+    }
+    public var stringValue: String { description }
+}
+
+extension FSQPlace: JSONRepresentable {
+    func toJSON() -> [String: Any] {
+        var dict: [String: Any] = [:]
+        if let fsq_id = fsq_id { dict["fsq_id"] = fsq_id }
+        if let name = name { dict["name"] = name }
+        if let geocodes = geocodes { dict["geocodes"] = geocodes.toJSON() }
+        if let location = location { dict["location"] = location.toJSON() }
+        if let categories = categories { dict["categories"] = categories.toJSON() }
+        return dict
+    }
+}
+
+public struct FSQSearchResponse: Codable, Sendable {
+    let results: [FSQPlace]?
+}
+extension FSQSearchResponse: CustomStringConvertible {
+    public var description: String { "FSQSearchResponse(results_count: \(results?.count ?? 0))" }
+    public var stringValue: String { description }
+}
+extension FSQSearchResponse: JSONRepresentable {
+    func toJSON() -> [String: Any] {
+        var dict: [String: Any] = [:]
+        if let results = results { dict["results"] = results.toJSON() }
+        return dict
+    }
+}
+
+// Autocomplete models
+public struct FSQAutocompletePlaceWrapper: Codable, Sendable {
+    let name: String?
+    let geocodes: FSQGeocodes?
+    let location: FSQLocation?
+}
+extension FSQAutocompletePlaceWrapper: CustomStringConvertible {
+    public var description: String {
+        let nameStr = name ?? "nil"
+        return "FSQAutocompletePlaceWrapper(name: \(nameStr))"
+    }
+    public var stringValue: String { description }
+}
+extension FSQAutocompletePlaceWrapper: JSONRepresentable {
+    func toJSON() -> [String: Any] {
+        var dict: [String: Any] = [:]
+        if let name = name { dict["name"] = name }
+        if let geocodes = geocodes { dict["geocodes"] = geocodes.toJSON() }
+        if let location = location { dict["location"] = location.toJSON() }
+        return dict
+    }
+}
+
+public struct FSQAutocompleteItem: Codable, Sendable {
+    let type: String
+    let text: String?
+    let name: String?
+    let formatted_address: String?
+    let center: FSQGeocodePoint?
+    let geocodes: FSQGeocodes?
+    let place: FSQAutocompletePlaceWrapper?
+    
+    // return a json dictionary representation
+    public func toJSON() -> [String: Any] {
+        var dict: [String: Any] = ["type": type]
+        if let text = text { dict["text"] = text }
+        if let name = name { dict["name"] = name }
+        if let formatted_address = formatted_address { dict["formatted_address"] = formatted_address }
+        if let center = center { dict["center"] = center.toJSON() }
+        if let geocodes = geocodes { dict["geocodes"] = geocodes.toJSON() }
+        if let place = place { dict["place"] = place.toJSON() }
+        return dict
+    }
+}
+extension FSQAutocompleteItem: CustomStringConvertible {
+    public var description: String {
+        let typeStr = type
+        let textStr = text ?? "nil"
+        let nameStr = name ?? "nil"
+        let formattedStr = formatted_address ?? "nil"
+        return "FSQAutocompleteItem(type: \(typeStr), text: \(textStr), name: \(nameStr), formatted_address: \(formattedStr))"
+    }
+    public var stringValue: String { description }
+}
+extension FSQAutocompleteItem: JSONRepresentable {}
+
+public struct FSQAutocompleteResponse: Codable, Sendable {
+    let results: [FSQAutocompleteItem]?
+}
+extension FSQAutocompleteResponse: CustomStringConvertible {
+    public var description: String { "FSQAutocompleteResponse(results_count: \(results?.count ?? 0))" }
+    public var stringValue: String { description }
+}
+extension FSQAutocompleteResponse: JSONRepresentable {
+    func toJSON() -> [String: Any] {
+        var dict: [String: Any] = [:]
+        if let results = results { dict["results"] = results.toJSON() }
+        return dict
+    }
+}
+
+public struct FSQPhoto: Codable, Sendable {
+    let id: String?
+    let created_at: String?
+    let prefix: String?
+    let suffix: String?
+    let width: Int?
+    let height: Int?
+}
+extension FSQPhoto: CustomStringConvertible {
+    public var description: String {
+        let idStr = id ?? "nil"
+        let createdStr = created_at ?? "nil"
+        let prefixStr = prefix ?? "nil"
+        let suffixStr = suffix ?? "nil"
+        let widthStr = stringify(width)
+        let heightStr = stringify(height)
+        return "FSQPhoto(id: \(idStr), created_at: \(createdStr), prefix: \(prefixStr), suffix: \(suffixStr), width: \(widthStr), height: \(heightStr))"
+    }
+    public var stringValue: String { description }
+}
+extension FSQPhoto: JSONRepresentable {
+    func toJSON() -> [String: Any] {
+        var dict: [String: Any] = [:]
+        if let id = id { dict["id"] = id }
+        if let created_at = created_at { dict["created_at"] = created_at }
+        if let prefix = prefix { dict["prefix"] = prefix }
+        if let suffix = suffix { dict["suffix"] = suffix }
+        if let width = width { dict["width"] = width }
+        if let height = height { dict["height"] = height }
+        return dict
+    }
+}
+public typealias FSQPhotosResponse = [FSQPhoto]
+
+public struct FSQTip: Codable, Sendable {
+    let id: String?
+    let text: String?
+    let created_at: String?
+}
+extension FSQTip: CustomStringConvertible {
+    public var description: String {
+        let idStr = id ?? "nil"
+        let textStr = text ?? "nil"
+        let createdStr = created_at ?? "nil"
+        return "FSQTip(id: \(idStr), text: \(textStr), created_at: \(createdStr))"
+    }
+    public var stringValue: String { description }
+}
+extension FSQTip: JSONRepresentable {
+    func toJSON() -> [String: Any] {
+        var dict: [String: Any] = [:]
+        if let id = id { dict["id"] = id }
+        if let text = text { dict["text"] = text }
+        if let created_at = created_at { dict["created_at"] = created_at }
+        return dict
+    }
+}
+
 public enum PlaceSearchSessionError : Error {
     case ServiceNotFound
     case UnsupportedRequest
@@ -46,7 +412,7 @@ public actor PlaceSearchSession : ObservableObject {
     }
     
     @MainActor
-    public func query(request:PlaceSearchRequest) async throws ->[String:[Dictionary<String, String>]] {
+    public func query(request:PlaceSearchRequest) async throws -> FSQSearchResponse {
         var components = URLComponents(string:"\(PlaceSearchSession.serverUrl)\(PlaceSearchSession.placeSearchAPIUrl)")
         var queryItems = [URLQueryItem]()
         if request.query.count > 0 {
@@ -113,16 +479,12 @@ public actor PlaceSearchSession : ObservableObject {
             throw PlaceSearchSessionError.UnsupportedRequest
         }
         
-        let placeSearchResponse = try await fetch(url: url)
-        
-        guard let response = placeSearchResponse as? [String:[Dictionary<String, String>]] else {
-            return [String:[Dictionary<String, String>]]()
-        }
+        let response: FSQSearchResponse = try await fetch(url: url, as: FSQSearchResponse.self)
                 
         return response
     }
     
-    public func details(for request:PlaceDetailsRequest) async throws -> String {
+    public func details(for request:PlaceDetailsRequest) async throws -> FSQPlace {
         var components = URLComponents(string:"\(PlaceSearchSession.serverUrl)\(PlaceSearchSession.placeDetailsAPIUrl)\(request.fsqID)")
         var detailsString = ""
         
@@ -203,10 +565,11 @@ public actor PlaceSearchSession : ObservableObject {
         }
         
         
-        return try await fetch(url: url)
+        let response: FSQPlace = try await fetch(url: url, as: FSQPlace.self)
+        return response
     }
     
-    public func photos(for fsqID:String) async throws -> String {
+    public func photos(for fsqID:String) async throws -> FSQPhotosResponse {
         var queryComponents = URLComponents(string:"\(PlaceSearchSession.serverUrl)\(PlaceSearchSession.placeDetailsAPIUrl)\(fsqID)\(PlaceSearchSession.placePhotosAPIUrl)")
         
         let limitQueryItem = URLQueryItem(name: "limit", value: "\(50)")
@@ -216,10 +579,11 @@ public actor PlaceSearchSession : ObservableObject {
             throw PlaceSearchSessionError.UnsupportedRequest
         }
         
-        return try await fetch(url: url)
+        let response: FSQPhotosResponse = try await fetch(url: url, as: FSQPhotosResponse.self)
+        return response
     }
     
-    public func tips(for fsqID:String) async throws -> String {
+    public func tips(for fsqID:String) async throws -> [FSQTip] {
         var queryComponents = URLComponents(string:"\(PlaceSearchSession.serverUrl)\(PlaceSearchSession.placeDetailsAPIUrl)\(fsqID)\(PlaceSearchSession.placeTipsAPIUrl)")
         
         let limitQueryItem = URLQueryItem(name: "limit", value: "\(50)")
@@ -230,10 +594,11 @@ public actor PlaceSearchSession : ObservableObject {
             throw PlaceSearchSessionError.UnsupportedRequest
         }
         
-        return try await fetch(url: url)
+        let response: [FSQTip] = try await fetch(url: url, as: [FSQTip].self)
+        return response
     }
     
-    public func autocomplete(caption: String, limit: Int?, locationResult: LocationResult) async throws -> Dictionary<String, String> {
+    public func autocomplete(caption: String, limit: Int?, locationResult: LocationResult) async throws -> FSQAutocompleteResponse {
         let ll = "\(locationResult.location.coordinate.latitude),\(locationResult.location.coordinate.longitude)"
         var resolvedLimit = 50
         if let limit = limit {
@@ -263,15 +628,8 @@ public actor PlaceSearchSession : ObservableObject {
             throw PlaceSearchSessionError.UnsupportedRequest
         }
 
-        let placeSearchResponse = try await fetch(url: url)
-
-        if let response = placeSearchResponse as? Dictionary<String,String> {
-            return response
-        } else if let dict = placeSearchResponse as? [String: String] {
-            return dict
-        } else {
-            return [:]
-        }
+        let response: FSQAutocompleteResponse = try await fetch(url: url, as: FSQAutocompleteResponse.self)
+        return response
     }
 
     private func splitQueryAndNear(_ caption: String) -> (poi: String, near: String?) {
@@ -285,7 +643,7 @@ public actor PlaceSearchSession : ObservableObject {
         }
     }
     
-    private func placeSearchForAutocomplete(caption: String, locationResult: LocationResult) async throws -> Any {
+    private func placeSearchForAutocomplete(caption: String, locationResult: LocationResult) async throws -> FSQSearchResponse {
         let (poiQuery, nearBias) = splitQueryAndNear(caption)
 
         var llParam: String? = nil
@@ -318,36 +676,25 @@ public actor PlaceSearchSession : ObservableObject {
         return try await self.query(request: request)
     }
     
-    private func parseAutocompleteToLocationResults(_ response: [String: Any]) -> [LocationResult] {
+    private func parseAutocompleteToLocationResults(_ response: FSQAutocompleteResponse) -> [LocationResult] {
         var results: [LocationResult] = []
 
-        // Autocomplete response uses a top-level "results" array
-        guard let items = response["results"] as? [[String: Any]] else {
-            return results
-        }
-
-        for item in items {
-            guard let type = item["type"] as? String else { continue }
-
-            switch type {
+        for item in response.results ?? [] {
+            switch item.type {
             case "place":
-                // According to docs, place details are under the `place` key
-                guard let place = item["place"] as? [String: Any] else { continue }
-                let name = (place["name"] as? String) ?? "Unknown"
-                let locationDict = place["location"] as? [String: Any]
-                let formatted = locationDict?["formatted_address"] as? String
+                guard let place = item.place else { continue }
+                let name = place.name ?? "Unknown"
+                let formatted = place.location?.formatted_address
 
                 var lat: Double?
                 var lon: Double?
-                if let geocodes = place["geocodes"] as? [String: Any] {
-                    if let main = geocodes["main"] as? [String: Any] {
-                        lat = main["latitude"] as? Double
-                        lon = main["longitude"] as? Double
-                    }
-                    if lat == nil || lon == nil, let roof = geocodes["roof"] as? [String: Any] {
-                        lat = roof["latitude"] as? Double
-                        lon = roof["longitude"] as? Double
-                    }
+                if let main = place.geocodes?.main {
+                    lat = main.latitude
+                    lon = main.longitude
+                }
+                if (lat == nil || lon == nil), let roof = place.geocodes?.roof {
+                    lat = roof.latitude
+                    lon = roof.longitude
                 }
 
                 if let lat = lat, let lon = lon {
@@ -358,20 +705,18 @@ public actor PlaceSearchSession : ObservableObject {
                 }
 
             case "address":
-                // Address details are under `address` key in docs
-                let text = (item["text"] as? String) ?? (item["name"] as? String) ?? "Address"
-                let formatted = item["formatted_address"] as? String ?? item["address"] as? String
+                let text = item.text ?? item.name ?? "Address"
+                let formatted = item.formatted_address
 
                 var lat: Double?
                 var lon: Double?
-                if let geocodes = item["geocodes"] as? [String: Any],
-                   let main = geocodes["main"] as? [String: Any] {
-                    lat = main["latitude"] as? Double
-                    lon = main["longitude"] as? Double
+                if let main = item.geocodes?.main {
+                    lat = main.latitude
+                    lon = main.longitude
                 }
-                if (lat == nil || lon == nil), let center = item["center"] as? [String: Any] {
-                    lat = center["latitude"] as? Double
-                    lon = center["longitude"] as? Double
+                if (lat == nil || lon == nil), let center = item.center {
+                    lat = center.latitude
+                    lon = center.longitude
                 }
 
                 if let lat = lat, let lon = lon {
@@ -382,19 +727,17 @@ public actor PlaceSearchSession : ObservableObject {
                 }
 
             case "geo":
-                // Geo items expose a `text` label and a `center` or `geocodes.main`
-                let text = (item["text"] as? String) ?? (item["name"] as? String) ?? "Area"
+                let text = item.text ?? item.name ?? "Area"
 
                 var lat: Double?
                 var lon: Double?
-                if let center = item["center"] as? [String: Any] {
-                    lat = center["latitude"] as? Double
-                    lon = center["longitude"] as? Double
+                if let center = item.center {
+                    lat = center.latitude
+                    lon = center.longitude
                 }
-                if (lat == nil || lon == nil), let geocodes = item["geocodes"] as? [String: Any],
-                   let main = geocodes["main"] as? [String: Any] {
-                    lat = main["latitude"] as? Double
-                    lon = main["longitude"] as? Double
+                if (lat == nil || lon == nil), let main = item.geocodes?.main {
+                    lat = main.latitude
+                    lon = main.longitude
                 }
 
                 if let lat = lat, let lon = lon {
@@ -429,14 +772,10 @@ public actor PlaceSearchSession : ObservableObject {
             limit: 1,
             offset: 0
         )
-        let any = try? await self.query(request: request)
-        guard let dict = any,
-              let items = dict["results"] as? [[String: String]],
-              let first = items.first,
-              let geocodes = first["geocodes"] as? [String: String],
-              let main = geocodes["main"] as? [String: String],
-              let lat = Double(main["latitude"] as? String ?? "37.333562"),
-              let lon = Double(main["longitude"] as? String ?? "-122.004927") else {
+        let resp = try? await self.query(request: request)
+        guard let mainPoint = resp?.results?.first?.geocodes?.main,
+              let lat = mainPoint.latitude,
+              let lon = mainPoint.longitude else {
             return nil
         }
         return CLLocationCoordinate2D(latitude: lat, longitude: lon)
@@ -458,35 +797,28 @@ public actor PlaceSearchSession : ObservableObject {
                 let remoteLoc = CLLocation(latitude: coord.latitude, longitude: coord.longitude)
                 let remoteLR = LocationResult(locationName: near, location: remoteLoc)
 
-                let rawNSDictionary = try await autocomplete(caption: poi, limit: limitParam, locationResult: remoteLR)
-                let placesResponseAny = try await placeSearchForAutocomplete(caption: caption, locationResult: remoteLR)
+                let auto: FSQAutocompleteResponse = try await autocomplete(caption: poi, limit: limitParam, locationResult: remoteLR)
+                let placesResponse = try await placeSearchForAutocomplete(caption: caption, locationResult: remoteLR)
 
-                let rawResponse = (rawNSDictionary as? [String: Any]) ?? [:]
-                var results = await parseAutocompleteToLocationResults(rawResponse)
+                var results = await parseAutocompleteToLocationResults(auto)
 
-                if let placesDict = placesResponseAny as? [String: Any],
-                   let items = placesDict["results"] as? [[String: Any]] {
-                    for item in items {
-                        guard let geocodes = item["geocodes"] as? [String: Any],
-                              let main = geocodes["main"] as? [String: Any],
-                              let lat = main["latitude"] as? Double,
-                              let lon = main["longitude"] as? Double else { continue }
+                for item in placesResponse.results ?? [] {
+                    guard let lat = item.geocodes?.main?.latitude,
+                          let lon = item.geocodes?.main?.longitude else { continue }
 
-                        let name = (item["name"] as? String) ?? "Unknown"
-                        let locationDict = item["location"] as? [String: Any]
-                        let formatted = locationDict?["formatted_address"] as? String
+                    let name = item.name ?? "Unknown"
+                    let formatted = item.location?.formatted_address
 
-                        let coord = CLLocationCoordinate2D(latitude: lat, longitude: lon)
-                        let loc = CLLocation(latitude: coord.latitude, longitude: coord.longitude)
-                        let lr = LocationResult(locationName: formatted ?? name, location: loc)
+                    let coord = CLLocationCoordinate2D(latitude: lat, longitude: lon)
+                    let loc = CLLocation(latitude: coord.latitude, longitude: coord.longitude)
+                    let lr = LocationResult(locationName: formatted ?? name, location: loc)
 
-                        if !results.contains(where: { existing in
-                            existing.locationName == lr.locationName &&
-                            abs(existing.location.coordinate.latitude - lr.location.coordinate.latitude) < 1e-6 &&
-                            abs(existing.location.coordinate.longitude - lr.location.coordinate.longitude) < 1e-6
-                        }) {
-                            results.append(lr)
-                        }
+                    if !results.contains(where: { existing in
+                        existing.locationName == lr.locationName &&
+                        abs(existing.location.coordinate.latitude - lr.location.coordinate.latitude) < 1e-6 &&
+                        abs(existing.location.coordinate.longitude - lr.location.coordinate.longitude) < 1e-6
+                    }) {
+                        results.append(lr)
                     }
                 }
 
@@ -496,34 +828,27 @@ public actor PlaceSearchSession : ObservableObject {
         }
 
         // Local/default flow
-        let rawNSDictionary = try await autocomplete(caption: caption, limit: limitParam, locationResult: locationResult)
-        let placesResponseAny = try await placeSearchForAutocomplete(caption: caption, locationResult: locationResult)
-        var rawResponse = (rawNSDictionary as? [String: Any]) ?? [:]
-        var results = await parseAutocompleteToLocationResults(rawResponse)
+        let auto: FSQAutocompleteResponse = try await autocomplete(caption: caption, limit: limitParam, locationResult: locationResult)
+        let placesResponse = try await placeSearchForAutocomplete(caption: caption, locationResult: locationResult)
+        var results = await parseAutocompleteToLocationResults(auto)
 
-        if let placesDict = placesResponseAny as? [String: Any],
-           let items = placesDict["results"] as? [[String: Any]] {
-            for item in items {
-                guard let geocodes = item["geocodes"] as? [String: Any],
-                      let main = geocodes["main"] as? [String: Any],
-                      let lat = main["latitude"] as? Double,
-                      let lon = main["longitude"] as? Double else { continue }
+        for item in placesResponse.results ?? [] {
+            guard let lat = item.geocodes?.main?.latitude,
+                  let lon = item.geocodes?.main?.longitude else { continue }
 
-                let name = (item["name"] as? String) ?? "Unknown"
-                let locationDict = item["location"] as? [String: Any]
-                let formatted = locationDict?["formatted_address"] as? String
+            let name = item.name ?? "Unknown"
+            let formatted = item.location?.formatted_address
 
-                let coord = CLLocationCoordinate2D(latitude: lat, longitude: lon)
-                let loc = CLLocation(latitude: coord.latitude, longitude: coord.longitude)
-                let lr = LocationResult(locationName: formatted ?? name, location: loc)
+            let coord = CLLocationCoordinate2D(latitude: lat, longitude: lon)
+            let loc = CLLocation(latitude: coord.latitude, longitude: coord.longitude)
+            let lr = LocationResult(locationName: formatted ?? name, location: loc)
 
-                if !results.contains(where: { existing in
-                    existing.locationName == lr.locationName &&
-                    abs(existing.location.coordinate.latitude - lr.location.coordinate.latitude) < 1e-6 &&
-                    abs(existing.location.coordinate.longitude - lr.location.coordinate.longitude) < 1e-6
-                }) {
-                    results.append(lr)
-                }
+            if !results.contains(where: { existing in
+                existing.locationName == lr.locationName &&
+                abs(existing.location.coordinate.latitude - lr.location.coordinate.latitude) < 1e-6 &&
+                abs(existing.location.coordinate.longitude - lr.location.coordinate.longitude) < 1e-6
+            }) {
+                results.append(lr)
             }
         }
 
@@ -532,7 +857,7 @@ public actor PlaceSearchSession : ObservableObject {
     
     private let sessionQueue = DispatchQueue(label: "com.secretatomics.knowmaps.sessionQueue")
 
-    func fetch(url: URL) async throws -> String {
+    func fetch<T: Decodable & Sendable>(url: URL, as type: T.Type) async throws -> T {
         print("Requesting URL: \(url)")
 
         // Acquire a configured session before entering the continuation to avoid calling async APIs in non-async closures
@@ -555,16 +880,9 @@ public actor PlaceSearchSession : ObservableObject {
                 }
 
                 do {
-                    let json = try JSONSerialization.jsonObject(with: d, options: [.fragmentsAllowed])
-                    if let checkDict = json as? NSDictionary, let message = checkDict["message"] as? String, message.hasPrefix("Foursquare servers")  {
-                        print("Message from server:")
-                        print(message)
-                        checkedContinuation.resume(throwing: PlaceSearchSessionError.ServerErrorMessage)
-                    } else if let checkDict = json as? NSDictionary, let message = checkDict["message"] as? String, message == "Invalid request token." {
-                        checkedContinuation.resume(throwing: PlaceSearchSessionError.InvalidSession)
-                    } else {
-                        checkedContinuation.resume(returning: json as! String)
-                    }
+                    let decoder = JSONDecoder()
+                    let decoded = try decoder.decode(T.self, from: d)
+                    checkedContinuation.resume(returning: decoded)
                 } catch {
                     print(error)
                     let returnedString = String(data: d, encoding: String.Encoding.utf8) ?? ""
@@ -665,4 +983,3 @@ public actor PlaceSearchSession : ObservableObject {
         }
     }
 }
-

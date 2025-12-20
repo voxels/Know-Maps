@@ -84,15 +84,46 @@ public final class DefaultResultIndexServiceV2: ResultIndexServiceV2 {
 
        // Build fsqID index
        placeResultsByFsqID = [:]
-       for result in placeResults {
-           if let fsqID = result.placeResponse?.fsqID {
-               placeResultsByFsqID[fsqID] = result
+
+       func extractFsqID(from result: ChatResult) -> String? {
+           let candidate = result.placeResponse?.fsqID
+               ?? result.recommendedPlaceResponse?.fsqID
+               ?? result.placeDetailsResponse?.fsqID
+           guard let candidate, !candidate.isEmpty else { return nil }
+           return candidate
+       }
+
+       func upsertByBestAvailableData(_ result: ChatResult, fsqID: String) {
+           if let existing = placeResultsByFsqID[fsqID] {
+               let existingHasDetails = existing.placeDetailsResponse != nil
+               let newHasDetails = result.placeDetailsResponse != nil
+
+               if existingHasDetails == false, newHasDetails == true {
+                   placeResultsByFsqID[fsqID] = result
+               }
+               return
+           }
+
+           placeResultsByFsqID[fsqID] = result
+       }
+
+       // Prefer recommended results until a richer (detailed) place result exists.
+       for result in recommendedPlaceResults {
+           if let fsqID = extractFsqID(from: result) {
+               upsertByBestAvailableData(result, fsqID: fsqID)
            }
        }
-       for result in recommendedPlaceResults {
-           if let fsqID = result.recommendedPlaceResponse?.fsqID {
-               placeResultsByFsqID[fsqID] = result
-           } else if let fsqID = result.placeResponse?.fsqID {
+
+       // Place results (especially ones with details) should override a less-detailed recommended entry.
+       for result in placeResults {
+           if let fsqID = extractFsqID(from: result) {
+               upsertByBestAvailableData(result, fsqID: fsqID)
+           }
+       }
+
+       // Related places should be discoverable via fsqID too, but should not override an existing entry.
+       for result in relatedPlaceResults {
+           if let fsqID = extractFsqID(from: result), placeResultsByFsqID[fsqID] == nil {
                placeResultsByFsqID[fsqID] = result
            }
        }
@@ -288,4 +319,3 @@ public final class DefaultResultIndexServiceV2: ResultIndexServiceV2 {
        return LocationResult(locationName: "Selected Location", location:locationService.currentLocation() )
    }
 }
-

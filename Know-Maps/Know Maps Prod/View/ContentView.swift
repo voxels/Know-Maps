@@ -348,7 +348,6 @@ public struct ContentView: View {
                             chatModel: chatModel,
                             cacheManager: cacheManager,
                             modelController: modelController,
-                            placeDirectionsViewModel: placeDirectionsChatViewModel,
                             selectedResult: placeChatResult
                         )
                         .navigationTitle(placeChatResult.title)

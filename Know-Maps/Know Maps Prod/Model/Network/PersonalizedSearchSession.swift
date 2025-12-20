@@ -159,16 +159,16 @@ public actor PersonalizedSearchSession {
             throw PersonalizedSearchSessionError.UnsupportedRequest
         }
         
-        let userCreationResponse = try await fetch(url: url, apiKey: apiKey, urlQueryItems: [], httpMethod: "POST")
+        let data = try await fetch(url: url, apiKey: apiKey, urlQueryItems: [], httpMethod: "POST")
         
-        guard let response = userCreationResponse as? [String:Any] else {
+        guard let root = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] else {
             return false
         }
         
         var identity:String? = nil
         var token:String? = nil
         
-        if let responseDict = response["response"] as? NSDictionary {
+        if let responseDict = root["response"] as? NSDictionary {
             if let userId = responseDict["userId"] as? Int {
                 identity = "\(userId)"
             }
@@ -207,7 +207,7 @@ public actor PersonalizedSearchSession {
         }
         
         guard let queryComponents = URLComponents(string:"\(PersonalizedSearchSession.serverUrl)\(PersonalizedSearchSession.autocompleteTastesAPIUrl)") else {
-            throw PlaceSearchSessionError.UnsupportedRequest
+            throw PersonalizedSearchSessionError.UnsupportedRequest
         }
         
         var queryItems = [URLQueryItem]()
@@ -224,19 +224,19 @@ public actor PersonalizedSearchSession {
         queryItems.append(limitQueryItem)
 
         guard let url = queryComponents.url else {
-            throw PlaceSearchSessionError.UnsupportedRequest
+            throw PersonalizedSearchSessionError.UnsupportedRequest
         }
         
-        let tastesAutocompleteResponse = try await fetch(url: url, apiKey: apiKey, urlQueryItems: queryItems)
+        let data = try await fetch(url: url, apiKey: apiKey, urlQueryItems: queryItems)
         
-        guard let response = tastesAutocompleteResponse as? [String:String] else {
-            return [String:[String]]()
+        guard let root = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] else {
+            return [:]
         }
                 
         var retval = [String:[String]]()
-        if let responseDict = response["response"] as? [String:[String]] {
-            print(responseDict)
-            retval = responseDict
+        if let responseDict = root["response"] as? [String: Any],
+           let tastes = responseDict["tastes"] as? [[String: Any]] {
+            retval["tastes"] = tastes.compactMap { $0["text"] as? String }
         }
 
         return retval
@@ -300,21 +300,44 @@ public actor PersonalizedSearchSession {
         for (index, radius) in radiiToTry.enumerated() {
             do {
                 let queryItems = buildQueryItems(radius: radius)
-                let response = try await fetch(url: components.url!, apiKey: apiKey, urlQueryItems: queryItems)
+                let data = try await fetch(url: components.url!, apiKey: apiKey, urlQueryItems: queryItems)
+                
                 isFetchingRecommendations = false
-                guard let response = response as? [String:String] else { throw PersonalizedSearchSessionError.NoVenuesFound }
-                if let responseDict = response["response"] as? [String:String] {
-                    // If results are sparse, only escalate radius if more attempts remain
-                    if let groups = responseDict["group"] as? [[String:String]], groups.isEmpty, index < radiiToTry.count - 1 {
-                        continue
-                    }
-                    if let results = responseDict["results"] as? [String], results.isEmpty, index < radiiToTry.count - 1 {
-                        continue
-                    }
-                    return responseDict
+                
+                guard let root = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] else {
+                    throw PersonalizedSearchSessionError.NoVenuesFound
                 }
-                // No response key, attempt next radius if available
-                if index < radiiToTry.count - 1 { continue }
+                
+                guard let responseDict = root["response"] as? [String: Any] else {
+                    throw PersonalizedSearchSessionError.NoVenuesFound
+                }
+                
+                // Check "groups" key if present
+                if let groups = responseDict["group"] as? [[String: Any]], groups.isEmpty, index < radiiToTry.count - 1 {
+                    continue
+                }
+                // Check "results" key if present
+                if let results = responseDict["results"] as? [Any], results.isEmpty, index < radiiToTry.count - 1 {
+                    continue
+                }
+                
+                // Convert responseDict to [String:String] by compact mapping string values
+                var stringDict = [String:String]()
+                for (key, value) in responseDict {
+                    if let strVal = value as? String {
+                        stringDict[key] = strVal
+                    }
+                }
+                
+                if !stringDict.isEmpty {
+                    return stringDict
+                }
+                
+                // If not returned, try next radius if any
+                if index < radiiToTry.count - 1 {
+                    continue
+                }
+                
                 throw PersonalizedSearchSessionError.NoVenuesFound
             } catch {
                 isFetchingRecommendations = false
@@ -346,13 +369,17 @@ public actor PersonalizedSearchSession {
         let limitQueryItem = URLQueryItem(name: "limit", value: "50")
         let offsetQueryItem = URLQueryItem(name: "offset", value:"\(page)")
         
-        let responseAny = try await fetch(url: components.url!, apiKey: apiKey, urlQueryItems: [intentQueryItem, limitQueryItem, offsetQueryItem])
+        let data = try await fetch(url: components.url!, apiKey: apiKey, urlQueryItems: [intentQueryItem, limitQueryItem, offsetQueryItem])
         
-        guard let responseDict = responseAny as? [String:Any], let nestedResponse = responseDict["response"] as? [String:String] else {
+        guard let root = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] else {
             return ["tastes": [String]()]
         }
         
-        guard let tastesArray = nestedResponse["tastes"] as? [[String:String]] else {
+        guard let nestedResponse = root["response"] as? [String: Any] else {
+            return ["tastes": [String]()]
+        }
+        
+        guard let tastesArray = nestedResponse["tastes"] as? [[String: Any]] else {
             return ["tastes": [String]()]
         }
         
@@ -378,13 +405,22 @@ public actor PersonalizedSearchSession {
         let limitQueryItem = URLQueryItem(name: "limit", value: "50")
         let offsetQueryItem = URLQueryItem(name: "offset", value:"\(page)")
         
-        let responseAny = try await fetch(url: components.url!, apiKey: apiKey, urlQueryItems: [intentQueryItem, limitQueryItem, offsetQueryItem])
+        let data = try await fetch(url: components.url!, apiKey: apiKey, urlQueryItems: [intentQueryItem, limitQueryItem, offsetQueryItem])
         
-        if let responseDict = responseAny as? [String:String], let nestedResponse = responseDict["response"] as? [String:String] {
-            return nestedResponse
+        guard let root = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+              let nestedResponse = root["response"] as? [String: Any] else {
+            return [:]
         }
         
-        return [:]
+        // Build [String:String] dictionary by filtering string values only
+        var stringDict = [String:String]()
+        for (key, value) in nestedResponse {
+            if let strVal = value as? String {
+                stringDict[key] = strVal
+            }
+        }
+        
+        return stringDict
     }
 
     
@@ -405,15 +441,19 @@ public actor PersonalizedSearchSession {
             throw PersonalizedSearchSessionError.UnsupportedRequest
         }
         
-        let response = try await fetch(url: url, apiKey: apiKey, urlQueryItems: [])
+        let data = try await fetch(url: url, apiKey: apiKey, urlQueryItems: [])
         
-        guard let response = response as? [String:String] else {
+        guard let root = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] else {
             throw PersonalizedSearchSessionError.NoTasteFound
         }
                         
         var retval = [String:String]()
-        if let responseDict = response["response"] as? [String:String] {
-            retval = responseDict
+        if let responseDict = root["response"] as? [String: Any] {
+            for (key, value) in responseDict {
+                if let strVal = value as? String {
+                    retval[key] = strVal
+                }
+            }
         }
 
         return retval
@@ -479,7 +519,7 @@ public actor PersonalizedSearchSession {
         apiKey: String,
         urlQueryItems: [URLQueryItem],
         httpMethod: String = "GET"
-    ) async throws -> String {
+    ) async throws -> Data {
         // Construct URL with query items
         guard var urlComponents = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
             throw PersonalizedSearchSessionError.UnsupportedRequest
@@ -508,24 +548,8 @@ public actor PersonalizedSearchSession {
                     throw PersonalizedSearchSessionError.ServerErrorMessage
                 }
 
-                let json = try JSONSerialization.jsonObject(with: data, options: [.fragmentsAllowed])
-
-                if let checkDict = json as? NSDictionary,
-                   let message = checkDict["message"] as? String,
-                   message.hasPrefix("Foursquare servers") {
-                    print("Message from server: \(message)")
-                    throw PersonalizedSearchSessionError.ServerErrorMessage
-                }
-
-                if let checkDict = json as? NSDictionary,
-                   let meta = checkDict["meta"] as? NSDictionary,
-                   let code = meta["code"] as? Int64,
-                   code == 500 {
-                    print("Server returned error code 500.")
-                    throw PersonalizedSearchSessionError.ServerErrorMessage
-                }
-
-                return String(describing:json)
+                // On success return raw data
+                return data
             } catch {
                 lastError = error
                 if attempt >= PersonalizedSearchSession.maxRetryAttempts {
