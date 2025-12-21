@@ -49,6 +49,7 @@ public struct PlaceView: View {
         let snapshot = liveResult.makePlaceSnapshot(concept: nil)
         let title = snapshot?.title ?? liveResult.title
         let isLoadingDetails = isFetchingDetails || (!didAttemptDetailFetch && liveResult.placeDetailsResponse == nil)
+        let showSkeleton = isLoadingDetails && liveResult.placeDetailsResponse == nil
         let address = resolvedAddress(details: liveResult.placeDetailsResponse, snapshot: snapshot, placeResponse: liveResult.placeResponse)
         let destination = destinationCoordinate(
             details: liveResult.placeDetailsResponse,
@@ -70,83 +71,87 @@ public struct PlaceView: View {
                         Text(address)
                             .foregroundStyle(.secondary)
                     }
-                    if isLoadingDetails {
-                        ProgressView {
-                            Text("Loading place details…")
-                        }
-                        .progressViewStyle(.linear)
+                    if showSkeleton {
+                        PlaceFeedSkeletonBar()
+                    } else if isLoadingDetails {
+                        ProgressView { Text("Loading place details…") }
+                            .progressViewStyle(.linear)
                     }
                 }
 
-                PlaceFeedHeroPhotos(
-                    title: title,
-                    isRefreshing: modelController.isRefreshingPlaces || isLoadingDetails,
-                    photoURLs: makeHeroPhotoURLs(details: liveResult.placeDetailsResponse, snapshot: snapshot)
-                )
+                if showSkeleton {
+                    PlaceFeedSkeleton(isCompact: horizontalSizeClass == .compact)
+                } else {
+                    PlaceFeedHeroPhotos(
+                        title: title,
+                        isRefreshing: modelController.isRefreshingPlaces || isLoadingDetails,
+                        photoURLs: makeHeroPhotoURLs(details: liveResult.placeDetailsResponse, snapshot: snapshot)
+                    )
 
-                PlaceFeedAboutCard(
-                    title: title,
-                    snapshot: snapshot,
-                    placeResponse: liveResult.placeResponse,
-                    placeDetailsResponse: liveResult.placeDetailsResponse,
-                    isFetchingDetails: isLoadingDetails
-                )
+                    PlaceFeedAboutCard(
+                        title: title,
+                        snapshot: snapshot,
+                        placeResponse: liveResult.placeResponse,
+                        placeDetailsResponse: liveResult.placeDetailsResponse,
+                        isFetchingDetails: isLoadingDetails
+                    )
 
-                PlaceFeedActionsRow(
-                    isCompact: horizontalSizeClass == .compact,
-                    title: title,
-                    placeDetailsResponse: liveResult.placeDetailsResponse,
-                    isSaved: cacheManager.cachedPlaces(contains: title),
-                    onToggleSave: {
-                        await aboutViewModel.toggleSavePlace(
-                            resultId: liveResult.id,
-                            cacheManager: cacheManager,
-                            modelController: modelController
+                    PlaceFeedActionsRow(
+                        isCompact: horizontalSizeClass == .compact,
+                        title: title,
+                        placeDetailsResponse: liveResult.placeDetailsResponse,
+                        isSaved: cacheManager.cachedPlaces(contains: title),
+                        onToggleSave: {
+                            await aboutViewModel.toggleSavePlace(
+                                resultId: liveResult.id,
+                                cacheManager: cacheManager,
+                                modelController: modelController
+                            )
+                        },
+                        onShare: { isPresentingShareSheet = true },
+                        openURL: openURL
+                    )
+
+                    PlaceFeedDirectionsSection(
+                        isCompact: horizontalSizeClass == .compact,
+                        title: title,
+                        address: address,
+                        destinationCoordinate: destination,
+                        showLookAround: $showLookAround,
+                        model: directionsModel
+                    )
+
+                    PlaceFeedTipsList(
+                        tips: liveResult.placeDetailsResponse?.tipsResponses,
+                        isFetchingDetails: isLoadingDetails
+                    )
+
+                    if !modelController.relatedPlaceResults.isEmpty {
+                        PlaceFeedRelatedPlaces(
+                            relatedPlaceResults: modelController.relatedPlaceResults,
+                            onTap: { relatedPlace in
+                                handleRelatedPlaceTap(relatedPlace)
+                            }
                         )
-                    },
-                    onShare: { isPresentingShareSheet = true },
-                    openURL: openURL
-                )
+                    }
 
-                PlaceFeedDirectionsSection(
-                    isCompact: horizontalSizeClass == .compact,
-                    title: title,
-                    address: address,
-                    destinationCoordinate: destination,
-                    showLookAround: $showLookAround,
-                    model: directionsModel
-                )
-
-                PlaceFeedTipsList(
-                    tips: liveResult.placeDetailsResponse?.tipsResponses,
-                    isFetchingDetails: isLoadingDetails
-                )
-
-                if !modelController.relatedPlaceResults.isEmpty {
-                    PlaceFeedRelatedPlaces(
-                        relatedPlaceResults: modelController.relatedPlaceResults,
-                        onTap: { relatedPlace in
-                            handleRelatedPlaceTap(relatedPlace)
+                    PlaceFeedTastes(
+                        isCompact: horizontalSizeClass == .compact,
+                        tastes: tastes,
+                        cachedTastesContains: { taste in
+                            cacheManager.cachedTastes(contains: taste)
+                        },
+                        cachedTasteResult: { taste in
+                            modelController.cachedTasteResultTitle(taste)
+                        },
+                        addTaste: { taste in
+                            await aboutViewModel.addTaste(title: taste, cacheManager: cacheManager, modelController: modelController)
+                        },
+                        removeTaste: { parent in
+                            await aboutViewModel.removeTaste(parent: parent, cacheManager: cacheManager, modelController: modelController)
                         }
                     )
                 }
-
-                PlaceFeedTastes(
-                    isCompact: horizontalSizeClass == .compact,
-                    tastes: tastes,
-                    cachedTastesContains: { taste in
-                        cacheManager.cachedTastes(contains: taste)
-                    },
-                    cachedTasteResult: { taste in
-                        modelController.cachedTasteResultTitle(taste)
-                    },
-                    addTaste: { taste in
-                        await aboutViewModel.addTaste(title: taste, cacheManager: cacheManager, modelController: modelController)
-                    },
-                    removeTaste: { parent in
-                        await aboutViewModel.removeTaste(parent: parent, cacheManager: cacheManager, modelController: modelController)
-                    }
-                )
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 16)
@@ -350,6 +355,129 @@ private struct PlaceFeedSectionHeader: View {
         Text(title)
             .font(.headline)
             .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+private struct PlaceFeedSkeletonBar: View {
+    var body: some View {
+        RoundedRectangle(cornerRadius: 4, style: .continuous)
+            .fill(Color.secondary.opacity(0.18))
+            .frame(height: 6)
+            .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+private struct PlaceFeedSkeleton: View {
+    let isCompact: Bool
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 24) {
+            PlaceFeedSkeletonBox(height: 240, cornerRadius: 16)
+
+            VStack(alignment: .leading, spacing: 12) {
+                PlaceFeedSectionHeader(title: "About")
+                PlaceFeedSkeletonTextBlock(lines: 3)
+                HStack(spacing: 12) {
+                    PlaceFeedSkeletonPill(width: 76, height: 28)
+                    PlaceFeedSkeletonPill(width: 52, height: 28)
+                    Spacer(minLength: 0)
+                }
+            }
+
+            VStack(alignment: .leading, spacing: 12) {
+                PlaceFeedSectionHeader(title: "Actions")
+                HStack(spacing: 12) {
+                    PlaceFeedSkeletonBox(height: 44, cornerRadius: 12)
+                    PlaceFeedSkeletonBox(height: 44, cornerRadius: 12)
+                    PlaceFeedSkeletonBox(height: 44, cornerRadius: 12)
+                }
+            }
+
+            VStack(alignment: .leading, spacing: 12) {
+                PlaceFeedSectionHeader(title: "Directions")
+                PlaceFeedSkeletonBox(height: 320, cornerRadius: 16)
+                PlaceFeedSkeletonBox(height: 44, cornerRadius: 12)
+                HStack(spacing: 12) {
+                    PlaceFeedSkeletonPill(width: 84, height: 36)
+                    PlaceFeedSkeletonPill(width: 132, height: 36)
+                    Spacer(minLength: 0)
+                }
+                VStack(alignment: .leading, spacing: 10) {
+                    PlaceFeedSkeletonBox(height: 56, cornerRadius: 12)
+                    PlaceFeedSkeletonBox(height: 56, cornerRadius: 12)
+                }
+            }
+
+            VStack(alignment: .leading, spacing: 12) {
+                PlaceFeedSectionHeader(title: "Tips")
+                VStack(alignment: .leading, spacing: 10) {
+                    PlaceFeedSkeletonBox(height: 72, cornerRadius: 14)
+                    PlaceFeedSkeletonBox(height: 72, cornerRadius: 14)
+                    PlaceFeedSkeletonBox(height: 72, cornerRadius: 14)
+                }
+            }
+
+            VStack(alignment: .leading, spacing: 12) {
+                PlaceFeedSectionHeader(title: "Features")
+                let columns = Array(repeating: GridItem(.flexible(), spacing: 10), count: isCompact ? 2 : 3)
+                LazyVGrid(columns: columns, alignment: .leading, spacing: 10) {
+                    ForEach(0..<(isCompact ? 6 : 9), id: \.self) { _ in
+                        PlaceFeedSkeletonBox(height: 44, cornerRadius: 14)
+                    }
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+private struct PlaceFeedSkeletonTextBlock: View {
+    let lines: Int
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            PlaceFeedSkeletonLine(fraction: 1, height: 14)
+            PlaceFeedSkeletonLine(fraction: 1, height: 14)
+            PlaceFeedSkeletonLine(fraction: 1, height: 14)            
+        }
+    }
+}
+
+private struct PlaceFeedSkeletonLine: View {
+    let fraction: CGFloat
+    let height: CGFloat
+
+    var body: some View {
+        GeometryReader { geo in
+            RoundedRectangle(cornerRadius: height / 2, style: .continuous)
+                .fill(Color.secondary.opacity(0.18))
+                .frame(width: geo.size.width * max(0, min(fraction, 1)), height: height)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .frame(height: height)
+    }
+}
+
+private struct PlaceFeedSkeletonPill: View {
+    let width: CGFloat
+    let height: CGFloat
+
+    var body: some View {
+        RoundedRectangle(cornerRadius: height / 2, style: .continuous)
+            .fill(Color.secondary.opacity(0.18))
+            .frame(width: width, height: height)
+    }
+}
+
+private struct PlaceFeedSkeletonBox: View {
+    let height: CGFloat
+    let cornerRadius: CGFloat
+
+    var body: some View {
+        RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+            .fill(Color.secondary.opacity(0.14))
+            .frame(height: height)
+            .frame(maxWidth: .infinity)
     }
 }
 
