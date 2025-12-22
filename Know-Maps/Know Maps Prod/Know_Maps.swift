@@ -14,7 +14,7 @@ import AuthenticationServices
 import TipKit
 
 @MainActor
-public struct Know_MapsApp : View {
+public struct Know_Maps : View {
     public static let sharedModelContainer: ModelContainer = {
         let schema = Schema([
             UserCachedRecord.self,
