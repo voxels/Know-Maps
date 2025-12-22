@@ -13,11 +13,15 @@ public final class MiniLMEmbeddingClient {
     private init() {
         tokenizer = MiniLMTokenizer()
 
-        // Load the ML model (support both .mlpackage and compiled .mlmodelc)
-        let modelURL = Bundle.main.url(forResource: "MiniLM-L12-Embedding", withExtension: "mlpackage") ??
-                       Bundle.main.url(forResource: "MiniLM-L12-Embedding", withExtension: "mlmodelc")
+        let bundle = Self.resourceBundle
 
-        guard let url = modelURL else {
+        // SwiftPM ships the raw .mlmodel from inside the .mlpackage (named `model.mlmodel`).
+        // Xcode/framework builds may instead include the full .mlpackage or a compiled .mlmodelc.
+        let rawMLModelURL = bundle.url(forResource: "model", withExtension: "mlmodel")
+        let mlpackageURL = bundle.url(forResource: "MiniLM-L12-Embedding", withExtension: "mlpackage")
+        let compiledURL = bundle.url(forResource: "MiniLM-L12-Embedding", withExtension: "mlmodelc")
+
+        guard rawMLModelURL != nil || mlpackageURL != nil || compiledURL != nil else {
             // If we can't find the heavy model, we might be in a constrained target where it was intentionally omitted
             // We'll allow initialization and rely on the fallback logic in embed()
             print("MiniLM-L12-Embedding model not found. MiniLMEmbeddingClient will use NLEmbedding fallback.")
@@ -28,7 +32,18 @@ public final class MiniLMEmbeddingClient {
         do {
             let cfg = MLModelConfiguration()
             cfg.computeUnits = .all
-            model = try MLModel(contentsOf: url, configuration: cfg)
+            if let rawMLModelURL {
+                let compiled = try MLModel.compileModel(at: rawMLModelURL)
+                model = try MLModel(contentsOf: compiled, configuration: cfg)
+            } else if let compiledURL {
+                model = try MLModel(contentsOf: compiledURL, configuration: cfg)
+            } else if let mlpackageURL {
+                let inner = try Self.findFirstMLModel(in: mlpackageURL, context: "MiniLM-L12-Embedding.mlpackage")
+                let compiled = try MLModel.compileModel(at: inner)
+                model = try MLModel(contentsOf: compiled, configuration: cfg)
+            } else {
+                model = try MLModel(contentsOf: URL(fileURLWithPath: "/dev/null"), configuration: cfg)
+            }
         } catch {
             fatalError("Could not load ML model: \(error)")
         }
@@ -62,7 +77,7 @@ public final class MiniLMEmbeddingClient {
     }
     
     private func isExtensionTarget() -> Bool {
-        return Bundle.main.bundlePath.hasSuffix(".appex")
+        return Self.resourceBundle.bundlePath.hasSuffix(".appex")
     }
 
     // MARK: - Internal
@@ -142,5 +157,30 @@ public final class MiniLMEmbeddingClient {
         }
 
         return result
+    }
+}
+
+private extension MiniLMEmbeddingClient {
+    static var resourceBundle: Bundle {
+        #if SWIFT_PACKAGE
+        return .module
+        #else
+        return Bundle(for: MiniLMEmbeddingClient.self)
+        #endif
+    }
+
+    static func findFirstMLModel(in directoryURL: URL, context: String) throws -> URL {
+        let fileManager = FileManager.default
+        guard let enumerator = fileManager.enumerator(at: directoryURL, includingPropertiesForKeys: nil) else {
+            throw KnowMapsCoreMLResourceError.modelFileNotFound(context)
+        }
+
+        for case let url as URL in enumerator {
+            if url.pathExtension == "mlmodel" {
+                return url
+            }
+        }
+
+        throw KnowMapsCoreMLResourceError.modelFileNotFound(context)
     }
 }

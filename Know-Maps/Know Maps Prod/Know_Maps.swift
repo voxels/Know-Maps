@@ -87,7 +87,7 @@ public struct Know_Maps : View {
 #if !os(visionOS) && !os(macOS)
                     .containerBackground(.clear, for: .navigation)
 #endif
-                    .toolbarBackgroundVisibility(self.showOnboarding ? .visible : .hidden)
+                    .knowMapsToolbarBackgroundVisibilityIfAvailable(self.showOnboarding ? .visible : .hidden)
             } else {
                 ContentView(settingsModel:authenticationModel, chatModel: chatModel, cacheManager:cacheManager, modelController:modelController, searchSavedViewModel: searchSavedViewModel, showOnboarding: $showOnboarding, showNavigationLocationView: $showNavigationLocationView, searchMode: $searchMode )
 #if os(visionOS) || os(macOS)
@@ -99,10 +99,9 @@ public struct Know_Maps : View {
             }
             
             if showSplashScreen {
-                
-                
+                Color.clear
 #if os(visionOS) || os(macOS)
-                .frame(minWidth: 1280, minHeight: 720)
+                    .frame(minWidth: 1280, minHeight: 720)
 #endif
             }
         }
@@ -131,7 +130,7 @@ public struct Know_Maps : View {
 #if os(macOS)
         filterView()
             .frame(minWidth: 600, minHeight: 500)
-            .presentationSizing(.fitted)
+            .knowMapsPresentationSizingFittedIfAvailable()
             .presentationDragIndicator(.visible)
             .interactiveDismissDisabled(false)
 #else

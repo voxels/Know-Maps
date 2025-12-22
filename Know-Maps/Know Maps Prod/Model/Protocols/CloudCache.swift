@@ -8,6 +8,7 @@
 import Foundation
 import CloudKit
 
+@MainActor
 public protocol CloudCache: AnyObject {
     var analyticsManager: AnalyticsService { get }
     var hasFsqAccess: Bool { get }

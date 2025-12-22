@@ -107,7 +107,7 @@ public struct ContentView: View {
                         }
                     }
                 }
-                .tabViewStyle(.tabBarOnly)
+                .knowMapsTabBarOnlyIfAvailable()
                 .sheet(item: Binding(
                     get: { searchSavedViewModel.editingRecommendationWeightResult },
                     set: { searchSavedViewModel.editingRecommendationWeightResult = $0 }

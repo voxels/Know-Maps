@@ -286,7 +286,7 @@ public final class AssistiveChatHostService : AssistiveChatHost {
     
     public func tags(for rawQuery:String) throws ->AssistiveChatHostTaggedWord? {
         var retval:AssistiveChatHostTaggedWord = AssistiveChatHostTaggedWord()
-        let mlModel = try LocalMapsQueryTagger(configuration: MLModelConfiguration()).model
+        let mlModel = try KnowMapsLocalMapsQueryTagger(configuration: MLModelConfiguration()).model
         let customModel = try NLModel(mlModel: mlModel)
         let customTagScheme = NLTagScheme("LocalMapsQueryTagger")
         let customTagger = NLTagger(tagSchemes: [customTagScheme])
@@ -354,11 +354,11 @@ public final class AssistiveChatHostService : AssistiveChatHost {
         
         do {
             // Load the Core ML model
-            let model = try FoursquareSectionClassifier(configuration: MLModelConfiguration())
+            let model = try KnowMapsFoursquareSectionClassifier(configuration: MLModelConfiguration())
             
             // Prepare the input for the model
             // Assuming your model accepts 'title' as an input feature
-            let input = FoursquareSectionClassifierInput(text: title)
+            let input = KnowMapsFoursquareSectionClassifierInput(text: title)
             
             // Make a prediction using the model
             let output = try model.prediction(input: input)
@@ -627,4 +627,3 @@ extension AssistiveChatHostService {
         return await AssistiveChatHostIntent(caption: caption, intent: .Search, selectedPlaceSearchResponse: nil, selectedPlaceSearchDetails: nil, placeSearchResponses: [], selectedDestinationLocation: selectedDestination, placeDetailsResponses: nil, queryParameters: queryParameters)
     }
 }
-
