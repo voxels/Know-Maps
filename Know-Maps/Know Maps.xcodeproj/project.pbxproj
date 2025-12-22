@@ -111,7 +111,6 @@
 		DF89A8A0148E707030D0FC45 /* OnboardingLocationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E1F5E502B726680008B6BAD /* OnboardingLocationView.swift */; };
 		E0B080B4E6365C603BFFA139 /* SegmentAnalyticsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E007ACD2CB40B1900A8DC5A /* SegmentAnalyticsService.swift */; };
 		E1AF3C67EF995C631BDBF31D /* CloudCacheService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E630C852B16440100A57CCB /* CloudCacheService.swift */; };
-		E1BFED8012D11DEAC769E9B6 /* View+Availability.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9ED158F9CB414FC28B02F728 /* View+Availability.swift */; };
 		E1C6B52381751B8BE191345A /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EE068872B0D1ADB0016851A /* SettingsView.swift */; };
 		E293787E2A3CC6B172A2292F /* Know_Maps.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EA7F74C2B03FA71002AE371 /* Know_Maps.swift */; };
 		E6B52CE898EFC2FA4C898CA2 /* ChatResultViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EA7F7822B052D92002AE371 /* ChatResultViewModel.swift */; };
@@ -259,7 +258,6 @@
 		1EFFBAA22E8278020088882B /* PLAY_fixed.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = PLAY_fixed.wav; sourceTree = "<group>"; };
 		1EFFBAA32E8278020088882B /* THINKING.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = THINKING.wav; sourceTree = "<group>"; };
 		7E0F1A35D62B55EAE21375A3 /* KnowMapsCoreMLModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = KnowMapsCoreMLModels.swift; path = "Know Maps Prod/Model/Controllers/KnowMapsCoreMLModels.swift"; sourceTree = SOURCE_ROOT; };
-		9ED158F9CB414FC28B02F728 /* View+Availability.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "View+Availability.swift"; path = "Know Maps Prod/View/View+Availability.swift"; sourceTree = SOURCE_ROOT; };
 		A14BF342462726858BA01ED8 /* KnowMapsPlaceSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = KnowMapsPlaceSnapshot.swift; path = "Know Maps Prod/Model/Models/KnowMapsPlaceSnapshot.swift"; sourceTree = SOURCE_ROOT; };
 		B0A1B2C3D4E5F60718293A30 /* knowmaps.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = knowmaps.swift; sourceTree = "<group>"; };
 		B0A1B2C3D4E5F60718293A31 /* knowmapsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = knowmapsTests.swift; sourceTree = "<group>"; };
@@ -487,7 +485,6 @@
 				A14BF342462726858BA01ED8 /* KnowMapsPlaceSnapshot.swift */,
 				1C9E979859B904129199B272 /* PromptRankingView.swift */,
 				7E0F1A35D62B55EAE21375A3 /* KnowMapsCoreMLModels.swift */,
-				9ED158F9CB414FC28B02F728 /* View+Availability.swift */,
 			);
 			name = "Recovered References";
 			sourceTree = "<group>";
@@ -775,7 +772,6 @@
 				099F942C06F1B8871D54A160 /* SearchView.swift in Sources */,
 				E1C6B52381751B8BE191345A /* SettingsView.swift in Sources */,
 				90F55C82898B4366C99867C9 /* KnowMapsCoreMLModels.swift in Sources */,
-				E1BFED8012D11DEAC769E9B6 /* View+Availability.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

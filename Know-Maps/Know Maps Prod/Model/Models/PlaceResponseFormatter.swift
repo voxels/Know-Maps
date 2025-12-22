@@ -527,8 +527,8 @@ open class PlaceResponseFormatter {
         let tastes: [String]? = place.tastes
         let features: [String]? = nil
 
-        var photoResponses = placePhotosResponses
-        var tipsResponses = placeTipsResponses
+        let photoResponses = placePhotosResponses
+        let tipsResponses = placeTipsResponses
 
         return PlaceDetailsResponse(
             searchResponse: searchResponse,

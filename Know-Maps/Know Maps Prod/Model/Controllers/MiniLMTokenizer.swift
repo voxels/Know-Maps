@@ -66,7 +66,7 @@ public final class MiniLMTokenizer {
                 result.append(token)
                 continue
             }
-            var chars = Array(token)
+            let chars = Array(token)
             var i = 0
             while i < chars.count {
                 var j = chars.count

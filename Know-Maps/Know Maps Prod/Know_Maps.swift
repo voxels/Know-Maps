@@ -51,7 +51,7 @@ public struct Know_Maps : View {
         // Create required services locally first to avoid capturing self
         let chatModel = ChatResultViewModel.shared
         let searchSavedViewModel = SearchSavedViewModel.shared
-        let authenticationModel = AppleAuthenticationService.shared
+        _ = AppleAuthenticationService.shared
         
         // Assign to stored properties using wrappedValue initializers only
         self._chatModel = State(wrappedValue: chatModel)
@@ -87,7 +87,6 @@ public struct Know_Maps : View {
 #if !os(visionOS) && !os(macOS)
                     .containerBackground(.clear, for: .navigation)
 #endif
-                    .knowMapsToolbarBackgroundVisibilityIfAvailable(self.showOnboarding ? .visible : .hidden)
             } else {
                 ContentView(settingsModel:authenticationModel, chatModel: chatModel, cacheManager:cacheManager, modelController:modelController, searchSavedViewModel: searchSavedViewModel, showOnboarding: $showOnboarding, showNavigationLocationView: $showNavigationLocationView, searchMode: $searchMode )
 #if os(visionOS) || os(macOS)
