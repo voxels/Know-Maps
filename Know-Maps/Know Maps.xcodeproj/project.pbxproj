@@ -19,6 +19,10 @@
 		099F942C06F1B8871D54A160 /* SearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EA7F76C2B04FFD9002AE371 /* SearchView.swift */; };
 		0E8D0B55DEE5C6ADE5627FBC /* SearchSavedViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E7D43542CB4271A00DC17FA /* SearchSavedViewModel.swift */; };
 		1E15EDF02EF96C59009384CA /* knowmaps.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1E15EDE52EF96C59009384CA /* knowmaps.framework */; };
+		1E7671582EF9BBC70087A2C3 /* FoursquareSectionClassifier.mlmodel in Resources */ = {isa = PBXBuildFile; fileRef = 1EC719A52EF97ECD003632D8 /* FoursquareSectionClassifier.mlmodel */; };
+		1E7671592EF9BBC70087A2C3 /* LocalMapsQueryClassifier.mlmodel in Resources */ = {isa = PBXBuildFile; fileRef = 1EA7F7982B052E0C002AE371 /* LocalMapsQueryClassifier.mlmodel */; };
+		1E76715A2EF9BBC70087A2C3 /* LocalMapsQueryTagger.mlpackage in Resources */ = {isa = PBXBuildFile; fileRef = 1E9478672EE1B221002F10E3 /* LocalMapsQueryTagger.mlpackage */; };
+		1E76715B2EF9BBC70087A2C3 /* MiniLM-L12-Embedding.mlpackage in Resources */ = {isa = PBXBuildFile; fileRef = 1E9478732EE1C881002F10E3 /* MiniLM-L12-Embedding.mlpackage */; };
 		25C32E5AA96D7CBA3736F730 /* SearchPlacesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E8E5AFA2CA03D8600B37E6A /* SearchPlacesView.swift */; };
 		25DCF52AEF8156B9C630464D /* PlaceSearchResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EA7F77F2B052D92002AE371 /* PlaceSearchResponse.swift */; };
 		271CE477283FBFCA952CCBF4 /* CloudCacheManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E007ACB2CB4089400A8DC5A /* CloudCacheManager.swift */; };
@@ -363,9 +367,6 @@
 				1EA7F7782B052D92002AE371 /* integrated_category_taxonomy.json */,
 				1EA7F7762B052D92002AE371 /* LanguageGeneratorService.swift */,
 				1EA7F77A2B052D92002AE371 /* LocationProvider.swift */,
-				1EA7F7982B052E0C002AE371 /* LocalMapsQueryClassifier.mlmodel */,
-				1E9478672EE1B221002F10E3 /* LocalMapsQueryTagger.mlpackage */,
-				1E9478732EE1C881002F10E3 /* MiniLM-L12-Embedding.mlpackage */,
 				1E3FE0132CB6C6B60020B3CB /* DefaultRecommenderService.swift */,
 				1E9478462EDB79D7002F10E3 /* DefaultResultIndexServiceV2.swift */,
 				1E007ACD2CB40B1900A8DC5A /* SegmentAnalyticsService.swift */,
@@ -492,6 +493,9 @@
 			isa = PBXGroup;
 			children = (
 				1EC719A52EF97ECD003632D8 /* FoursquareSectionClassifier.mlmodel */,
+				1EA7F7982B052E0C002AE371 /* LocalMapsQueryClassifier.mlmodel */,
+				1E9478672EE1B221002F10E3 /* LocalMapsQueryTagger.mlpackage */,
+				1E9478732EE1C881002F10E3 /* MiniLM-L12-Embedding.mlpackage */,
 			);
 			name = ML;
 			sourceTree = "<group>";
@@ -620,6 +624,10 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1E7671582EF9BBC70087A2C3 /* FoursquareSectionClassifier.mlmodel in Resources */,
+				1E7671592EF9BBC70087A2C3 /* LocalMapsQueryClassifier.mlmodel in Resources */,
+				1E76715A2EF9BBC70087A2C3 /* LocalMapsQueryTagger.mlpackage in Resources */,
+				1E76715B2EF9BBC70087A2C3 /* MiniLM-L12-Embedding.mlpackage in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
