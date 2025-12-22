@@ -46,19 +46,17 @@ public struct PlaceView: View {
         let fallbackFsqId = resolvedFsqId(from: selectedResult)
         let selectedFsqId = modelController.selectedPlaceChatResultFsqId ?? fallbackFsqId
         let liveResult = modelController.placeChatResult(with: selectedFsqId) ?? selectedResult
-        let snapshot = liveResult.makePlaceSnapshot(concept: nil)
-        let title = snapshot?.title ?? liveResult.title
+        let title = liveResult.title
         let isLoadingDetails = isFetchingDetails || (!didAttemptDetailFetch && liveResult.placeDetailsResponse == nil)
         let showSkeleton = isLoadingDetails && liveResult.placeDetailsResponse == nil
-        let address = resolvedAddress(details: liveResult.placeDetailsResponse, snapshot: snapshot, placeResponse: liveResult.placeResponse)
+        let address = resolvedAddress(details: liveResult.placeDetailsResponse, placeResponse: liveResult.placeResponse)
         let destination = destinationCoordinate(
             details: liveResult.placeDetailsResponse,
-            snapshot: snapshot,
             placeResponse: liveResult.placeResponse,
             recommendedPlaceResponse: liveResult.recommendedPlaceResponse
         )
         let destinationKey = destination.map { "\($0.latitude),\($0.longitude)" } ?? ""
-        let tastes = liveResult.placeDetailsResponse?.tastes ?? snapshot?.tastes ?? []
+        let tastes = liveResult.placeDetailsResponse?.tastes ?? []
 
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 24) {
@@ -85,12 +83,11 @@ public struct PlaceView: View {
                     PlaceFeedHeroPhotos(
                         title: title,
                         isRefreshing: modelController.isRefreshingPlaces || isLoadingDetails,
-                        photoURLs: makeHeroPhotoURLs(details: liveResult.placeDetailsResponse, snapshot: snapshot)
+                        photoURLs: makeHeroPhotoURLs(details: liveResult.placeDetailsResponse)
                     )
 
                     PlaceFeedAboutCard(
                         title: title,
-                        snapshot: snapshot,
                         placeResponse: liveResult.placeResponse,
                         placeDetailsResponse: liveResult.placeDetailsResponse,
                         isFetchingDetails: isLoadingDetails
@@ -160,7 +157,6 @@ public struct PlaceView: View {
         .sheet(isPresented: $isPresentingShareSheet) {
             let shareText = resolvedShareText(
                 details: liveResult.placeDetailsResponse,
-                snapshot: snapshot,
                 placeResponse: liveResult.placeResponse
             )
             let items: [Any] = [shareText]
@@ -227,13 +223,11 @@ public struct PlaceView: View {
 
     private func destinationCoordinate(
         details: PlaceDetailsResponse?,
-        snapshot: KnowMapsPlaceSnapshot?,
         placeResponse: PlaceSearchResponse?,
         recommendedPlaceResponse: RecommendedPlaceSearchResponse?
     ) -> CLLocationCoordinate2D? {
         let candidates: [(Double?, Double?)] = [
             (details?.searchResponse.latitude, details?.searchResponse.longitude),
-            (snapshot?.latitude, snapshot?.longitude),
             (placeResponse?.latitude, placeResponse?.longitude),
             (recommendedPlaceResponse?.latitude, recommendedPlaceResponse?.longitude)
         ]
@@ -249,13 +243,9 @@ public struct PlaceView: View {
 
     private func resolvedAddress(
         details: PlaceDetailsResponse?,
-        snapshot: KnowMapsPlaceSnapshot?,
         placeResponse: PlaceSearchResponse?
     ) -> String? {
         if let address = details?.searchResponse.formattedAddress, !address.isEmpty {
-            return address
-        }
-        if let address = snapshot?.location.formattedAddress, !address.isEmpty {
             return address
         }
         if let address = placeResponse?.formattedAddress, !address.isEmpty {
@@ -266,29 +256,20 @@ public struct PlaceView: View {
 
     private func resolvedShareText(
         details: PlaceDetailsResponse?,
-        snapshot: KnowMapsPlaceSnapshot?,
         placeResponse: PlaceSearchResponse?
     ) -> String {
         if let website = details?.website, !website.isEmpty {
             return website
         }
-        return resolvedAddress(details: details, snapshot: snapshot, placeResponse: placeResponse) ?? ""
+        return resolvedAddress(details: details, placeResponse: placeResponse) ?? ""
     }
 
-    private func makeHeroPhotoURLs(details: PlaceDetailsResponse?, snapshot: KnowMapsPlaceSnapshot?) -> [URL] {
-        var seen = Set<String>()
-
+    private func makeHeroPhotoURLs(details: PlaceDetailsResponse?) -> [URL] {
         if let photoResponses = details?.photoResponses, !photoResponses.isEmpty {
             return photoResponses.compactMap { $0.photoUrl() }
         }
-
-        let raw = [snapshot?.heroPhotoURL] + (snapshot?.photoURLs ?? [])
-        return raw
-            .compactMap { $0 }
-            .compactMap { urlString in
-                guard seen.insert(urlString).inserted else { return nil }
-                return URL(string: urlString)
-            }
+        
+        return []
     }
 
     // MARK: - Loading
@@ -545,7 +526,6 @@ private struct PlaceFeedHeroPhotos: View {
 
 private struct PlaceFeedAboutCard: View {
     let title: String
-    let snapshot: KnowMapsPlaceSnapshot?
     let placeResponse: PlaceSearchResponse?
     let placeDetailsResponse: PlaceDetailsResponse?
     let isFetchingDetails: Bool
@@ -618,49 +598,32 @@ private struct PlaceFeedAboutCard: View {
         if let d = placeDetailsResponse?.description, !d.isEmpty {
             return d
         }
-        return snapshot?.summary
+        return nil
     }
 
     private var hoursText: String? {
-        placeDetailsResponse?.hours ?? snapshot?.hoursText
+        placeDetailsResponse?.hours
     }
 
     private var addressText: String? {
         if let address = placeDetailsResponse?.searchResponse.formattedAddress, !address.isEmpty {
             return address
-        }
-        if let address = snapshot?.location.formattedAddress, !address.isEmpty {
+        } else if let address = placeResponse?.formattedAddress, !address.isEmpty {
             return address
         }
-        if let address = placeResponse?.formattedAddress, !address.isEmpty {
-            return address
-        }
-
-        let parts = [
-            snapshot?.location.neighborhood,
-            snapshot?.location.locality,
-            snapshot?.location.regionCode,
-            snapshot?.location.countryCode
-        ]
-            .compactMap { $0?.trimmingCharacters(in: .whitespacesAndNewlines) }
-            .filter { !$0.isEmpty }
-
-        guard !parts.isEmpty else { return nil }
-        return parts.joined(separator: ", ")
+        
+        return nil
     }
 
     private var ratingText: String? {
         if let details = placeDetailsResponse, details.rating > 0 {
             return String(format: "%.1f", details.rating)
         }
-        if let r = snapshot?.rating {
-            return String(format: "%.1f", r)
-        }
         return nil
     }
 
     private var priceText: String? {
-        let price = placeDetailsResponse?.price ?? snapshot?.priceTier
+        let price = placeDetailsResponse?.price
         guard let price else { return nil }
         switch price {
         case 1:

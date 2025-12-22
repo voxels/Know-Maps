@@ -1631,7 +1631,6 @@ public final class DefaultModelController: ModelController {
         let delegate = assistiveHostDelegate
         let service = placeSearchService
         
-        // Prepare a base response snapshot (pure data only)
         let basePlaceResponse: PlaceSearchResponse?
         if let pr = result.placeResponse {
             basePlaceResponse = pr

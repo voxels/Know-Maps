@@ -35,12 +35,11 @@ struct PlaceDirectionsView: View {
     var body: some View {
         if let resultId = modelController.selectedPlaceChatResultFsqId,
            let result = modelController.placeChatResult(with: resultId) {
-            let snapshot = result.makePlaceSnapshot(concept: nil)
-            let title = snapshot?.title ?? result.title
+            let title = result.title
 
             let destinationCoordinate: CLLocationCoordinate2D? = {
-                let lat = snapshot?.latitude ?? result.placeResponse?.latitude
-                let lon = snapshot?.longitude ?? result.placeResponse?.longitude
+                let lat = result.placeResponse?.latitude
+                let lon = result.placeResponse?.longitude
                 guard let lat, let lon else { return nil }
                 if lat == 0, lon == 0 { return nil }
                 return CLLocationCoordinate2D(latitude: lat, longitude: lon)
@@ -57,10 +56,6 @@ struct PlaceDirectionsView: View {
                                     .fontWeight(.semibold)
                                 if let travelTime {
                                     Text(travelTime)
-                                        .foregroundStyle(.secondary)
-                                }
-                                if let address = snapshot?.location.formattedAddress, !address.isEmpty {
-                                    Text(address)
                                         .foregroundStyle(.secondary)
                                 }
                             }

@@ -38,7 +38,6 @@ struct PlaceAboutView: View {
                             ?? selectedResult
                         let placeResponse = liveResult.placeResponse
                         let placeDetailsResponse = liveResult.placeDetailsResponse
-                        let placeSnapshot = liveResult.makePlaceSnapshot(concept: nil)
 
                         if let placeResponse,
                            let placeDetailsResponse {
@@ -106,10 +105,6 @@ struct PlaceAboutView: View {
                                 .padding(.vertical, 12)
                             MapSection(title: title, coordinate: placeCoordinate.coordinate, minHeight: geo.size.height / 2.0)
                                 .padding(.horizontal,16)
-                        } else if let placeSnapshot {
-                            SnapshotPlaceAbout(snapshot: placeSnapshot, geoSize: geo.size)
-                                .padding(.horizontal, 16)
-                                .padding(.vertical, 16)
                         } else {
                             VStack {
                                 Spacer()
@@ -145,144 +140,6 @@ struct PlaceAboutView: View {
     }
 }
 
-private struct SnapshotPlaceAbout: View {
-    let snapshot: KnowMapsPlaceSnapshot
-    let geoSize: CGSize
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            SnapshotPhotosCarousel(photoURLs: photoURLs, geoSize: geoSize)
-
-            if let concept = snapshot.concept, !concept.isEmpty {
-                Text(concept)
-                    .italic()
-                    .foregroundStyle(.secondary)
-            }
-
-            if let summary = snapshot.summary, !summary.isEmpty {
-                Text(summary)
-            }
-
-            if let hoursText = snapshot.hoursText, !hoursText.isEmpty {
-                Label(hoursText, systemImage: "clock")
-                    .labelStyle(.titleOnly)
-                    .foregroundStyle(.secondary)
-            }
-
-            if let address = addressText, !address.isEmpty {
-                Label(address, systemImage: "mappin")
-                    .labelStyle(.titleOnly)
-            }
-
-            HStack(spacing: 12) {
-                if let rating = snapshot.rating {
-                    Text(String(format: "%.1f", rating))
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 6)
-                        .background(.thinMaterial)
-                        .clipShape(RoundedRectangle(cornerRadius: PlaceAboutView.cornerRadius, style: .continuous))
-                }
-                if let priceTier = snapshot.priceTier {
-                    Text(priceToString(priceTier))
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 6)
-                        .background(.thinMaterial)
-                        .clipShape(RoundedRectangle(cornerRadius: PlaceAboutView.cornerRadius, style: .continuous))
-                }
-            }
-
-            if !snapshot.tastes.isEmpty {
-                Text(snapshot.tastes.joined(separator: ", "))
-                    .foregroundStyle(.secondary)
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-    }
-
-    private var photoURLs: [URL] {
-        var seen = Set<String>()
-        let raw = [snapshot.heroPhotoURL] + snapshot.photoURLs
-        return raw
-            .compactMap { $0 }
-            .compactMap { urlString in
-                guard seen.insert(urlString).inserted else { return nil }
-                return URL(string: urlString)
-            }
-    }
-
-    private var addressText: String? {
-        if let formatted = snapshot.location.formattedAddress?.trimmingCharacters(in: .whitespacesAndNewlines),
-           !formatted.isEmpty {
-            return formatted
-        }
-
-        let parts = [
-            snapshot.location.neighborhood,
-            snapshot.location.locality,
-            snapshot.location.regionCode,
-            snapshot.location.countryCode
-        ]
-            .compactMap { $0?.trimmingCharacters(in: .whitespacesAndNewlines) }
-            .filter { !$0.isEmpty }
-
-        guard !parts.isEmpty else { return nil }
-        return parts.joined(separator: ", ")
-    }
-
-    private func priceToString(_ price: Int) -> String {
-        switch price {
-        case 1:
-            return "$"
-        case 2:
-            return "$$"
-        case 3:
-            return "$$$"
-        case 4:
-            return "$$$$"
-        default:
-            return "\(price)"
-        }
-    }
-}
-
-private struct SnapshotPhotosCarousel: View {
-    let photoURLs: [URL]
-    let geoSize: CGSize
-
-    var body: some View {
-        Group {
-            if photoURLs.isEmpty {
-                Image(systemName: "photo")
-                    .scaledToFit()
-                    .clipShape(RoundedRectangle(cornerRadius: PlaceAboutView.cornerRadius, style: .continuous))
-                    .frame(maxWidth: geoSize.width / 2.0, maxHeight: geoSize.height / 2.0)
-            } else {
-                ScrollView(.horizontal) {
-                    LazyHStack(spacing: 12) {
-                        ForEach(photoURLs, id: \.absoluteString) { url in
-                            LazyImage(url: url) { state in
-                                if let image = state.image {
-                                    image.resizable()
-                                        .clipShape(RoundedRectangle(cornerRadius: PlaceAboutView.cornerRadius, style: .continuous))
-                                        .scaledToFit()
-                                        .frame(maxWidth: geoSize.width / 2.0, maxHeight: geoSize.height / 2.0)
-                                } else if state.error != nil {
-                                    Image(systemName: "photo")
-                                        .clipShape(RoundedRectangle(cornerRadius: PlaceAboutView.cornerRadius, style: .continuous))
-                                        .frame(maxWidth: geoSize.width / 2.0, maxHeight: geoSize.height / 2.0)
-                                } else {
-                                    ProgressView()
-                                        .frame(maxWidth: geoSize.width / 2.0, maxHeight: geoSize.height / 2.0)
-                                        .padding()
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
 
 private struct PhotosCarousel: View {
     let isRefreshing: Bool

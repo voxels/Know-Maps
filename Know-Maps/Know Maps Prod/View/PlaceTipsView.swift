@@ -16,11 +16,10 @@ struct PlaceTipsView: View {
     var body: some View {
         if let resultId = modelController.selectedPlaceChatResultFsqId,
            let placeChatResult = modelController.placeChatResult(with: resultId) {
-            let snapshotTitle = placeChatResult.makePlaceSnapshot(concept: nil)?.title ?? placeChatResult.title
             let tips = placeChatResult.placeDetailsResponse?.tipsResponses ?? []
 
             if tips.isEmpty {
-                ContentUnavailableView("No tips found for \(snapshotTitle)", systemImage: "x.circle.fill")
+                ContentUnavailableView("No tips found for \(placeChatResult.title)", systemImage: "x.circle.fill")
             } else {
                 List(tips) { tip in
                     VStack(alignment: .leading, spacing: 6) {

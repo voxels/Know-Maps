@@ -82,13 +82,7 @@ public enum CloudCacheServiceKey: String {
 #endif
             }
         })
-#endif
-        
-        // Do not immediately cancel operations; allow them to finish in the background
-        Task { [weak self] in
-            guard let self else { return }
-            await self.waitForOperationsToFinishSafely()
-        }
+#endif        
     }
     
     @MainActor @objc func appWillEnterForeground() {
@@ -100,32 +94,6 @@ public enum CloudCacheServiceKey: String {
         }
 #endif
         // Resume or restart any necessary operations
-    }
-    
-    @MainActor private func snapshotOperations() -> (cache: [CKDatabaseOperation], keys: [CKDatabaseOperation]) {
-        var cache: [CKDatabaseOperation] = []
-        var keys: [CKDatabaseOperation] = []
-        operationQueue.sync {
-            cache = Array(self.cacheOperations)
-            keys = Array(self.keysOperations)
-        }
-        return (cache, keys)
-    }
-
-    nonisolated private func waitForOperationsToFinishSafely() async {
-        // Lower priority of ongoing operations using a snapshot to avoid touching actor-isolated state
-        let ops = await MainActor.run { self.snapshotOperations() }
-        ops.cache.forEach { op in
-            if op.isExecuting { op.queuePriority = .veryLow }
-        }
-        ops.keys.forEach { op in
-            if op.isExecuting { op.queuePriority = .veryLow }
-        }
-        // After a grace period, cancel on the main actor to touch state safely
-        try? await Task.sleep(nanoseconds: 20 * 1_000_000_000)
-        await MainActor.run { [weak self] in
-            self?.cancelAllOperations()
-        }
     }
     
     @MainActor private func cancelAllOperations() {
