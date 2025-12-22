@@ -19,8 +19,6 @@
 		099F942C06F1B8871D54A160 /* SearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EA7F76C2B04FFD9002AE371 /* SearchView.swift */; };
 		0E8D0B55DEE5C6ADE5627FBC /* SearchSavedViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E7D43542CB4271A00DC17FA /* SearchSavedViewModel.swift */; };
 		1E15EDF02EF96C59009384CA /* knowmaps.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1E15EDE52EF96C59009384CA /* knowmaps.framework */; };
-		1EC719A62EF97ECD003632D8 /* FoursquareSectionClassifier.mlmodel in Sources */ = {isa = PBXBuildFile; fileRef = 1EC719A52EF97ECD003632D8 /* FoursquareSectionClassifier.mlmodel */; };
-		1FF7B7F2A2B3C4D5E6F70819 /* LocalMapsQueryClassifier.mlmodel in Resources */ = {isa = PBXBuildFile; fileRef = 1EA7F7982B052E0C002AE371 /* LocalMapsQueryClassifier.mlmodel */; };
 		1FF7B7F3A2B3C4D5E6F70819 /* LocalMapsQueryTagger.mlpackage in Resources */ = {isa = PBXBuildFile; fileRef = 1E9478672EE1B221002F10E3 /* LocalMapsQueryTagger.mlpackage */; };
 		1FF7B7F4A2B3C4D5E6F70819 /* MiniLM-L12-Embedding.mlpackage in Resources */ = {isa = PBXBuildFile; fileRef = 1E9478732EE1C881002F10E3 /* MiniLM-L12-Embedding.mlpackage */; };
 		25C32E5AA96D7CBA3736F730 /* SearchPlacesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E8E5AFA2CA03D8600B37E6A /* SearchPlacesView.swift */; };
@@ -250,13 +248,6 @@
 		1EE068932B100CE30016851A /* PlaceDirectionsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceDirectionsViewModel.swift; sourceTree = "<group>"; };
 		1EE068972B121F710016851A /* LocationResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationResult.swift; sourceTree = "<group>"; };
 		1EEC48182B45A4B300248D69 /* UserCachedRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserCachedRecord.swift; sourceTree = "<group>"; };
-		1EFFBA9D2E8278020088882B /* generating_loop_0.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = generating_loop_0.wav; sourceTree = "<group>"; };
-		1EFFBA9E2E8278020088882B /* generating_loop_1.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = generating_loop_1.wav; sourceTree = "<group>"; };
-		1EFFBA9F2E8278020088882B /* generating_loop_2.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = generating_loop_2.wav; sourceTree = "<group>"; };
-		1EFFBAA02E8278020088882B /* generating_loop_3.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = generating_loop_3.wav; sourceTree = "<group>"; };
-		1EFFBAA12E8278020088882B /* generating_loop_4.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = generating_loop_4.wav; sourceTree = "<group>"; };
-		1EFFBAA22E8278020088882B /* PLAY_fixed.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = PLAY_fixed.wav; sourceTree = "<group>"; };
-		1EFFBAA32E8278020088882B /* THINKING.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = THINKING.wav; sourceTree = "<group>"; };
 		7E0F1A35D62B55EAE21375A3 /* KnowMapsCoreMLModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = KnowMapsCoreMLModels.swift; path = "Know Maps Prod/Model/Controllers/KnowMapsCoreMLModels.swift"; sourceTree = SOURCE_ROOT; };
 		A14BF342462726858BA01ED8 /* KnowMapsPlaceSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = KnowMapsPlaceSnapshot.swift; path = "Know Maps Prod/Model/Models/KnowMapsPlaceSnapshot.swift"; sourceTree = SOURCE_ROOT; };
 		B0A1B2C3D4E5F60718293A30 /* knowmaps.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = knowmaps.swift; sourceTree = "<group>"; };
@@ -468,7 +459,6 @@
 		1EA7F76F2B050610002AE371 /* Model */ = {
 			isa = PBXGroup;
 			children = (
-				1EFFBAA42E8278020088882B /* Audio */,
 				1EDF93CD2CB52E9800FDCFDF /* Network */,
 				1E98C7DA2B18E15600283E92 /* Controllers */,
 				1E98C7D92B18E11200283E92 /* ViewModels */,
@@ -498,20 +488,6 @@
 				1E630C852B16440100A57CCB /* CloudCacheService.swift */,
 			);
 			path = Network;
-			sourceTree = "<group>";
-		};
-		1EFFBAA42E8278020088882B /* Audio */ = {
-			isa = PBXGroup;
-			children = (
-				1EFFBA9D2E8278020088882B /* generating_loop_0.wav */,
-				1EFFBA9E2E8278020088882B /* generating_loop_1.wav */,
-				1EFFBA9F2E8278020088882B /* generating_loop_2.wav */,
-				1EFFBAA02E8278020088882B /* generating_loop_3.wav */,
-				1EFFBAA12E8278020088882B /* generating_loop_4.wav */,
-				1EFFBAA22E8278020088882B /* PLAY_fixed.wav */,
-				1EFFBAA32E8278020088882B /* THINKING.wav */,
-			);
-			path = Audio;
 			sourceTree = "<group>";
 		};
 		A513DA3C9390CF09595D23C3 /* ML */ = {
@@ -646,7 +622,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				1FF7B7F2A2B3C4D5E6F70819 /* LocalMapsQueryClassifier.mlmodel in Resources */,
 				1FF7B7F3A2B3C4D5E6F70819 /* LocalMapsQueryTagger.mlpackage in Resources */,
 				1FF7B7F4A2B3C4D5E6F70819 /* MiniLM-L12-Embedding.mlpackage in Resources */,
 			);
@@ -667,7 +642,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				B0A1B2C3D4E5F60718293A40 /* knowmaps.swift in Sources */,
-				1EC719A62EF97ECD003632D8 /* FoursquareSectionClassifier.mlmodel in Sources */,
 				E293787E2A3CC6B172A2292F /* Know_Maps.swift in Sources */,
 				DE8277A116B296CD42FD53C3 /* AdvancedRecommenderService.swift in Sources */,
 				C875D7D9B17072385E8D2214 /* AppShortcuts.swift in Sources */,
