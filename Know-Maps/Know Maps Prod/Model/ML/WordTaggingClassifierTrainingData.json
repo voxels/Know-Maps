@@ -176,7 +176,7 @@
 		"labels":["NONE", "NONE", "NONE", "NONE", "CATEGORY", "NONE", "NONE", "TASTE", "TASTE", "NONE", "TASTE", "TASTE"]
 	},
 	{
-		"tokens":["Can","you","recommend","a","park","with","a","dog-friendly","café","or","refreshment","area"],
+		"tokens":["Can","you","recommend","a","park","with","a","dog-friendly","cafÃ©","or","refreshment","area"],
 		"labels":["NONE", "NONE", "NONE", "NONE", "CATEGORY", "NONE", "NONE", "TASTE", "CATEGORY", "NONE", "TASTE", "NONE"]
 	},
 	{
@@ -356,7 +356,7 @@
 		"labels":["NONE", "NONE", "NONE", "TASTE", "CATEGORY", "NONE", "NONE", "NONE", "NONE"]
 	},
 	{
-		"tokens":["Is","there","a","restaurant","that’s","celebrated","for","its","breathtaking","outlook"],
+		"tokens":["Is","there","a","restaurant","thatâ€™s","celebrated","for","its","breathtaking","outlook"],
 		"labels":["NONE", "NONE", "NONE", "CATEGORY", "NONE", "TASTE", "NONE", "NONE", "TASTE", "TASTE"]
 	},
 	{
@@ -392,7 +392,7 @@
 		"labels":["NONE", "NONE", "TASTE", "CATEGORY", "NONE", "NONE", "NONE", "NONE", "NONE"]
 	},
 	{
-		"tokens":["What","are","some","restaurants","that","offer","an","exclusive","chef’s","table","experience"],
+		"tokens":["What","are","some","restaurants","that","offer","an","exclusive","chefâ€™s","table","experience"],
 		"labels":["NONE", "NONE", "NONE", "CATEGORY", "NONE", "NONE", "NONE", "NONE", "TASTE", "TASTE", "NONE"]
 	},
 	{
@@ -480,7 +480,7 @@
 		"labels":["NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "NONE", "TASTE", "TASTE", "CATEGORY"]
 	},
 	{
-		"tokens":["Where","can","I","find","a","restaurant","that’s","completely","vegan"],
+		"tokens":["Where","can","I","find","a","restaurant","thatâ€™s","completely","vegan"],
 		"labels":["NONE", "NONE", "NONE", "NONE", "NONE", "CATEGORY", "NONE", "NONE", "TASTE"]
 	},
 	{

@@ -176,7 +176,7 @@
     "label": "SearchQuery"
   },
   {
-    "text": "Can you recommend a park with a dog-friendly café or refreshment area?",
+    "text": "Can you recommend a park with a dog-friendly cafÃ© or refreshment area?",
     "label": "SearchQuery"
   },
   {
@@ -364,7 +364,7 @@
     "label": "SearchQuery"
   },
   {
-    "text": "Is there a restaurant that’s celebrated for its breathtaking outlook?",
+    "text": "Is there a restaurant thatâ€™s celebrated for its breathtaking outlook?",
     "label": "SearchQuery"
   },
   {
@@ -400,7 +400,7 @@
     "label": "SearchQuery"
   },
   {
-    "text": "What are some restaurants that offer an exclusive chef’s table experience?",
+    "text": "What are some restaurants that offer an exclusive chefâ€™s table experience?",
     "label": "SearchQuery"
   },
   {
@@ -488,7 +488,7 @@
     "label": "SearchQuery"
   },
   {
-    "text": "Where can I find a restaurant that’s completely vegan?",
+    "text": "Where can I find a restaurant thatâ€™s completely vegan?",
     "label": "SearchQuery"
   },
   {
@@ -752,7 +752,7 @@
     "label": "TellPlace"
   },
   {
-    "text": "Is there a food truck that’s particularly popular in town?",
+    "text": "Is there a food truck thatâ€™s particularly popular in town?",
     "label": "SearchQuery"
   },
   {
@@ -800,7 +800,7 @@
     "label": "SearchQuery"
   },
   {
-    "text": "Are there any local legends or folklore associated with Saint Petersberg?",
+    "text": "Are there any local legends or folklore associated with Saint Petersburg?",
     "label": "Unsupported"
   },
   {
@@ -860,7 +860,7 @@
     "label": "SearchQuery"
   },
   {
-    "text": "Can you recommend a place that’s known for outstanding sushi?",
+    "text": "Can you recommend a place thatâ€™s known for outstanding sushi?",
     "label": "SearchQuery"
   },
   {
@@ -892,7 +892,7 @@
     "label": "TellPlace"
   },
   {
-    "text": "Which eatery should I visit to try a dish that’s celebrated?",
+    "text": "Which eatery should I visit to try a dish thatâ€™s celebrated?",
     "label": "SearchQuery"
   },
   {
@@ -1068,7 +1068,7 @@
     "label": "SearchQuery"
   },
   {
-    "text": "What’s the best place around here to grab a burger?",
+    "text": "Whatâ€™s the best place around here to grab a burger?",
     "label": "SearchQuery"
   },
   {
@@ -1204,7 +1204,7 @@
     "label": "SearchQuery"
   },
   {
-    "text": "Is there a place that’s famous for its chef’s table experience?",
+    "text": "Is there a place thatâ€™s famous for its chefâ€™s table experience?",
     "label": "SearchQuery"
   },
   {
@@ -1428,7 +1428,7 @@
     "label": "SearchQuery"
   },
   {
-    "text": "Can you suggest a place for a quiet photography or art exhibition?",
+    "text": "Can you suggest a place for a quiet photography or art gallery exhibition?",
     "label": "SearchQuery"
   },
   {
@@ -1604,7 +1604,7 @@
     "label": "SearchQuery"
   },
   {
-    "text": "Can you suggest any day trips or nearby attractions that are family-friendly in Singapre?",
+    "text": "Can you suggest any day trips or nearby attractions that are family-friendly in Singapore?",
     "label": "SearchQuery"
   },
   {
@@ -1644,7 +1644,7 @@
     "label": "SearchQuery"
   },
   {
-    "text": "Is there a restaurant that’s famous for its wine cellar?",
+    "text": "Is there a restaurant thatâ€™s famous for its wine cellar?",
     "label": "SearchQuery"
   },
   {
@@ -1740,7 +1740,7 @@
     "label": "SearchQuery"
   },
   {
-    "text": "Is there a spot that’s perfect for a cozy dining experience?",
+    "text": "Is there a spot thatâ€™s perfect for a cozy dining experience?",
     "label": "SearchQuery"
   },
   {
@@ -1796,7 +1796,7 @@
     "label": "SearchQuery"
   },
   {
-    "text": "Can you recommend any scenic drives or road trips that showcase the beauty of Scotland?",
+    "text": "Can you recommend any scenic drives or routes that offer breathtaking views?",
     "label": "Unsupported"
   },
   {
@@ -1832,7 +1832,7 @@
     "label": "SearchQuery"
   },
   {
-    "text": "Is there a place that’s popular for getting a quick meal?",
+    "text": "Is there a place thatâ€™s popular for getting a quick meal?",
     "label": "SearchQuery"
   },
   {
@@ -1944,7 +1944,7 @@
     "label": "SearchQuery"
   },
   {
-    "text": "What are some family-friendly eateries that include a children’s play area?",
+    "text": "What are some family-friendly eateries that include a childrenâ€™s play area?",
     "label": "SearchQuery"
   },
   {
@@ -1964,7 +1964,7 @@
     "label": "SearchQuery"
   },
   {
-    "text": "Can you recommend a place that’s known for serving great steaks?",
+    "text": "Can you recommend a place thatâ€™s known for serving great steaks?",
     "label": "SearchQuery"
   },
   {
@@ -2028,7 +2028,7 @@
     "label": "SearchQuery"
   },
   {
-    "text": "Is there a spot that’s renowned for its all-vegan menu?",
+    "text": "Is there a spot thatâ€™s renowned for its all-vegan menu?",
     "label": "SearchQuery"
   },
   {
@@ -2100,7 +2100,7 @@
     "label": "SearchQuery"
   },
   {
-    "text": "Is there a restaurant that’s particularly celebrated for its happy hour menu?",
+    "text": "Is there a restaurant thatâ€™s particularly celebrated for its happy hour menu?",
     "label": "SearchQuery"
   },
   {
@@ -2332,7 +2332,7 @@
     "label": "SearchQuery"
   },
   {
-    "text": "What are some eateries that offer gluten-free dishes?",
+    "text": "What are some eateries that offer a variety of gluten-free dishes?",
     "label": "SearchQuery"
   },
   {
@@ -2364,7 +2364,7 @@
     "label": "SearchQuery"
   },
   {
-    "text": "Are there any specific local handicrafts or artisanal products that make for great souvenirs in Dehli?",
+    "text": "Are there any specific local handicrafts or artisanal products that make for great souvenirs in Delhi?",
     "label": "SearchQuery"
   },
   {
@@ -2380,7 +2380,7 @@
     "label": "SearchQuery"
   },
   {
-    "text": "Is there a bakery that’s particularly popular around here?",
+    "text": "Is there a bakery thatâ€™s particularly popular around here?",
     "label": "SearchQuery"
   },
   {
@@ -2504,7 +2504,7 @@
     "label": "SearchQuery"
   },
   {
-    "text": "Are there any standout dessert shops or cafés in this area?",
+    "text": "Are there any standout dessert shops or cafÃ©s in this area?",
     "label": "SearchQuery"
   },
   {
@@ -2700,7 +2700,7 @@
     "label": "SearchQuery"
   },
   {
-    "text": "What’s a good restaurant you would suggest close by?",
+    "text": "Whatâ€™s a good restaurant you would suggest close by?",
     "label": "SearchQuery"
   },
   {
@@ -2764,7 +2764,7 @@
     "label": "SearchQuery"
   },
   {
-    "text": "What’s the top spot for pizza around here?",
+    "text": "Whatâ€™s the top spot for pizza around here?",
     "label": "SearchQuery"
   },
   {
@@ -2824,7 +2824,7 @@
     "label": "SearchQuery"
   },
   {
-    "text": "Where’s the best place to grab breakfast around here?",
+    "text": "Whereâ€™s the best place to grab breakfast around here?",
     "label": "SearchQuery"
   },
   {
@@ -3164,7 +3164,7 @@
     "label": "SearchQuery"
   },
   {
-    "text": "Where can I find a restaurant that’s renowned for its Sunday brunch?",
+    "text": "Where can I find a restaurant thatâ€™s renowned for its Sunday brunch?",
     "label": "SearchQuery"
   },
   {
@@ -3192,7 +3192,7 @@
     "label": "TellPlace"
   },
   {
-    "text": "Is there a restaurant that’s known for an exceptional tasting menu?",
+    "text": "Is there a restaurant thatâ€™s known for an exceptional tasting menu?",
     "label": "SearchQuery"
   },
   {
@@ -3356,7 +3356,7 @@
     "label": "SearchQuery"
   },
   {
-    "text": "What are some eateries that come equipped with a children’s play space?",
+    "text": "What are some eateries that come equipped with a childrenâ€™s play space?",
     "label": "SearchQuery"
   },
   {
@@ -3412,7 +3412,7 @@
     "label": "SearchQuery"
   },
   {
-    "text": "Is there a place that’s known for being kid-friendly with a play zone?",
+    "text": "Is there a place thatâ€™s known for being kid-friendly with a play zone?",
     "label": "SearchQuery"
   },
   {
@@ -3520,7 +3520,7 @@
     "label": "SearchQuery"
   },
   {
-    "text": "Is there a place that’s a must-visit for cocktail enthusiasts?",
+    "text": "Is there a place thatâ€™s a must-visit for cocktail enthusiasts?",
     "label": "SearchQuery"
   },
   {
@@ -3552,7 +3552,7 @@
     "label": "TellPlace"
   },
   {
-    "text": "Where can I find a restaurant that’s perfect for a date night?",
+    "text": "Where can I find a restaurant thatâ€™s perfect for a date night?",
     "label": "SearchQuery"
   },
   {
@@ -3724,7 +3724,7 @@
     "label": "SearchQuery"
   },
   {
-    "text": "Where can I find a restaurant that has a bibliophile's décor?",
+    "text": "Where can I find a restaurant that has a bibliophile's dÃ©cor?",
     "label": "SearchQuery"
   },
   {
@@ -3796,7 +3796,7 @@
     "label": "SearchQuery"
   },
   {
-    "text": "What’s the go-to place for seafood around here?",
+    "text": "Whatâ€™s the go-to place for seafood around here?",
     "label": "SearchQuery"
   },
   {
@@ -4088,11 +4088,11 @@
     "label": "SearchQuery"
   },
   {
-    "text": "Are there any specific local street food markets or food tours that allow visitors to explore the local cuisine in Soeul?",
+    "text": "Are there any specific local street food markets or food tours that allow visitors to explore the local cuisine in Seoul?",
     "label": "SearchQuery"
   },
   {
-    "text": "Can you recommend a place that’s known for amazing pizza?",
+    "text": "Can you recommend a place thatâ€™s known for amazing pizza?",
     "label": "SearchQuery"
   },
   {
@@ -4284,7 +4284,7 @@
     "label": "SearchQuery"
   },
   {
-    "text": "Can you recommend a spot that’s famous for its burgers?",
+    "text": "Can you recommend a spot thatâ€™s famous for its burgers?",
     "label": "SearchQuery"
   },
   {
@@ -4348,7 +4348,7 @@
     "label": "SearchQuery"
   },
   {
-    "text": "Are there any restaurants known for their chef’s table dining options?",
+    "text": "Are there any restaurants known for their chefâ€™s table dining options?",
     "label": "SearchQuery"
   },
   {
@@ -4616,7 +4616,7 @@
     "label": "SearchQuery"
   },
   {
-    "text": "Are there any specific local street food markets or food tours that allow visitors to explore the local cuisine in Sao Paolo?",
+    "text": "Are there any specific local street food markets or food tours that allow visitors to explore the local cuisine in Sao Paulo?",
     "label": "SearchQuery"
   },
   {
@@ -4648,7 +4648,7 @@
     "label": "SearchQuery"
   },
   {
-    "text": "Where can I have a meal at a chef’s table?",
+    "text": "Where can I have a meal at a chefâ€™s table?",
     "label": "SearchQuery"
   },
   {
@@ -4828,7 +4828,7 @@
     "label": "SearchQuery"
   },
   {
-    "text": "Can you name some of the city’s elite fine dining venues?",
+    "text": "Can you name some of the cityâ€™s elite fine dining venues?",
     "label": "SearchQuery"
   },
   {
@@ -4868,7 +4868,7 @@
     "label": "SearchQuery"
   },
   {
-    "text": "Is there a place that’s popular for its buffet spread?",
+    "text": "Is there a place thatâ€™s popular for its buffet spread?",
     "label": "SearchQuery"
   },
   {
@@ -4948,7 +4948,7 @@
     "label": "SearchQuery"
   },
   {
-    "text": "Can you recommend a place that’s known for serving great ramen?",
+    "text": "Can you recommend a place thatâ€™s known for serving great ramen?",
     "label": "SearchQuery"
   },
   {
@@ -5266,5 +5266,5 @@
   {
     "text": "Find a place with outdoor seating.",
     "label": "SearchQuery"
-  },
+  }
 ]
