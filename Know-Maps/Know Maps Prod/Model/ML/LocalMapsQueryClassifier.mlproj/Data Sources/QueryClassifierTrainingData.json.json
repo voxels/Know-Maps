@@ -76,10 +76,10 @@
       }
     },
     "dataSourceID" : "5E755028-A975-434A-BE88-1706BFE6F851",
-    "dataURL" : "file:///Users/voxels/Documents/dev/Know%20Maps/Know-Maps/Know%20Maps/Know%20Maps%20Prod/Model/ML/QueryClassifierTrainingData.json",
+    "dataURL" : "file:./QueryClassifierTrainingData.json",
     "itemsCount" : 1318
   },
-  "dataURL" : "file:///Users/voxels/Documents/dev/Know%20Maps/Know-Maps/Know%20Maps/Know%20Maps%20Prod/Model/ML/QueryClassifierTrainingData.json",
+  "dataURL" : "file:./QueryClassifierTrainingData.json",
   "experimentIDs" : [
     "A1C7D58F-55B2-4A7C-83FA-87A382E6B3A9"
   ],
