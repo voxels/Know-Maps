@@ -50,9 +50,6 @@ public enum CloudCacheServiceKey: String {
     // Thread-safe queues for synchronizing access
     private let operationQueue = DispatchQueue(label: "com.secretatomics.knowmaps.operationQueue", attributes: .concurrent)
     
-#if !os(macOS)
-    private var backgroundTask: UIBackgroundTaskIdentifier = .invalid
-#endif
     
     public init(analyticsManager: AnalyticsService, modelContext: ModelContext) {
         self.analyticsManager = analyticsManager
@@ -60,48 +57,12 @@ public enum CloudCacheServiceKey: String {
         
         super.init()
 #if os(macOS)
-        NotificationCenter.default.addObserver(self, selector: #selector(appDidEnterBackground), name: NSApplication.didResignActiveNotification, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(appWillEnterForeground), name: NSApplication.didBecomeActiveNotification, object: nil)
+// No-op for now
 #else
-        NotificationCenter.default.addObserver(self, selector: #selector(appDidEnterBackground), name: UIApplication.didEnterBackgroundNotification, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(appWillEnterForeground), name: UIApplication.willEnterForegroundNotification, object: nil)
+// No-op for now
 #endif
     }
     
-    @MainActor @objc func appDidEnterBackground() {
-        // Register background task
-#if !os(macOS)
-        backgroundTask = UIApplication.shared.beginBackgroundTask(expirationHandler: { [weak self] in
-            guard let self = self else { return }
-            Task { @MainActor in
-                // Cancel operations if background time expires
-                self.cancelAllOperations()
-#if !os(macOS)
-                UIApplication.shared.endBackgroundTask(self.backgroundTask)
-                self.backgroundTask = .invalid
-#endif
-            }
-        })
-#endif        
-    }
-    
-    @MainActor @objc func appWillEnterForeground() {
-        // End background task if necessary
-#if !os(macOS)
-        if backgroundTask != .invalid {
-            UIApplication.shared.endBackgroundTask(backgroundTask)
-            backgroundTask = .invalid
-        }
-#endif
-        // Resume or restart any necessary operations
-    }
-    
-    @MainActor private func cancelAllOperations() {
-        operationQueue.async(flags: .barrier) {
-            self.cacheOperations.forEach { $0.cancel() }
-            self.keysOperations.forEach { $0.cancel() }
-        }
-    }
     
     private func insertCacheOperation(_ operation: CKDatabaseOperation) {
         operationQueue.async(flags: .barrier) {

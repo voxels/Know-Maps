@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		F853F356B30DEB0D9ED8951E /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EA7F74E2B03FA71002AE371 /* ContentView.swift */; };
 		015E1F23F0B063E5CEA5BD8B /* PlacePhotoResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EA7F7732B052D92002AE371 /* PlacePhotoResponse.swift */; };
 		026A1E5C6F4A37C70F806BDF /* AssistiveChatHostIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E98C7D22B18DC7400283E92 /* AssistiveChatHostIntent.swift */; };
 		035C57F056A0F0C49F845865 /* UnifiedSearchIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E94783E2EDB7917002F10E3 /* UnifiedSearchIntent.swift */; };
@@ -112,14 +113,21 @@
 		E0B080B4E6365C603BFFA139 /* SegmentAnalyticsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E007ACD2CB40B1900A8DC5A /* SegmentAnalyticsService.swift */; };
 		E1AF3C67EF995C631BDBF31D /* CloudCacheService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E630C852B16440100A57CCB /* CloudCacheService.swift */; };
 		E1C6B52381751B8BE191345A /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EE068872B0D1ADB0016851A /* SettingsView.swift */; };
-		E293787E2A3CC6B172A2292F /* Know_Maps.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EA7F74C2B03FA71002AE371 /* Know_Maps.swift */; };
+		E293787E2A3CC6B172A2292F /* Know_MapsAppView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EA7F74C2B03FA71002AE371 /* Know_MapsAppView.swift */; };
+		1E15AE062EF96C59009384CA /* SearchMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E15AE052EF96C59009384CA /* SearchMode.swift */; };
+		1E15AE032EF96C59009384CA /* View+Availability.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E15AE042EF96C59009384CA /* View+Availability.swift */; };
+		1E15AE022EF96C59009384CA /* Know_MapsApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E15AE012EF96C59009384CA /* Know_MapsApp.swift */; };
+		F853F356B30DEB0D9ED8951E /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EA7F74E2B03FA71002AE371 /* ContentView.swift */; };
+		BF67A82B0E2BFA2D5B7E720D /* AddPromptView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E69444F2CBA73060017A81F /* AddPromptView.swift */; };
+		9434B9C8671BE04E4C596352 /* AddTasteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E6944552CBA78330017A81F /* AddTasteView.swift */; };
+		919D18105E9D3DE0C10D01C2 /* AddPlaceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E6944572CBA78560017A81F /* AddPlaceView.swift */; };
+		78BFC62F2D90D7B76F476068 /* AddCategoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E6944532CBA780A0017A81F /* AddCategoryView.swift */; };
 		E6B52CE898EFC2FA4C898CA2 /* ChatResultViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EA7F7822B052D92002AE371 /* ChatResultViewModel.swift */; };
 		E7CD5355B991F3F264101FE0 /* DefaultModelController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EDF93CE2CB52F1600FDCFDF /* DefaultModelController.swift */; };
 		E85554B679F27F4E3ECF7605 /* AnalyticsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E7D43602CB525EE00DC17FA /* AnalyticsService.swift */; };
 		EBA1914C1CC49B8FD85E9EE3 /* SearchCategoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E70B4C42B50103C00F1F9F5 /* SearchCategoryView.swift */; };
 		F4A258F0E45009DFDFFCA0FC /* PromptRankingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C9E979859B904129199B272 /* PromptRankingView.swift */; };
 		F7DD46EDCF96AE3A18F305F5 /* PlaceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EA588D22B09326E006B1F8F /* PlaceView.swift */; };
-		F853F356B30DEB0D9ED8951E /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EA7F74E2B03FA71002AE371 /* ContentView.swift */; };
 		F94DF3E20FE772113CBB817A /* LanguageGeneratorService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EA7F7762B052D92002AE371 /* LanguageGeneratorService.swift */; };
 /* End PBXBuildFile section */
 
@@ -141,7 +149,9 @@
 		1E095AFE2B778AF000147119 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		1E095B002B778AF000147119 /* Know_Maps_Prod.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Know_Maps_Prod.entitlements; sourceTree = "<group>"; };
 		1E095B022B778AF000147119 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
-		1E15EDE52EF96C59009384CA /* knowmaps.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = knowmaps.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		1E15AE052EF96C59009384CA /* SearchMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchMode.swift; sourceTree = "<group>"; };
+		1E15AE042EF96C59009384CA /* View+Availability.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "View+Availability.swift"; sourceTree = "<group>"; };
+		1E15EDE52EF96C59009384CA /* knowmaps.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = knowmaps.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		1E15EDEF2EF96C59009384CA /* knowmapsTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = knowmapsTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		1E1E31102CC19E1B00A23434 /* Know-Maps-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "Know-Maps-Info.plist"; sourceTree = "<group>"; };
 		1E1F5E442B725D56008B6BAD /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
@@ -208,7 +218,8 @@
 		1E98C7D42B18DC9600283E92 /* AssistiveChatHostMessagesDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistiveChatHostMessagesDelegate.swift; sourceTree = "<group>"; };
 		1EA588CE2B065D8B006B1F8F /* AssistiveChatHost.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistiveChatHost.swift; sourceTree = "<group>"; };
 		1EA588D22B09326E006B1F8F /* PlaceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceView.swift; sourceTree = "<group>"; };
-		1EA7F74C2B03FA71002AE371 /* Know_Maps.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Know_Maps.swift; sourceTree = "<group>"; };
+		1E15AE012EF96C59009384CA /* Know_MapsApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Know_MapsApp.swift; sourceTree = "<group>"; };
+		1EA7F74C2B03FA71002AE371 /* Know_MapsAppView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Know_MapsAppView.swift; sourceTree = "<group>"; };
 		1EA7F74E2B03FA71002AE371 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		1EA7F7502B03FA71002AE371 /* ImmersiveView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImmersiveView.swift; sourceTree = "<group>"; };
 		1EA7F7572B03FA72002AE371 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -283,7 +294,8 @@
 			children = (
 				1E9039782B8B650C00C3BA42 /* Know Maps ProdDebug.entitlements */,
 				1E095B002B778AF000147119 /* Know_Maps_Prod.entitlements */,
-				1EA7F74C2B03FA71002AE371 /* Know_Maps.swift */,
+				1EA7F74C2B03FA71002AE371 /* Know_MapsAppView.swift */,
+				1E15AE012EF96C59009384CA /* Know_MapsApp.swift */,
 				1EA7F76F2B050610002AE371 /* Model */,
 				1EA7F76E2B050065002AE371 /* View */,
 				1EA7F7572B03FA72002AE371 /* Info.plist */,
@@ -332,6 +344,7 @@
 				1E94783E2EDB7917002F10E3 /* UnifiedSearchIntent.swift */,
 				1EC83C8D2EA7E67700212057 /* ConfiguredSearchSession.swift */,
 				1E9478422EDB7970002F10E3 /* VectorEmbeddingService.swift */,
+				1E15AE052EF96C59009384CA /* SearchMode.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -412,7 +425,7 @@
 		1EA7F7462B03FA70002AE371 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				1E15EDE52EF96C59009384CA /* knowmaps.framework */,
+				1E15EDE52EF96C59009384CA /* knowmaps.app */,
 				1E15EDEF2EF96C59009384CA /* knowmapsTests.xctest */,
 			);
 			name = Products;
@@ -421,6 +434,7 @@
 		1EA7F76E2B050065002AE371 /* View */ = {
 			isa = PBXGroup;
 			children = (
+				1E15AE042EF96C59009384CA /* View+Availability.swift */,
 				1E630C832B1636E400A57CCB /* ActivityViewController.swift */,
 				1E6944532CBA780A0017A81F /* AddCategoryView.swift */,
 				1E6944572CBA78560017A81F /* AddPlaceView.swift */,
@@ -542,15 +556,15 @@
 			);
 			dependencies = (
 			);
-			name = knowmaps;
+			name = "Know Maps";
 			packageProductDependencies = (
 				B0A1B2C3D4E5F60718293A50 /* NukeUI */,
 				B0A1B2C3D4E5F60718293A51 /* Segment */,
 				B0A1B2C3D4E5F60718293A52 /* Supabase */,
 			);
-			productName = knowmaps;
-			productReference = 1E15EDE52EF96C59009384CA /* knowmaps.framework */;
-			productType = "com.apple.product-type.framework";
+			productName = "Know Maps";
+			productReference = 1E15EDE52EF96C59009384CA /* Know Maps.app */;
+			productType = "com.apple.product-type.application";
 		};
 		1E15EDEE2EF96C59009384CA /* knowmapsTests */ = {
 			isa = PBXNativeTarget;
@@ -645,8 +659,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B0A1B2C3D4E5F60718293A40 /* knowmaps.swift in Sources */,
-				E293787E2A3CC6B172A2292F /* Know_Maps.swift in Sources */,
+				1E15AE062EF96C59009384CA /* SearchMode.swift in Sources */,
+				1E15AE032EF96C59009384CA /* View+Availability.swift in Sources */,
+				1E15AE022EF96C59009384CA /* Know_MapsApp.swift in Sources */,
+				E293787E2A3CC6B172A2292F /* Know_MapsAppView.swift in Sources */,
 				DE8277A116B296CD42FD53C3 /* AdvancedRecommenderService.swift in Sources */,
 				C875D7D9B17072385E8D2214 /* AppShortcuts.swift in Sources */,
 				DE3AE91471E3D7EA042C7E7B /* AppleAuthenticationService.swift in Sources */,
@@ -775,48 +791,31 @@
 		1E15EDFD2EF96C59009384CA /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALLOW_TARGET_PLATFORM_SPECIALIZATION = YES;
-				BUILD_LIBRARY_FOR_DISTRIBUTION = YES;
-				CODE_SIGN_IDENTITY = "";
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "Know Maps Prod/Know Maps ProdDebug.entitlements";
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEAD_CODE_STRIPPING = YES;
-				DYLIB_COMPATIBILITY_VERSION = 1;
-				DYLIB_CURRENT_VERSION = 1;
-				DYLIB_INSTALL_NAME_BASE = "@rpath";
-				ENABLE_MODULE_VERIFIER = YES;
+				DEVELOPMENT_ASSET_PATHS = "\"Know Maps Prod/Preview Content\"";
+				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Know Maps uses your current location to suggest places to go near you.";
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
 					"@executable_path/Frameworks",
-					"@loader_path/Frameworks",
-				);
-				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = (
-					"@executable_path/../Frameworks",
-					"@loader_path/Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MARKETING_VERSION = 1.0;
-				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
-				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
 				PRODUCT_BUNDLE_IDENTIFIER = com.secretatomics.knowmaps;
-				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = auto;
-				SKIP_INSTALL = YES;
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_INSTALL_MODULE = YES;
-				SWIFT_INSTALL_OBJC_HEADER = NO;
-				SWIFT_STRICT_CONCURRENCY = minimal;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_VERSION = 5.9;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
-				VERSIONING_SYSTEM = "apple-generic";
-				VERSION_INFO_PREFIX = "";
 				XROS_DEPLOYMENT_TARGET = 26.0;
 			};
 			name = Debug;
@@ -824,48 +823,30 @@
 		1E15EDFE2EF96C59009384CA /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALLOW_TARGET_PLATFORM_SPECIALIZATION = YES;
-				BUILD_LIBRARY_FOR_DISTRIBUTION = YES;
-				CODE_SIGN_IDENTITY = "";
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "Know Maps Prod/Know_Maps_Prod.entitlements";
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEAD_CODE_STRIPPING = YES;
-				DYLIB_COMPATIBILITY_VERSION = 1;
-				DYLIB_CURRENT_VERSION = 1;
-				DYLIB_INSTALL_NAME_BASE = "@rpath";
-				ENABLE_MODULE_VERIFIER = YES;
+				DEVELOPMENT_ASSET_PATHS = "\"Know Maps Prod/Preview Content\"";
+				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Know Maps uses your current location to suggest places to go near you.";
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
 					"@executable_path/Frameworks",
-					"@loader_path/Frameworks",
-				);
-				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = (
-					"@executable_path/../Frameworks",
-					"@loader_path/Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MARKETING_VERSION = 1.0;
-				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
-				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
 				PRODUCT_BUNDLE_IDENTIFIER = com.secretatomics.knowmaps;
-				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = auto;
-				SKIP_INSTALL = YES;
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_INSTALL_MODULE = YES;
-				SWIFT_INSTALL_OBJC_HEADER = NO;
-				SWIFT_STRICT_CONCURRENCY = minimal;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.9;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
-				VERSIONING_SYSTEM = "apple-generic";
-				VERSION_INFO_PREFIX = "";
 				XROS_DEPLOYMENT_TARGET = 26.0;
 			};
 			name = Release;
@@ -1048,7 +1029,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		1E15EDFC2EF96C59009384CA /* Build configuration list for PBXNativeTarget "knowmaps" */ = {
+		1E15EDFC2EF96C59009384CA /* Build configuration list for PBXNativeTarget "Know Maps" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				1E15EDFD2EF96C59009384CA /* Debug */,

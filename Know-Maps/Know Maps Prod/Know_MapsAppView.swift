@@ -14,7 +14,7 @@ import AuthenticationServices
 import TipKit
 
 @MainActor
-public struct Know_Maps : View {
+public struct Know_MapsAppView : View {
     public static let sharedModelContainer: ModelContainer = {
         let schema = Schema([
             UserCachedRecord.self,
@@ -130,7 +130,7 @@ public struct Know_Maps : View {
         filterView()
             .frame(minWidth: 600, minHeight: 500)
             .knowMapsPresentationSizingFittedIfAvailable()
-            .presentationDragIndicator(.visible)
+            .presentationDragIndicator(Visibility.visible)
             .interactiveDismissDisabled(false)
 #else
         filterView()

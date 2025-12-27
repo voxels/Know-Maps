@@ -34,12 +34,6 @@ public enum ContentDetailView {
     case add
 }
 
-public enum SearchMode: Hashable {
-    case favorites
-    case industries
-    case features
-    case places
-}
 
 public struct ContentView: View {
     @Environment(\.modelContext) private var modelContext

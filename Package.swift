@@ -30,6 +30,7 @@ let package = Package(
                 "Info.plist",
                 "Know Maps ProdDebug.entitlements",
                 "Know_Maps_Prod.entitlements",
+                "Know_MapsApp.swift",
                 "Preview Content",
                 "Model/Documentation",
                 "Model/ML/FoursquareClassifierTrainingData.csv",
