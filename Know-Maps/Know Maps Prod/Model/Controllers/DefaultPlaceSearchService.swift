@@ -11,16 +11,16 @@ import CoreLocation
 @Observable
 public final class DefaultPlaceSearchService: @preconcurrency PlaceSearchService {
     public let assistiveHostDelegate: AssistiveChatHost
-    public let placeSearchSession: PlaceSearchSession
-    public let personalizedSearchSession: PersonalizedSearchSession
+    public let placeSearchSession: PlaceSearchSessionProtocol
+    public let personalizedSearchSession: PersonalizedSearchSessionProtocol
     public let analyticsManager: AnalyticsService
     
     @MainActor public var lastFetchedTastePage: Int = 0
     
     public init(
         assistiveHostDelegate: AssistiveChatHost,
-        placeSearchSession: PlaceSearchSession,
-        personalizedSearchSession: PersonalizedSearchSession,
+        placeSearchSession: PlaceSearchSessionProtocol,
+        personalizedSearchSession: PersonalizedSearchSessionProtocol,
         analyticsManager: AnalyticsService
     ) {
         self.assistiveHostDelegate = assistiveHostDelegate
@@ -94,54 +94,98 @@ public final class DefaultPlaceSearchService: @preconcurrency PlaceSearchService
         }
     }
     
-    public func fetchRelatedPlaces(for fsqID: String, cacheManager: CacheManager) async throws -> [RecommendedPlaceSearchResponse] {
-        let rawRelatedVenuesWrapped = try await personalizedSearchSession.fetchRelatedVenues(for: fsqID, cacheManager: cacheManager)
+    public func fetchRelatedPlaces(for fsqID: String, cacheManager: CacheManager) async throws -> [PlaceSearchResponse] {
+        return try await personalizedSearchSession.fetchRelatedVenues(for: fsqID, cacheManager: cacheManager)
+    }
 
-        // Encode wrapper into JSON Data expected by the formatter
-        guard JSONSerialization.isValidJSONObject(rawRelatedVenuesWrapped),
-              let payloadData = try? JSONSerialization.data(withJSONObject: rawRelatedVenuesWrapped, options: []) else {
-            analyticsManager.track(
-                event: "relatedPlaces.encodingFailed",
-                properties: ["reason": "Could not encode related venues payload to JSON data"]
-            )
-            return []
-        }
-
-        return try PlaceResponseFormatter.relatedPlaceSearchResponses(from: payloadData)
+    public func fetchPlaceByID(fsqID: String) async throws -> ChatResult {
+        let request = PlaceDetailsRequest(
+            fsqID: fsqID,
+            core: true,
+            description: true,
+            tel: true,
+            fax: false,
+            email: false,
+            website: true,
+            socialMedia: true,
+            verified: false,
+            hours: true,
+            hoursPopular: true,
+            rating: true,
+            stats: false,
+            popularity: true,
+            price: true,
+            menu: true,
+            tastes: true,
+            features: false
+        )
+        let rawDetailsWrapped = try await placeSearchSession.details(for: request)
+        let tipsWrapped = try await placeSearchSession.tips(for: fsqID)
+        let photosWrapped = try await placeSearchSession.photos(for: fsqID)
+        
+        // We need a base PlaceSearchResponse to create the ChatResult
+        // In V3, we can't easily get a SearchResponse from ID without a search, 
+        // but formatter can handle it if we mock a basic one or update it.
+        // For now, let's create a ChatResult manually or update Formatter.
+        
+        let tipsResponses = try PlaceResponseFormatter.placeTipsResponses(with: tipsWrapped, for: fsqID)
+        let photoResponses = try PlaceResponseFormatter.placePhotoResponses(with: photosWrapped, for: fsqID)
+        
+        // Mock a response since we only have details
+        let mockResponse = PlaceSearchResponse(fsqID: fsqID, name: "", categories: [], latitude: 0, longitude: 0, address: "", addressExtended: "", country: "", dma: "", formattedAddress: "", locality: "", postCode: "", region: "", chains: [], link: "", childIDs: [], parentIDs: [])
+        
+        let details = try await PlaceResponseFormatter.placeDetailsResponse(
+            with: rawDetailsWrapped,
+            for: mockResponse,
+            placePhotosResponses: photoResponses,
+            placeTipsResponses: tipsResponses
+        )
+        
+        return ChatResult(
+            index: 0,
+            identity: fsqID,
+            title: details.name,
+            list: "",
+            icon: "📍",
+            rating: 1.0,
+            section: .topPicks,
+            placeResponse: details.searchResponse,
+        )
     }
     
     // MARK: Autocomplete Methods
     @MainActor
     public func autocompleteTastes(lastIntent: AssistiveChatHostIntent, currentTasteResults:[CategoryResult], cacheManager:CacheManager) async throws -> [CategoryResult] {
         var query = lastIntent.caption
-        if let revisedQuery = lastIntent.queryParameters?["query"] as? String {
+        if let revisedQuery = lastIntent.queryParameters?["query"]?.value as? String {
             query = revisedQuery
         }
         query = query.trimmingCharacters(in: .whitespacesAndNewlines)
         
-        let rawWrapped = try await personalizedSearchSession.autocompleteTastes(caption: query, parameters: lastIntent.queryParameters, cacheManager: cacheManager)
-        let tastes = try PlaceResponseFormatter.autocompleteTastesResponses(with: rawWrapped)
-        let results = tasteCategoryResults(tastes: tastes, page: 0, currentTasteResults: currentTasteResults)
+        let parameters = lastIntent.queryParameters?.compactMapValues { $0.value as? String }
+        let tastesResponse = try await personalizedSearchSession.autocompleteTastes(caption: query, parameters: parameters, cacheManager: cacheManager)
+        let tastes = try PlaceResponseFormatter.autocompleteTastesResponses(with: tastesResponse)
+        let results = await tasteCategoryResults(tastes: tastes, page: 0, currentTasteResults: currentTasteResults)
         return results
     }
     
     @MainActor
     public func refreshTastes(page: Int, currentTasteResults:[CategoryResult], cacheManager:CacheManager) async throws -> [CategoryResult] {
-        let tastesWrapped = try await personalizedSearchSession.fetchTastes(page: page, cacheManager: cacheManager)
-        let tastesArray = try PlaceResponseFormatter.autocompleteTastesResponses(with: tastesWrapped)
-        let tastes = tastesArray
+        let tastesResponse = try await personalizedSearchSession.fetchTastes(page: page, cacheManager: cacheManager)
+        let tastes = try PlaceResponseFormatter.autocompleteTastesResponses(with: tastesResponse)
         DispatchQueue.main.async {
             self.lastFetchedTastePage = page
         }
-        let results = tasteCategoryResults(tastes: tastes, page: page, currentTasteResults: currentTasteResults)
+        let results = await tasteCategoryResults(tastes: tastes, page: page, currentTasteResults: currentTasteResults)
         return results
     }
         
-    @MainActor private func tasteCategoryResults(tastes: [String], page: Int, currentTasteResults: [CategoryResult]) -> [CategoryResult] {
+    @MainActor private func tasteCategoryResults(tastes: [String], page: Int, currentTasteResults: [CategoryResult]) async -> [CategoryResult] {
         var results = currentTasteResults
         
         for (index, taste) in tastes.enumerated() {
-            let chatResult = ChatResult(index: index, identity: taste, title: taste, list:"Taste", icon: "", rating: 1, section:assistiveHostDelegate.section(for:taste), placeResponse: nil, recommendedPlaceResponse: nil)
+            let section = await assistiveHostDelegate.section(for:taste)
+            let chatResult = ChatResult(index: index, identity: taste, title: taste, list:"Taste", icon: "", rating: 1, section:section, placeResponse: nil, recommendedPlaceResponse: nil)
             let categoryResult = CategoryResult(identity:taste, parentCategory: taste, list:"Taste", icon: chatResult.icon, rating: 1, section:chatResult.section, categoricalChatResults: [chatResult])
             results.append(categoryResult)
         }
@@ -185,11 +229,11 @@ public final class DefaultPlaceSearchService: @preconcurrency PlaceSearchService
         var limit:Int = 50
         var categories = ""
         
-        if let revisedQuery = intent.queryParameters?["query"] as? String {
+        if let revisedQuery = intent.queryParameters?["query"]?.value as? String {
             query = revisedQuery
         }
         
-        if let rawParameters = intent.queryParameters?["parameters"] as? NSDictionary {
+        if let rawParameters = intent.queryParameters?["parameters"]?.value as? NSDictionary {
             
             
             if let rawMinPrice = rawParameters["min_price"] as? Int, rawMinPrice > 1 {
@@ -273,11 +317,11 @@ public final class DefaultPlaceSearchService: @preconcurrency PlaceSearchService
         var section:PersonalizedSearchSection? = nil
         var tags = AssistiveChatHostTaggedWord()
         
-        if let revisedQuery = intent.queryParameters?["query"] as? String {
+        if let revisedQuery = intent.queryParameters?["query"]?.value as? String {
             query = revisedQuery
         }
         
-        if let rawParameters = intent.queryParameters?["parameters"] as? NSDictionary {
+        if let rawParameters = intent.queryParameters?["parameters"]?.value as? NSDictionary {
             
             
             if let rawMinPrice = rawParameters["min_price"] as? Int, rawMinPrice > 1 {

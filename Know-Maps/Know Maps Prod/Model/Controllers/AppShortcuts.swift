@@ -73,7 +73,8 @@ struct ShowMoodResultsIntent: AppIntent {
             queryParameters: [
                 "source": "AppShortcut.mood",
                 "section": mood.rawValue
-            ]
+            ],
+            enrichedIntent: nil
         )
 
         // 4. Actually trigger the pipeline. This will:

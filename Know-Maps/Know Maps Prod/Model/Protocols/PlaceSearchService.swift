@@ -10,8 +10,8 @@ import CoreLocation
 
 public protocol PlaceSearchService: Sendable {
     var assistiveHostDelegate: AssistiveChatHost { get }
-    var placeSearchSession: PlaceSearchSession { get }
-    var personalizedSearchSession: PersonalizedSearchSession { get }
+    var placeSearchSession: PlaceSearchSessionProtocol { get }
+    var personalizedSearchSession: PersonalizedSearchSessionProtocol { get }
     var analyticsManager:AnalyticsService { get }
     var lastFetchedTastePage: Int { get set } // Add this line
     func retrieveFsqUser(cacheManager:CacheManager) async throws
@@ -20,4 +20,6 @@ public protocol PlaceSearchService: Sendable {
     func detailIntent(intent: AssistiveChatHostIntent, cacheManager:CacheManager) async throws
     func placeSearchRequest(intent:AssistiveChatHostIntent) async ->PlaceSearchRequest
     func recommendedPlaceSearchRequest(intent:AssistiveChatHostIntent) async -> RecommendedPlaceSearchRequest
+    func fetchRelatedPlaces(for fsqID: String, cacheManager: CacheManager) async throws -> [PlaceSearchResponse]
+    func fetchPlaceByID(fsqID: String) async throws -> ChatResult
 }

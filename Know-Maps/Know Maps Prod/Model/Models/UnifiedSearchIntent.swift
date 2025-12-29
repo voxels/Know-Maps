@@ -32,6 +32,9 @@ public struct UnifiedSearchIntent: Codable, Sendable {
     /// Location description (e.g., "Golden Gate Park", "downtown")
     public let locationDescription: String?
     
+    /// Target opening time extracted from the query (e.g., "7pm")
+    public let openAt: String?
+    
     /// Raw query text for reference
     public let rawQuery: String
     
@@ -85,6 +88,7 @@ public struct UnifiedSearchIntent: Codable, Sendable {
         priceRange: PriceRange? = nil,
         placeName: String? = nil,
         locationDescription: String? = nil,
+        openAt: String? = nil,
         rawQuery: String,
         confidence: Double? = nil
     ) {
@@ -94,6 +98,7 @@ public struct UnifiedSearchIntent: Codable, Sendable {
         self.priceRange = priceRange
         self.placeName = placeName
         self.locationDescription = locationDescription
+        self.openAt = openAt
         self.rawQuery = rawQuery
         self.confidence = confidence
     }
@@ -107,6 +112,7 @@ public struct UnifiedSearchIntent: Codable, Sendable {
         case priceRange = "price_range"
         case placeName = "place_name"
         case locationDescription = "location_description"
+        case openAt = "open_at"
         case rawQuery = "raw_query"
         case confidence
     }

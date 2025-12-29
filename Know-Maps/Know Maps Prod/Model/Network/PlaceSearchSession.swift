@@ -24,7 +24,7 @@ extension Array where Element: JSONRepresentable {
     func toJSON() -> [[String: Any]] { self.map { $0.toJSON() } }
 }
 
-public struct FSQCategory: Codable, Sendable {
+public struct FSQCategory: Codable, Sendable, Hashable, Equatable {
     let id: Int?
     let name: String?
 }
@@ -377,6 +377,18 @@ extension FSQTip: JSONRepresentable {
         return dict
     }
 }
+public struct FSQTaste: Codable, Sendable {
+    public let id: String?
+    public let text: String?
+}
+
+public struct FSQTastesResponse: Codable, Sendable {
+    public let tastes: [FSQTaste]?
+}
+
+public struct FSQTastesRoot: Codable, Sendable {
+    public let response: FSQTastesResponse?
+}
 
 public enum PlaceSearchSessionError : Error {
     case ServiceNotFound
@@ -386,7 +398,9 @@ public enum PlaceSearchSessionError : Error {
     case InvalidSession
 }
 
-public actor PlaceSearchSession : ObservableObject {
+public actor PlaceSearchSession : PlaceSearchSessionProtocol, ObservableObject {
+    public var proactiveCacheService: ProactiveCacheService?
+    static let foursquareVersionDate = "20241227"
     private var foursquareApiKey = ""
     let keysContainer = CKContainer(identifier:"iCloud.com.secretatomics.knowmaps.Keys")
     static let serverUrl = "https://api.foursquare.com/"
@@ -401,7 +415,7 @@ public actor PlaceSearchSession : ObservableObject {
     }
     
     init(){
-
+        
     }
     
     init(foursquareApiKey: String = "") {
@@ -425,7 +439,7 @@ public actor PlaceSearchSession : ObservableObject {
             // When using "near", cap radius to a sane upper bound supported by FSQ (100km)
             value = min(value, 100000)
         }
-
+        
         if let nearLocation = request.nearLocation, !nearLocation.isEmpty {
             // Remote/city-biased search
             queryItems.append(URLQueryItem(name: "near", value: nearLocation))
@@ -445,16 +459,16 @@ public actor PlaceSearchSession : ObservableObject {
             let minPriceQueryItem = URLQueryItem(name: "min_price", value: "\(request.minPrice)")
             queryItems.append(minPriceQueryItem)
         }
-
+        
         if request.maxPrice < 4 {
             let maxPriceQueryItem = URLQueryItem(name: "max_price", value: "\(request.maxPrice)")
             queryItems.append(maxPriceQueryItem)
-
+            
         }
         
         if let openAt = request.openAt {
             let openAtQueryItem = URLQueryItem(name:"open_at", value:openAt)
-
+            
             queryItems.append(openAtQueryItem)
         }
         
@@ -463,7 +477,7 @@ public actor PlaceSearchSession : ObservableObject {
             queryItems.append(openNowQueryItem)
         }
         
-
+        
         
         if let sort = request.sort {
             let sortQueryItem = URLQueryItem(name: "sort", value: sort)
@@ -473,6 +487,9 @@ public actor PlaceSearchSession : ObservableObject {
         let limitQueryItem = URLQueryItem(name: "limit", value: "\(request.limit)")
         queryItems.append(limitQueryItem)
         
+        // Add version parameter for consistent latest behavior
+        queryItems.append(URLQueryItem(name: "v", value: PlaceSearchSession.foursquareVersionDate))
+        
         components?.queryItems = queryItems
         
         guard let url = components?.url else {
@@ -480,7 +497,7 @@ public actor PlaceSearchSession : ObservableObject {
         }
         
         let response: FSQSearchResponse = try await fetch(url: url, as: FSQSearchResponse.self)
-                
+        
         return response
     }
     
@@ -558,7 +575,8 @@ public actor PlaceSearchSession : ObservableObject {
         }
         
         let queryItem = URLQueryItem(name: "fields", value:detailsString)
-        components?.queryItems = [queryItem]
+        let versionQueryItem = URLQueryItem(name: "v", value: PlaceSearchSession.foursquareVersionDate)
+        components?.queryItems = [queryItem, versionQueryItem]
         
         guard let url = components?.url else {
             throw PlaceSearchSessionError.UnsupportedRequest
@@ -574,7 +592,8 @@ public actor PlaceSearchSession : ObservableObject {
         
         let limitQueryItem = URLQueryItem(name: "limit", value: "\(50)")
         let sortQueryItem = URLQueryItem(name:"sort", value:"newest")
-        queryComponents?.queryItems = [limitQueryItem, sortQueryItem]
+        let versionQueryItem = URLQueryItem(name: "v", value: PlaceSearchSession.foursquareVersionDate)
+        queryComponents?.queryItems = [limitQueryItem, sortQueryItem, versionQueryItem]
         guard let url = queryComponents?.url else {
             throw PlaceSearchSessionError.UnsupportedRequest
         }
@@ -587,9 +606,10 @@ public actor PlaceSearchSession : ObservableObject {
         var queryComponents = URLComponents(string:"\(PlaceSearchSession.serverUrl)\(PlaceSearchSession.placeDetailsAPIUrl)\(fsqID)\(PlaceSearchSession.placeTipsAPIUrl)")
         
         let limitQueryItem = URLQueryItem(name: "limit", value: "\(50)")
-        let queryItems = [limitQueryItem]
+        let versionQueryItem = URLQueryItem(name: "v", value: PlaceSearchSession.foursquareVersionDate)
+        let queryItems = [limitQueryItem, versionQueryItem]
         queryComponents?.queryItems = queryItems
-
+        
         guard let url = queryComponents?.url else {
             throw PlaceSearchSessionError.UnsupportedRequest
         }
@@ -604,34 +624,69 @@ public actor PlaceSearchSession : ObservableObject {
         if let limit = limit {
             resolvedLimit = limit
         }
-
+        
         var queryComponents = URLComponents(string:"\(PlaceSearchSession.serverUrl)\(PlaceSearchSession.autocompleteAPIUrl)")
         var queryItems = [URLQueryItem]()
-
+        
         let queryUrlItem = URLQueryItem(name: "query", value: caption)
         queryItems.append(queryUrlItem)
-
+        
         if ll.count > 0 {
             let locationQueryItem = URLQueryItem(name: "ll", value: ll)
             queryItems.append(locationQueryItem)
-
+            
             let radiusItem = URLQueryItem(name: "radius", value: "\(100000)")
             queryItems.append(radiusItem)
         }
-
+        
         let limitQueryItem = URLQueryItem(name: "limit", value: "\(resolvedLimit)")
         queryItems.append(limitQueryItem)
-
+        
+        let versionQueryItem = URLQueryItem(name: "v", value: PlaceSearchSession.foursquareVersionDate)
+        queryItems.append(versionQueryItem)
+        
         queryComponents?.queryItems = queryItems
-
+        
         guard let url = queryComponents?.url else {
             throw PlaceSearchSessionError.UnsupportedRequest
         }
-
+        
         let response: FSQAutocompleteResponse = try await fetch(url: url, as: FSQAutocompleteResponse.self)
         return response
     }
-
+    
+    public func searchLocations(caption: String, locationResult: LocationResult?) async throws -> [LocationResult] {
+        var queryComponents = URLComponents(string:"\(PlaceSearchSession.serverUrl)\(PlaceSearchSession.autocompleteAPIUrl)")
+        var queryItems = [URLQueryItem]()
+        
+        let queryUrlItem = URLQueryItem(name: "query", value: caption)
+        queryItems.append(queryUrlItem)
+        
+        let typesItem = URLQueryItem(name: "types", value: "geo,address,place")
+        queryItems.append(typesItem)
+        
+        let limitQueryItem = URLQueryItem(name: "limit", value: "20")
+        queryItems.append(limitQueryItem)
+        
+        let versionQueryItem = URLQueryItem(name: "v", value: PlaceSearchSession.foursquareVersionDate)
+        queryItems.append(versionQueryItem)
+        
+        if let loc = locationResult?.location {
+            let ll = "\(loc.coordinate.latitude),\(loc.coordinate.longitude)"
+            queryItems.append(URLQueryItem(name: "ll", value: ll))
+            queryItems.append(URLQueryItem(name: "radius", value: "100000"))
+        }
+        
+        queryComponents?.queryItems = queryItems
+        
+        guard let url = queryComponents?.url else {
+            throw PlaceSearchSessionError.UnsupportedRequest
+        }
+        
+        let response: FSQAutocompleteResponse = try await fetch(url: url, as: FSQAutocompleteResponse.self)
+        return parseAutocompleteToLocationResults(response)
+    }
+    
     private func splitQueryAndNear(_ caption: String) -> (poi: String, near: String?) {
         let parts = caption.split(separator: ",", maxSplits: 1, omittingEmptySubsequences: true)
         if parts.count == 2 {
@@ -645,10 +700,10 @@ public actor PlaceSearchSession : ObservableObject {
     
     private func placeSearchForAutocomplete(caption: String, locationResult: LocationResult) async throws -> FSQSearchResponse {
         let (poiQuery, nearBias) = splitQueryAndNear(caption)
-
+        
         var llParam: String? = nil
         var nearParam: String? = nil
-
+        
         if let nearBias = nearBias, !nearBias.isEmpty {
             // User specified a remote locality; prefer `near`
             nearParam = nearBias
@@ -657,7 +712,7 @@ public actor PlaceSearchSession : ObservableObject {
             let coord = locationResult.location.coordinate
             llParam = "\(coord.latitude),\(coord.longitude)"
         }
-
+        
         let request = PlaceSearchRequest(
             query: poiQuery,
             ll: llParam,
@@ -678,14 +733,14 @@ public actor PlaceSearchSession : ObservableObject {
     
     private func parseAutocompleteToLocationResults(_ response: FSQAutocompleteResponse) -> [LocationResult] {
         var results: [LocationResult] = []
-
+        
         for item in response.results ?? [] {
             switch item.type {
             case "place":
                 guard let place = item.place else { continue }
                 let name = place.name ?? "Unknown"
                 let formatted = place.location?.formatted_address
-
+                
                 var lat: Double?
                 var lon: Double?
                 if let main = place.geocodes?.main {
@@ -696,18 +751,18 @@ public actor PlaceSearchSession : ObservableObject {
                     lat = roof.latitude
                     lon = roof.longitude
                 }
-
+                
                 if let lat = lat, let lon = lon {
                     let coord = CLLocationCoordinate2D(latitude: lat, longitude: lon)
                     let loc = CLLocation(latitude: coord.latitude, longitude: coord.longitude)
                     let lr = LocationResult(locationName: name, location: loc, formattedAddress: formatted)
                     results.append(lr)
                 }
-
+                
             case "address":
                 let text = item.text ?? item.name ?? "Address"
                 let formatted = item.formatted_address
-
+                
                 var lat: Double?
                 var lon: Double?
                 if let main = item.geocodes?.main {
@@ -718,17 +773,17 @@ public actor PlaceSearchSession : ObservableObject {
                     lat = center.latitude
                     lon = center.longitude
                 }
-
+                
                 if let lat = lat, let lon = lon {
                     let coord = CLLocationCoordinate2D(latitude: lat, longitude: lon)
                     let loc = CLLocation(latitude: coord.latitude, longitude: coord.longitude)
                     let lr = LocationResult(locationName: text, location: loc, formattedAddress: formatted)
                     results.append(lr)
                 }
-
+                
             case "geo":
                 let text = item.text ?? item.name ?? "Area"
-
+                
                 var lat: Double?
                 var lon: Double?
                 if let center = item.center {
@@ -739,22 +794,22 @@ public actor PlaceSearchSession : ObservableObject {
                     lat = main.latitude
                     lon = main.longitude
                 }
-
+                
                 if let lat = lat, let lon = lon {
                     let coord = CLLocationCoordinate2D(latitude: lat, longitude: lon)
                     let loc = CLLocation(latitude: coord.latitude, longitude: coord.longitude)
                     let lr = LocationResult(locationName: text, location: loc)
                     results.append(lr)
                 }
-
+                
             default:
                 continue
             }
         }
-
+        
         return results
     }
-
+    
     private func resolveCoordinateForNear(_ near: String) async throws -> CLLocationCoordinate2D? {
         // Build a lightweight request that asks FSQ to bias by `near` and return a single result
         let request = PlaceSearchRequest(
@@ -783,36 +838,36 @@ public actor PlaceSearchSession : ObservableObject {
     
     public func autocompleteLocationResults(caption: String, parameters: [String: Any]?, locationResult: LocationResult) async throws -> [LocationResult] {
         let (poi, near) = await splitQueryAndNear(caption)
-
+        
         var limitParam: Int? = nil
         if let parameters = parameters, let rawParameters = parameters["parameters"] as? NSDictionary {
             if let rawLimit = rawParameters["limit"] as? Int {
                 limitParam = rawLimit
             }
         }
-
+        
         if let near = near, !near.isEmpty {
             // Remote flow: resolve a representative ll for the city, then run remote-biased autocomplete and place search in parallel
             if let coord = try await resolveCoordinateForNear(near) {
                 let remoteLoc = CLLocation(latitude: coord.latitude, longitude: coord.longitude)
                 let remoteLR = LocationResult(locationName: near, location: remoteLoc)
-
+                
                 let auto: FSQAutocompleteResponse = try await autocomplete(caption: poi, limit: limitParam, locationResult: remoteLR)
                 let placesResponse = try await placeSearchForAutocomplete(caption: caption, locationResult: remoteLR)
-
+                
                 var results = await parseAutocompleteToLocationResults(auto)
-
+                
                 for item in placesResponse.results ?? [] {
                     guard let lat = item.geocodes?.main?.latitude,
                           let lon = item.geocodes?.main?.longitude else { continue }
-
+                    
                     let name = item.name ?? "Unknown"
                     let formatted = item.location?.formatted_address
-
+                    
                     let coord = CLLocationCoordinate2D(latitude: lat, longitude: lon)
                     let loc = CLLocation(latitude: coord.latitude, longitude: coord.longitude)
                     let lr = LocationResult(locationName: formatted ?? name, location: loc)
-
+                    
                     if !results.contains(where: { existing in
                         existing.locationName == lr.locationName &&
                         abs(existing.location.coordinate.latitude - lr.location.coordinate.latitude) < 1e-6 &&
@@ -821,28 +876,28 @@ public actor PlaceSearchSession : ObservableObject {
                         results.append(lr)
                     }
                 }
-
+                
                 return results
             }
             // If we failed to resolve the city coordinate, fall back to existing local behavior below.
         }
-
+        
         // Local/default flow
         let auto: FSQAutocompleteResponse = try await autocomplete(caption: caption, limit: limitParam, locationResult: locationResult)
         let placesResponse = try await placeSearchForAutocomplete(caption: caption, locationResult: locationResult)
         var results = await parseAutocompleteToLocationResults(auto)
-
+        
         for item in placesResponse.results ?? [] {
             guard let lat = item.geocodes?.main?.latitude,
                   let lon = item.geocodes?.main?.longitude else { continue }
-
+            
             let name = item.name ?? "Unknown"
             let formatted = item.location?.formatted_address
-
+            
             let coord = CLLocationCoordinate2D(latitude: lat, longitude: lon)
             let loc = CLLocation(latitude: coord.latitude, longitude: coord.longitude)
             let lr = LocationResult(locationName: formatted ?? name, location: loc)
-
+            
             if !results.contains(where: { existing in
                 existing.locationName == lr.locationName &&
                 abs(existing.location.coordinate.latitude - lr.location.coordinate.latitude) < 1e-6 &&
@@ -851,37 +906,59 @@ public actor PlaceSearchSession : ObservableObject {
                 results.append(lr)
             }
         }
-
+        
         return results
     }
     
     private let sessionQueue = DispatchQueue(label: "com.secretatomics.knowmaps.sessionQueue")
-
+    
     func fetch<T: Decodable & Sendable>(url: URL, as type: T.Type) async throws -> T {
         print("Requesting URL: \(url)")
-
+        
+        // Check proactive cache first
+        if let proactiveCache = await proactiveCacheService {
+            // Use URL absolute string as the cache identity for fine-grained network caching
+            if let cachedData = await proactiveCache.retrieve(identity: url.absoluteString),
+               let decoded = try? JSONDecoder().decode(T.self, from: cachedData) {
+#if DEBUG
+                print("[ProactiveCache] Hit for \(url.absoluteString)")
+#endif
+                return decoded
+            }
+        }
+        
         // Acquire a configured session before entering the continuation to avoid calling async APIs in non-async closures
         let session = try await self.session()
-
+        
         return try await withCheckedThrowingContinuation { checkedContinuation in
             var request = URLRequest(url: url)
             request.setValue(self.foursquareApiKey, forHTTPHeaderField: "Authorization")
             request.timeoutInterval = 15.0
-
+            
             let task = session.dataTask(with: request) { data, response, error in
                 if let error = error {
                     checkedContinuation.resume(throwing: error)
                     return
                 }
-
+                
                 guard let d = data else {
                     checkedContinuation.resume(throwing: PlaceSearchSessionError.ServerErrorMessage)
                     return
                 }
-
+                
                 do {
                     let decoder = JSONDecoder()
                     let decoded = try decoder.decode(T.self, from: d)
+                    
+                    // Store in proactive cache for future hits
+                    let dataToCache = d
+                    let cacheIdentity = url.absoluteString
+                    Task { [weak self] in
+                        if let self = self, let proactiveCache = await self.proactiveCacheService {
+                            await proactiveCache.store(identity: cacheIdentity, data: dataToCache)
+                        }
+                    }
+                    
                     checkedContinuation.resume(returning: decoded)
                 } catch {
                     print(error)
@@ -890,7 +967,7 @@ public actor PlaceSearchSession : ObservableObject {
                     checkedContinuation.resume(throwing: PlaceSearchSessionError.ServerErrorMessage)
                 }
             }
-
+            
             task.resume()
         }
     }
@@ -898,7 +975,7 @@ public actor PlaceSearchSession : ObservableObject {
     public func invalidateSession() async throws {
         try await deleteAPIKeyRecords()
     }
-
+    
     func deleteAPIKeyRecords(service:String = PlaceSearchService.foursquare.rawValue) async throws {
         let container = CKContainer.default()
         let database = container.publicCloudDatabase
@@ -914,7 +991,7 @@ public actor PlaceSearchSession : ObservableObject {
         operation.recordMatchedBlock = { record, error in
             recordIDsToDelete.append(record)
         }
-                
+        
         database.add(operation)
         
         if !recordIDsToDelete.isEmpty {
@@ -929,28 +1006,59 @@ public actor PlaceSearchSession : ObservableObject {
         let operation = CKQueryOperation(query: query)
         operation.desiredKeys = ["value", "service"]
         operation.resultsLimit = 1
-
-        operation.recordMatchedBlock = { [weak self] recordId, result in
-            Task { [weak self] in
-                guard let self = self else { return }
-                await self.handleRecordMatched(result: result)
+        
+        // Thread-safe container for the found key
+        class KeyBox: @unchecked Sendable {
+            var value: String?
+            let lock = NSLock()
+            func set(_ val: String) {
+                lock.lock()
+                value = val
+                lock.unlock()
+            }
+            func get() -> String? {
+                lock.lock()
+                defer { lock.unlock() }
+                return value
             }
         }
-
+        let keyBox = KeyBox()
+        
+        operation.recordMatchedBlock = { recordId, result in
+            do {
+                let record = try result.get()
+                if let apiKey = record["value"] as? String {
+                    if let serviceName = record["service"] as? String {
+                        print("Found API Key for service: \(serviceName)")
+                    }
+                    keyBox.set(apiKey)
+                }
+            } catch {
+                print("Error matching record: \(error)")
+            }
+        }
+        
         operation.queuePriority = .veryHigh
         operation.qualityOfService = .userInitiated
-
+        
         let success = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Bool, Error>) in
             operation.queryResultBlock = { [weak self] result in
+                let foundKey = keyBox.get()
+                
                 Task { [weak self] in
                     guard let self = self else { return }
-                    await self.handleQueryResult(result: result, continuation: continuation)
+                    if let key = foundKey {
+                        await self.setFoursquareApiKey(key)
+                    } else {
+                        print("Did not find API Key for \(service)")
+                    }
+                    await self.resumeContinuation(continuation, with: result)
                 }
             }
-
+            
             keysContainer.publicCloudDatabase.add(operation)
         }
-
+        
         if success {
             return await ConfiguredSearchSession.shared
         } else {
@@ -958,27 +1066,24 @@ public actor PlaceSearchSession : ObservableObject {
         }
     }
     
-    private func handleRecordMatched(result: Result<CKRecord, Error>) async {
-        do {
-            let record = try result.get()
-            if let apiKey = record["value"] as? String {
-                print("\(String(describing: record["service"]))")
-                // Now safely modify the actor-isolated property
-                self.foursquareApiKey = apiKey
-            } else {
-                print("Did not find API Key")
-            }
-        } catch {
-            print(error)
-        }
+    nonisolated func setFoursquareApiKey(_ key: String) async {
+        await self.foursquareApiKeySet(key)
     }
-    
-    private func handleQueryResult(result: Result<CKQueryOperation.Cursor?, Error>, continuation: CheckedContinuation<Bool, Error>) async {
+
+    nonisolated func resumeContinuation(_ continuation: CheckedContinuation<Bool, Error>, with result: Result<CKQueryOperation.Cursor?, Error>) async {
+        await self.handleQueryResult(continuation: continuation, result: result)
+    }
+
+    private func foursquareApiKeySet(_ key: String) {
+        self.foursquareApiKey = key
+    }
+
+    private func handleQueryResult(continuation: CheckedContinuation<Bool, Error>, result: Result<CKQueryOperation.Cursor?, Error>) {
         switch result {
-        case .success(_):
+        case .success:
             continuation.resume(returning: true)
         case .failure(let error):
-            print(error)
+            print("Query error: \(error)")
             continuation.resume(returning: false)
         }
     }

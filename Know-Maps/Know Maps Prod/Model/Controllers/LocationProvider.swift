@@ -11,7 +11,7 @@ public enum LocationProviderError : Error {
     case LocationManagerFailed
 }
 
-public class LocationProvider : NSObject  {
+public class LocationProvider : NSObject, LocationProviderProtocol  {
     @MainActor public static let shared = LocationProvider()
     
     public var locationManager: CLLocationManager = CLLocationManager()

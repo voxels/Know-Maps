@@ -14,6 +14,8 @@ import SwiftData
 public final class CloudCacheManager: @preconcurrency CacheManager {
     
     public let cloudCacheService: CloudCacheService
+    public var proactiveCacheService: ProactiveCacheService?
+    public weak var placeSearchService: (any PlaceSearchRequestService)?
     public let analyticsManager:AnalyticsService
     @MainActor public var isRefreshingCache: Bool = false
     @MainActor public var cacheFetchProgress: Double = 0
@@ -27,9 +29,11 @@ public final class CloudCacheManager: @preconcurrency CacheManager {
     @MainActor public var allCachedResults = [CategoryResult]()
     @MainActor public var cachedLocationResults = [LocationResult]()
     @MainActor public var cachedRecommendationData = [RecommendationData]()
+    @MainActor public var allCachedTastes = [UserCachedRecord]()
 
-    public init(cloudCacheService:CloudCacheService, analyticsManager: AnalyticsService) { 
+    public init(cloudCacheService:CloudCacheService, proactiveCacheService: ProactiveCacheService? = nil, analyticsManager: AnalyticsService) { 
         self.cloudCacheService = cloudCacheService
+        self.proactiveCacheService = proactiveCacheService
         self.analyticsManager = analyticsManager
     }
 
@@ -60,11 +64,11 @@ public final class CloudCacheManager: @preconcurrency CacheManager {
         await refreshCachedLocations()
         await updateProgress(for: 5, totalTasks: totalTasks)
 
-        await refreshCachedRecommendationData()
-        await updateProgress(for: 6, totalTasks: totalTasks)
-
         // Update allCachedResults
         await refreshCachedResults()
+
+        // Proactively cache favorites to ensure zero-latency selection
+        await proactivelyCacheFavorites()
 
         // Update isRefreshingCache
         await MainActor.run {
@@ -100,6 +104,7 @@ public final class CloudCacheManager: @preconcurrency CacheManager {
             let results = self.createCategoryResults(from: records)
             await MainActor.run {
                 self.cachedTasteResults = results
+                self.allCachedTastes = records
             }
         } catch {
             cloudCacheService.analyticsManager.trackError(error: error, additionalInfo: nil)
@@ -164,13 +169,14 @@ public final class CloudCacheManager: @preconcurrency CacheManager {
     }
 
     @MainActor
-    public func clearCache() {
+    public func clearCache() async {
         cachedDefaultResults.removeAll()
         cachedIndustryResults.removeAll()
         cachedTasteResults.removeAll()
         cachedPlaceResults.removeAll()
         cachedLocationResults.removeAll()
         cachedRecommendationData.removeAll()
+        allCachedTastes.removeAll()
         allCachedResults.removeAll()
     }
 
@@ -299,7 +305,48 @@ public final class CloudCacheManager: @preconcurrency CacheManager {
     public func cachedPlaces(contains place: String) -> Bool {
         return cachedPlaceResults.contains { $0.parentCategory == place }
     }
+    @MainActor
+    public func proactivelyCacheFavorites() async {
+        guard let pcf = proactiveCacheService, let pss = placeSearchService else { return }
+        
+        // Combine all favorite search terms
+        let favoriteTerms = (cachedIndustryResults + cachedTasteResults).map { $0.parentCategory }
+        let favoritePlaces = cachedPlaceResults.map { $0.identity }
+        
+        // We use a limited set to avoid hitting API too hard at once, prioritizing tastes
+        let termsToCache = Array(favoriteTerms.prefix(10))
+        let placesToCache = Array(favoritePlaces.prefix(10))
+        
+        await withTaskGroup(of: Void.self) { group in
+            // Cache search results for terms
+            for term in termsToCache {
+                group.addTask {
+                    do {
+                        // This will trigger PlaceSearchSession's fetch which now auto-caches to ProactiveCacheService
+                        _ = try await pss.fetchPlaceSearchResponse(for: term, location: nil)
+                    } catch {
+                        self.analyticsManager.trackError(error: error, additionalInfo: ["context": "proactiveCache.term", "term": term])
+                    }
+                }
+            }
+            
+            // Cache details for places
+            for fsqID in placesToCache {
+                group.addTask {
+                    do {
+                        _ = try await pss.fetchPlaceDetailsResponse(for: fsqID)
+                    } catch {
+                        self.analyticsManager.trackError(error: error, additionalInfo: ["context": "proactiveCache.place", "fsqID": fsqID])
+                    }
+                }
+            }
+        }
+    }
+    @MainActor
     public func cachedLocationIdentity(for location: CLLocation) -> String {
         return "\(location.coordinate.latitude),\(location.coordinate.longitude)"
     }
 }
+
+
+

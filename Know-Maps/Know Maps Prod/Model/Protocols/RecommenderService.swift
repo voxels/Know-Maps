@@ -16,7 +16,7 @@ public protocol RecommenderService : Sendable {
         categoryGroups: [[any RecommendationCategoryConvertible]],
         placeRecommendationData: [RecommendationData]
     ) -> [RecommendationData]
-    func testingData(with responses:[RecommendedPlaceSearchResponse])->[RecommendationData]
+    func testingData(with responses:[PlaceSearchResponse])->[RecommendationData]
 
 #if canImport(CreateML)
     func model(with recommendationData: [RecommendationData]) throws -> MLRandomForestRegressor

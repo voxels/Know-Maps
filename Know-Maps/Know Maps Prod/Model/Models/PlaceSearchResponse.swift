@@ -7,8 +7,8 @@
 
 import Foundation
 
-public struct PlaceSearchResponse: Equatable, Hashable, Sendable {
-    let uuid:UUID = UUID()
+public struct PlaceSearchResponse: Codable, Equatable, Hashable, Sendable {
+    let uuid: String = UUID().uuidString
     let fsqID:String
     let name:String
     let categories:[String]
@@ -26,8 +26,13 @@ public struct PlaceSearchResponse: Equatable, Hashable, Sendable {
     let link:String
     let childIDs:[String]
     let parentIDs:[String]
+    let tastes:[String]?
     
-    public init(fsqID: String, name: String, categories: [String], latitude: Double, longitude: Double, address: String, addressExtended: String, country: String, dma: String, formattedAddress: String, locality: String, postCode: String, region: String, chains: [String], link: String, childIDs: [String], parentIDs: [String]) {
+    let neighborhood:String?
+    let city:String
+    let state:String
+
+    public init(fsqID: String, name: String, categories: [String], latitude: Double, longitude: Double, address: String, addressExtended: String, country: String, dma: String, formattedAddress: String, locality: String, postCode: String, region: String, chains: [String], link: String, childIDs: [String], parentIDs: [String], tastes: [String]? = nil, neighborhood: String? = nil, city: String = "", state: String = "") {
         self.fsqID = fsqID
         self.name = name
         self.categories = categories
@@ -45,5 +50,9 @@ public struct PlaceSearchResponse: Equatable, Hashable, Sendable {
         self.link = link
         self.childIDs = childIDs
         self.parentIDs = parentIDs
+        self.tastes = tastes
+        self.neighborhood = neighborhood
+        self.city = city
+        self.state = state
     }
 }

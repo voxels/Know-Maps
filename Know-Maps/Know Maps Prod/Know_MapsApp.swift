@@ -29,8 +29,36 @@ struct Know_MapsApp: App {
         let cloudCache = CloudCacheService(analyticsManager: analytics, modelContext: ModelContext(Know_MapsAppView.sharedModelContainer))
         let cache = CloudCacheManager(cloudCacheService: cloudCache, analyticsManager: analytics)
         
+        let assistiveHost = AssistiveChatHostService(
+            analyticsManager: analytics,
+            messagesDelegate: ChatResultViewModel.shared
+        )
+        
+        let placeSearch = DefaultPlaceSearchService(
+            assistiveHostDelegate: assistiveHost,
+            placeSearchSession: PlaceSearchSession(),
+            personalizedSearchSession: PersonalizedSearchSession(cloudCacheService: cloudCache),
+            analyticsManager: analytics
+        )
+        
+        let locationService = DefaultLocationService(locationProvider: LocationProvider.shared)
+        let recommenderService = DefaultRecommenderService()
+        let inputValidator = DefaultInputValidationServiceV2()
+        let resultIndexer = DefaultResultIndexServiceV2()
+        
+        let model = DefaultModelController(
+            assistiveHost: assistiveHost,
+            locationService: locationService,
+            placeSearchService: placeSearch,
+            analyticsManager: analytics,
+            recommenderService: recommenderService,
+            cacheManager: cache,
+            inputValidator: inputValidator,
+            resultIndexer: resultIndexer
+        )
+        
         self._cacheManager = State(wrappedValue: cache)
-        self._modelController = State(wrappedValue: DefaultModelController(cacheManager: cache))
+        self._modelController = State(wrappedValue: model)
     }
 
     var body: some Scene {
@@ -45,6 +73,10 @@ struct Know_MapsApp: App {
             )
             .environmentObject(authenticationModel)
             .modelContainer(Know_MapsAppView.sharedModelContainer)
+            .onOpenURL { url in
+                let link = DeepLinkCoordinator.parse(url)
+                modelController.handleDeepLink(link)
+            }
         }
 
 #if os(visionOS)

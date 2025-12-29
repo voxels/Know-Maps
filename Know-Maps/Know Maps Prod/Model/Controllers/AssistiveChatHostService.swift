@@ -14,8 +14,7 @@ import ConcurrencyExtras
 
 public typealias AssistiveChatHostTaggedWord = [String: [String]]
 
-@MainActor
-public final class AssistiveChatHostService : AssistiveChatHost {
+public actor AssistiveChatHostService : AssistiveChatHost {
     
     public let analyticsManager:AnalyticsService
     public enum Intent : String, Sendable {
@@ -38,7 +37,7 @@ public final class AssistiveChatHostService : AssistiveChatHost {
     private let intentClassifier: FoundationModelsIntentClassifier
     private let vectorService: VectorEmbeddingService
     
-    required public init(analyticsManager:AnalyticsService, messagesDelegate: AssistiveChatHostMessagesDelegate) {
+    public init(analyticsManager:AnalyticsService, messagesDelegate: AssistiveChatHostMessagesDelegate) {
         self.analyticsManager = analyticsManager
         self.messagesDelegate = messagesDelegate
         self.queryIntentParameters = AssistiveChatHostQueryParameters()
@@ -138,46 +137,48 @@ public final class AssistiveChatHostService : AssistiveChatHost {
         return Array(retval)
     }
     
-    public func determineIntentEnhanced(for caption: String, override: AssistiveChatHostService.Intent? = nil) async throws -> AssistiveChatHostService.Intent {
+    public func determineIntentEnhanced(for caption: String, override: AssistiveChatHostService.Intent? = nil) async throws -> (AssistiveChatHostService.Intent, UnifiedSearchIntent?) {
         if let override = override {
-            return override
+            return (override, nil)
         }
         
         // Detect 'Define' or 'Track' for dynamic taxonomy
         let lowerCaption = caption.lowercased()
         if lowerCaption.hasPrefix("define ") || lowerCaption.hasPrefix("track ") {
-            return .Define
+            return (.Define, nil)
         }
         
         // Use Foundation Models classifier
         let unifiedIntent = try await intentClassifier.classify(query: caption)
         
-        // Map UnifiedSearchIntent.SearchType to existing Intent enum
+        var searchIntent = Intent.Search
         switch unifiedIntent.searchType {
         case .category:
-            return .Search
+            searchIntent = .Search
         case .taste:
-            return .AutocompleteTastes
+            searchIntent = .AutocompleteTastes
         case .place:
-            return .Place
+            searchIntent = .Place
         case .location:
-            return .Location
+            searchIntent = .Location
         case .mixed:
             // For mixed intents, prefer Search as it's most flexible
-            return .Search
+            searchIntent = .Search
         }
+        
+        return (searchIntent, unifiedIntent)
     }
     
-    public func defaultParameters(for query:String, filters:[String:String]) async throws -> [String:String]? {
+    public func defaultParameters(for query:String, filters:[String:String], enrichedIntent: UnifiedSearchIntent? = nil) async throws -> [String: Any]? {
         var radius:Double = 20000
         var open:Bool? = nil
         
-        if let filterDistance = filters["distance"] as? Double {
-            radius = filterDistance * 1000
+        if let filterDistance = filters["distance"], let doubleValue = Double(filterDistance) {
+            radius = doubleValue * 1000
         }
         
-        if let openNow = filters["open_now"] as? Bool {
-            open = openNow
+        if let openNow = filters["open_now"] {
+            open = Bool(openNow)
         }
         
         let emptyParameters =
@@ -198,13 +199,12 @@ public final class AssistiveChatHostService : AssistiveChatHost {
         }
         
         do {
-            let json = try JSONSerialization.jsonObject(with: data)
-            if let encodedEmptyParameters = json as? [String:String] {
+            let json = try JSONSerialization.jsonObject(with: data, options: [])
+            if let encodedEmptyParameters = json as? [String: Any] {
                 var encodedParameters = encodedEmptyParameters
-                var typedParameters = [String: String]()
                 
-                if var rawParameters = encodedParameters["parameters"] as? [String:String] {
-                    if let tags = try tags(for: query) {
+                if var rawParameters = encodedParameters["parameters"] as? [String: Any] {
+                    if let tags = try await tags(for: query) {
                         var tagsString = ""
                         for tag in tags.keys {
                             tagsString.append("\(tag),")
@@ -229,14 +229,46 @@ public final class AssistiveChatHostService : AssistiveChatHost {
                     }
                     
                     if let openNow = open {
-                        rawParameters["open_now"] = "\(openNow)"
+                        rawParameters["open_now"] = openNow
                     }
                     
 
-                    let section = section(for: query).rawValue
+                    let section = await section(for: query).rawValue
                     rawParameters["section"] = "\(section)"
+                    
+                    if let enriched = enrichedIntent {
+                        if let categories = enriched.categories, !categories.isEmpty {
+                            let mapper = FoursquareCategoryMapper()
+                            let ids = mapper.categoryIDs(for: categories)
+                            if !ids.isEmpty {
+                                rawParameters["categories"] = ids
+                            }
+                        }
+                        
+                        if let price = enriched.priceRange {
+                            rawParameters["min_price"] = price.min
+                            rawParameters["max_price"] = price.max
+                        }
+                        
+                        if let openAt = enriched.openAt {
+                            if openAt == "now" {
+                                rawParameters["open_now"] = true
+                            } else {
+                                rawParameters["open_at"] = openAt
+                            }
+                        }
+                        
+                        if let location = enriched.locationDescription {
+                            rawParameters["near"] = location
+                        }
+                        
+                        if let tastes = enriched.tastes, !tastes.isEmpty {
+                            rawParameters["tastes"] = tastes
+                        }
+                    }
 
-                    return rawParameters
+                    encodedParameters["parameters"] = rawParameters
+                    return encodedParameters
                 }
                 else {
                     return encodedParameters
@@ -251,40 +283,69 @@ public final class AssistiveChatHostService : AssistiveChatHost {
         }
     }
     
-    @MainActor
     public func updateLastIntent(caption:String, selectedDestinationLocation:LocationResult, filters:Dictionary<String, String>, modelController:ModelController) async throws {
-        if  let lastIntent = queryIntentParameters.queryIntents.last {
-            let queryParameters = try await defaultParameters(for: caption, filters:filters)
-            let intent = try await determineIntentEnhanced(for: caption)
-            let newIntent = await AssistiveChatHostIntent(caption: caption, intent:intent, selectedPlaceSearchResponse: lastIntent.selectedPlaceSearchResponse, selectedPlaceSearchDetails: lastIntent.selectedPlaceSearchDetails, placeSearchResponses: lastIntent.placeSearchResponses, selectedDestinationLocation: selectedDestinationLocation, placeDetailsResponses: lastIntent.placeDetailsResponses, recommendedPlaceSearchResponses: lastIntent.recommendedPlaceSearchResponses, relatedPlaceSearchResponses: lastIntent.relatedPlaceSearchResponses, queryParameters: queryParameters)
+        let lastIntent = await MainActor.run {
+            queryIntentParameters.queryIntents.last
+        }
+        if let lastIntent = lastIntent {
+            let (intentType, enriched) = try await determineIntentEnhanced(for: caption)
+            let queryParameters = try await defaultParameters(for: caption, filters:filters, enrichedIntent: enriched)
+            let anyParams = queryParameters?.mapValues { AnySendable($0) }
+            
+            let request = IntentRequest(
+                caption: caption,
+                intentType: intentType,
+                enrichedIntent: enriched,
+                rawParameters: anyParams
+            )
+            
+            let context = IntentContext(destination: selectedDestinationLocation)
+            
+            let fulfillment = await MainActor.run {
+                let f = IntentFulfillment()
+                f.selectedPlace = lastIntent.fulfillment.selectedPlace
+                f.selectedDetails = lastIntent.fulfillment.selectedDetails
+                f.places = lastIntent.fulfillment.places
+                f.detailsList = lastIntent.fulfillment.detailsList
+                f.recommendations = lastIntent.fulfillment.recommendations
+                f.related = lastIntent.fulfillment.related
+                return f
+            }
+            
+            let newIntent = await AssistiveChatHostIntent(
+                request: request,
+                context: context,
+                fulfillment: fulfillment
+            )
             await updateLastIntentParameters(intent: newIntent, modelController: modelController)
         }
     }
     
-    @MainActor
     public func updateLastIntentParameters(intent:AssistiveChatHostIntent, modelController:ModelController) async {
-        queryIntentParameters.queryIntents.append(intent)
+        await MainActor.run {
+            queryIntentParameters.queryIntents.append(intent)
+        }
         await messagesDelegate.updateQueryParametersHistory(with:queryIntentParameters, modelController: modelController)
     }
     
-    @MainActor
     public func appendIntentParameters(intent:AssistiveChatHostIntent, modelController:ModelController) async {
-        
-        queryIntentParameters.queryIntents.append(intent)
-
+        await MainActor.run {
+            queryIntentParameters.queryIntents.append(intent)
+        }
         await messagesDelegate.updateQueryParametersHistory(with:queryIntentParameters, modelController: modelController)
     }
     
-    @MainActor
-    public func resetIntentParameters() {
-        queryIntentParameters.queryIntents = [AssistiveChatHostIntent]()
+    public func resetIntentParameters() async {
+        await MainActor.run {
+            queryIntentParameters.queryIntents = [AssistiveChatHostIntent]()
+        }
     }
     
     public func receiveMessage(caption:String, isLocalParticipant:Bool, filters:Dictionary<String, String>, modelController:ModelController, overrideIntent: AssistiveChatHostService.Intent? = nil, selectedDestinationLocation: LocationResult? = nil ) async throws {
         try await messagesDelegate.addReceivedMessage(caption: caption, parameters: queryIntentParameters, isLocalParticipant: isLocalParticipant, filters: filters, modelController: modelController, overrideIntent: overrideIntent, selectedDestinationLocation: selectedDestinationLocation)
     }
     
-    public func tags(for rawQuery:String) throws ->AssistiveChatHostTaggedWord? {
+    public func tags(for rawQuery:String) async throws ->AssistiveChatHostTaggedWord? {
         var retval:AssistiveChatHostTaggedWord = AssistiveChatHostTaggedWord()
         let mlModel = try KnowMapsLocalMapsQueryTagger(configuration: MLModelConfiguration()).model
         let customModel = try NLModel(mlModel: mlModel)
@@ -340,7 +401,7 @@ public final class AssistiveChatHostService : AssistiveChatHost {
     }
 
     
-    public func section(for title: String) -> PersonalizedSearchSection {
+    public func section(for title: String) async -> PersonalizedSearchSection {
         var retval = PersonalizedSearchSection(rawValue: title)
         if let retval = retval {
             return retval
@@ -562,7 +623,7 @@ extension AssistiveChatHostService {
             return responses
         }
         
-        let distanceWeight = 1.0 - semanticWeight
+
         
         // Build descriptions for each place
         let descriptions = responses.map { response in
@@ -607,23 +668,32 @@ extension AssistiveChatHostService {
     ) async throws -> AssistiveChatHostIntent {
         
         let caption = result.title
-        let queryParameters = try await defaultParameters(for: caption, filters: filters)
-        
-        // If the result is a specific place, create a .Place intent.
-        if let placeResponse = result.placeResponse {
-            return await AssistiveChatHostIntent(
-                caption: caption,
-                intent: .Place,
-                selectedPlaceSearchResponse: placeResponse,
-                selectedPlaceSearchDetails: result.placeDetailsResponse,
-                placeSearchResponses: [placeResponse],
-                selectedDestinationLocation: selectedDestination,
-                placeDetailsResponses: result.placeDetailsResponse != nil ? [result.placeDetailsResponse!] : nil,
-                queryParameters: queryParameters
-            )
+        let (intentType, enriched) = try await determineIntentEnhanced(for: caption)
+        let queryParameters = try await defaultParameters(for: caption, filters: filters, enrichedIntent: enriched)
+        let anyParams = queryParameters?.mapValues { AnySendable($0) }
+
+        let (fulfillment, finalIntentType) = await MainActor.run {
+            let f = IntentFulfillment()
+            var type = intentType
+            if let placeResponse = result.placeResponse {
+                type = .Place
+                f.places = [placeResponse]
+                f.selectedPlace = placeResponse
+                f.selectedDetails = result.placeDetailsResponse
+                f.detailsList = result.placeDetailsResponse != nil ? [result.placeDetailsResponse!] : nil
+            }
+            return (f, type)
         }
+
+        let request = IntentRequest(
+            caption: caption,
+            intentType: finalIntentType,
+            enrichedIntent: enriched,
+            rawParameters: anyParams
+        )
         
-        // Otherwise, create a generic .Search intent.
-        return await AssistiveChatHostIntent(caption: caption, intent: .Search, selectedPlaceSearchResponse: nil, selectedPlaceSearchDetails: nil, placeSearchResponses: [], selectedDestinationLocation: selectedDestination, placeDetailsResponses: nil, queryParameters: queryParameters)
+        let context = IntentContext(destination: selectedDestination)
+        
+        return await AssistiveChatHostIntent(request: request, context: context, fulfillment: fulfillment)
     }
 }

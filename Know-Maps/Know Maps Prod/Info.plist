@@ -175,6 +175,19 @@
 			<string>3qcr597p9d.skadnetwork</string>
 		</dict>
 	</array>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>com.secretatomics.knowmaps</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>knowmaps</string>
+			</array>
+		</dict>
+	</array>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationPreferredDefaultSceneSessionRole</key>
@@ -183,6 +196,17 @@
 		<true/>
 		<key>UISceneConfigurations</key>
 		<dict/>
+	</dict>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Know Maps uses your location to show you nearby places and search results.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
+	<key>UILaunchScreen</key>
+	<dict>
+		<key>UIImageName</key>
+		<string>LaunchImage</string>
 	</dict>
 </dict>
 </plist>

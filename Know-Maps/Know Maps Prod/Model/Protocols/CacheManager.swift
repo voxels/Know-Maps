@@ -10,7 +10,8 @@ import CoreLocation
 
 public protocol CacheManager : Sendable {
     var cloudCacheService:CloudCacheService { get }
-    var analyticsManager: AnalyticsService { get } // Add this line
+    var proactiveCacheService: ProactiveCacheService? { get }
+    var analyticsManager: AnalyticsService { get }
     var isRefreshingCache: Bool  { get }
     var cacheFetchProgress:Double { get }
     var completedTasks:Int { get }
@@ -22,6 +23,7 @@ public protocol CacheManager : Sendable {
     var allCachedResults:[CategoryResult] { get }
     var cachedLocationResults:[LocationResult] { get }
     var cachedRecommendationData:[RecommendationData] { get }
+    var allCachedTastes: [UserCachedRecord] { get }
     
     // Refresh the entire cache for different data types
     func refreshCache() async throws    

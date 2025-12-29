@@ -1,0 +1,78 @@
+
+name: Know Maps
+options:
+  bundleIdPrefix: com.secretatomics
+  xcodeVersion: 15.0
+
+packages:
+  Nuke:
+    url: https://github.com/kean/Nuke
+    from: 12.8.0
+  Segment:
+    url: https://github.com/segmentio/analytics-swift
+    from: 1.6.1
+  Supabase:
+    url: https://github.com/supabase/supabase-swift
+    from: 2.5.1
+
+targets:
+  Know Maps:
+    type: application
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources: 
+      - path: Know Maps Prod
+    entitlements:
+      path: Know Maps Prod/Know_Maps_Prod.entitlements
+    dependencies:
+      - package: Nuke
+        product: Nuke
+      - package: Nuke
+        product: NukeUI
+      - package: Segment
+        product: Segment
+      - package: Supabase
+        product: Supabase
+    settings:
+      PRODUCT_BUNDLE_IDENTIFIER: com.secretatomics.knowmaps
+      INFOPLIST_FILE: Know Maps Prod/Info.plist
+      DEVELOPMENT_TEAM: 23264QUM9A
+      CODE_SIGN_STYLE: Automatic
+      CODE_SIGN_ENTITLEMENTS: Know Maps Prod/Know_Maps_Prod.entitlements
+      GENERATE_INFOPLIST_FILE: YES
+      ENABLE_PREVIEWS: YES
+
+  KnowMapsTests:
+    type: bundle.unit-test
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: knowmapsTests
+    dependencies:
+      - target: Know Maps
+    settings:
+      PRODUCT_BUNDLE_IDENTIFIER: com.secretatomics.knowmapsTests
+      DEVELOPMENT_TEAM: 23264QUM9A
+      CODE_SIGN_STYLE: Automatic
+      GENERATE_INFOPLIST_FILE: YES
+      TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Know Maps.app/Know Maps"
+      BUNDLE_LOADER: "$(TEST_HOST)"
+
+schemes:
+  Know Maps:
+    build:
+      targets:
+        Know Maps: all
+        KnowMapsTests: all
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - KnowMapsTests
+    profile:
+      config: Release
+    analyze:
+      config: Debug
+    archive:
+      config: Release

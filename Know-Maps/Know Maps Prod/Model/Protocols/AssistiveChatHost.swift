@@ -10,7 +10,6 @@ import CoreLocation
 import Segment
 import ConcurrencyExtras
 
-@MainActor
 public protocol AssistiveChatHost: Sendable {
     
     var messagesDelegate:AssistiveChatHostMessagesDelegate { get }
@@ -19,14 +18,14 @@ public protocol AssistiveChatHost: Sendable {
     var categoryCodes:[[String:[[String:String]]]] { get }
     
     init(analyticsManager:AnalyticsService, messagesDelegate: AssistiveChatHostMessagesDelegate)
-    func determineIntentEnhanced(for caption: String, override: AssistiveChatHostService.Intent?) async throws -> AssistiveChatHostService.Intent
+    func determineIntentEnhanced(for caption: String, override: AssistiveChatHostService.Intent?) async throws -> (AssistiveChatHostService.Intent, UnifiedSearchIntent?)
     func updateLastIntentParameters(intent:AssistiveChatHostIntent, modelController:ModelController) async
     func appendIntentParameters(intent:AssistiveChatHostIntent, modelController:ModelController) async
-    func resetIntentParameters()
+    func resetIntentParameters() async
     func receiveMessage(caption:String, isLocalParticipant:Bool, filters:Dictionary<String, String>, modelController:ModelController, overrideIntent: AssistiveChatHostService.Intent?, selectedDestinationLocation: LocationResult?) async throws
-    func defaultParameters(for query:String, filters:Dictionary<String, String>) async throws -> [String:String]?
+    func defaultParameters(for query:String, filters:Dictionary<String, String>, enrichedIntent: UnifiedSearchIntent?) async throws -> [String: Any]?
     func createIntent(for result: ChatResult, filters: Dictionary<String, String>, selectedDestination: LocationResult) async throws -> AssistiveChatHostIntent
-    func tags(for rawQuery:String) throws ->AssistiveChatHostTaggedWord?
-    func section(for title:String)->PersonalizedSearchSection
+    func tags(for rawQuery:String) async throws ->AssistiveChatHostTaggedWord?
+    func section(for title:String) async ->PersonalizedSearchSection
     func updateLastIntent(caption:String, selectedDestinationLocation:LocationResult, filters:Dictionary<String, String>, modelController:ModelController) async throws
 }

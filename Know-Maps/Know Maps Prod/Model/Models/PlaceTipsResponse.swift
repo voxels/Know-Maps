@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct PlaceTipsResponse : Identifiable, Hashable, Sendable  {
+public struct PlaceTipsResponse : Codable, Identifiable, Hashable, Sendable {
     public var id: String
     let placeIdent:String
     let ident:String

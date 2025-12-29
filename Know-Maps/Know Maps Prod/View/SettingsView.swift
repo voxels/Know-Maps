@@ -1,134 +1,170 @@
-//
-//  SettingsView.swift
-//  Know Maps
-//
-//  Created by Michael A Edgcumbe on 11/21/23.
-//
-
 import SwiftUI
-import AuthenticationServices
 
-struct SettingsView: View {
-    @Environment(\.dismiss) var dismiss
-
-    @Environment(\.openWindow) private var openWindow
-    @ObservedObject public var model:AppleAuthenticationService
-    public var chatModel:ChatResultViewModel
-    public var cacheManager:CloudCacheManager
-    public var modelController:DefaultModelController
-    @Binding public var showOnboarding:Bool
-    @State private var popoverPresented:Bool = false
-    @State private var signInErrorMessage:String = "Error"
-    @State private var isAuthenticated = false
-
-    var body: some View {
-        VStack(alignment: .center) {
-            HStack(alignment: .center) {
-                if !model.appleUserId.isEmpty {
-                    let fullName = model.fullName.trimmingCharacters(in: .whitespaces)
-                    if !fullName.isEmpty {
-                        Label("Welcome \(fullName)", systemImage:"apple.logo")
-                            .padding(.top, 60)
-                    } else {
-                        Label("Signed in with Apple ID", systemImage:"apple.logo")
-                            .padding(.top, 60)
-                    }
-                } else {
-                    SignInWithAppleButton { request in
-                        model.signIn()
-                    } onCompletion: { result in
-                        switch result {
-                        case .success(let authResults):
-                            Task {
-                                if let appleIDCredential = authResults.credential as? ASAuthorizationAppleIDCredential {
-                                    await MainActor.run {
-                                        model.appleUserId = appleIDCredential.user
-                                        model.fullName = "\(appleIDCredential.fullName?.givenName ?? "") \(appleIDCredential.fullName?.familyName ?? "")"
-#if os(visionOS)
-                                        openWindow(id: "ContentView")
-#endif
-                                    }
-                                    print("Authorization successful.")
-                                    Task {
-                                        let key =  model.appleUserId.data(using: .utf8)
-                                        let addquery: [String: Any] = [kSecClass as String: kSecClassKey,
-                                                                       kSecAttrApplicationTag as String: AppleAuthenticationService.tag,
-                                                                       kSecValueData as String: key as AnyObject]
-                                        let status = SecItemAdd(addquery as CFDictionary, nil)
-                                        guard status == errSecSuccess else {
-                                            print(status)
-                                            return
-                                        }
-                                        print("Storing Apple ID successful.")
-                                    }
-                                }
-                            }
-                        case .failure(let error):
-                            Task {
-                                await MainActor.run {
-                                    signInErrorMessage = String(describing: error)
-                                    print("Authorization failed: " + String(describing: error))
-                                    popoverPresented.toggle()
-                                }
-                            }
+public struct SettingsView: View {
+    @EnvironmentObject var authService: AppleAuthenticationService
+    var cacheManager: CloudCacheManager
+    var modelController: DefaultModelController
+    @Environment(\.dismiss) private var dismiss
+    @State private var showingDeleteAccountAlert = false
+    @State private var showingClearStorageAlert = false
+    
+    public init(cacheManager: CloudCacheManager, modelController: DefaultModelController) {
+        self.cacheManager = cacheManager
+        self.modelController = modelController
+    }
+    
+    public var body: some View {
+        NavigationStack {
+            List {
+                Section("Account") {
+                    HStack {
+                        Image(systemName: "person.circle.fill")
+                            .font(.largeTitle)
+                            .foregroundStyle(.tint)
+                        VStack(alignment: .leading) {
+                            Text(authService.fullName.isEmpty ? "Signed In with Apple" : authService.fullName)
+                                .font(.headline)
+                            Text(authService.appleUserId)
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
                         }
                     }
-                    .signInWithAppleButtonStyle(.whiteOutline)
-                    .frame(maxHeight:60)
-                    .popover(isPresented: $popoverPresented, content: {
-                        Text(signInErrorMessage).padding()
-                            .presentationCompactAdaptation(.popover)
-                    })
-                    .padding(.top, 60)
-                }
-            }
-        List() {
-            Button {
-                print("Sign Out tapped")
-                Task {
-                    try await modelController.resetPlaceModel()
-                    model.signOut()
-                }
-            } label: {
-                Label("Sign Out of your Apple ID", systemImage: "person.crop.circle.badge.minus")
-            }
-            Button(action:{
-                print("Delete data tapped")
-                Task {
-                    do {
-                        try await modelController.resetPlaceModel()
-                        try await cacheManager.cloudCacheService.deleteAllUserCachedGroups()
-                        try await cacheManager.refreshCache()
-                    } catch {
-                        modelController.analyticsManager.trackError(error:error, additionalInfo:nil)
+                    .padding(.vertical, 8)
+                    
+                    Button("Sign Out", role: .destructive) {
+                        authService.signOut()
+                        dismiss()
                     }
                 }
-            }, label:{
-              Text("Delete data stored in iCloud.")
-            })
-            Button {
-                print("Delete account tapped")
-                Task {
-                    do {
-                        try await modelController.resetPlaceModel()
-                        try await cacheManager.cloudCacheService.deleteAllUserCachedGroups()
-                        try await cacheManager.refreshCache()
-                        model.signOut()
-                    } catch {
-                        modelController.analyticsManager.trackError(error:error, additionalInfo:nil)
+                
+                Section("Privacy & Sovereignty") {
+                    Button {
+                        showingClearStorageAlert = true
+                    } label: {
+                        Label("Clear All Search History", systemImage: "trash")
+                    }
+                    
+                    Button(role: .destructive) {
+                        showingDeleteAccountAlert = true
+                    } label: {
+                        Label("Delete Know Maps Account", systemImage: "person.badge.minus")
                     }
                 }
-            } label: {
-                Text("Delete the Know Maps iCloud Account")
-                    .foregroundStyle(.red)
+                
+                Section("AI Tuning") {
+                    NavigationLink {
+                        TasteTuningView(cacheManager: cacheManager, modelController: modelController)
+                    } label: {
+                        Label("Manage Discover Tastes", systemImage: "slider.horizontal.2.square.on.square")
+                    }
+                }
+                
+                Section("About") {
+                    HStack {
+                        Text("Version")
+                        Spacer()
+                        Text("2.0.0 (Preservation)")
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+            .navigationTitle("Settings")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
+            }
+            .alert("Clear All Search History?", isPresented: $showingClearStorageAlert) {
+                Button("Clear", role: .destructive) {
+                    Task {
+                        try? await cacheManager.cloudCacheService.deleteAllUserCachedGroups()
+                        try? await cacheManager.refreshCache()
+                    }
+                }
+                Button("Cancel", role: .cancel) {}
+            } message: {
+                Text("This will remove all your saved places, categories, and tastes. This action cannot be undone.")
+            }
+            .alert("Delete Know Maps Account?", isPresented: $showingDeleteAccountAlert) {
+                Button("Delete Everything", role: .destructive) {
+                    Task {
+                        try? await cacheManager.cloudCacheService.deleteAllUserCachedGroups()
+                        authService.signOut()
+                        dismiss()
+                    }
+                }
+                Button("Cancel", role: .cancel) {}
+            } message: {
+                Text("Your data will be permanently deleted from iCloud and you will be signed out. This is irreversible.")
             }
         }
-#if os(macOS) || os(visionOS)
-        .buttonStyle(.borderless)
-#else
-        .buttonStyle(.plain)
-#endif
-            
+    }
+}
+
+struct TasteTuningView: View {
+    var cacheManager: CloudCacheManager
+    var modelController: DefaultModelController
+    
+    var body: some View {
+        List {
+            Section {
+                ForEach(cacheManager.allCachedTastes, id: \.id) { taste in
+                    HStack {
+                        Text(taste.title)
+                            .font(.body)
+                        Spacer()
+                        Picker("Weight", selection: Binding(
+                            get: { Int(taste.rating) },
+                            set: { newValue in
+                                updateWeight(for: taste, weight: newValue)
+                            }
+                        )) {
+                            Text("Rarely").tag(1)
+                            Text("Occasionally").tag(2)
+                            Text("Often").tag(3)
+                        }
+                        .pickerStyle(.menu)
+                        .labelsHidden()
+                        .tint(.accentColor)
+                    }
+                }
+                .onDelete { indexSet in
+                    Task {
+                        for index in indexSet {
+                            let taste = cacheManager.allCachedTastes[index]
+                            try? await SearchSavedViewModel.shared.removeSelectedItem(selectedSavedResult: taste.recordId, cacheManager: cacheManager, modelController: modelController)
+                        }
+                    }
+                }
+            } header: {
+                Text("My Tastes")
+            } footer: {
+                Text("Influence how the discovery engine ranks results based on your preferences.")
+            }
+        }
+        .navigationTitle("Taste Tuning")
+    }
+    
+    private func updateWeight(for taste: UserCachedRecord, weight: Int) {
+        Task {
+            do {
+                _ = try await cacheManager.cloudCacheService.storeUserCachedRecord(
+                    recordId: taste.recordId,
+                    group: taste.group,
+                    identity: taste.identity,
+                    title: taste.title,
+                    icons: taste.icons,
+                    list: taste.list,
+                    section: taste.section,
+                    rating: Double(weight)
+                )
+                try? await cacheManager.refreshCache()
+            } catch {
+                print("Failed to update weight: \(error)")
+            }
         }
     }
 }

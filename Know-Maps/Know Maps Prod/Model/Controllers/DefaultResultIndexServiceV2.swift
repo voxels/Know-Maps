@@ -133,7 +133,7 @@ public final class DefaultResultIndexServiceV2: ResultIndexServiceV2 {
        // Build category index (includes children via flatMap)
        let allIndustryCategories: [CategoryResult] = industryResults.flatMap { category in
            var combined: [CategoryResult] = [category]
-           combined.append(contentsOf: category.children ?? [])
+           combined.append(contentsOf: category.children)
            return combined
        }
        industryCategoryResultsByID = Dictionary(uniqueKeysWithValues: allIndustryCategories.map { ($0.id, $0) })

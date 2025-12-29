@@ -31,11 +31,10 @@ The **Model** layer lives under `Model/Models` and defines the data structures u
 | `PlacePhotoResponse.swift` | `struct PlacePhotoResponse` | Holds image data or URL for a place photo.
 | `PlaceResponseFormatter.swift` | `class PlaceResponseFormatter` | Utility that formats raw API responses into the app's `PlaceSearchResponse` model.
 | `PlaceSearchRequest.swift` | `struct PlaceSearchRequest` | Request payload for a place search (query string, location bias, filters).
-| `PlaceSearchResponse.swift` | `struct PlaceSearchResponse` | Primary data model for a place search result. Includes ID, name, categories, coordinates, address, and related IDs.
+| `PlaceSearchResponse.swift` | `struct PlaceSearchResponse` | Primary data model for a place search result. Includes ID, name, categories, coordinates, address, and related IDs. Now also used for recommendations (via relevance sorting) and includes optional `tastes`.
 | `PlaceTipsResponse.swift` | `struct PlaceTipsResponse` | Represents tips or recommendations attached to a place.
 | `RecommendationData.swift` | `struct RecommendationData` | Stores recommendation metadata used by the recommender service.
 | `RecommendedPlaceSearchRequest.swift` | `struct RecommendedPlaceSearchRequest` | Request model for fetching recommended places based on user context.
-| `RecommendedPlaceSearchResponse.swift` | `struct RecommendedPlaceSearchResponse` | Response model for recommended place searches.
 | `UserCachedRecord.swift` | `struct UserCachedRecord` | Simple cache entry for user‑specific data (e.g., recent searches, favorites).
 
 ---

@@ -22,16 +22,18 @@ public enum PersonalizedSearchSessionError : Error {
     case Debounce
 }
 
-public actor PersonalizedSearchSession {
+public actor PersonalizedSearchSession : PersonalizedSearchSessionProtocol {
     // Retry/backoff configuration
     private static let maxRetryAttempts = 3
     private static let baseBackoff: TimeInterval = 0.5 // seconds
     private var isFetchingRecommendations:Bool = false
 
     private let cloudCacheService: CloudCacheService
+    private let analyticsManager: AnalyticsService
 
     public init(cloudCacheService: CloudCacheService) {
         self.cloudCacheService = cloudCacheService
+        self.analyticsManager = cloudCacheService.analyticsManager
     }
 
     private func exponentialBackoffDelay(attempt: Int) -> TimeInterval {
@@ -105,12 +107,12 @@ public actor PersonalizedSearchSession {
     static let userManagementAPIUrl = "v2/usermanagement"
     static let userManagementCreationPath = "/createuser"
     static let tasteSuggestionsAPIUrl = "v2/tastes/suggestions"
-    static let venueRecommendationsAPIUrl = "v2/search/recommendations"
-    static let autocompleteAPIUrl = "v2/search/autocomplete"
+    static let venueRecommendationsAPIUrl = "v3/places/search"
+    static let autocompleteAPIUrl = "v3/autocomplete"
     static let autocompleteTastesAPIUrl = "v2/tastes/autocomplete"
-    static let relatedVenueAPIUrl = "v2/venues/"
+    static let relatedVenueAPIUrl = "v3/places/"
     static let relatedVenuePath = "/related"
-    static let foursquareVersionDate = "20240101"
+    static let foursquareVersionDate = "20241227"
     
     @discardableResult
     public func fetchManagedUserIdentity(cacheManager:CacheManager) async throws ->String? {
@@ -186,7 +188,7 @@ public actor PersonalizedSearchSession {
         return true
     }
 
-    public func autocompleteTastes(caption:String, parameters:[String:String]?, cacheManager:CacheManager) async throws -> [String:[String]] {
+    public func autocompleteTastes(caption:String, parameters:[String:String]?, cacheManager:CacheManager) async throws -> FSQTastesResponse {
         
         let apiKey = try await requireAccessToken(cacheManager: cacheManager) {
             _ = await self.cloudCacheService.refreshFsqToken()
@@ -195,15 +197,12 @@ public actor PersonalizedSearchSession {
         var limit = 50
         var nameString:String = ""
         
-        if let parameters = parameters, let rawQuery = parameters["query"] as? String {
+        if let parameters = parameters, let rawQuery = parameters["query"] {
             nameString = rawQuery
         }
         
-        if let parameters = parameters, let rawParameters = parameters["parameters"] as? NSDictionary {
-            
-            if let rawLimit = rawParameters["limit"] as? Int {
-                limit = rawLimit
-            }
+        if let parameters = parameters, let rawLimit = Int(parameters["limit"] ?? "") {
+            limit = rawLimit
         }
         
         guard let queryComponents = URLComponents(string:"\(PersonalizedSearchSession.serverUrl)\(PersonalizedSearchSession.autocompleteTastesAPIUrl)") else {
@@ -228,21 +227,12 @@ public actor PersonalizedSearchSession {
         }
         
         let data = try await fetch(url: url, apiKey: apiKey, urlQueryItems: queryItems)
-        
-        guard let root = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] else {
-            return [:]
-        }
-                
-        var retval = [String:[String]]()
-        if let responseDict = root["response"] as? [String: Any],
-           let tastes = responseDict["tastes"] as? [[String: Any]] {
-            retval["tastes"] = tastes.compactMap { $0["text"] as? String }
-        }
-
-        return retval
+        let decoder = JSONDecoder()
+        let root = try decoder.decode(FSQTastesRoot.self, from: data)
+        return root.response ?? FSQTastesResponse(tastes: [])
     }
     
-    public func fetchRecommendedVenues(with request:RecommendedPlaceSearchRequest, cacheManager:CacheManager) async throws -> [String:String]{
+    public func fetchRecommendedVenues(with request:RecommendedPlaceSearchRequest, cacheManager:CacheManager) async throws -> [PlaceSearchResponse] {
         guard !isFetchingRecommendations else { throw PersonalizedSearchSessionError.Debounce }
         isFetchingRecommendations = true
         let apiKey = try await requireAccessToken(cacheManager: cacheManager) {
@@ -270,19 +260,27 @@ public actor PersonalizedSearchSession {
             }
 
             if !request.categories.isEmpty {
-                items.append(URLQueryItem(name: "categoryId", value: request.categories))
-            } else if request.section.rawValue.lowercased() == request.query.lowercased() {
-                items.append(URLQueryItem(name: "section", value: request.section.key()))
+                items.append(URLQueryItem(name: "categories", value: request.categories))
+            }
+            
+            if request.minPrice > 1 || request.maxPrice < 4 {
+                var priceStr = ""
+                for p in request.minPrice...request.maxPrice {
+                    priceStr += "\(p),"
+                }
+                if !priceStr.isEmpty {
+                    priceStr.removeLast()
+                    items.append(URLQueryItem(name: "min_price", value: "\(request.minPrice)"))
+                    items.append(URLQueryItem(name: "max_price", value: "\(request.maxPrice)"))
+                }
             }
 
-            if request.minPrice > 1 { items.append(URLQueryItem(name: "price", value: "\(request.minPrice)")) }
-            if request.maxPrice < 4 { items.append(URLQueryItem(name: "price", value: "\(request.maxPrice)")) }
             if request.openNow == true { items.append(URLQueryItem(name: "open_now", value: "true")) }
 
             items.append(URLQueryItem(name: "limit", value: "\(request.limit)"))
-            items.append(URLQueryItem(name: "offset", value: "\(request.offset)"))
+            items.append(URLQueryItem(name: "sort", value: "RELEVANCE"))
 
-            if request.categories.isEmpty, request.section.rawValue.lowercased() != request.query.lowercased(), !request.query.isEmpty {
+            if !request.query.isEmpty {
                 items.append(URLQueryItem(name: "query", value: request.query))
             }
             return items
@@ -304,41 +302,22 @@ public actor PersonalizedSearchSession {
                 
                 isFetchingRecommendations = false
                 
-                guard let root = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] else {
-                    throw PersonalizedSearchSessionError.NoVenuesFound
-                }
+                let decoder = JSONDecoder()
+                let response = try decoder.decode(FSQSearchResponse.self, from: data)
+                let results = try PlaceResponseFormatter.placeSearchResponses(with: response)
                 
-                guard let responseDict = root["response"] as? [String: Any] else {
-                    throw PersonalizedSearchSessionError.NoVenuesFound
-                }
-                
-                // Check "groups" key if present
-                if let groups = responseDict["group"] as? [[String: Any]], groups.isEmpty, index < radiiToTry.count - 1 {
-                    continue
-                }
-                // Check "results" key if present
-                if let results = responseDict["results"] as? [Any], results.isEmpty, index < radiiToTry.count - 1 {
+                if results.isEmpty && index < radiiToTry.count - 1 {
                     continue
                 }
                 
-                // Convert responseDict to [String:String] by compact mapping string values
-                var stringDict = [String:String]()
-                for (key, value) in responseDict {
-                    if let strVal = value as? String {
-                        stringDict[key] = strVal
-                    }
-                }
+                self.analyticsManager.track(
+                    event: "recommendedSearch.parsed",
+                    properties: [
+                        "count": results.count
+                    ]
+                )
                 
-                if !stringDict.isEmpty {
-                    return stringDict
-                }
-                
-                // If not returned, try next radius if any
-                if index < radiiToTry.count - 1 {
-                    continue
-                }
-                
-                throw PersonalizedSearchSessionError.NoVenuesFound
+                return results
             } catch {
                 isFetchingRecommendations = false
                 lastError = error
@@ -352,7 +331,7 @@ public actor PersonalizedSearchSession {
         throw PersonalizedSearchSessionError.NoVenuesFound
     }
     
-    public func fetchTastes(page:Int, cacheManager:CacheManager) async throws -> [String:[String]] {
+    public func fetchTastes(page:Int, cacheManager:CacheManager) async throws -> FSQTastesResponse {
         let apiKey = try await requireAccessToken(cacheManager: cacheManager) {
             _ = await self.cloudCacheService.refreshFsqToken()
         }
@@ -371,60 +350,13 @@ public actor PersonalizedSearchSession {
         
         let data = try await fetch(url: components.url!, apiKey: apiKey, urlQueryItems: [intentQueryItem, limitQueryItem, offsetQueryItem])
         
-        guard let root = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] else {
-            return ["tastes": [String]()]
-        }
-        
-        guard let nestedResponse = root["response"] as? [String: Any] else {
-            return ["tastes": [String]()]
-        }
-        
-        guard let tastesArray = nestedResponse["tastes"] as? [[String: Any]] else {
-            return ["tastes": [String]()]
-        }
-        
-        let texts = tastesArray.compactMap { $0["text"] as? String }
-        
-        return ["tastes": texts]
-    }
-
-    public func fetchTastesResponse(page:Int, cacheManager:CacheManager) async throws -> [String:String] {
-        let apiKey = try await requireAccessToken(cacheManager: cacheManager) {
-            _ = await self.cloudCacheService.refreshFsqToken()
-        }
-        
-        guard !apiKey.isEmpty else {
-            throw PersonalizedSearchSessionError.UnsupportedRequest
-        }
-        
-        guard let components = URLComponents(string:"\(PersonalizedSearchSession.serverUrl)\(PersonalizedSearchSession.tasteSuggestionsAPIUrl)") else {
-            throw PersonalizedSearchSessionError.UnsupportedRequest
-        }
-        
-        let intentQueryItem = URLQueryItem(name: "intent", value: "onboarding")
-        let limitQueryItem = URLQueryItem(name: "limit", value: "50")
-        let offsetQueryItem = URLQueryItem(name: "offset", value:"\(page)")
-        
-        let data = try await fetch(url: components.url!, apiKey: apiKey, urlQueryItems: [intentQueryItem, limitQueryItem, offsetQueryItem])
-        
-        guard let root = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
-              let nestedResponse = root["response"] as? [String: Any] else {
-            return [:]
-        }
-        
-        // Build [String:String] dictionary by filtering string values only
-        var stringDict = [String:String]()
-        for (key, value) in nestedResponse {
-            if let strVal = value as? String {
-                stringDict[key] = strVal
-            }
-        }
-        
-        return stringDict
+        let decoder = JSONDecoder()
+        let root = try decoder.decode(FSQTastesRoot.self, from: data)
+        return root.response ?? FSQTastesResponse(tastes: [])
     }
 
     
-    public func fetchRelatedVenues(for fsqID:String, cacheManager:CacheManager) async throws -> [String:String] {
+    public func fetchRelatedVenues(for fsqID:String, cacheManager:CacheManager) async throws -> [PlaceSearchResponse] {
         let apiKey = try await requireAccessToken(cacheManager: cacheManager) {
             _ = await self.cloudCacheService.refreshFsqToken()
         }
@@ -442,21 +374,9 @@ public actor PersonalizedSearchSession {
         }
         
         let data = try await fetch(url: url, apiKey: apiKey, urlQueryItems: [])
-        
-        guard let root = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] else {
-            throw PersonalizedSearchSessionError.NoTasteFound
-        }
-                        
-        var retval = [String:String]()
-        if let responseDict = root["response"] as? [String: Any] {
-            for (key, value) in responseDict {
-                if let strVal = value as? String {
-                    retval[key] = strVal
-                }
-            }
-        }
-
-        return retval
+        let decoder = JSONDecoder()
+        let response = try decoder.decode(FSQSearchResponse.self, from: data)
+        return try PlaceResponseFormatter.placeSearchResponses(with: response)
     }
     
     private func fetchFoursquareServiceAPIKey() async throws -> String? {
@@ -563,4 +483,6 @@ public actor PersonalizedSearchSession {
         throw lastError ?? PersonalizedSearchSessionError.MaxRetriesReached
     }
 }
+
+
 

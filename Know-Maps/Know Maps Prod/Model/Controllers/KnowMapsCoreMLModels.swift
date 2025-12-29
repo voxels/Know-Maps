@@ -11,14 +11,25 @@ final class KnowMapsLocalMapsQueryTagger {
 
     init(configuration: MLModelConfiguration = MLModelConfiguration()) throws {
         let bundle = Self.resourceBundle
+        
+        // 1. Try to find the compiled model (.mlmodelc)
+        if let compiledURL = bundle.url(forResource: "LocalMapsQueryTagger", withExtension: "mlmodelc") {
+            model = try MLModel(contentsOf: compiledURL, configuration: configuration)
+            return
+        }
+
+        // 2. Fallback: Try to find source (.mlmodel) and compile
         if let mlmodelURL = bundle.url(forResource: "LocalMapsQueryTagger", withExtension: "mlmodel") {
             let compiledURL = try MLModel.compileModel(at: mlmodelURL)
             model = try MLModel(contentsOf: compiledURL, configuration: configuration)
             return
         }
 
+        // 3. Fallback: Try to find package (.mlpackage) and compile
         guard let packageURL = bundle.url(forResource: "LocalMapsQueryTagger", withExtension: "mlpackage") else {
-            throw KnowMapsCoreMLResourceError.resourceNotFound("LocalMapsQueryTagger.mlmodel (or .mlpackage)")
+            // Debugging: Print bundle path
+            print("DEBUG: Bundle path: \(bundle.bundlePath)")
+            throw KnowMapsCoreMLResourceError.resourceNotFound("LocalMapsQueryTagger [mlmodelc, mlmodel, mlpackage]")
         }
 
         let mlmodelURL = try Self.findFirstMLModel(in: packageURL, context: "LocalMapsQueryTagger.mlpackage")
@@ -40,8 +51,16 @@ final class KnowMapsFoursquareSectionClassifier {
 
     init(configuration: MLModelConfiguration = MLModelConfiguration()) throws {
         let bundle = Self.resourceBundle
+        
+        // 1. Try to find the compiled model (.mlmodelc)
+        if let compiledURL = bundle.url(forResource: "FoursquareSectionClassifier", withExtension: "mlmodelc") {
+            model = try MLModel(contentsOf: compiledURL, configuration: configuration)
+            return
+        }
+
+        // 2. Fallback: Source model
         guard let mlmodelURL = bundle.url(forResource: "FoursquareSectionClassifier", withExtension: "mlmodel") else {
-            throw KnowMapsCoreMLResourceError.resourceNotFound("FoursquareSectionClassifier.mlmodel")
+            throw KnowMapsCoreMLResourceError.resourceNotFound("FoursquareSectionClassifier [mlmodelc, mlmodel]")
         }
 
         let compiledURL = try MLModel.compileModel(at: mlmodelURL)
@@ -66,7 +85,12 @@ private extension KnowMapsLocalMapsQueryTagger {
         #if SWIFT_PACKAGE
         return .module
         #else
-        return Bundle(for: Self.self)
+        let bundle = Bundle(for: Self.self)
+        if bundle.url(forResource: "LocalMapsQueryTagger", withExtension: "mlmodel") != nil ||
+           bundle.url(forResource: "LocalMapsQueryTagger", withExtension: "mlpackage") != nil {
+            return bundle
+        }
+        return Bundle.main
         #endif
     }
 
@@ -91,7 +115,11 @@ private extension KnowMapsFoursquareSectionClassifier {
         #if SWIFT_PACKAGE
         return .module
         #else
-        return Bundle(for: Self.self)
+        let bundle = Bundle(for: Self.self)
+        if bundle.url(forResource: "FoursquareSectionClassifier", withExtension: "mlmodel") != nil {
+            return bundle
+        }
+        return Bundle.main
         #endif
     }
 }

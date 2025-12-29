@@ -1,8 +1,16 @@
-import XCTest
-@testable import knowmaps
+//
+//  KnowMapsTests.swift
+//  KnowMapsTests
+//
+//  Created by Michael A Edgcumbe on 12/27/25.
+//
 
-final class KnowmapsTests: XCTestCase {
-    func testExample() {
-        XCTAssertTrue(true)
+import Testing
+
+struct KnowMapsTests {
+
+    @Test func example() async throws {
+        // Write your test here and use APIs like `#expect(...)` to check expected conditions.
     }
+
 }

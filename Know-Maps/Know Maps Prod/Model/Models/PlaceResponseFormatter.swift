@@ -16,208 +16,14 @@ public enum PlaceResponseFormatterError : Error {
 
 open class PlaceResponseFormatter {
     
-    // MARK: - Legacy v2 Codable helpers
-    private struct V2GroupContainer: Codable { let items: [V2GroupItem]? }
-    private struct V2VenueCategory: Codable { let name: String? }
-    private struct V2VenueLocation: Codable {
-        let address: String?
-        let city: String?
-        let postalCode: String?
-        let state: String?
-        let country: String?
-        let formattedAddress: [String]?
-        let lat: Double?
-        let lng: Double?
-        let neighborhood: String?
-    }
-    private struct V2Venue: Codable {
-        let id: String?
-        let name: String?
-        let categories: [V2VenueCategory]?
-        let location: V2VenueLocation?
-    }
-    private struct V2Photo: Codable { let prefix: String?; let suffix: String?; let width: Double?; let height: Double? }
-    private struct V2PhotoGroup: Codable { let items: [V2Photo]? }
-    private struct V2PhotosContainer: Codable { let groups: [V2PhotoGroup]? }
-    private struct V2GroupItem: Codable {
-        let venue: V2Venue?
-        let photo: V2Photo?
-        let photos: V2PhotosContainer?
-    }
-    private struct V2RecommendedRoot: Codable { let group: V2GroupContainer? }
-    private struct V2RelatedGroup: Codable { let items: [V2GroupItem]? }
-    private struct V2RelatedRoot: Codable { let related: [V2RelatedGroup]? }
-
-    public class func autocompleteTastesResponses(with response:[String:[String]]) throws ->[String] {
-        var retval = [String]()
-        // Support both nested and flat payloads as loosely typed arrays of dictionaries
-        if let nested = response["response"] as? [[String: Any]],
-           let tastes = nested.first?["tastes"] as? [[String: Any]] {
-            for t in tastes {
-                if let text = t["text"] as? String, !text.isEmpty { retval.append(text) }
-            }
-            return retval
-        }
-        if let tastes = response["tastes"] as? [[String: Any]] {
-            for t in tastes {
-                if let text = t["text"] as? String, !text.isEmpty { retval.append(text) }
-            }
-        }
-        return retval
+    public class func autocompleteTastesResponses(with response: FSQTastesResponse) throws -> [String] {
+        return (response.tastes ?? []).compactMap { $0.text }
     }
     
-    public class func autocompleteRecommendedPlaceSearchResponses(from data: Data) throws -> [RecommendedPlaceSearchResponse] {
-        var results: [RecommendedPlaceSearchResponse] = []
-        let decoder = JSONDecoder()
-        let root = try decoder.decode(V2RecommendedRoot.self, from: data)
-        guard let items = root.group?.items, !items.isEmpty else { return results }
-        for item in items {
-            var fsqID = ""
-            var name = ""
-            var categories: [String] = []
-            var latitude: Double = 0
-            var longitude: Double = 0
-            var neighborhood = ""
-            var address = ""
-            var country = ""
-            var city = ""
-            var state = ""
-            var postCode = ""
-            var formattedAddress = ""
-            var photo: String? = nil
-            var aspectRatio: Float? = nil
-            var photos: [String] = []
-            let tastes: [String] = []
-
-            if let v = item.venue {
-                fsqID = v.id ?? ""
-                name = v.name ?? ""
-                categories = (v.categories ?? []).compactMap { $0.name }
-                if let loc = v.location {
-                    address = loc.address ?? ""
-                    city = loc.city ?? ""
-                    postCode = loc.postalCode ?? ""
-                    state = loc.state ?? ""
-                    country = loc.country ?? ""
-                    if let fa = loc.formattedAddress { formattedAddress = fa.joined(separator: " ") }
-                    if let lat = loc.lat { latitude = lat }
-                    if let lng = loc.lng { longitude = lng }
-                    neighborhood = loc.neighborhood ?? ""
-                }
-            }
-            if let p = item.photo, let prefix = p.prefix, let suffix = p.suffix, let w = p.width, let h = p.height {
-                photo = "\(prefix)\(Int(floor(w)))x\(Int(floor(h)))\(suffix)"
-                aspectRatio = Float(w/h)
-            }
-            if let groups = item.photos?.groups {
-                for g in groups {
-                    for i in g.items ?? [] {
-                        if let prefix = i.prefix, let suffix = i.suffix, let w = i.width, let h = i.height {
-                            photos.append("\(prefix)\(Int(floor(w)))x\(Int(floor(h)))\(suffix)")
-                        }
-                    }
-                }
-            }
-
-            let rec = RecommendedPlaceSearchResponse(
-                fsqID: fsqID,
-                name: name,
-                categories: categories,
-                latitude: latitude,
-                longitude: longitude,
-                neighborhood: neighborhood,
-                address: address,
-                country: country,
-                city: city,
-                state: state,
-                postCode: postCode,
-                formattedAddress: formattedAddress,
-                photo: photo,
-                aspectRatio: aspectRatio,
-                photos: photos,
-                tastes: tastes
-            )
-            results.append(rec)
-        }
-        return results
-    }
+    // Legacy V2 formatters kept only for active sessions (Recommend/Related)
+    // TODO: Modernize Recommended/Related to V3 and remove these.
     
-    public class func relatedPlaceSearchResponses(from data: Data) throws -> [RecommendedPlaceSearchResponse] {
-        var results: [RecommendedPlaceSearchResponse] = []
-        let decoder = JSONDecoder()
-        let root = try decoder.decode(V2RelatedRoot.self, from: data)
-        for group in root.related ?? [] {
-            for item in group.items ?? [] {
-                var fsqID = ""
-                var name = ""
-                var categories: [String] = []
-                var latitude: Double = 0
-                var longitude: Double = 0
-                var neighborhood = ""
-                var address = ""
-                var country = ""
-                var city = ""
-                var state = ""
-                var postCode = ""
-                var formattedAddress = ""
-                var photo: String? = nil
-                var aspectRatio: Float? = nil
-                var photos: [String] = []
-                let tastes: [String] = []
-
-                if let v = item.venue {
-                    fsqID = v.id ?? ""
-                    name = v.name ?? ""
-                    categories = (v.categories ?? []).compactMap { $0.name }
-                    if let loc = v.location {
-                        address = loc.address ?? ""
-                        city = loc.city ?? ""
-                        postCode = loc.postalCode ?? ""
-                        state = loc.state ?? ""
-                        country = loc.country ?? ""
-                        if let fa = loc.formattedAddress { formattedAddress = fa.joined(separator: " ") }
-                        if let lat = loc.lat { latitude = lat }
-                        if let lng = loc.lng { longitude = lng }
-                        neighborhood = loc.neighborhood ?? ""
-                    }
-                }
-                if let p = item.photo, let prefix = p.prefix, let suffix = p.suffix, let w = p.width, let h = p.height {
-                    photo = "\(prefix)\(Int(floor(w)))x\(Int(floor(h)))\(suffix)"
-                    aspectRatio = Float(w/h)
-                }
-                if let groups = item.photos?.groups {
-                    for g in groups {
-                        for i in g.items ?? [] {
-                            if let prefix = i.prefix, let suffix = i.suffix, let w = i.width, let h = i.height {
-                                photos.append("\(prefix)\(Int(floor(w)))x\(Int(floor(h)))\(suffix)")
-                            }
-                        }
-                    }
-                }
-
-                let rec = RecommendedPlaceSearchResponse(
-                    fsqID: fsqID,
-                    name: name,
-                    categories: categories,
-                    latitude: latitude,
-                    longitude: longitude,
-                    neighborhood: neighborhood,
-                    address: address,
-                    country: country,
-                    city: city,
-                    state: state,
-                    postCode: postCode,
-                    formattedAddress: formattedAddress,
-                    photo: photo,
-                    aspectRatio: aspectRatio,
-                    photos: photos,
-                    tastes: tastes
-                )
-                results.append(rec)
-            }
-        }
-        return results
-    }
+    // MARK: - Geo helpers
     
     // MARK: - Geo helpers
     /// Build a LocationResult from a Foursquare autocomplete geo item
@@ -564,7 +370,7 @@ open class PlaceResponseFormatter {
             let width = Float(p.width ?? 0)
             let prefix = p.prefix ?? ""
             let suffix = p.suffix ?? ""
-            let resp = PlacePhotoResponse(id: ObjectIdentifier(NSString(string: ident)), placeIdent: placeID, ident: ident, createdAt: createdAt, height: height, width: width, classifications: [], prefix: prefix, suffix: suffix)
+            let resp = PlacePhotoResponse(id: ident, placeIdent: placeID, ident: ident, createdAt: createdAt, height: height, width: width, classifications: [], prefix: prefix, suffix: suffix)
             retVal.append(resp)
         }
         return retVal
@@ -586,12 +392,12 @@ open class PlaceResponseFormatter {
         return retVal
     }
         
-    public class func placeChatResults(for intent:AssistiveChatHostIntent, place:PlaceSearchResponse, section:PersonalizedSearchSection, list:String, index:Int, rating:Double, details:PlaceDetailsResponse?, recommendedPlaceResponse:RecommendedPlaceSearchResponse? = nil)->[ChatResult] {
-        return [PlaceResponseFormatter.chatResult(index: index, title: place.name, section:section, list:list, rating:rating, placeResponse: place, placeDetailsResponse: details, recommendedPlaceResponse: recommendedPlaceResponse)]
+    public class func placeChatResults(for intent:AssistiveChatHostIntent, place:PlaceSearchResponse, section:PersonalizedSearchSection, list:String, index:Int, rating:Double, details:PlaceDetailsResponse?)->[ChatResult] {
+        return [PlaceResponseFormatter.chatResult(index: index, title: place.name, section:section, list:list, rating:rating, placeResponse: place, placeDetailsResponse: details)]
     }
     
-    public class func chatResult(index:Int, title:String, section:PersonalizedSearchSection, list:String, rating:Double, placeResponse:PlaceSearchResponse, placeDetailsResponse:PlaceDetailsResponse?, recommendedPlaceResponse:RecommendedPlaceSearchResponse? = nil)->ChatResult {
-        let result = ChatResult(index: index, identity: placeResponse.fsqID, title:title, list:list, icon: "", rating: rating, section:section, placeResponse: placeResponse, recommendedPlaceResponse: recommendedPlaceResponse, placeDetailsResponse:placeDetailsResponse)
+    public class func chatResult(index:Int, title:String, section:PersonalizedSearchSection, list:String, rating:Double, placeResponse:PlaceSearchResponse, placeDetailsResponse:PlaceDetailsResponse?)->ChatResult {
+        let result = ChatResult(index: index, identity: placeResponse.fsqID, title:title, list:list, icon: "", rating: rating, section:section, placeResponse: placeResponse, placeDetailsResponse:placeDetailsResponse)
                         
         return result
     }

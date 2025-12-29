@@ -1,0 +1,889 @@
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild build -project "Know-Maps/Know Maps.xcodeproj" -scheme "Know Maps" -destination "platform=iOS Simulator,name=iPhone 17"
+
+Resolve Package Graph
+
+
+Resolved source packages:
+  Nuke: https://github.com/kean/Nuke @ 12.8.0
+  xctest-dynamic-overlay: https://github.com/pointfreeco/xctest-dynamic-overlay @ 1.6.1
+  Sovran: https://github.com/segmentio/sovran-swift.git @ 1.1.2
+  swift-crypto: https://github.com/apple/swift-crypto.git @ 3.15.1
+  Segment: https://github.com/segmentio/analytics-swift @ 1.6.2
+  Supabase: https://github.com/supabase/supabase-swift @ 2.33.1
+  swift-http-types: https://github.com/apple/swift-http-types.git @ 1.4.0
+  JSONSafeEncoding: https://github.com/segmentio/jsonsafeencoding-swift.git @ 2.0.0
+  swift-concurrency-extras: https://github.com/pointfreeco/swift-concurrency-extras @ 1.3.2
+  swift-clocks: https://github.com/pointfreeco/swift-clocks @ 1.0.6
+  swift-asn1: https://github.com/apple/swift-asn1.git @ 1.4.0
+
+ComputePackagePrebuildTargetDependencyGraph
+
+Prepare packages
+
+CreateBuildRequest
+
+SendProjectDescription
+
+CreateBuildOperation
+
+ComputeTargetDependencyGraph
+note: Building targets in dependency order
+note: Target dependency graph (33 targets)
+    Target 'Know Maps' in project 'Know Maps'
+        ➜ Explicit dependency on target 'NukeUI' in project 'Nuke'
+        ➜ Explicit dependency on target 'Segment' in project 'Segment'
+        ➜ Explicit dependency on target 'Supabase' in project 'Supabase'
+    Target 'Supabase' in project 'Supabase'
+        ➜ Explicit dependency on target 'Supabase' in project 'Supabase'
+        ➜ Explicit dependency on target 'Functions' in project 'Supabase'
+        ➜ Explicit dependency on target 'PostgREST' in project 'Supabase'
+        ➜ Explicit dependency on target 'Auth' in project 'Supabase'
+        ➜ Explicit dependency on target 'Realtime' in project 'Supabase'
+        ➜ Explicit dependency on target 'Storage' in project 'Supabase'
+        ➜ Explicit dependency on target 'Helpers' in project 'Supabase'
+        ➜ Explicit dependency on target 'ConcurrencyExtras' in project 'swift-concurrency-extras'
+        ➜ Explicit dependency on target 'HTTPTypes' in project 'swift-http-types'
+        ➜ Explicit dependency on target 'Clocks' in project 'swift-clocks'
+        ➜ Explicit dependency on target 'XCTestDynamicOverlay' in project 'xctest-dynamic-overlay'
+        ➜ Explicit dependency on target 'Crypto' in project 'swift-crypto'
+        ➜ Explicit dependency on target 'IssueReporting' in project 'xctest-dynamic-overlay'
+    Target 'Supabase' in project 'Supabase'
+        ➜ Explicit dependency on target 'Helpers' in project 'Supabase'
+        ➜ Explicit dependency on target 'Auth' in project 'Supabase'
+        ➜ Explicit dependency on target 'Functions' in project 'Supabase'
+        ➜ Explicit dependency on target 'PostgREST' in project 'Supabase'
+        ➜ Explicit dependency on target 'Realtime' in project 'Supabase'
+        ➜ Explicit dependency on target 'Storage' in project 'Supabase'
+        ➜ Explicit dependency on target 'ConcurrencyExtras' in project 'swift-concurrency-extras'
+        ➜ Explicit dependency on target 'HTTPTypes' in project 'swift-http-types'
+        ➜ Explicit dependency on target 'Clocks' in project 'swift-clocks'
+        ➜ Explicit dependency on target 'XCTestDynamicOverlay' in project 'xctest-dynamic-overlay'
+        ➜ Explicit dependency on target 'Crypto' in project 'swift-crypto'
+        ➜ Explicit dependency on target 'IssueReporting' in project 'xctest-dynamic-overlay'
+    Target 'Storage' in project 'Supabase'
+        ➜ Explicit dependency on target 'Helpers' in project 'Supabase'
+        ➜ Explicit dependency on target 'ConcurrencyExtras' in project 'swift-concurrency-extras'
+        ➜ Explicit dependency on target 'HTTPTypes' in project 'swift-http-types'
+        ➜ Explicit dependency on target 'Clocks' in project 'swift-clocks'
+        ➜ Explicit dependency on target 'XCTestDynamicOverlay' in project 'xctest-dynamic-overlay'
+    Target 'Realtime' in project 'Supabase'
+        ➜ Explicit dependency on target 'Helpers' in project 'Supabase'
+        ➜ Explicit dependency on target 'ConcurrencyExtras' in project 'swift-concurrency-extras'
+        ➜ Explicit dependency on target 'HTTPTypes' in project 'swift-http-types'
+        ➜ Explicit dependency on target 'Clocks' in project 'swift-clocks'
+        ➜ Explicit dependency on target 'XCTestDynamicOverlay' in project 'xctest-dynamic-overlay'
+        ➜ Explicit dependency on target 'IssueReporting' in project 'xctest-dynamic-overlay'
+    Target 'PostgREST' in project 'Supabase'
+        ➜ Explicit dependency on target 'Helpers' in project 'Supabase'
+        ➜ Explicit dependency on target 'ConcurrencyExtras' in project 'swift-concurrency-extras'
+        ➜ Explicit dependency on target 'HTTPTypes' in project 'swift-http-types'
+        ➜ Explicit dependency on target 'Clocks' in project 'swift-clocks'
+        ➜ Explicit dependency on target 'XCTestDynamicOverlay' in project 'xctest-dynamic-overlay'
+    Target 'Functions' in project 'Supabase'
+        ➜ Explicit dependency on target 'Helpers' in project 'Supabase'
+        ➜ Explicit dependency on target 'ConcurrencyExtras' in project 'swift-concurrency-extras'
+        ➜ Explicit dependency on target 'HTTPTypes' in project 'swift-http-types'
+        ➜ Explicit dependency on target 'Clocks' in project 'swift-clocks'
+        ➜ Explicit dependency on target 'XCTestDynamicOverlay' in project 'xctest-dynamic-overlay'
+    Target 'Auth' in project 'Supabase'
+        ➜ Explicit dependency on target 'Helpers' in project 'Supabase'
+        ➜ Explicit dependency on target 'ConcurrencyExtras' in project 'swift-concurrency-extras'
+        ➜ Explicit dependency on target 'HTTPTypes' in project 'swift-http-types'
+        ➜ Explicit dependency on target 'Clocks' in project 'swift-clocks'
+        ➜ Explicit dependency on target 'XCTestDynamicOverlay' in project 'xctest-dynamic-overlay'
+        ➜ Explicit dependency on target 'Crypto' in project 'swift-crypto'
+    Target 'Crypto' in project 'swift-crypto'
+        ➜ Explicit dependency on target 'Crypto' in project 'swift-crypto'
+        ➜ Explicit dependency on target 'swift-crypto_Crypto' in project 'swift-crypto'
+    Target 'Crypto' in project 'swift-crypto'
+        ➜ Explicit dependency on target 'swift-crypto_Crypto' in project 'swift-crypto'
+    Target 'swift-crypto_Crypto' in project 'swift-crypto' (no dependencies)
+    Target 'Helpers' in project 'Supabase'
+        ➜ Explicit dependency on target 'ConcurrencyExtras' in project 'swift-concurrency-extras'
+        ➜ Explicit dependency on target 'HTTPTypes' in project 'swift-http-types'
+        ➜ Explicit dependency on target 'Clocks' in project 'swift-clocks'
+        ➜ Explicit dependency on target 'XCTestDynamicOverlay' in project 'xctest-dynamic-overlay'
+    Target 'XCTestDynamicOverlay' in project 'xctest-dynamic-overlay'
+        ➜ Explicit dependency on target 'XCTestDynamicOverlay' in project 'xctest-dynamic-overlay'
+        ➜ Explicit dependency on target 'IssueReportingPackageSupport' in project 'xctest-dynamic-overlay'
+        ➜ Explicit dependency on target 'IssueReporting' in project 'xctest-dynamic-overlay'
+    Target 'XCTestDynamicOverlay' in project 'xctest-dynamic-overlay'
+        ➜ Explicit dependency on target 'IssueReportingPackageSupport' in project 'xctest-dynamic-overlay'
+        ➜ Explicit dependency on target 'IssueReporting' in project 'xctest-dynamic-overlay'
+    Target 'Clocks' in project 'swift-clocks'
+        ➜ Explicit dependency on target 'Clocks' in project 'swift-clocks'
+        ➜ Explicit dependency on target 'ConcurrencyExtras' in project 'swift-concurrency-extras'
+        ➜ Explicit dependency on target 'IssueReporting' in project 'xctest-dynamic-overlay'
+    Target 'Clocks' in project 'swift-clocks'
+        ➜ Explicit dependency on target 'ConcurrencyExtras' in project 'swift-concurrency-extras'
+        ➜ Explicit dependency on target 'IssueReporting' in project 'xctest-dynamic-overlay'
+    Target 'IssueReporting' in project 'xctest-dynamic-overlay'
+        ➜ Explicit dependency on target 'IssueReporting' in project 'xctest-dynamic-overlay'
+        ➜ Explicit dependency on target 'IssueReportingPackageSupport' in project 'xctest-dynamic-overlay'
+    Target 'IssueReporting' in project 'xctest-dynamic-overlay'
+        ➜ Explicit dependency on target 'IssueReportingPackageSupport' in project 'xctest-dynamic-overlay'
+    Target 'IssueReportingPackageSupport' in project 'xctest-dynamic-overlay' (no dependencies)
+    Target 'HTTPTypes' in project 'swift-http-types'
+        ➜ Explicit dependency on target 'HTTPTypes' in project 'swift-http-types'
+    Target 'HTTPTypes' in project 'swift-http-types' (no dependencies)
+    Target 'ConcurrencyExtras' in project 'swift-concurrency-extras'
+        ➜ Explicit dependency on target 'ConcurrencyExtras' in project 'swift-concurrency-extras'
+    Target 'ConcurrencyExtras' in project 'swift-concurrency-extras' (no dependencies)
+    Target 'Segment' in project 'Segment'
+        ➜ Explicit dependency on target 'Segment' in project 'Segment'
+        ➜ Explicit dependency on target 'Segment_Segment' in project 'Segment'
+        ➜ Explicit dependency on target 'Sovran' in project 'Sovran'
+        ➜ Explicit dependency on target 'JSONSafeEncoding' in project 'JSONSafeEncoding'
+    Target 'Segment' in project 'Segment'
+        ➜ Explicit dependency on target 'Segment_Segment' in project 'Segment'
+        ➜ Explicit dependency on target 'Sovran' in project 'Sovran'
+        ➜ Explicit dependency on target 'JSONSafeEncoding' in project 'JSONSafeEncoding'
+    Target 'JSONSafeEncoding' in project 'JSONSafeEncoding'
+        ➜ Explicit dependency on target 'JSONSafeEncoding' in project 'JSONSafeEncoding'
+    Target 'JSONSafeEncoding' in project 'JSONSafeEncoding' (no dependencies)
+    Target 'Sovran' in project 'Sovran'
+        ➜ Explicit dependency on target 'Sovran' in project 'Sovran'
+    Target 'Sovran' in project 'Sovran' (no dependencies)
+    Target 'Segment_Segment' in project 'Segment' (no dependencies)
+    Target 'NukeUI' in project 'Nuke'
+        ➜ Explicit dependency on target 'NukeUI' in project 'Nuke'
+        ➜ Explicit dependency on target 'Nuke' in project 'Nuke'
+    Target 'NukeUI' in project 'Nuke'
+        ➜ Explicit dependency on target 'Nuke' in project 'Nuke'
+    Target 'Nuke' in project 'Nuke' (no dependencies)
+
+GatherProvisioningInputs
+
+CreateBuildDescription
+
+ClangStatCache /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.2.sdk /Users/voxels/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/iphonesimulator26.2-23C53-7d00a8b37fbd7999ea79df8ebc024bf0.sdkstatcache
+    cd /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps.xcodeproj
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.2.sdk -o /Users/voxels/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/iphonesimulator26.2-23C53-7d00a8b37fbd7999ea79df8ebc024bf0.sdkstatcache
+
+SwiftDriver Know\ Maps normal arm64 com.apple.xcode.tools.swift.compiler (in target 'Know Maps' from project 'Know Maps')
+    cd /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps
+    builtin-SwiftDriver -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name Know_Maps -Onone -enforce-exclusivity\=checked @/Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Intermediates.noindex/Know\ Maps.build/Debug-iphonesimulator/Know\ Maps.build/Objects-normal/arm64/Know\ Maps.SwiftFileList -DDEBUG -DDEBUG -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.2.sdk -target arm64-apple-ios26.0-simulator -g -module-cache-path /Users/voxels/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -enable-testing -index-store-path /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Products/Debug-iphonesimulator -F /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Products/Debug-iphonesimulator -c -j12 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/voxels/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/iphonesimulator26.2-23C53-7d00a8b37fbd7999ea79df8ebc024bf0.sdkstatcache -output-file-map /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Intermediates.noindex/Know\ Maps.build/Debug-iphonesimulator/Know\ Maps.build/Objects-normal/arm64/Know\ Maps-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/voxels/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -sdk-module-cache-path /Users/voxels/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Intermediates.noindex/Know\ Maps.build/Debug-iphonesimulator/Know\ Maps.build/Objects-normal/arm64/Know_Maps.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/voxels/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Intermediates.noindex/Know\ Maps.build/Debug-iphonesimulator/Know\ Maps.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Intermediates.noindex/Know\ Maps.build/Debug-iphonesimulator/Know\ Maps.build/Objects-normal/arm64/Know\ Maps_const_extract_protocols.json -Xcc -iquote -Xcc /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Intermediates.noindex/Know\ Maps.build/Debug-iphonesimulator/Know\ Maps.build/Know\ Maps-generated-files.hmap -Xcc -I/Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Intermediates.noindex/Know\ Maps.build/Debug-iphonesimulator/Know\ Maps.build/Know\ Maps-own-target-headers.hmap -Xcc -I/Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Intermediates.noindex/Know\ Maps.build/Debug-iphonesimulator/Know\ Maps.build/Know\ Maps-all-non-framework-target-headers.hmap -Xcc -ivfsoverlay -Xcc /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Intermediates.noindex/Know\ Maps.build/Debug-iphonesimulator/Know\ Maps-0bba29ca7f97ed907bcadf796d74f379-VFS-iphonesimulator/all-product-headers.yaml -Xcc -iquote -Xcc /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Intermediates.noindex/Know\ Maps.build/Debug-iphonesimulator/Know\ Maps.build/Know\ Maps-project-headers.hmap -Xcc -I/Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Products/Debug-iphonesimulator/include -Xcc -I/Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Intermediates.noindex/Know\ Maps.build/Debug-iphonesimulator/Know\ Maps.build/DerivedSources-normal/arm64 -Xcc -I/Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Intermediates.noindex/Know\ Maps.build/Debug-iphonesimulator/Know\ Maps.build/DerivedSources/arm64 -Xcc -I/Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Intermediates.noindex/Know\ Maps.build/Debug-iphonesimulator/Know\ Maps.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Intermediates.noindex/Know\ Maps.build/Debug-iphonesimulator/Know\ Maps.build/Objects-normal/arm64/Know_Maps-Swift.h -working-directory /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps -experimental-emit-module-separately -disable-cmo
+
+SwiftCompile normal arm64 Compiling\ AdvancedRecommenderService.swift,\ AppShortcuts.swift,\ AppleAuthenticationService.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Controllers/AdvancedRecommenderService.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Controllers/AppShortcuts.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Controllers/AppleAuthenticationService.swift (in target 'Know Maps' from project 'Know Maps')
+
+SwiftCompile normal arm64 /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Controllers/AdvancedRecommenderService.swift (in target 'Know Maps' from project 'Know Maps')
+    cd /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps
+    
+
+SwiftCompile normal arm64 /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Controllers/AppShortcuts.swift (in target 'Know Maps' from project 'Know Maps')
+    cd /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps
+    
+
+SwiftCompile normal arm64 /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Controllers/AppleAuthenticationService.swift (in target 'Know Maps' from project 'Know Maps')
+    cd /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps
+    
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Controllers/AppleAuthenticationService.swift:419:16: warning: 'init()' was deprecated in iOS 26.0: Use init(windowScene:) instead.
+        return ASPresentationAnchor()
+               ^
+
+SwiftCompile normal arm64 Compiling\ PlaceDetailSheet.swift,\ UnifiedSearchView.swift,\ MainUI.swift,\ SearchMode.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/View/PlaceDetailSheet.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/View/UnifiedSearchView.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/View/MainUI.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Models/SearchMode.swift (in target 'Know Maps' from project 'Know Maps')
+SwiftCompile normal arm64 /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/View/PlaceDetailSheet.swift (in target 'Know Maps' from project 'Know Maps')
+    cd /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps
+    
+
+SwiftCompile normal arm64 /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/View/UnifiedSearchView.swift (in target 'Know Maps' from project 'Know Maps')
+    cd /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps
+    
+
+SwiftCompile normal arm64 /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/View/MainUI.swift (in target 'Know Maps' from project 'Know Maps')
+    cd /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps
+    
+
+SwiftCompile normal arm64 /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Models/SearchMode.swift (in target 'Know Maps' from project 'Know Maps')
+    cd /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps
+    
+
+SwiftCompile normal arm64 Compiling\ View+Availability.swift,\ RecommendationInteractor.swift,\ Know_MapsApp.swift,\ Know_MapsAppView.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/View/View+Availability.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Controllers/RecommendationInteractor.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Know_MapsApp.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Know_MapsAppView.swift (in target 'Know Maps' from project 'Know Maps')
+
+SwiftCompile normal arm64 /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/View/View+Availability.swift (in target 'Know Maps' from project 'Know Maps')
+    cd /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps
+    
+
+SwiftCompile normal arm64 /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Controllers/RecommendationInteractor.swift (in target 'Know Maps' from project 'Know Maps')
+    cd /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps
+    
+
+SwiftCompile normal arm64 /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Know_MapsApp.swift (in target 'Know Maps' from project 'Know Maps')
+    cd /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps
+    
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Controllers/AssistiveChatHostService.swift:34:28: warning: 'CLGeocoder' was deprecated in iOS 26.0: Use MapKit
+    private let geocoder = CLGeocoder()
+                           ^
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Controllers/DefaultLocationService.swift:28:28: warning: 'CLGeocoder' was deprecated in iOS 26.0: Use MapKit
+    private let geocoder = CLGeocoder()
+                           ^
+
+SwiftCompile normal arm64 /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Know_MapsAppView.swift (in target 'Know Maps' from project 'Know Maps')
+    cd /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps
+    
+
+SwiftCompile normal arm64 Compiling\ AssistiveChatHostService.swift,\ CloudCacheManager.swift,\ DefaultInputValidationServiceV2.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Controllers/AssistiveChatHostService.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Controllers/CloudCacheManager.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Controllers/DefaultInputValidationServiceV2.swift (in target 'Know Maps' from project 'Know Maps')
+
+SwiftCompile normal arm64 /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Controllers/AssistiveChatHostService.swift (in target 'Know Maps' from project 'Know Maps')
+    cd /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps
+    
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Controllers/AssistiveChatHostService.swift:34:28: warning: 'CLGeocoder' was deprecated in iOS 26.0: Use MapKit
+    private let geocoder = CLGeocoder()
+                           ^
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Controllers/AssistiveChatHostService.swift:176:53: warning: cast from 'String?' to unrelated type 'Double' always fails
+        if let filterDistance = filters["distance"] as? Double {
+                                ~~~~~~~~~~~~~~~~~~~ ^   ~~~~~~
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Controllers/AssistiveChatHostService.swift:180:46: warning: cast from 'String?' to unrelated type 'Bool' always fails
+        if let openNow = filters["open_now"] as? Bool {
+                         ~~~~~~~~~~~~~~~~~~~ ^   ~~~~
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Controllers/AssistiveChatHostService.swift:293:73: warning: forced cast from 'Any' to 'any Sendable' always succeeds; did you mean to use 'as'?
+            let anyParams = queryParameters?.mapValues { AnySendable($0 as! Sendable) }
+                                                                        ^~~
+                                                                        as
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Controllers/AssistiveChatHostService.swift:626:13: warning: initialization of immutable value 'distanceWeight' was never used; consider replacing with assignment to '_' or removing it
+        let distanceWeight = 1.0 - semanticWeight
+        ~~~~^~~~~~~~~~~~~~
+        _
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Controllers/AssistiveChatHostService.swift:673:69: warning: forced cast from 'Any' to 'any Sendable' always succeeds; did you mean to use 'as'?
+        let anyParams = queryParameters?.mapValues { AnySendable($0 as! Sendable) }
+                                                                    ^~~
+                                                                    as
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Controllers/AssistiveChatHostService.swift:679:17: warning: mutation of captured var 'finalIntentType' in concurrently-executing code; this is an error in the Swift 6 language mode
+                finalIntentType = .Place
+                ^
+@__swiftmacro_9Know_Maps17CloudCacheManagerC09proactiveD7Service18ObservationTrackedfMp_.swift:1:34: warning: stored property '_proactiveCacheService' of 'Sendable'-conforming class 'CloudCacheManager' is mutable; this is an error in the Swift 6 language mode
+@ObservationIgnored private  var _proactiveCacheService: ProactiveCacheService?
+                                 ^
+@__swiftmacro_9Know_Maps17CloudCacheManagerC09proactiveD7Service10ObservablefMr0_.swift:1:1: note: in expansion of macro 'ObservationTracked' on property 'proactiveCacheService' here
+@ObservationTracked
+^
+@__swiftmacro_9Know_Maps17CloudCacheManagerC09proactiveD7Service10ObservablefMr0_.swift:1:1: note: in expansion of macro 'ObservationTracked' on property 'proactiveCacheService' here
+@ObservationTracked
+^
+
+SwiftCompile normal arm64 /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Controllers/CloudCacheManager.swift (in target 'Know Maps' from project 'Know Maps')
+    cd /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps
+    
+@__swiftmacro_9Know_Maps17CloudCacheManagerC09proactiveD7Service18ObservationTrackedfMp_.swift:1:34: warning: stored property '_proactiveCacheService' of 'Sendable'-conforming class 'CloudCacheManager' is mutable; this is an error in the Swift 6 language mode
+@ObservationIgnored private  var _proactiveCacheService: ProactiveCacheService?
+                                 ^
+@__swiftmacro_9Know_Maps17CloudCacheManagerC09proactiveD7Service10ObservablefMr0_.swift:1:1: note: in expansion of macro 'ObservationTracked' on property 'proactiveCacheService' here
+@ObservationTracked
+^
+@__swiftmacro_9Know_Maps17CloudCacheManagerC09proactiveD7Service10ObservablefMr0_.swift:1:1: note: in expansion of macro 'ObservationTracked' on property 'proactiveCacheService' here
+@ObservationTracked
+^
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Controllers/CloudCacheManager.swift:310:19: warning: immutable value 'pcf' was never used; consider replacing with '_' or removing it
+        guard let pcf = proactiveCacheService, let pss = placeSearchService else { return }
+              ~~~~^~~
+              _
+
+SwiftCompile normal arm64 /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Controllers/DefaultInputValidationServiceV2.swift (in target 'Know Maps' from project 'Know Maps')
+    cd /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps
+    
+@__swiftmacro_9Know_Maps17CloudCacheManagerC09proactiveD7Service18ObservationTrackedfMp_.swift:1:34: warning: stored property '_proactiveCacheService' of 'Sendable'-conforming class 'CloudCacheManager' is mutable; this is an error in the Swift 6 language mode
+@ObservationIgnored private  var _proactiveCacheService: ProactiveCacheService?
+                                 ^
+@__swiftmacro_9Know_Maps17CloudCacheManagerC09proactiveD7Service10ObservablefMr0_.swift:1:1: note: in expansion of macro 'ObservationTracked' on property 'proactiveCacheService' here
+@ObservationTracked
+^
+@__swiftmacro_9Know_Maps17CloudCacheManagerC09proactiveD7Service10ObservablefMr0_.swift:1:1: note: in expansion of macro 'ObservationTracked' on property 'proactiveCacheService' here
+@ObservationTracked
+^
+
+SwiftCompile normal arm64 Compiling\ DefaultRecommenderService.swift,\ SearchInteractor.swift,\ DefaultResultIndexServiceV2.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Controllers/DefaultRecommenderService.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Controllers/SearchInteractor.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Controllers/DefaultResultIndexServiceV2.swift (in target 'Know Maps' from project 'Know Maps')
+
+SwiftCompile normal arm64 /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Controllers/DefaultRecommenderService.swift (in target 'Know Maps' from project 'Know Maps')
+    cd /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps
+    
+
+SwiftCompile normal arm64 /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Controllers/SearchInteractor.swift (in target 'Know Maps' from project 'Know Maps')
+    cd /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps
+    
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Controllers/SearchInteractor.swift:46:13: warning: initialization of immutable value 'caption' was never used; consider replacing with assignment to '_' or removing it
+        let caption = intent.caption
+        ~~~~^~~~~~~
+        _
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Controllers/SearchInteractor.swift:59:17: warning: no 'async' operations occur within 'await' expression
+                await analyticsManager.track(event: "recommendedSearch.parsed", properties: ["count": recs.count])
+                ^
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Controllers/SearchInteractor.swift:62:17: warning: no 'async' operations occur within 'await' expression
+                await analyticsManager.trackError(error: error, additionalInfo: ["phase": "recommendedSearch.fetchError"])
+                ^
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Controllers/SearchInteractor.swift:74:17: warning: no 'async' operations occur within 'await' expression
+                await analyticsManager.trackError(error: error, additionalInfo: ["phase": "placeSearch"])
+                ^
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Controllers/SearchInteractor.swift:98:72: warning: forced cast from 'Any' to 'any Sendable' always succeeds; did you mean to use 'as'?
+            rawParameters: queryParameters?.mapValues { AnySendable($0 as! Sendable) }
+                                                                       ^~~
+                                                                       as
+
+SwiftCompile normal arm64 /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Controllers/DefaultResultIndexServiceV2.swift (in target 'Know Maps' from project 'Know Maps')
+    cd /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps
+    
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Controllers/DefaultResultIndexServiceV2.swift:136:58: warning: left side of nil coalescing operator '??' has non-optional type '[CategoryResult]', so the right side is never used
+           combined.append(contentsOf: category.children ?? [])
+                                       ~~~~~~~~~~~~~~~~~~^~~~~
+                                                        
+
+SwiftCompile normal arm64 Compiling\ ImmersiveView.swift,\ OnboardingLocationView.swift,\ OnboardingSignInView.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/View/ImmersiveView.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/View/OnboardingLocationView.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/View/OnboardingSignInView.swift (in target 'Know Maps' from project 'Know Maps')
+SwiftCompile normal arm64 /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/View/ImmersiveView.swift (in target 'Know Maps' from project 'Know Maps')
+    cd /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps
+    
+
+SwiftCompile normal arm64 /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/View/OnboardingLocationView.swift (in target 'Know Maps' from project 'Know Maps')
+    cd /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps
+    
+
+SwiftCompile normal arm64 /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/View/OnboardingSignInView.swift (in target 'Know Maps' from project 'Know Maps')
+    cd /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps
+    
+
+SwiftCompile normal arm64 Compiling\ LocationProvider.swift,\ UserCachedRecord.swift,\ UserItemInteraction.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Controllers/LocationProvider.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Models/UserCachedRecord.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Models/UserItemInteraction.swift (in target 'Know Maps' from project 'Know Maps')
+
+SwiftCompile normal arm64 /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Controllers/LocationProvider.swift (in target 'Know Maps' from project 'Know Maps')
+    cd /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps
+    
+
+SwiftCompile normal arm64 /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Models/UserCachedRecord.swift (in target 'Know Maps' from project 'Know Maps')
+    cd /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps
+    
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Models/UserCachedRecord.swift:74:55: warning: conformance of 'SendableCachedRecord' to protocol 'Sendable' is already unavailable
+public class SendableCachedRecord : UserCachedRecord, Sendable {
+                                                      ^
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Models/UserCachedRecord.swift:74:14: note: 'SendableCachedRecord' inherits conformance to protocol 'Sendable' from superclass here
+public class SendableCachedRecord : UserCachedRecord, Sendable {
+             ^
+
+SwiftCompile normal arm64 /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Models/UserItemInteraction.swift (in target 'Know Maps' from project 'Know Maps')
+    cd /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps
+    
+
+SwiftEmitModule normal arm64 Emitting\ module\ for\ Know_Maps (in target 'Know Maps' from project 'Know Maps')
+
+EmitSwiftModule normal arm64 (in target 'Know Maps' from project 'Know Maps')
+    cd /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps
+    
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Controllers/AssistiveChatHostService.swift:34:28: warning: 'CLGeocoder' was deprecated in iOS 26.0: Use MapKit
+    private let geocoder = CLGeocoder()
+                           ^
+@__swiftmacro_9Know_Maps17CloudCacheManagerC09proactiveD7Service18ObservationTrackedfMp_.swift:1:34: warning: stored property '_proactiveCacheService' of 'Sendable'-conforming class 'CloudCacheManager' is mutable; this is an error in the Swift 6 language mode
+@ObservationIgnored private  var _proactiveCacheService: ProactiveCacheService?
+                                 ^
+@__swiftmacro_9Know_Maps17CloudCacheManagerC09proactiveD7Service10ObservablefMr0_.swift:1:1: note: in expansion of macro 'ObservationTracked' on property 'proactiveCacheService' here
+@ObservationTracked
+^
+@__swiftmacro_9Know_Maps17CloudCacheManagerC09proactiveD7Service10ObservablefMr0_.swift:1:1: note: in expansion of macro 'ObservationTracked' on property 'proactiveCacheService' here
+@ObservationTracked
+^
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Controllers/DefaultLocationService.swift:28:28: warning: 'CLGeocoder' was deprecated in iOS 26.0: Use MapKit
+    private let geocoder = CLGeocoder()
+                           ^
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Controllers/DefaultLocationService.swift:12:20: warning: '@preconcurrency' on conformance to 'LocationService' has no effect
+public final class DefaultLocationService: NSObject, @preconcurrency LocationService {
+                   ^                                 ~~~~~~~~~~~~~~~~
+                                                     
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Controllers/FeatureFlagsService.swift:13:20: warning: '@preconcurrency' on conformance to 'FeatureFlag' has no effect
+public final class FeatureFlagService : NSObject, @preconcurrency @MainActor FeatureFlag {
+                   ^                              ~~~~~~~~~~~~~~~~
+                                                  
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Models/UnifiedSearchIntent.swift:65:50: warning: redundant conformance of 'UnifiedSearchIntent.PriceRange' to protocol 'Sendable'
+    public struct PriceRange: Codable, Sendable, Sendable {
+                                                 ^
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Models/UnifiedSearchIntent.swift:65:19: note: 'UnifiedSearchIntent.PriceRange' declares conformance to protocol 'Sendable' here
+    public struct PriceRange: Codable, Sendable, Sendable {
+                  ^
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Models/UserCachedRecord.swift:74:55: warning: conformance of 'SendableCachedRecord' to protocol 'Sendable' is already unavailable
+public class SendableCachedRecord : UserCachedRecord, Sendable {
+                                                      ^
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Models/UserCachedRecord.swift:74:14: note: 'SendableCachedRecord' inherits conformance to protocol 'Sendable' from superclass here
+public class SendableCachedRecord : UserCachedRecord, Sendable {
+             ^
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Network/CloudCacheService.swift:29:25: warning: '@preconcurrency' on conformance to 'CloudCache' has no effect
+@MainActor public class CloudCacheService: NSObject, @preconcurrency CloudCache {
+                        ^                            ~~~~~~~~~~~~~~~~
+                                                     
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/ViewModels/PlaceDirectionsViewModel.swift:95:47: warning: 'MKPlacemark' was deprecated in iOS 26.0: Use MKMapItem's location, address and addressRepresentations properties instead. Use MKAddressRepresentations for formatted address strings for MapKit provided MKMapItems
+    func placemark(for location:CLLocation?)->MKPlacemark? {
+                                              ^
+
+SwiftCompile normal arm64 Compiling\ VectorEmbeddingService.swift,\ CloudCacheService.swift,\ LanguageGeneratorSession.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Models/VectorEmbeddingService.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Network/CloudCacheService.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Network/LanguageGeneratorSession.swift (in target 'Know Maps' from project 'Know Maps')
+
+SwiftCompile normal arm64 /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Models/VectorEmbeddingService.swift (in target 'Know Maps' from project 'Know Maps')
+    cd /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps
+    
+
+SwiftCompile normal arm64 /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Network/CloudCacheService.swift (in target 'Know Maps' from project 'Know Maps')
+    cd /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps
+    
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Network/CloudCacheService.swift:29:25: warning: '@preconcurrency' on conformance to 'CloudCache' has no effect
+@MainActor public class CloudCacheService: NSObject, @preconcurrency CloudCache {
+                        ^                            ~~~~~~~~~~~~~~~~
+                                                     
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Network/CloudCacheService.swift:69:18: warning: main actor-isolated property 'cacheOperations' can not be mutated from a Sendable closure
+            self.cacheOperations.insert(operation)
+                 ^
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Network/CloudCacheService.swift:47:17: note: mutation of this property is only permitted within the actor
+    private var cacheOperations = Set<CKDatabaseOperation>()
+                ^
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Network/CloudCacheService.swift:75:18: warning: main actor-isolated property 'keysOperations' can not be mutated from a Sendable closure
+            self.keysOperations.insert(operation)
+                 ^
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Network/CloudCacheService.swift:48:17: note: mutation of this property is only permitted within the actor
+    private var keysOperations = Set<CKDatabaseOperation>()
+                ^
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Network/CloudCacheService.swift:81:18: warning: main actor-isolated property 'cacheOperations' can not be mutated from a Sendable closure
+            self.cacheOperations.remove(operation)
+                 ^
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Network/CloudCacheService.swift:47:17: note: mutation of this property is only permitted within the actor
+    private var cacheOperations = Set<CKDatabaseOperation>()
+                ^
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Network/CloudCacheService.swift:87:18: warning: main actor-isolated property 'keysOperations' can not be mutated from a Sendable closure
+            self.keysOperations.remove(operation)
+                 ^
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Network/CloudCacheService.swift:48:17: note: mutation of this property is only permitted within the actor
+    private var keysOperations = Set<CKDatabaseOperation>()
+                ^
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Network/CloudCacheService.swift:365:17: warning: initialization of immutable value 'currentToken' was never used; consider replacing with assignment to '_' or removing it
+            let currentToken = await MainActor.run { self.oauthToken }
+            ~~~~^~~~~~~~~~~~
+            _
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Network/CloudCacheService.swift:534:21: warning: immutable value 'operationCompletion' was never used; consider replacing with '_' or removing it
+                let operationCompletion: (Result<CKQueryOperation.Cursor?, Error>) -> Void = { result in
+                    ^~~~~~~~~~~~~~~~~~~
+                    _
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Network/CloudCacheService.swift:637:28: warning: immutable value 'service' was never used; consider replacing with '_' or removing it
+                    if let service = record["service"] as? String,
+                       ~~~~^~~~~~~
+                       _
+
+SwiftCompile normal arm64 /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Network/LanguageGeneratorSession.swift (in target 'Know Maps' from project 'Know Maps')
+    cd /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps
+    
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Network/LanguageGeneratorSession.swift:139:20: warning: no 'async' operations occur within 'await' expression
+        let task = await Task.init { () -> Bool in
+                   ^
+
+SwiftCompile normal arm64 Compiling\ FeatureFlagsService.swift,\ HybridRecommenderModel.swift,\ LanguageGeneratorService.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Controllers/FeatureFlagsService.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Controllers/HybridRecommenderModel.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Controllers/LanguageGeneratorService.swift (in target 'Know Maps' from project 'Know Maps')
+
+SwiftCompile normal arm64 /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Controllers/FeatureFlagsService.swift (in target 'Know Maps' from project 'Know Maps')
+    cd /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps
+    
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Controllers/FeatureFlagsService.swift:13:20: warning: '@preconcurrency' on conformance to 'FeatureFlag' has no effect
+public final class FeatureFlagService : NSObject, @preconcurrency @MainActor FeatureFlag {
+                   ^                              ~~~~~~~~~~~~~~~~
+                                                  
+
+SwiftCompile normal arm64 /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Controllers/HybridRecommenderModel.swift (in target 'Know Maps' from project 'Know Maps')
+    cd /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps
+    
+
+SwiftCompile normal arm64 /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Controllers/LanguageGeneratorService.swift (in target 'Know Maps' from project 'Know Maps')
+    cd /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps
+    
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Controllers/LanguageGeneratorService.swift:58:47: warning: cast from 'String?' to unrelated type '[NSDictionary]' always fails
+        if let choicesArray = dict["choices"] as? [NSDictionary], let choices = choicesArray.first {
+                              ~~~~~~~~~~~~~~~ ^   ~~~~~~~~~~~~~~
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Controllers/LanguageGeneratorService.swift:63:54: warning: cast from 'String?' to unrelated type 'NSDictionary' always fails
+                    if let usageDict = dict["usage"] as? NSDictionary {
+                                       ~~~~~~~~~~~~~ ^   ~~~~~~~~~~~~
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Controllers/LanguageGeneratorService.swift:93:47: warning: cast from 'String?' to unrelated type '[NSDictionary]' always fails
+        if let choicesArray = dict["choices"] as? [NSDictionary], let choices = choicesArray.first {
+                              ~~~~~~~~~~~~~~~ ^   ~~~~~~~~~~~~~~
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Controllers/LanguageGeneratorService.swift:98:54: warning: cast from 'String?' to unrelated type 'NSDictionary' always fails
+                    if let usageDict = dict["usage"] as? NSDictionary {
+                                       ~~~~~~~~~~~~~ ^   ~~~~~~~~~~~~
+
+SwiftCompile normal arm64 Compiling\ OnboardingSubscriptionView.swift,\ OnboardingView.swift,\ KnowMapsCoreMLModels.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/View/OnboardingSubscriptionView.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/View/OnboardingView.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Controllers/KnowMapsCoreMLModels.swift (in target 'Know Maps' from project 'Know Maps')
+
+SwiftCompile normal arm64 /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/View/OnboardingSubscriptionView.swift (in target 'Know Maps' from project 'Know Maps')
+    cd /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps
+    
+
+SwiftCompile normal arm64 /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/View/OnboardingView.swift (in target 'Know Maps' from project 'Know Maps')
+    cd /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps
+    
+
+SwiftCompile normal arm64 /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Controllers/KnowMapsCoreMLModels.swift (in target 'Know Maps' from project 'Know Maps')
+    cd /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps
+    
+
+SwiftCompile normal arm64 Compiling\ DefaultLocationService.swift,\ DefaultModelController.swift,\ DefaultPlaceSearchService.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Controllers/DefaultLocationService.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Controllers/DefaultModelController.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Controllers/DefaultPlaceSearchService.swift (in target 'Know Maps' from project 'Know Maps')
+Failed frontend command:
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swift-frontend -frontend -c /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/View/PlaceDetailSheet.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/View/UnifiedSearchView.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/View/MainUI.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Models/SearchMode.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/View/View+Availability.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Controllers/RecommendationInteractor.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Know_MapsApp.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Know_MapsAppView.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Controllers/AdvancedRecommenderService.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Controllers/AppShortcuts.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Controllers/AppleAuthenticationService.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Controllers/AssistiveChatHostService.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Controllers/CloudCacheManager.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Controllers/DefaultInputValidationServiceV2.swift -primary-file /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Controllers/DefaultLocationService.swift -primary-file /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Controllers/DefaultModelController.swift -primary-file /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Controllers/DefaultPlaceSearchService.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Controllers/DefaultRecommenderService.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Controllers/SearchInteractor.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Controllers/DefaultResultIndexServiceV2.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Controllers/FeatureFlagsService.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Controllers/HybridRecommenderModel.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Controllers/LanguageGeneratorService.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Controllers/LocationProvider.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Controllers/MiniLMEmbeddingClient.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Controllers/MiniLMTokenizer.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Controllers/SegmentAnalyticsService.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Controllers/TextEmbeddingClient.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Models/AssistiveChatHostIntent.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Models/AssistiveChatHostQueryParameters.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Models/CategoryResult.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Models/ChatResult.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Models/ChatRouteResult.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Models/ConfiguredSearchSession.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Models/EmbeddingCache.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Models/EventCategoryResult.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Models/FoundationModelsIntentClassifier.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Models/ItemMetadata.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Models/KnowMapsPlaceSnapshot.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Models/LanguageGeneratorRequest.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Models/LocationResult.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Models/PersonalizedSearchSection.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Models/PlaceDetailsRequest.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Models/PlaceDetailsResponse.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Models/PlacePhotoResponse.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Models/PlaceResponseFormatter.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Models/PlaceSearchRequest.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Models/PlaceSearchResponse.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Models/PlaceTipsResponse.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Models/RecommendationData.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Models/RecommendedPlaceSearchRequest.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Models/RecommendedPlaceSearchResponse.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Models/UnifiedSearchIntent.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Models/UserCachedRecord.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Models/UserItemInteraction.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Models/VectorEmbeddingService.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Network/CloudCacheService.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Network/LanguageGeneratorSession.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Network/PersonalizedSearchSession.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Network/PlaceSearchSession.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Protocols/AnalyticsService.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Protocols/AssistiveChatHost.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Protocols/AssistiveChatHostMessagesDelegate.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Protocols/AssistiveChatHostStreamResponseDelegate.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Protocols/Authentication.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Protocols/CacheManager.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Protocols/CloudCache.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Protocols/FeatureFlag.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Protocols/InputValidationServiceV2.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Protocols/LanguageGenerator.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Protocols/LocationService.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Protocols/ModelController.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Protocols/PlaceSearchService.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Protocols/RecommenderCategoryConvertible.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Protocols/RecommenderService.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Protocols/ResultIndexServiceV2.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/ViewModels/ChatResultViewModel.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/ViewModels/PlaceAboutViewModel.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/ViewModels/PlaceDirectionsViewModel.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/ViewModels/SearchSavedViewModel.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/View/ActivityViewController.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/View/GoogleBannerView.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/View/ImmersiveView.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/View/OnboardingLocationView.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/View/OnboardingSignInView.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/View/OnboardingSubscriptionView.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/View/OnboardingView.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Controllers/KnowMapsCoreMLModels.swift -supplementary-output-file-map /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Intermediates.noindex/Know\ Maps.build/Debug-iphonesimulator/Know\ Maps.build/Objects-normal/arm64/supplementaryOutputs-5 -target arm64-apple-ios26.0-simulator -module-can-import-version UIKit 9126.2.4.1 9126.2.4 -disable-cross-import-overlay-search -swift-module-cross-import AVKit /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk/System/Library/Frameworks/AVKit.framework/Modules/AVKit.swiftcrossimport/SwiftUI.swiftoverlay -swift-module-cross-import AVKit /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.2.sdk/System/Library/Frameworks/AVKit.framework/Modules/AVKit.swiftcrossimport/SwiftUI.swiftoverlay -swift-module-cross-import AppIntents /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk/System/Library/Frameworks/AppIntents.framework/Modules/AppIntents.swiftcrossimport/SwiftUI.swiftoverlay -swift-module-cross-import AppIntents /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk/System/Library/Frameworks/AppIntents.framework/Modules/AppIntents.swiftcrossimport/UIKit.swiftoverlay -swift-module-cross-import AppIntents /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.2.sdk/System/Library/Frameworks/AppIntents.framework/Modules/AppIntents.swiftcrossimport/SwiftUI.swiftoverlay -swift-module-cross-import AppIntents /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.2.sdk/System/Library/Frameworks/AppIntents.framework/Modules/AppIntents.swiftcrossimport/UIKit.swiftoverlay -swift-module-cross-import AuthenticationServices /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk/System/Cryptexes/OS/System/Library/Frameworks/AuthenticationServices.framework/Modules/AuthenticationServices.swiftcrossimport/SwiftUI.swiftoverlay -swift-module-cross-import AuthenticationServices /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.2.sdk/System/Library/Frameworks/AuthenticationServices.framework/Modules/AuthenticationServices.swiftcrossimport/SwiftUI.swiftoverlay -swift-module-cross-import MapKit /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk/System/Library/Frameworks/MapKit.framework/Modules/MapKit.swiftcrossimport/SwiftUI.swiftoverlay -swift-module-cross-import RealityKit /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.2.sdk/System/Library/Frameworks/RealityKit.framework/Modules/RealityKit.swiftcrossimport/SwiftUI.swiftoverlay -swift-module-cross-import RelevanceKit /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk/System/Library/Frameworks/RelevanceKit.framework/Modules/RelevanceKit.swiftcrossimport/MapKit.swiftoverlay -swift-module-cross-import RelevanceKit /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.2.sdk/System/Library/Frameworks/RelevanceKit.framework/Modules/RelevanceKit.swiftcrossimport/MapKit.swiftoverlay -swift-module-cross-import SwiftData /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.2.sdk/System/Library/Frameworks/SwiftData.framework/Modules/SwiftData.swiftcrossimport/CoreData.swiftoverlay -swift-module-cross-import SwiftData /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.2.sdk/System/Library/Frameworks/SwiftData.framework/Modules/SwiftData.swiftcrossimport/SwiftUI.swiftoverlay -load-resolved-plugin /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/lib/swift/host/plugins/libAppIntentsMacros.dylib\#/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/swift-plugin-server\#AppIntentsMacros -load-resolved-plugin /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/lib/swift/host/plugins/libFoundationMacros.dylib\#/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/swift-plugin-server\#FoundationMacros -load-resolved-plugin /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/lib/swift/host/plugins/libObservationMacros.dylib\#/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/swift-plugin-server\#ObservationMacros -load-resolved-plugin /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/lib/swift/host/plugins/libPreviewsMacros.dylib\#/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/swift-plugin-server\#PreviewsMacros -load-resolved-plugin /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/lib/swift/host/plugins/libSwiftDataMacros.dylib\#/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/swift-plugin-server\#SwiftDataMacros -load-resolved-plugin /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/lib/swift/host/plugins/libSwiftMacros.dylib\#/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/swift-plugin-server\#SwiftMacros -load-resolved-plugin /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/lib/swift/host/plugins/libSwiftUIMacros.dylib\#/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/swift-plugin-server\#SwiftUIMacros -load-resolved-plugin /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/lib/swift/host/plugins/libTipKitMacros.dylib\#/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/swift-plugin-server\#TipKitMacros -disable-implicit-swift-modules -Xcc -fno-implicit-modules -Xcc -fno-implicit-module-maps -explicit-swift-module-map-file /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Intermediates.noindex/Know\ Maps.build/Debug-iphonesimulator/Know\ Maps.build/Objects-normal/arm64/Know_Maps-dependencies-1.json -Xllvm -aarch64-use-tbi -enable-objc-interop -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.2.sdk -I /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Products/Debug-iphonesimulator -F /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Products/Debug-iphonesimulator -no-color-diagnostics -Xcc -fno-color-diagnostics -enable-testing -g -debug-info-format\=dwarf -dwarf-version\=5 -module-cache-path /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -swift-version 5 -enforce-exclusivity\=checked -Onone -D DEBUG -D DEBUG -serialize-debugging-options -const-gather-protocols-file /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Intermediates.noindex/Know\ Maps.build/Debug-iphonesimulator/Know\ Maps.build/Objects-normal/arm64/Know\ Maps_const_extract_protocols.json -enable-experimental-feature DebugDescriptionMacro -enable-bare-slash-regex -empty-abi-descriptor -validate-clang-modules-once -clang-build-session-file /Users/voxels/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -working-directory -Xcc /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps -enable-anonymous-context-mangled-names -file-compilation-dir /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -Xcc -ivfsstatcache -Xcc /Users/voxels/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/iphonesimulator26.2-23C53-7d00a8b37fbd7999ea79df8ebc024bf0.sdkstatcache -Xcc -I/Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Intermediates.noindex/Know\ Maps.build/Debug-iphonesimulator/Know\ Maps.build/swift-overrides.hmap -Xcc -iquote -Xcc /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Intermediates.noindex/Know\ Maps.build/Debug-iphonesimulator/Know\ Maps.build/Know\ Maps-generated-files.hmap -Xcc -I/Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Intermediates.noindex/Know\ Maps.build/Debug-iphonesimulator/Know\ Maps.build/Know\ Maps-own-target-headers.hmap -Xcc -I/Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Intermediates.noindex/Know\ Maps.build/Debug-iphonesimulator/Know\ Maps.build/Know\ Maps-all-non-framework-target-headers.hmap -Xcc -ivfsoverlay -Xcc /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Intermediates.noindex/Know\ Maps.build/Debug-iphonesimulator/Know\ Maps-0bba29ca7f97ed907bcadf796d74f379-VFS-iphonesimulator/all-product-headers.yaml -Xcc -iquote -Xcc /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Intermediates.noindex/Know\ Maps.build/Debug-iphonesimulator/Know\ Maps.build/Know\ Maps-project-headers.hmap -Xcc -I/Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Products/Debug-iphonesimulator/include -Xcc -I/Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Intermediates.noindex/Know\ Maps.build/Debug-iphonesimulator/Know\ Maps.build/DerivedSources-normal/arm64 -Xcc -I/Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Intermediates.noindex/Know\ Maps.build/Debug-iphonesimulator/Know\ Maps.build/DerivedSources/arm64 -Xcc -I/Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Intermediates.noindex/Know\ Maps.build/Debug-iphonesimulator/Know\ Maps.build/DerivedSources -Xcc -DDEBUG\=1 -no-auto-bridging-header-chaining -module-name Know_Maps -frontend-parseable-output -disable-clang-spi -target-sdk-version 26.2 -target-sdk-name iphonesimulator26.2 -clang-target arm64-apple-ios26.2-simulator -in-process-plugin-server-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/libSwiftInProcPluginServer.dylib -o /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Intermediates.noindex/Know\ Maps.build/Debug-iphonesimulator/Know\ Maps.build/Objects-normal/arm64/DefaultLocationService.o -o /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Intermediates.noindex/Know\ Maps.build/Debug-iphonesimulator/Know\ Maps.build/Objects-normal/arm64/DefaultModelController.o -o /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Intermediates.noindex/Know\ Maps.build/Debug-iphonesimulator/Know\ Maps.build/Objects-normal/arm64/DefaultPlaceSearchService.o -index-unit-output-path /Know\ Maps.build/Debug-iphonesimulator/Know\ Maps.build/Objects-normal/arm64/DefaultLocationService.o -index-unit-output-path /Know\ Maps.build/Debug-iphonesimulator/Know\ Maps.build/Objects-normal/arm64/DefaultModelController.o -index-unit-output-path /Know\ Maps.build/Debug-iphonesimulator/Know\ Maps.build/Objects-normal/arm64/DefaultPlaceSearchService.o -index-store-path /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Index.noindex/DataStore -index-system-modules
+
+SwiftCompile normal arm64 /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Controllers/DefaultLocationService.swift (in target 'Know Maps' from project 'Know Maps')
+    cd /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps
+    
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Controllers/DefaultLocationService.swift:28:28: warning: 'CLGeocoder' was deprecated in iOS 26.0: Use MapKit
+    private let geocoder = CLGeocoder()
+                           ^
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Controllers/DefaultLocationService.swift:12:20: warning: '@preconcurrency' on conformance to 'LocationService' has no effect
+public final class DefaultLocationService: NSObject, @preconcurrency LocationService {
+                   ^                                 ~~~~~~~~~~~~~~~~
+                                                     
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Controllers/DefaultLocationService.swift:62:53: warning: 'reverseGeocodeLocation' was deprecated in iOS 26.0: Use MKReverseGeocodingRequest
+            reverseGeocodeTask = try await geocoder.reverseGeocodeLocation(location)
+                                                    ^
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Controllers/DefaultLocationService.swift:85:39: warning: 'geocodeAddressString' was deprecated in iOS 26.0: Use MKGeocodingRequest
+        let task = try await geocoder.geocodeAddressString(name)
+                                      ^
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Controllers/DefaultLocationService.swift:88:30: warning: no 'async' operations occur within 'await' expression
+            let result = try await task
+                             ^
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Controllers/DefaultLocationService.swift:88:26: warning: no calls to throwing functions occur within 'try' expression
+            let result = try await task
+                         ^
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Controllers/DefaultLocationService.swift:93:11: warning: 'catch' block is unreachable because no errors are thrown in 'do' block
+        } catch is CancellationError {
+          ^
+
+SwiftCompile normal arm64 /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Controllers/DefaultModelController.swift (in target 'Know Maps' from project 'Know Maps')
+    cd /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps
+    
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Controllers/DefaultModelController.swift:92:56: warning: cast from 'String?' to unrelated type 'Double' always fails
+                        if let d = dict["rangeMeters"] as? Double { return d }
+                                   ~~~~~~~~~~~~~~~~~~~ ^   ~~~~~~
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Controllers/DefaultModelController.swift:93:53: warning: cast from 'String?' to unrelated type 'Double' always fails
+                        if let d = dict["distance"] as? Double { return d }
+                                   ~~~~~~~~~~~~~~~~ ^   ~~~~~~
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Controllers/DefaultModelController.swift:94:51: warning: cast from 'String?' to unrelated type 'Double' always fails
+                        if let d = dict["radius"] as? Double { return d }
+                                   ~~~~~~~~~~~~~~ ^   ~~~~~~
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Controllers/DefaultModelController.swift:95:56: warning: conditional downcast from 'String?' to 'String' does nothing
+                        if let s = dict["rangeMeters"] as? String, let d = Double(s) { return d }
+                                   ~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~
+                                                      
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Controllers/DefaultModelController.swift:96:53: warning: conditional downcast from 'String?' to 'String' does nothing
+                        if let s = dict["distance"] as? String, let d = Double(s) { return d }
+                                   ~~~~~~~~~~~~~~~~~^~~~~~~~~~
+                                                   
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Controllers/DefaultModelController.swift:97:51: warning: conditional downcast from 'String?' to 'String' does nothing
+                        if let s = dict["radius"] as? String, let d = Double(s) { return d }
+                                   ~~~~~~~~~~~~~~~^~~~~~~~~~
+                                                 
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Controllers/DefaultModelController.swift:436:25: error: missing argument for parameter 'enrichedIntent' in call
+            filters: [:]
+                        ^
+                        , enrichedIntent: <#UnifiedSearchIntent?#>
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Protocols/AssistiveChatHost.swift:26:10: note: 'defaultParameters(for:filters:enrichedIntent:)' declared here
+    func defaultParameters(for query:String, filters:Dictionary<String, String>, enrichedIntent: UnifiedSearchIntent?) async throws -> [String: Any]?
+         ^
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Controllers/DefaultModelController.swift:791:33: error: missing argument for parameter 'enrichedIntent' in call
+                filters: filters
+                                ^
+                                , enrichedIntent: <#UnifiedSearchIntent?#>
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Protocols/AssistiveChatHost.swift:26:10: note: 'defaultParameters(for:filters:enrichedIntent:)' declared here
+    func defaultParameters(for query:String, filters:Dictionary<String, String>, enrichedIntent: UnifiedSearchIntent?) async throws -> [String: Any]?
+         ^
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Controllers/DefaultModelController.swift:1180:43: warning: no calls to throwing functions occur within 'try' expression
+        let sortedResults: [ChatResult] = try await Task.detached(priority: .userInitiated) { () -> [ChatResult] in
+                                          ^
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Controllers/DefaultModelController.swift:1369:67: warning: left side of nil coalescing operator '??' has non-optional type '[PlaceSearchResponse]', so the right side is never used
+        let relatedResponses = intent.relatedPlaceSearchResponses ?? []
+                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~
+                                                                 
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Controllers/DefaultModelController.swift:1490:29: error: missing argument for parameter 'enrichedIntent' in call
+                filters: [:]
+                            ^
+                            , enrichedIntent: <#UnifiedSearchIntent?#>
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Protocols/AssistiveChatHost.swift:26:10: note: 'defaultParameters(for:filters:enrichedIntent:)' declared here
+    func defaultParameters(for query:String, filters:Dictionary<String, String>, enrichedIntent: UnifiedSearchIntent?) async throws -> [String: Any]?
+         ^
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Controllers/DefaultModelController.swift:1549:86: error: missing argument for parameter 'enrichedIntent' in call
+        let params = try? await delegate.defaultParameters(for: caption, filters: [:])
+                                                                                     ^
+                                                                                     , enrichedIntent: <#UnifiedSearchIntent?#>
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Protocols/AssistiveChatHost.swift:26:10: note: 'defaultParameters(for:filters:enrichedIntent:)' declared here
+    func defaultParameters(for query:String, filters:Dictionary<String, String>, enrichedIntent: UnifiedSearchIntent?) async throws -> [String: Any]?
+         ^
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Controllers/DefaultModelController.swift:1620:29: error: missing argument for parameter 'enrichedIntent' in call
+            filters: filters
+                            ^
+                            , enrichedIntent: <#UnifiedSearchIntent?#>
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Protocols/AssistiveChatHost.swift:26:10: note: 'defaultParameters(for:filters:enrichedIntent:)' declared here
+    func defaultParameters(for query:String, filters:Dictionary<String, String>, enrichedIntent: UnifiedSearchIntent?) async throws -> [String: Any]?
+         ^
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Controllers/DefaultModelController.swift:1704:33: error: missing argument for parameter 'enrichedIntent' in call
+                filters: filters
+                                ^
+                                , enrichedIntent: <#UnifiedSearchIntent?#>
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Protocols/AssistiveChatHost.swift:26:10: note: 'defaultParameters(for:filters:enrichedIntent:)' declared here
+    func defaultParameters(for query:String, filters:Dictionary<String, String>, enrichedIntent: UnifiedSearchIntent?) async throws -> [String: Any]?
+         ^
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Controllers/DefaultModelController.swift:1769:13: warning: 'defer' statement at end of scope always executes immediately; replace with 'do' statement to silence this warning
+            defer {
+            ^~~~~
+            do
+
+SwiftCompile normal arm64 /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Controllers/DefaultPlaceSearchService.swift (in target 'Know Maps' from project 'Know Maps')
+    cd /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps
+    
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Controllers/DefaultPlaceSearchService.swift:33:45: warning: result of call to 'fetchManagedUserIdentity(cacheManager:)' is unused
+        try await personalizedSearchSession.fetchManagedUserIdentity(cacheManager:cacheManager)
+                                            ^                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Controllers/DefaultPlaceSearchService.swift:34:45: warning: result of call to 'fetchManagedUserAccessToken(cacheManager:)' is unused
+        try await personalizedSearchSession.fetchManagedUserAccessToken(cacheManager: cacheManager)
+                                            ^                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Controllers/DefaultPlaceSearchService.swift:37:49: warning: result of call to 'addFoursquareManagedUserIdentity(cacheManager:)' is unused
+            try await personalizedSearchSession.addFoursquareManagedUserIdentity(cacheManager: cacheManager)
+                                                ^                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Controllers/DefaultPlaceSearchService.swift:74:41: warning: no calls to throwing functions occur within 'try' expression
+                    let tipsResponses = try PlaceResponseFormatter.placeTipsResponses(with: tipsWrapped, for: response.fsqID)
+                                        ^
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Controllers/DefaultPlaceSearchService.swift:75:42: warning: no calls to throwing functions occur within 'try' expression
+                    let photoResponses = try PlaceResponseFormatter.placePhotoResponses(with: photosWrapped, for: response.fsqID)
+                                         ^
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Controllers/DefaultPlaceSearchService.swift:131:29: warning: no calls to throwing functions occur within 'try' expression
+        let tipsResponses = try PlaceResponseFormatter.placeTipsResponses(with: tipsWrapped, for: fsqID)
+                            ^
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/Controllers/DefaultPlaceSearchService.swift:132:30: warning: no calls to throwing functions occur within 'try' expression
+        let photoResponses = try PlaceResponseFormatter.placePhotoResponses(with: photosWrapped, for: fsqID)
+                             ^
+
+SwiftCompile normal arm64 Compiling\ PersonalizedSearchSession.swift,\ PlaceSearchSession.swift,\ GoogleBannerView.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Network/PersonalizedSearchSession.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Network/PlaceSearchSession.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/View/GoogleBannerView.swift (in target 'Know Maps' from project 'Know Maps')
+
+SwiftCompile normal arm64 /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Network/PersonalizedSearchSession.swift (in target 'Know Maps' from project 'Know Maps')
+    cd /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps
+    
+
+SwiftCompile normal arm64 /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Network/PlaceSearchSession.swift (in target 'Know Maps' from project 'Know Maps')
+    cd /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps
+    
+
+SwiftCompile normal arm64 /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/View/GoogleBannerView.swift (in target 'Know Maps' from project 'Know Maps')
+    cd /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps
+    
+
+SwiftDriverJobDiscovery normal arm64 Compiling FeatureFlagsService.swift, HybridRecommenderModel.swift, LanguageGeneratorService.swift (in target 'Know Maps' from project 'Know Maps')
+
+SwiftDriverJobDiscovery normal arm64 Compiling LocationProvider.swift, UserCachedRecord.swift, UserItemInteraction.swift (in target 'Know Maps' from project 'Know Maps')
+
+SwiftCompile normal arm64 Compiling\ ModelController.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Protocols/ModelController.swift (in target 'Know Maps' from project 'Know Maps')
+
+SwiftCompile normal arm64 /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Protocols/ModelController.swift (in target 'Know Maps' from project 'Know Maps')
+    cd /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps
+    
+
+SwiftCompile normal arm64 Compiling\ CacheManager.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Protocols/CacheManager.swift (in target 'Know Maps' from project 'Know Maps')
+
+SwiftCompile normal arm64 /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Protocols/CacheManager.swift (in target 'Know Maps' from project 'Know Maps')
+    cd /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps
+    
+
+SwiftDriverJobDiscovery normal arm64 Compiling DefaultRecommenderService.swift, SearchInteractor.swift, DefaultResultIndexServiceV2.swift (in target 'Know Maps' from project 'Know Maps')
+
+SwiftCompile normal arm64 Compiling\ CloudCache.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Protocols/CloudCache.swift (in target 'Know Maps' from project 'Know Maps')
+
+SwiftCompile normal arm64 /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Protocols/CloudCache.swift (in target 'Know Maps' from project 'Know Maps')
+    cd /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps
+    
+
+SwiftDriverJobDiscovery normal arm64 Compiling ModelController.swift (in target 'Know Maps' from project 'Know Maps')
+
+SwiftCompile normal arm64 Compiling\ PlaceSearchService.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Protocols/PlaceSearchService.swift (in target 'Know Maps' from project 'Know Maps')
+
+SwiftCompile normal arm64 /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Protocols/PlaceSearchService.swift (in target 'Know Maps' from project 'Know Maps')
+    cd /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps
+    
+
+SwiftDriverJobDiscovery normal arm64 Compiling OnboardingSubscriptionView.swift, OnboardingView.swift, KnowMapsCoreMLModels.swift (in target 'Know Maps' from project 'Know Maps')
+
+SwiftCompile normal arm64 Compiling\ MiniLMEmbeddingClient.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Controllers/MiniLMEmbeddingClient.swift (in target 'Know Maps' from project 'Know Maps')
+
+SwiftCompile normal arm64 /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Controllers/MiniLMEmbeddingClient.swift (in target 'Know Maps' from project 'Know Maps')
+    cd /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps
+    
+
+SwiftDriverJobDiscovery normal arm64 Compiling AdvancedRecommenderService.swift, AppShortcuts.swift, AppleAuthenticationService.swift (in target 'Know Maps' from project 'Know Maps')
+
+SwiftCompile normal arm64 Compiling\ SearchSavedViewModel.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/ViewModels/SearchSavedViewModel.swift (in target 'Know Maps' from project 'Know Maps')
+
+SwiftCompile normal arm64 /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/ViewModels/SearchSavedViewModel.swift (in target 'Know Maps' from project 'Know Maps')
+    cd /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps
+    
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/ViewModels/SearchSavedViewModel.swift:106:13: warning: no 'async' operations occur within 'await' expression
+            await modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
+            ^
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/ViewModels/SearchSavedViewModel.swift:114:37: warning: no 'async' operations occur within 'await' expression
+        guard let placeChatResult = await modelController.placeChatResult(for: parent), let placeResponse = placeChatResult.placeResponse, !cacheManager.cachedPlaces(contains: placeChatResult.title) else {
+                                    ^
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/ViewModels/SearchSavedViewModel.swift:156:13: warning: no 'async' operations occur within 'await' expression
+            await modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
+            ^
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/ViewModels/SearchSavedViewModel.swift:191:13: warning: no 'async' operations occur within 'await' expression
+            await modelController.analyticsManager.trackError(
+            ^
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/ViewModels/SearchSavedViewModel.swift:201:44: warning: no 'async' operations occur within 'await' expression
+        guard let industryCategoryResult = await modelController.industryCategoryResult(for: parent), !cacheManager.cachedCategories(contains: industryCategoryResult.parentCategory) else {
+                                           ^
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/ViewModels/SearchSavedViewModel.swift:235:13: warning: no 'async' operations occur within 'await' expression
+            await modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
+            ^
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/ViewModels/SearchSavedViewModel.swift:242:44: warning: no 'async' operations occur within 'await' expression
+        guard let industryCategoryResult = await modelController.industryCategoryResult(for: parent) else {
+                                           ^
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/ViewModels/SearchSavedViewModel.swift:257:13: warning: no 'async' operations occur within 'await' expression
+            await modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
+            ^
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/ViewModels/SearchSavedViewModel.swift:292:13: warning: no 'async' operations occur within 'await' expression
+            await modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
+            ^
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/ViewModels/SearchSavedViewModel.swift:299:41: warning: no 'async' operations occur within 'await' expression
+        guard let tasteCategoryResult = await modelController.tasteCategoryResult(for: parent), !cacheManager.cachedTastes(contains: tasteCategoryResult.parentCategory) else {
+                                        ^
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/ViewModels/SearchSavedViewModel.swift:336:13: warning: no 'async' operations occur within 'await' expression
+            await modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
+            ^
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/ViewModels/SearchSavedViewModel.swift:368:13: warning: no 'async' operations occur within 'await' expression
+            await modelController.analyticsManager.trackError(
+            ^
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/ViewModels/SearchSavedViewModel.swift:378:41: warning: no 'async' operations occur within 'await' expression
+        guard let tasteCategoryResult = await modelController.cachedTasteResult(for: parent) else {
+                                        ^
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/ViewModels/SearchSavedViewModel.swift:392:13: warning: no 'async' operations occur within 'await' expression
+            await modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
+            ^
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/ViewModels/SearchSavedViewModel.swift:415:17: warning: no 'async' operations occur within 'await' expression
+                await modelController.analyticsManager.trackError(error: err, additionalInfo: nil)
+                ^
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/ViewModels/SearchSavedViewModel.swift:432:13: warning: no 'async' operations occur within 'await' expression
+            await modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
+            ^
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/ViewModels/SearchSavedViewModel.swift:469:17: warning: no 'async' operations occur within 'await' expression
+                await modelController.analyticsManager.trackError(error: err, additionalInfo: ["context": "removeCachedResults(batched)"])
+                ^
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/ViewModels/SearchSavedViewModel.swift:488:17: warning: no 'async' operations occur within 'await' expression
+                await modelController.analyticsManager.trackError(error: error, additionalInfo: ["context": "removeCachedResults(batched).refreshCache"]) }
+                ^
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/ViewModels/SearchSavedViewModel.swift:490:13: warning: no 'async' operations occur within 'await' expression
+            await modelController.analyticsManager.trackError(error: error, additionalInfo: ["context": "removeCachedResults(batched).fetch"]) }
+            ^
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/ViewModels/SearchSavedViewModel.swift:504:73: warning: conditional cast from 'CloudCacheService' to 'AnyObject' always succeeds
+                if let concreteService = cacheManager.cloudCacheService as? AnyObject, concreteService.responds?(to: Selector(("deleteRecommendationDataWithFor:"))) == true {
+                                                                        ^
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/ViewModels/SearchSavedViewModel.swift:496:36: warning: no 'async' operations occur within 'await' expression
+        if let selectedTasteItem = await modelController.cachedTasteResult(for: selectedSavedResult) {
+                                   ^
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/ViewModels/SearchSavedViewModel.swift:498:46: warning: no 'async' operations occur within 'await' expression
+        } else if let selectedCategoryItem = await modelController.cachedIndustryResult(for: selectedSavedResult) {
+                                             ^
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/ViewModels/SearchSavedViewModel.swift:500:43: warning: no 'async' operations occur within 'await' expression
+        } else if let selectedPlaceItem = await modelController.cachedPlaceResult(for: selectedSavedResult) {
+                                          ^
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/ViewModels/SearchSavedViewModel.swift:507:30: warning: no 'async' operations occur within 'await' expression
+                    _ = try? await (cacheManager.cloudCacheService as AnyObject).perform?(Selector(("deleteRecommendationDataWithFor:")), with: fsqID)
+                             ^
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/ViewModels/SearchSavedViewModel.swift:507:25: warning: no calls to throwing functions occur within 'try' expression
+                    _ = try? await (cacheManager.cloudCacheService as AnyObject).perform?(Selector(("deleteRecommendationDataWithFor:")), with: fsqID)
+                        ^
+
+SwiftDriverJobDiscovery normal arm64 Compiling CloudCache.swift (in target 'Know Maps' from project 'Know Maps')
+
+SwiftCompile normal arm64 Compiling\ PlaceAboutViewModel.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/ViewModels/PlaceAboutViewModel.swift (in target 'Know Maps' from project 'Know Maps')
+
+SwiftCompile normal arm64 /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/ViewModels/PlaceAboutViewModel.swift (in target 'Know Maps' from project 'Know Maps')
+    cd /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps
+    
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/ViewModels/PlaceAboutViewModel.swift:65:21: warning: no 'async' operations occur within 'await' expression
+                    await modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
+                    ^
+/Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know Maps Prod/Model/ViewModels/PlaceAboutViewModel.swift:93:21: warning: no 'async' operations occur within 'await' expression
+                    await modelController.analyticsManager.trackError(error: error, additionalInfo: nil)
+                    ^
+
+SwiftDriverJobDiscovery normal arm64 Compiling CacheManager.swift (in target 'Know Maps' from project 'Know Maps')
+
+SwiftDriverJobDiscovery normal arm64 Compiling PlaceSearchService.swift (in target 'Know Maps' from project 'Know Maps')
+
+SwiftDriverJobDiscovery normal arm64 Compiling View+Availability.swift, RecommendationInteractor.swift, Know_MapsApp.swift, Know_MapsAppView.swift (in target 'Know Maps' from project 'Know Maps')
+
+SwiftCompile normal arm64 Compiling\ PlaceResponseFormatter.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Models/PlaceResponseFormatter.swift (in target 'Know Maps' from project 'Know Maps')
+
+SwiftCompile normal arm64 /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Models/PlaceResponseFormatter.swift (in target 'Know Maps' from project 'Know Maps')
+    cd /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps
+    
+
+SwiftCompile normal arm64 Compiling\ ActivityViewController.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/View/ActivityViewController.swift (in target 'Know Maps' from project 'Know Maps')
+
+SwiftCompile normal arm64 /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/View/ActivityViewController.swift (in target 'Know Maps' from project 'Know Maps')
+    cd /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps
+    
+
+SwiftCompile normal arm64 Compiling\ KnowMapsPlaceSnapshot.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Models/KnowMapsPlaceSnapshot.swift (in target 'Know Maps' from project 'Know Maps')
+
+SwiftCompile normal arm64 /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Models/KnowMapsPlaceSnapshot.swift (in target 'Know Maps' from project 'Know Maps')
+    cd /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps
+    
+
+SwiftDriverJobDiscovery normal arm64 Compiling MiniLMEmbeddingClient.swift (in target 'Know Maps' from project 'Know Maps')
+
+SwiftCompile normal arm64 Compiling\ EventCategoryResult.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Models/EventCategoryResult.swift (in target 'Know Maps' from project 'Know Maps')
+
+SwiftCompile normal arm64 /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Models/EventCategoryResult.swift (in target 'Know Maps' from project 'Know Maps')
+    cd /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps
+    
+
+SwiftDriverJobDiscovery normal arm64 Compiling PlaceAboutViewModel.swift (in target 'Know Maps' from project 'Know Maps')
+
+SwiftDriverJobDiscovery normal arm64 Compiling ActivityViewController.swift (in target 'Know Maps' from project 'Know Maps')
+
+SwiftDriverJobDiscovery normal arm64 Compiling VectorEmbeddingService.swift, CloudCacheService.swift, LanguageGeneratorSession.swift (in target 'Know Maps' from project 'Know Maps')
+
+SwiftDriverJobDiscovery normal arm64 Compiling SearchSavedViewModel.swift (in target 'Know Maps' from project 'Know Maps')
+
+SwiftDriverJobDiscovery normal arm64 Emitting module for Know_Maps (in target 'Know Maps' from project 'Know Maps')
+
+SwiftDriver\ Compilation\ Requirements Know\ Maps normal arm64 com.apple.xcode.tools.swift.compiler (in target 'Know Maps' from project 'Know Maps')
+    cd /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps
+    builtin-Swift-Compilation-Requirements -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name Know_Maps -Onone -enforce-exclusivity\=checked @/Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Intermediates.noindex/Know\ Maps.build/Debug-iphonesimulator/Know\ Maps.build/Objects-normal/arm64/Know\ Maps.SwiftFileList -DDEBUG -DDEBUG -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.2.sdk -target arm64-apple-ios26.0-simulator -g -module-cache-path /Users/voxels/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -enable-testing -index-store-path /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Products/Debug-iphonesimulator -F /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Products/Debug-iphonesimulator/PackageFrameworks -F /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Products/Debug-iphonesimulator -c -j12 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/voxels/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/iphonesimulator26.2-23C53-7d00a8b37fbd7999ea79df8ebc024bf0.sdkstatcache -output-file-map /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Intermediates.noindex/Know\ Maps.build/Debug-iphonesimulator/Know\ Maps.build/Objects-normal/arm64/Know\ Maps-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/voxels/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -sdk-module-cache-path /Users/voxels/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Intermediates.noindex/Know\ Maps.build/Debug-iphonesimulator/Know\ Maps.build/Objects-normal/arm64/Know_Maps.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/voxels/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Intermediates.noindex/Know\ Maps.build/Debug-iphonesimulator/Know\ Maps.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Intermediates.noindex/Know\ Maps.build/Debug-iphonesimulator/Know\ Maps.build/Objects-normal/arm64/Know\ Maps_const_extract_protocols.json -Xcc -iquote -Xcc /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Intermediates.noindex/Know\ Maps.build/Debug-iphonesimulator/Know\ Maps.build/Know\ Maps-generated-files.hmap -Xcc -I/Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Intermediates.noindex/Know\ Maps.build/Debug-iphonesimulator/Know\ Maps.build/Know\ Maps-own-target-headers.hmap -Xcc -I/Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Intermediates.noindex/Know\ Maps.build/Debug-iphonesimulator/Know\ Maps.build/Know\ Maps-all-non-framework-target-headers.hmap -Xcc -ivfsoverlay -Xcc /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Intermediates.noindex/Know\ Maps.build/Debug-iphonesimulator/Know\ Maps-0bba29ca7f97ed907bcadf796d74f379-VFS-iphonesimulator/all-product-headers.yaml -Xcc -iquote -Xcc /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Intermediates.noindex/Know\ Maps.build/Debug-iphonesimulator/Know\ Maps.build/Know\ Maps-project-headers.hmap -Xcc -I/Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Products/Debug-iphonesimulator/include -Xcc -I/Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Intermediates.noindex/Know\ Maps.build/Debug-iphonesimulator/Know\ Maps.build/DerivedSources-normal/arm64 -Xcc -I/Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Intermediates.noindex/Know\ Maps.build/Debug-iphonesimulator/Know\ Maps.build/DerivedSources/arm64 -Xcc -I/Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Intermediates.noindex/Know\ Maps.build/Debug-iphonesimulator/Know\ Maps.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Intermediates.noindex/Know\ Maps.build/Debug-iphonesimulator/Know\ Maps.build/Objects-normal/arm64/Know_Maps-Swift.h -working-directory /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps -experimental-emit-module-separately -disable-cmo
+
+SwiftDriverJobDiscovery normal arm64 Compiling KnowMapsPlaceSnapshot.swift (in target 'Know Maps' from project 'Know Maps')
+
+SwiftMergeGeneratedHeaders /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Intermediates.noindex/Know\ Maps.build/Debug-iphonesimulator/Know\ Maps.build/DerivedSources/Know_Maps-Swift.h /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Intermediates.noindex/Know\ Maps.build/Debug-iphonesimulator/Know\ Maps.build/Objects-normal/arm64/Know_Maps-Swift.h (in target 'Know Maps' from project 'Know Maps')
+    cd /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps
+    builtin-swiftHeaderTool -arch arm64 /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Intermediates.noindex/Know\ Maps.build/Debug-iphonesimulator/Know\ Maps.build/Objects-normal/arm64/Know_Maps-Swift.h -o /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Intermediates.noindex/Know\ Maps.build/Debug-iphonesimulator/Know\ Maps.build/DerivedSources/Know_Maps-Swift.h
+
+Copy /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Products/Debug-iphonesimulator/Know_Maps.swiftmodule/arm64-apple-ios-simulator.swiftdoc /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Intermediates.noindex/Know\ Maps.build/Debug-iphonesimulator/Know\ Maps.build/Objects-normal/arm64/Know_Maps.swiftdoc (in target 'Know Maps' from project 'Know Maps')
+    cd /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Intermediates.noindex/Know\ Maps.build/Debug-iphonesimulator/Know\ Maps.build/Objects-normal/arm64/Know_Maps.swiftdoc /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Products/Debug-iphonesimulator/Know_Maps.swiftmodule/arm64-apple-ios-simulator.swiftdoc
+
+Copy /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Products/Debug-iphonesimulator/Know_Maps.swiftmodule/arm64-apple-ios-simulator.abi.json /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Intermediates.noindex/Know\ Maps.build/Debug-iphonesimulator/Know\ Maps.build/Objects-normal/arm64/Know_Maps.abi.json (in target 'Know Maps' from project 'Know Maps')
+    cd /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Intermediates.noindex/Know\ Maps.build/Debug-iphonesimulator/Know\ Maps.build/Objects-normal/arm64/Know_Maps.abi.json /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Products/Debug-iphonesimulator/Know_Maps.swiftmodule/arm64-apple-ios-simulator.abi.json
+
+Copy /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Products/Debug-iphonesimulator/Know_Maps.swiftmodule/arm64-apple-ios-simulator.swiftmodule /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Intermediates.noindex/Know\ Maps.build/Debug-iphonesimulator/Know\ Maps.build/Objects-normal/arm64/Know_Maps.swiftmodule (in target 'Know Maps' from project 'Know Maps')
+    cd /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Intermediates.noindex/Know\ Maps.build/Debug-iphonesimulator/Know\ Maps.build/Objects-normal/arm64/Know_Maps.swiftmodule /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Products/Debug-iphonesimulator/Know_Maps.swiftmodule/arm64-apple-ios-simulator.swiftmodule
+
+Copy /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Products/Debug-iphonesimulator/Know_Maps.swiftmodule/Project/arm64-apple-ios-simulator.swiftsourceinfo /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Intermediates.noindex/Know\ Maps.build/Debug-iphonesimulator/Know\ Maps.build/Objects-normal/arm64/Know_Maps.swiftsourceinfo (in target 'Know Maps' from project 'Know Maps')
+    cd /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Intermediates.noindex/Know\ Maps.build/Debug-iphonesimulator/Know\ Maps.build/Objects-normal/arm64/Know_Maps.swiftsourceinfo /Users/voxels/Library/Developer/Xcode/DerivedData/Know_Maps-egkaqhsegwaokpcfpeurgwipvhno/Build/Products/Debug-iphonesimulator/Know_Maps.swiftmodule/Project/arm64-apple-ios-simulator.swiftsourceinfo
+
+SwiftDriverJobDiscovery normal arm64 Compiling EventCategoryResult.swift (in target 'Know Maps' from project 'Know Maps')
+
+SwiftDriverJobDiscovery normal arm64 Compiling PlaceResponseFormatter.swift (in target 'Know Maps' from project 'Know Maps')
+
+SwiftDriverJobDiscovery normal arm64 Compiling AssistiveChatHostService.swift, CloudCacheManager.swift, DefaultInputValidationServiceV2.swift (in target 'Know Maps' from project 'Know Maps')
+
+SwiftCompile normal arm64 Compiling\ AssistiveChatHostQueryParameters.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Models/AssistiveChatHostQueryParameters.swift (in target 'Know Maps' from project 'Know Maps')
+
+SwiftCompile normal arm64 Compiling\ ChatResultViewModel.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/ViewModels/ChatResultViewModel.swift (in target 'Know Maps' from project 'Know Maps')
+
+SwiftCompile normal arm64 Compiling\ RecommendedPlaceSearchRequest.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Models/RecommendedPlaceSearchRequest.swift (in target 'Know Maps' from project 'Know Maps')
+
+SwiftCompile normal arm64 Compiling\ AssistiveChatHostIntent.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Models/AssistiveChatHostIntent.swift (in target 'Know Maps' from project 'Know Maps')
+
+SwiftCompile normal arm64 Compiling\ AssistiveChatHost.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Protocols/AssistiveChatHost.swift (in target 'Know Maps' from project 'Know Maps')
+
+SwiftCompile normal arm64 Compiling\ AssistiveChatHostMessagesDelegate.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Protocols/AssistiveChatHostMessagesDelegate.swift (in target 'Know Maps' from project 'Know Maps')
+
+** BUILD FAILED **
+
+
+The following build commands failed:
+	SwiftCompile normal arm64 Compiling\ DefaultLocationService.swift,\ DefaultModelController.swift,\ DefaultPlaceSearchService.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Controllers/DefaultLocationService.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Controllers/DefaultModelController.swift /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Controllers/DefaultPlaceSearchService.swift (in target 'Know Maps' from project 'Know Maps')
+	SwiftCompile normal arm64 /Users/voxels/Documents/dev/Know-Maps/Know-Maps/Know-Maps/Know\ Maps\ Prod/Model/Controllers/DefaultModelController.swift (in target 'Know Maps' from project 'Know Maps')
+	Building project Know Maps with scheme Know Maps
+(3 failures)

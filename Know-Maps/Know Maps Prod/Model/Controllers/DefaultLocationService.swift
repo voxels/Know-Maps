@@ -23,11 +23,11 @@ public final class DefaultLocationService: NSObject, @preconcurrency LocationSer
     private var lastForwardGeocodeResult: [CLPlacemark]? = nil
     private let reverseGeocodeEqualityToleranceMeters: CLLocationDistance = 10
     
-    public let locationProvider:LocationProvider
+    public let locationProvider:LocationProviderProtocol
     
     private let geocoder = CLGeocoder()
     
-    public init(locationProvider:LocationProvider) {
+    public init(locationProvider:LocationProviderProtocol) {
         self.locationProvider = locationProvider
     }
     

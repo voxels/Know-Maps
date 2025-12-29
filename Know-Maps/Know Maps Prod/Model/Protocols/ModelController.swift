@@ -58,9 +58,6 @@ public protocol ModelController : Sendable {
     var filteredPlaceResults: [ChatResult] { get }
     
     // MARK: - Init
-    init(
-       cacheManager:CacheManager
-   )
     
     func resetPlaceModel() async throws
     

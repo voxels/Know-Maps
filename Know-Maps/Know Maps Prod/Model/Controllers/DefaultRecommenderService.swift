@@ -89,21 +89,23 @@ public final class DefaultRecommenderService: RecommenderService {
     }
     
     public func testingData(
-        with responses: [RecommendedPlaceSearchResponse]
+        with responses: [PlaceSearchResponse]
     ) -> [RecommendationData] {
         var retval = [RecommendationData]()
         
         for response in responses {
-            for taste in response.tastes {
-                let data = RecommendationData(
-                    id: UUID(),
-                    recordId: "",
-                    identity: response.fsqID,
-                    attributes: [taste],
-                    reviews: [],
-                    attributeRatings: [taste: 1]
-                )
-                retval.append(data)
+            if let tastes = response.tastes {
+                for taste in tastes {
+                    let data = RecommendationData(
+                        id: UUID(),
+                        recordId: "",
+                        identity: response.fsqID,
+                        attributes: [taste],
+                        reviews: [],
+                        attributeRatings: [taste: 1]
+                    )
+                    retval.append(data)
+                }
             }
             
             for category in response.categories {

@@ -6,7 +6,7 @@
 //
 
 import Foundation
-public struct PlaceDetailsResponse: Equatable, Hashable, Sendable  {
+public struct PlaceDetailsResponse: Codable, Equatable, Hashable, Sendable {
     public static func == (lhs: PlaceDetailsResponse, rhs: PlaceDetailsResponse) -> Bool {
         return lhs.searchResponse.uuid == rhs.searchResponse.uuid
     }
@@ -36,10 +36,14 @@ public struct PlaceDetailsResponse: Equatable, Hashable, Sendable  {
     let tastes:[String]?
     let features:[String]?
     
-    var fsqID:String {
+    public var fsqID:String {
         get {
             return searchResponse.fsqID
         }
+    }
+    
+    public var name: String {
+        return searchResponse.name
     }
 
 }

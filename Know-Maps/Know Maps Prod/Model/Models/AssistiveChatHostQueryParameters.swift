@@ -17,4 +17,6 @@ public final class AssistiveChatHostQueryParameters : @MainActor Equatable, Send
     public static func == (lhs: AssistiveChatHostQueryParameters, rhs: AssistiveChatHostQueryParameters) -> Bool {
         lhs.uuid == rhs.uuid
     }
+    
+    nonisolated public init() {}
 }

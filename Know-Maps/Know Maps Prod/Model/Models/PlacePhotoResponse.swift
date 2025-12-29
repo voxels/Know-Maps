@@ -7,8 +7,8 @@
 
 import Foundation
 
-public struct PlacePhotoResponse: Identifiable, Sendable {
-    public var id: ObjectIdentifier
+public struct PlacePhotoResponse: Codable, Identifiable, Sendable {
+    public var id: String
     
     let placeIdent:String
     let ident:String
@@ -24,7 +24,10 @@ public struct PlacePhotoResponse: Identifiable, Sendable {
     let prefix:String
     let suffix:String
     
-    func photoUrl() ->URL? {
-        return URL(string:"\(prefix)\(Int(floor(width)))x\(Int(floor(height)))\(suffix)")
+    func photoUrl(width: Int? = nil, height: Int? = nil) -> URL? {
+        if let width = width, let height = height {
+            return URL(string: "\(prefix)\(width)x\(height)\(suffix)")
+        }
+        return URL(string: "\(prefix)original\(suffix)")
     }
 }

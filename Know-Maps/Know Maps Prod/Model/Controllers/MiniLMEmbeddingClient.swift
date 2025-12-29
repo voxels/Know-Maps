@@ -2,6 +2,17 @@ import Foundation
 import CoreML
 import NaturalLanguage
 
+private enum MiniLMEmbeddingError: Error, LocalizedError {
+    case modelFileNotFound(String)
+
+    var errorDescription: String? {
+        switch self {
+        case .modelFileNotFound(let context):
+            return "CoreML model file not found (\(context))"
+        }
+    }
+}
+
 @MainActor
 public final class MiniLMEmbeddingClient {
 
@@ -172,7 +183,7 @@ private extension MiniLMEmbeddingClient {
     static func findFirstMLModel(in directoryURL: URL, context: String) throws -> URL {
         let fileManager = FileManager.default
         guard let enumerator = fileManager.enumerator(at: directoryURL, includingPropertiesForKeys: nil) else {
-            throw KnowMapsCoreMLResourceError.modelFileNotFound(context)
+            throw MiniLMEmbeddingError.modelFileNotFound(context)
         }
 
         for case let url as URL in enumerator {
@@ -181,6 +192,6 @@ private extension MiniLMEmbeddingClient {
             }
         }
 
-        throw KnowMapsCoreMLResourceError.modelFileNotFound(context)
+        throw MiniLMEmbeddingError.modelFileNotFound(context)
     }
 }

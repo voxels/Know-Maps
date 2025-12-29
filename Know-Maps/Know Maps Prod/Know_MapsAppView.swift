@@ -80,64 +80,49 @@ public struct Know_MapsAppView : View {
     }
     
     public var body: some View {
-        //        WindowGroup(id:"ContentView") {
-        ZStack {
+        Group {
             if showOnboarding {
-                OnboardingView( settingsModel: authenticationModel,  modelController: modelController, showOnboarding: $showOnboarding)
+                OnboardingView(settingsModel: authenticationModel, modelController: modelController, showOnboarding: $showOnboarding)
+                    .transition(.move(edge: .bottom))
 #if !os(visionOS) && !os(macOS)
                     .containerBackground(.clear, for: .navigation)
 #endif
             } else {
-                ContentView(settingsModel:authenticationModel, chatModel: chatModel, cacheManager:cacheManager, modelController:modelController, searchSavedViewModel: searchSavedViewModel, showOnboarding: $showOnboarding, showNavigationLocationView: $showNavigationLocationView, searchMode: $searchMode )
-#if os(visionOS) || os(macOS)
-                    .frame(minWidth: 1280, minHeight: 720)
-#endif
-                    .sheet(isPresented: $showNavigationLocationView) {
-                        filterSheet()
-                    }
+                MainUI(modelController: modelController, cacheManager: cacheManager)
+                    .environmentObject(authenticationModel)
+                    .transition(.opacity)
             }
             
             if showSplashScreen {
                 Color.clear
-#if os(visionOS) || os(macOS)
-                    .frame(minWidth: 1280, minHeight: 720)
-#endif
+                    .onAppear {
+                        // Dismiss splash screen quickly for now
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                            withAnimation {
+                                showSplashScreen = false
+                            }
+                        }
+                    }
             }
         }
-        //        }.windowResizability(.contentSize)
-        //
-        //#if os(visionOS)
-        //        ImmersiveSpace(id: "ImmersiveSpace") {
-        //            ImmersiveView()
-        //        }
-        //#endif
-    }
-    
-    
-    func filterView() -> some View {
-        NavigationLocationView(
-            searchSavedViewModel: searchSavedViewModel,
-            chatModel: chatModel,
-            cacheManager: cacheManager,
-            modelController: modelController,
-            filters: Binding(get: { searchSavedViewModel.filters }, set: { searchSavedViewModel.filters = $0 })
-        )
-    }
-    
-    @ViewBuilder
-    func filterSheet() -> some View {
-#if os(macOS)
-        filterView()
-            .frame(minWidth: 600, minHeight: 500)
-            .knowMapsPresentationSizingFittedIfAvailable()
-            .presentationDragIndicator(Visibility.visible)
-            .interactiveDismissDisabled(false)
-#else
-        filterView()
-            .presentationDetents([.large])
-            .presentationDragIndicator(.visible)
-            .interactiveDismissDisabled(false)
-            .presentationCompactAdaptation(.sheet)
-#endif
+        .task(id: authenticationModel.appleUserId) {
+            // As soon as we have a user ID, start populating the model
+            if !authenticationModel.appleUserId.isEmpty {
+                withAnimation {
+                    showOnboarding = false
+                }
+                do {
+                    try await cacheManager.restoreCache()
+                    try await cacheManager.refreshCache()
+                    print("Model populated for user: \(authenticationModel.appleUserId)")
+                } catch {
+                    print("Failed to populate model: \(error)")
+                }
+            } else {
+                withAnimation {
+                    showOnboarding = true
+                }
+            }
+        }
     }
 }

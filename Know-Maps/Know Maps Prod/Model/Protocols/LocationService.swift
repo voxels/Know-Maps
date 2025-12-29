@@ -11,9 +11,11 @@ import CoreLocation
 // MARK: - Location Service Protocol
 @MainActor
 public protocol LocationService {
-    var locationProvider:LocationProvider { get } // Add this line
+    var locationProvider:LocationProviderProtocol { get } // Add this line
     func currentLocationName() async throws -> String
     func currentLocation() -> CLLocation
     func lookUpLocation(_ location: CLLocation) async throws -> [CLPlacemark]
     func lookUpLocationName(name: String) async throws -> [CLPlacemark]
 }
+
+

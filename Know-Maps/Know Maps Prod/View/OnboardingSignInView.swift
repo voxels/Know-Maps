@@ -5,11 +5,6 @@
 //  Created by Michael A Edgcumbe on 2/6/24.
 //
 
-//  OnboardingSignInView.swift
-//  Know Maps
-//  OnboardingSignInView.swift
-//  Know Maps
-
 import SwiftUI
 import AuthenticationServices
 
@@ -124,6 +119,9 @@ public struct OnboardingSignInView: View {
             RoundedRectangle(cornerRadius: 16, style: .continuous)
                 .strokeBorder(.quaternary, lineWidth: 0.5)
         )
+        .onAppear {
+            LocationProvider.shared.authorize()
+        }
     }
     
     // Opens the appropriate Settings/Preferences screen depending on platform
