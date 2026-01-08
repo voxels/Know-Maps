@@ -8,7 +8,7 @@
 import Foundation
 
 
-public struct PlaceDetailsRequest {
+public struct PlaceDetailsRequest: Sendable {
     let fsqID:String
     let core:Bool
     let description:Bool

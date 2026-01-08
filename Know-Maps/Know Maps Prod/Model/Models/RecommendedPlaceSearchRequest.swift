@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct RecommendedPlaceSearchRequest {
+public struct RecommendedPlaceSearchRequest: Sendable {
     let query:String
     let ll:String?
     var radius:Int = 20000

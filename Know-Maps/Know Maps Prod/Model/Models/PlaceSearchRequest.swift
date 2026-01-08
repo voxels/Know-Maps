@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct PlaceSearchRequest {
+public struct PlaceSearchRequest: Sendable {
     let query:String
     let ll:String?
     var radius:Int = 20000
