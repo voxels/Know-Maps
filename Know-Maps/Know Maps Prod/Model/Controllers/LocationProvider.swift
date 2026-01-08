@@ -11,10 +11,11 @@ public enum LocationProviderError : Error {
     case LocationManagerFailed
 }
 
-public class LocationProvider : NSObject, LocationProviderProtocol  {
+public class LocationProvider : NSObject, LocationProviderProtocol {
+    // Note: Not @MainActor to allow nonisolated delegate callbacks.
     @MainActor public static let shared = LocationProvider()
     
-    public var locationManager: CLLocationManager = CLLocationManager()
+    public let locationManager: CLLocationManager = CLLocationManager()
     
     public func isAuthorized() -> Bool {
 #if os(visionOS) || os(iOS)
@@ -27,6 +28,9 @@ public class LocationProvider : NSObject, LocationProviderProtocol  {
     
     public func authorize() {
         locationManager.delegate = self
+#if swift(>=5.9)
+        // delegate callbacks are nonisolated; ensure we don't capture main actor
+#endif
 #if os(visionOS) || os(iOS)
         if locationManager.authorizationStatus != .authorizedWhenInUse {
             locationManager.requestWhenInUseAuthorization()
@@ -96,34 +100,32 @@ public class LocationProvider : NSObject, LocationProviderProtocol  {
 }
 
 
-extension LocationProvider : CLLocationManagerDelegate {
+nonisolated extension LocationProvider : CLLocationManagerDelegate {
     public func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
-        locationManager = manager
-        switch locationManager.authorizationStatus {
-        case .authorizedAlways:
-            fallthrough
-        case .authorizedWhenInUse:  // Location services are available.
-            print("Location Provider Authorized When in Use")
-            NotificationCenter.default.post(name: Notification.Name("LocationProviderAuthorized"), object: nil)
-            break
-        case .restricted, .denied:  // Location services currently unavailable.
-            print("Location Provider Restricted or Denied")
-            NotificationCenter.default.post(name: Notification.Name("LocationProviderDenied"), object: nil)
-            break
-        case .notDetermined:        // Authorization not determined yet.
-            print("Location Provider Not Determined")
-            locationManager.requestWhenInUseAuthorization()
-            break
-        default:
-            break
+        // Hop to the main actor for UI/Notification work and accessing actor-isolated API if needed
+        Task { @MainActor in
+            switch manager.authorizationStatus {
+            case .authorizedAlways, .authorizedWhenInUse:
+                print("Location Provider Authorized When in Use")
+                NotificationCenter.default.post(name: Notification.Name("LocationProviderAuthorized"), object: nil)
+            case .restricted, .denied:
+                print("Location Provider Restricted or Denied")
+                NotificationCenter.default.post(name: Notification.Name("LocationProviderDenied"), object: nil)
+            case .notDetermined:
+                print("Location Provider Not Determined")
+                manager.requestWhenInUseAuthorization()
+            default:
+                break
+            }
         }
     }
     
     public func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        
+        // No-op for now; add main-actor hop if updating UI/state
     }
     
     public func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        // Logging can be done directly; hop to main if needed
         print("Location Manager did fail with error:")
         print(error)
     }
