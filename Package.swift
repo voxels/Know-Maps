@@ -5,9 +5,9 @@ import PackageDescription
 let package = Package(
     name: "knowmaps",
     platforms: [
-        .iOS(.v18),
-        .macOS(.v15),
-        .visionOS(.v2),
+        .iOS("26.0"),
+        .macOS("26.0"),
+        .visionOS("26.0"),
     ],
     products: [
         .library(name: "knowmaps", targets: ["knowmaps"]),
