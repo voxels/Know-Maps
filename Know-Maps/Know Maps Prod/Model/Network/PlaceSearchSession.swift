@@ -25,8 +25,8 @@ extension Array where Element: JSONRepresentable {
 }
 
 public struct FSQCategory: Codable, Sendable, Hashable, Equatable {
-    let id: Int?
-    let name: String?
+    public let id: Int?
+    public let name: String?
 }
 extension FSQCategory: CustomStringConvertible {
     public var description: String { "FSQCategory(id: \(stringify(id)), name: \(name ?? "nil"))" }
@@ -72,14 +72,14 @@ extension FSQGeocodes: JSONRepresentable {
 }
 
 public struct FSQLocation: Codable, Sendable {
-    let address: String?
-    let address_extended: String?
-    let locality: String?
-    let region: String?
-    let postcode: String?
-    let country: String?
-    let neighborhood: FSQStringArray?
-    let formatted_address: String?
+    public let address: String?
+    public let address_extended: String?
+    public let locality: String?
+    public let region: String?
+    public let postcode: String?
+    public let country: String?
+    public let neighborhood: FSQStringArray?
+    public let formatted_address: String?
 }
 extension FSQLocation: CustomStringConvertible {
     public var description: String { "FSQLocation(formatted_address: \(formatted_address ?? "nil"))" }
@@ -172,25 +172,25 @@ public struct FSQHours: Codable, Sendable {
 }
 
 public struct FSQPlace: Codable, Sendable {
-    let fsq_id: String?
-    let name: String?
-    let geocodes: FSQGeocodes?
-    let location: FSQLocation?
-    let categories: [FSQCategory]?
+    public let fsq_id: String?
+    public let name: String?
+    public let geocodes: FSQGeocodes?
+    public let location: FSQLocation?
+    public let categories: [FSQCategory]?
 
-    let place_description: String?
-    let tel: String?
-    let fax: String?
-    let email: String?
-    let website: String?
-    let social_media: FSQSocialMedia?
-    let verified: Bool?
-    let hours: FSQHours?
-    let rating: Double?
-    let popularity: Double?
-    let price: Int?
-    let date_closed: String?
-    let tastes: [String]?
+    public let place_description: String?
+    public let tel: String?
+    public let fax: String?
+    public let email: String?
+    public let website: String?
+    public let social_media: FSQSocialMedia?
+    public let verified: Bool?
+    public let hours: FSQHours?
+    public let rating: Double?
+    public let popularity: Double?
+    public let price: Int?
+    public let date_closed: String?
+    public let tastes: [String]?
 
     private enum CodingKeys: String, CodingKey {
         case fsq_id
@@ -235,7 +235,7 @@ extension FSQPlace: JSONRepresentable {
 }
 
 public struct FSQSearchResponse: Codable, Sendable {
-    let results: [FSQPlace]?
+    public let results: [FSQPlace]?
 }
 extension FSQSearchResponse: CustomStringConvertible {
     public var description: String { "FSQSearchResponse(results_count: \(results?.count ?? 0))" }
@@ -414,7 +414,7 @@ public actor PlaceSearchSession : PlaceSearchSessionProtocol, ObservableObject {
         case foursquare
     }
     
-    init(){
+    public init(){
         
     }
     

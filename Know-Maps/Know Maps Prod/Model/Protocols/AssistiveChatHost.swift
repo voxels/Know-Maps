@@ -23,7 +23,7 @@ public protocol AssistiveChatHost: Sendable {
     func appendIntentParameters(intent:AssistiveChatHostIntent, modelController:ModelController) async
     func resetIntentParameters() async
     func receiveMessage(caption:String, isLocalParticipant:Bool, filters:Dictionary<String, String>, modelController:ModelController, overrideIntent: AssistiveChatHostService.Intent?, selectedDestinationLocation: LocationResult?) async throws
-    func defaultParameters(for query:String, filters:Dictionary<String, String>, enrichedIntent: UnifiedSearchIntent?) async throws -> [String: Any]?
+    func defaultParameters(for query:String, filters:Dictionary<String, String>, enrichedIntent: UnifiedSearchIntent?) async throws -> [String: AnySendable]?
     func createIntent(for result: ChatResult, filters: Dictionary<String, String>, selectedDestination: LocationResult) async throws -> AssistiveChatHostIntent
     func tags(for rawQuery:String) async throws ->AssistiveChatHostTaggedWord?
     func section(for title:String) async ->PersonalizedSearchSection

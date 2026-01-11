@@ -169,7 +169,7 @@ public actor AssistiveChatHostService : AssistiveChatHost {
         return (searchIntent, unifiedIntent)
     }
     
-    public func defaultParameters(for query:String, filters:[String:String], enrichedIntent: UnifiedSearchIntent? = nil) async throws -> [String: Any]? {
+    public func defaultParameters(for query:String, filters:[String:String], enrichedIntent: UnifiedSearchIntent? = nil) async throws -> [String: AnySendable]? {
         var radius:Double = 20000
         var open:Bool? = nil
         
@@ -268,10 +268,10 @@ public actor AssistiveChatHostService : AssistiveChatHost {
                     }
 
                     encodedParameters["parameters"] = rawParameters
-                    return encodedParameters
+                    return encodedParameters.mapValues { AnySendable($0) }
                 }
                 else {
-                    return encodedParameters
+                    return encodedParameters.mapValues { AnySendable($0) }
                 }
                 
             } else {
@@ -290,7 +290,7 @@ public actor AssistiveChatHostService : AssistiveChatHost {
         if let lastIntent = lastIntent {
             let (intentType, enriched) = try await determineIntentEnhanced(for: caption)
             let queryParameters = try await defaultParameters(for: caption, filters:filters, enrichedIntent: enriched)
-            let anyParams = queryParameters?.mapValues { AnySendable($0) }
+            let anyParams = queryParameters
             
             let request = IntentRequest(
                 caption: caption,
@@ -670,7 +670,7 @@ extension AssistiveChatHostService {
         let caption = result.title
         let (intentType, enriched) = try await determineIntentEnhanced(for: caption)
         let queryParameters = try await defaultParameters(for: caption, filters: filters, enrichedIntent: enriched)
-        let anyParams = queryParameters?.mapValues { AnySendable($0) }
+        let anyParams = queryParameters
 
         let (fulfillment, finalIntentType) = await MainActor.run {
             let f = IntentFulfillment()

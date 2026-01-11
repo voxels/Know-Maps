@@ -18,16 +18,18 @@ public class VectorEmbeddingService: @unchecked Sendable {
     
     // MARK: - Properties
     
-    private let embedding: NLEmbedding
+    private let embedding: NLEmbedding?
     
     // MARK: - Initialization
     
     public init() {
         // Use Apple's pre-trained sentence embedding model for English
-        guard let sentenceEmbedding = NLEmbedding.sentenceEmbedding(for: .english) else {
-            fatalError("Failed to load sentence embedding model. Ensure the device supports NLEmbedding.")
+        if let sentenceEmbedding = NLEmbedding.sentenceEmbedding(for: .english) {
+            self.embedding = sentenceEmbedding
+        } else {
+            print("KnowMaps: Failed to load sentence embedding model. Semantic search will be disabled.")
+            self.embedding = nil
         }
-        self.embedding = sentenceEmbedding
     }
     
     // MARK: - Public Methods
@@ -39,7 +41,8 @@ public class VectorEmbeddingService: @unchecked Sendable {
     ///   - placeDescription: Combined text from place (name + categories + description)
     /// - Returns: Similarity score from 0.0 (no match) to 1.0 (perfect match)
     public func semanticScore(query: String, placeDescription: String) -> Double {
-        guard let queryVector = embedding.vector(for: query),
+        guard let embedding = embedding,
+              let queryVector = embedding.vector(for: query),
               let placeVector = embedding.vector(for: placeDescription) else {
             return 0.0
         }
@@ -53,7 +56,8 @@ public class VectorEmbeddingService: @unchecked Sendable {
     ///   - placeDescriptions: Array of place descriptions to score
     /// - Returns: Array of similarity scores in the same order as input
     public func batchSemanticScores(query: String, placeDescriptions: [String]) -> [Double] {
-        guard let queryVector = embedding.vector(for: query) else {
+        guard let embedding = embedding,
+              let queryVector = embedding.vector(for: query) else {
             return Array(repeating: 0.0, count: placeDescriptions.count)
         }
         
@@ -73,7 +77,8 @@ public class VectorEmbeddingService: @unchecked Sendable {
     ///   - threshold: Minimum similarity score (default: 0.7)
     /// - Returns: True if terms are semantically similar
     public func areSimilar(_ term1: String, _ term2: String, threshold: Double = 0.7) -> Bool {
-        guard let vector1 = embedding.vector(for: term1),
+        guard let embedding = embedding,
+              let vector1 = embedding.vector(for: term1),
               let vector2 = embedding.vector(for: term2) else {
             return false
         }

@@ -1,4 +1,4 @@
-// swift-tools-version: 6.0
+// swift-tools-version: 5.10
 
 import PackageDescription
 
@@ -28,7 +28,6 @@ let package = Package(
             path: "Know-Maps/Know Maps Prod",
             exclude: [
                 "Info.plist",
-                "Know Maps ProdDebug.entitlements",
                 "Know_Maps_Prod.entitlements",
                 "Know_MapsApp.swift",
                 "Preview Content",

@@ -18,12 +18,12 @@ public final class CategoryResult : Identifiable, Equatable, Hashable, Sendable 
     }
     
     public let id:String
-    let  identity:String
-    let parentCategory:String
-    let list:String
-    let icon:String
-    let rating:Double
-    let section:PersonalizedSearchSection
+    public let identity:String
+    public let parentCategory:String
+    public let list:String
+    public let icon:String
+    public let rating:Double
+    public let section:PersonalizedSearchSection
     public let categoricalChatResults:[ChatResult]
     public let children:[CategoryResult]
     public let isExpanded:Bool = false

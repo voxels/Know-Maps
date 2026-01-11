@@ -18,6 +18,7 @@ struct RecommenderTableData: Hashable, Codable {
 }
 
 public final class DefaultRecommenderService: RecommenderService {
+    public init() {}
     
     // MARK: - Shared helper for any category-like input
     

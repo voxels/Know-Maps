@@ -31,4 +31,25 @@ public struct PlaceDetailsRequest: Sendable {
     let tastes:Bool
     let features:Bool
     let storeID:Bool = true
+    
+    public init(fsqID: String, core: Bool, description: Bool, tel: Bool, fax: Bool, email: Bool, website: Bool, socialMedia: Bool, verified: Bool, hours: Bool, hoursPopular: Bool, rating: Bool, stats: Bool, popularity: Bool, price: Bool, menu: Bool, tastes: Bool, features: Bool) {
+        self.fsqID = fsqID
+        self.core = core
+        self.description = description
+        self.tel = tel
+        self.fax = fax
+        self.email = email
+        self.website = website
+        self.socialMedia = socialMedia
+        self.verified = verified
+        self.hours = hours
+        self.hoursPopular = hoursPopular
+        self.rating = rating
+        self.stats = stats
+        self.popularity = popularity
+        self.price = price
+        self.menu = menu
+        self.tastes = tastes
+        self.features = features
+    }
 }

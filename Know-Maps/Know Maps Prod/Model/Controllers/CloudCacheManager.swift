@@ -11,7 +11,7 @@ import SwiftData
 
 
 @Observable
-public final class CloudCacheManager: @preconcurrency CacheManager {
+public final class CloudCacheManager: @preconcurrency CacheManager, @unchecked Sendable {
     
     public let cloudCacheService: CloudCacheService
     public var proactiveCacheService: ProactiveCacheService?
