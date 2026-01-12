@@ -42,8 +42,8 @@ extension FSQCategory: JSONRepresentable {
 }
 
 public struct FSQGeocodePoint: Codable, Sendable {
-    let latitude: Double?
-    let longitude: Double?
+    public let latitude: Double?
+    public let longitude: Double?
 }
 extension FSQGeocodePoint: CustomStringConvertible {
     public var description: String { "FSQGeocodePoint(latitude: \(stringify(latitude)), longitude: \(stringify(longitude)))" }
@@ -59,8 +59,8 @@ extension FSQGeocodePoint: JSONRepresentable {
 }
 
 public struct FSQGeocodes: Codable, Sendable {
-    let main: FSQGeocodePoint?
-    let roof: FSQGeocodePoint?
+    public let main: FSQGeocodePoint?
+    public let roof: FSQGeocodePoint?
 }
 extension FSQGeocodes: JSONRepresentable {
     func toJSON() -> [String: Any] {
@@ -321,12 +321,12 @@ extension FSQAutocompleteResponse: JSONRepresentable {
 }
 
 public struct FSQPhoto: Codable, Sendable {
-    let id: String?
-    let created_at: String?
-    let prefix: String?
-    let suffix: String?
-    let width: Int?
-    let height: Int?
+    public let id: String?
+    public let created_at: String?
+    public let prefix: String?
+    public let suffix: String?
+    public let width: Int?
+    public let height: Int?
 }
 extension FSQPhoto: CustomStringConvertible {
     public var description: String {
@@ -355,9 +355,9 @@ extension FSQPhoto: JSONRepresentable {
 public typealias FSQPhotosResponse = [FSQPhoto]
 
 public struct FSQTip: Codable, Sendable {
-    let id: String?
-    let text: String?
-    let created_at: String?
+    public let id: String?
+    public let text: String?
+    public let created_at: String?
 }
 extension FSQTip: CustomStringConvertible {
     public var description: String {
